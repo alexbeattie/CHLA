@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source:*)",
+      "Bash(python manage.py startapp:*)",
+      "Bash(pip install:*)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(npm init:*)"
+    ],
+    "deny": []
+  }
+}
