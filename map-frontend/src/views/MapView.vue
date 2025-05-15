@@ -5,6 +5,32 @@
       <div class="sidebar">
         <h3 class="mb-3">Location Finder</h3>
 
+        <!-- Display Type Selector -->
+        <div class="mb-3">
+          <div class="btn-group w-100 d-flex">
+            <button
+              class="btn flex-grow-1"
+              :class="{
+                'btn-primary': displayType === 'regionalCenters',
+                'btn-outline-primary': displayType !== 'regionalCenters',
+              }"
+              @click="setDisplayType('regionalCenters')"
+            >
+              Centers
+            </button>
+            <button
+              class="btn flex-grow-1"
+              :class="{
+                'btn-primary': displayType === 'providers',
+                'btn-outline-primary': displayType !== 'providers',
+              }"
+              @click="setDisplayType('providers')"
+            >
+              Providers
+            </button>
+          </div>
+        </div>
+
         <!-- User Information Panel -->
         <user-info-panel
           :user-data="userData"
@@ -40,25 +66,11 @@
         <div class="filter-group mb-3">
           <h5>Filters</h5>
 
-          <!-- Category Filter -->
-          <div class="mb-2">
-            <label class="form-label">Category</label>
-            <select v-model="selectedCategory" class="form-select">
-              <option value="">All Categories</option>
-              <option
-                v-for="category in categories"
-                :key="category?.id || 'none'"
-                :value="category?.id"
-                v-if="category && category.id"
-              >
-                {{ category?.name || "Unknown" }}
-              </option>
-            </select>
-          </div>
+          <!-- We've removed the Category Filter as it's not relevant for providers -->
 
           <!-- Radius Filter (when geolocation is available) -->
           <div class="mb-2" v-if="userLocation.latitude && userLocation.longitude">
-            <label class="form-label">Distance Radius: {{ radius }}km</label>
+            <label class="form-label">Distance Radius: {{ radius }} miles</label>
             <input
               type="range"
               v-model.number="radius"
@@ -77,11 +89,32 @@
 
         <!-- Results Section -->
         <div class="results-section">
-          <h5 class="results-title">Results ({{ filteredLocations.length }})</h5>
+          <h5 class="results-title">
+            {{
+              displayType === "locations"
+                ? "Locations"
+                : displayType === "regionalCenters"
+                ? "Regional Centers"
+                : "Providers"
+            }}
+            ({{
+              displayType === "locations"
+                ? filteredLocations.length
+                : displayType === "regionalCenters"
+                ? filteredRegionalCenters.length
+                : filteredProviders.length
+            }})
+          </h5>
 
           <!-- Location List -->
           <location-list
-            :locations="filteredLocations"
+            :locations="
+              displayType === 'locations'
+                ? filteredLocations
+                : displayType === 'regionalCenters'
+                ? filteredRegionalCenters
+                : filteredProviders
+            "
             :loading="loading"
             :error="error"
             :selected-location="selectedLocation"
@@ -117,8 +150,8 @@ import {
   sampleUserProfile,
 } from "@/assets/sampleData";
 
-// Flag to completely bypass API calls during development
-const USE_LOCAL_DATA_ONLY = true;
+// Flag to use actual API data instead of sample data
+const USE_LOCAL_DATA_ONLY = false;
 
 export default {
   name: "MapView",
@@ -131,12 +164,17 @@ export default {
 
   data() {
     return {
+      // Display type
+      displayType: "providers", // 'regionalCenters' or 'providers'
+
       // Map data
       map: null,
       markers: [],
 
       // Locations
       locations: [],
+      regionalCenters: [], // Array to store regional centers
+      providers: [], // Array to store providers
       selectedLocation: null,
 
       // Categories and filters
@@ -181,8 +219,232 @@ export default {
       );
     },
 
+    // Get the current data array based on display type
+    currentData() {
+      return this.displayType === "locations" ? this.locations : this.regionalCenters;
+    },
+
+    // Filtered regional centers with search, filter criteria, and user data applied
+    filteredRegionalCenters() {
+      if (this.displayType !== "regionalCenters" || !this.regionalCenters.length)
+        return [];
+
+      // Start with all centers
+      let filtered = this.regionalCenters;
+
+      // Apply text search filter
+      if (this.searchText && this.searchText.trim() !== "") {
+        console.log("Filtering regional centers with search:", this.searchText);
+        const searchLower = this.searchText.toLowerCase().trim();
+
+        filtered = filtered.filter((center) => {
+          // Check each field that exists and might contain the search text
+          for (const [key, value] of Object.entries(center)) {
+            // Skip null/undefined values and non-string values
+            if (value === null || value === undefined || typeof value !== "string") {
+              continue;
+            }
+
+            // Check if this field contains the search text
+            if (value.toLowerCase().includes(searchLower)) {
+              return true;
+            }
+          }
+
+          // If we got here, no match was found in any field
+          return false;
+        });
+
+        console.log(
+          `Found ${filtered.length} regional centers matching "${searchLower}"`
+        );
+      }
+
+      // Check if we have relevant user data to filter by
+      if (this.hasUserData) {
+        // If we have user address/location, prioritize by proximity
+        if (this.userLocation.latitude && this.userLocation.longitude) {
+          // Sort by distance (closest first)
+          filtered.sort((a, b) => {
+            const distA = a.distance || Number.MAX_VALUE;
+            const distB = b.distance || Number.MAX_VALUE;
+            return distA - distB;
+          });
+        }
+
+        // Add diagnosis-based priority markers (doesn't filter out, just annotates)
+        filtered = filtered.map((center) => {
+          const enhancedCenter = { ...center };
+
+          // Add recommendation flag based on client's diagnosis
+          if (this.userData.diagnosis) {
+            // Default recommendation level is 0
+            enhancedCenter.recommendationLevel = 0;
+
+            // Increase recommendation level for centers with matching services
+            // Age-based recommendations
+            if (this.userData.age) {
+              const age = parseInt(this.userData.age);
+
+              // Early intervention services for younger children
+              if (
+                age < 5 &&
+                center.service_area &&
+                center.service_area.toLowerCase().includes("early")
+              ) {
+                enhancedCenter.recommendationLevel += 2;
+              }
+
+              // School-age services
+              if (age >= 5 && age <= 21) {
+                enhancedCenter.recommendationLevel += 1;
+              }
+
+              // Adult services
+              if (
+                age > 21 &&
+                center.service_area &&
+                center.service_area.toLowerCase().includes("adult")
+              ) {
+                enhancedCenter.recommendationLevel += 2;
+              }
+            }
+
+            // Diagnosis-based recommendations
+            const diagnosisLower = this.userData.diagnosis.toLowerCase();
+
+            // Autism specific recommendations
+            if (diagnosisLower.includes("autism") || diagnosisLower === "autism") {
+              enhancedCenter.recommendationLevel += 2;
+              enhancedCenter.diagnosisMatch = true;
+            }
+
+            // Label centers with high recommendation levels
+            if (enhancedCenter.recommendationLevel >= 3) {
+              enhancedCenter.isHighlyRecommended = true;
+            }
+          }
+
+          return enhancedCenter;
+        });
+      }
+
+      return filtered;
+    },
+
+    filteredProviders() {
+      if (this.displayType !== "providers" || !this.providers.length) return [];
+
+      // Start with all providers
+      let filtered = this.providers;
+
+      // Apply text search filter
+      if (this.searchText && this.searchText.trim() !== "") {
+        console.log("Filtering providers with search:", this.searchText);
+        const searchLower = this.searchText.toLowerCase().trim();
+
+        filtered = filtered.filter((provider) => {
+          // Check each field that exists and might contain the search text
+          for (const [key, value] of Object.entries(provider)) {
+            // Skip null/undefined values and non-string values
+            if (value === null || value === undefined || typeof value !== "string") {
+              continue;
+            }
+
+            // Check if this field contains the search text
+            if (value.toLowerCase().includes(searchLower)) {
+              return true;
+            }
+          }
+
+          // If we got here, no match was found in any field
+          return false;
+        });
+
+        console.log(`Found ${filtered.length} providers matching "${searchLower}"`);
+      }
+
+      // Apply user data-based filtering if available
+      if (this.hasUserData) {
+        // Get user city/area if available from address
+        let userArea = "";
+        if (this.userData.address) {
+          // Extract city or area from address if possible
+          const addressParts = this.userData.address.split(",");
+          if (addressParts.length > 1) {
+            userArea = addressParts[1].trim().toLowerCase();
+          }
+        }
+
+        // Mark providers that cover the user's area
+        filtered = filtered.map((provider) => {
+          const enhancedProvider = { ...provider };
+
+          // Check if provider covers user's area
+          if (userArea && provider.coverage_areas) {
+            const coverageAreasLower = provider.coverage_areas.toLowerCase();
+            if (coverageAreasLower.includes(userArea)) {
+              enhancedProvider.servesUserArea = true;
+              enhancedProvider.recommendationLevel = 2;
+            }
+          }
+
+          // Add recommendation based on diagnosis
+          if (this.userData.diagnosis) {
+            const diagnosisLower = this.userData.diagnosis.toLowerCase();
+            enhancedProvider.recommendationLevel =
+              enhancedProvider.recommendationLevel || 0;
+
+            // Autism-specific providers for autism diagnosis
+            if (
+              (diagnosisLower.includes("autism") || diagnosisLower === "autism") &&
+              provider.name.toLowerCase().includes("autism")
+            ) {
+              enhancedProvider.recommendationLevel += 2;
+              enhancedProvider.diagnosisMatch = true;
+            }
+
+            // Age-based recommendations
+            if (this.userData.age) {
+              const age = parseInt(this.userData.age);
+
+              // Early intervention for young children
+              if (
+                age < 5 &&
+                (provider.name.toLowerCase().includes("early") ||
+                  provider.name.toLowerCase().includes("child"))
+              ) {
+                enhancedProvider.recommendationLevel += 1;
+              }
+
+              // Adult services for adults
+              if (age > 21 && provider.name.toLowerCase().includes("adult")) {
+                enhancedProvider.recommendationLevel += 1;
+              }
+            }
+
+            // Mark highly recommended providers
+            if (enhancedProvider.recommendationLevel >= 3) {
+              enhancedProvider.isHighlyRecommended = true;
+            }
+          }
+
+          return enhancedProvider;
+        });
+
+        // Sort by recommendation level if we have user data
+        filtered.sort((a, b) => {
+          const recA = a.recommendationLevel || 0;
+          const recB = b.recommendationLevel || 0;
+          return recB - recA; // Sort by highest recommendation first
+        });
+      }
+
+      return filtered;
+    },
+
     filteredLocations() {
-      if (!this.locations.length) return [];
+      if (this.displayType !== "locations" || !this.locations.length) return [];
 
       return this.locations.filter((location) => {
         // Category filter
@@ -214,8 +476,24 @@ export default {
   },
 
   watch: {
-    // Update markers when filtered locations change
+    // Update markers when filtered data changes
     filteredLocations: {
+      handler() {
+        this.$nextTick(() => {
+          this.updateMarkers();
+        });
+      },
+      deep: true,
+    },
+    filteredRegionalCenters: {
+      handler() {
+        this.$nextTick(() => {
+          this.updateMarkers();
+        });
+      },
+      deep: true,
+    },
+    filteredProviders: {
       handler() {
         this.$nextTick(() => {
           this.updateMarkers();
@@ -271,6 +549,518 @@ export default {
   },
 
   methods: {
+    // Set display type and handle data loading
+    setDisplayType(type) {
+      // Update display type
+      this.displayType = type;
+
+      // Ensure we have data for the selected type
+      if (type === "locations" && this.locations.length === 0) {
+        // If we're showing locations but don't have any loaded yet
+        if (this.userLocation.latitude && this.userLocation.longitude) {
+          this.fetchNearbyLocations();
+        } else {
+          this.fetchAllLocations();
+        }
+      } else if (type === "regionalCenters" && this.regionalCenters.length === 0) {
+        // If we're showing regional centers but don't have any loaded yet
+        this.fetchRegionalCenters();
+      } else if (type === "providers" && this.providers.length === 0) {
+        // If we're showing providers but don't have any loaded yet
+        this.fetchProviders();
+      }
+
+      // Update markers on the map
+      this.$nextTick(() => {
+        this.updateMarkers();
+      });
+    },
+
+    // Fetch providers from the API with filtering
+    async fetchProviders() {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        console.log("Fetching providers");
+
+        // Use sample data if configured to bypass API or for testing
+        if (USE_LOCAL_DATA_ONLY) {
+          // Create sample providers based on real data structure
+          const sampleProviders = [
+            {
+              id: 1,
+              name: "A & H BEHAVIORAL THERAPY",
+              phone: "909-665-7070, 818-823-1515",
+              coverage_areas:
+                "SAN FERNANDO VALLEY, SAN GABRIEL VALLEY, LONG BEACH, INGLEWOOD, COMPTON",
+              areas: [
+                "SAN FERNANDO VALLEY",
+                "SAN GABRIEL VALLEY",
+                "LONG BEACH",
+                "INGLEWOOD",
+                "COMPTON",
+              ],
+              age_groups_served: "0-5, 6-12, 13-18, 19+",
+              diagnoses_served: "Autism, ADHD, Learning Disabilities",
+              address: "123 Main St",
+              city: "Los Angeles",
+              state: "CA",
+              zip_code: "90001",
+              latitude: 34.05,
+              longitude: -118.25,
+            },
+            {
+              id: 2,
+              name: "A CHANGE IN TRAJECTORY, INC.",
+              phone: "818-235-1414",
+              coverage_areas:
+                "ANTELOPE VALLEY, CENTRAL LOS ANGELES, POMONA VALLEY, SAN FERNANDO VALLEY",
+              areas: [
+                "ANTELOPE VALLEY",
+                "CENTRAL LOS ANGELES",
+                "POMONA VALLEY",
+                "SAN FERNANDO VALLEY",
+              ],
+              age_groups_served: "6-12, 13-18, 19+",
+              diagnoses_served: "Autism, Developmental Delay",
+              address: "456 Center Blvd",
+              city: "Sherman Oaks",
+              state: "CA",
+              zip_code: "91423",
+              latitude: 34.15,
+              longitude: -118.45,
+            },
+            {
+              id: 3,
+              name: "ABA ENHANCEMENT INC.",
+              phone: "951-317-5950",
+              coverage_areas:
+                "LONG BEACH, LAKEWOOD, HUNTINGTON PARK, DOWNEY, PICO RIVERA, LA VERNE, CLAREMONT, DIAMOND BAR, POMONA",
+              areas: [
+                "LONG BEACH",
+                "LAKEWOOD",
+                "HUNTINGTON PARK",
+                "DOWNEY",
+                "PICO RIVERA",
+                "LA VERNE",
+                "CLAREMONT",
+                "DIAMOND BAR",
+                "POMONA",
+              ],
+              age_groups_served: "0-5, 6-12",
+              diagnoses_served: "Autism, Speech Delay, Sensory Processing",
+              address: "789 Broadway",
+              city: "Long Beach",
+              state: "CA",
+              zip_code: "90802",
+              latitude: 33.77,
+              longitude: -118.19,
+            },
+            {
+              id: 4,
+              name: "AUTISM BEHAVIOR INTERVENTION",
+              phone: "844-423-8872",
+              coverage_areas:
+                "CENTRAL LOS ANGELES, HOLLYWOOD-WILSHIRE, SOUTH CENTRAL LOS ANGELES, SOUTH EAST LOS ANGELES",
+              areas: [
+                "CENTRAL LOS ANGELES",
+                "HOLLYWOOD-WILSHIRE",
+                "SOUTH CENTRAL LOS ANGELES",
+                "SOUTH EAST LOS ANGELES",
+              ],
+              age_groups_served: "0-5, 6-12, 13-18",
+              diagnoses_served: "Autism, Social Communication Disorder",
+              address: "1010 Wilshire Blvd",
+              city: "Los Angeles",
+              state: "CA",
+              zip_code: "90017",
+              latitude: 34.05,
+              longitude: -118.26,
+            },
+            {
+              id: 5,
+              name: "AUTISM LEARNING PARTNERS",
+              phone: "855-295-3276",
+              coverage_areas:
+                "FOOTHILL, PASADENA, GLENDALE, SANTA CLARITA, SAN FERNANDO VALLEY, WEST LA",
+              areas: [
+                "FOOTHILL",
+                "PASADENA",
+                "GLENDALE",
+                "SANTA CLARITA",
+                "SAN FERNANDO VALLEY",
+                "WEST LA",
+              ],
+              age_groups_served: "0-5, 6-12, 13-18, 19+",
+              diagnoses_served: "Autism, ADHD, Behavioral Challenges",
+              address: "200 S Los Robles Ave",
+              city: "Pasadena",
+              state: "CA",
+              zip_code: "91101",
+              latitude: 34.14,
+              longitude: -118.14,
+            },
+          ];
+
+          // Perform local filtering based on user data
+          let filtered = [...sampleProviders];
+
+          // Filter by diagnosis if available
+          if (this.userData.diagnosis) {
+            const diagnosis = this.userData.diagnosis.toLowerCase();
+            filtered = filtered.filter(
+              (provider) =>
+                provider.diagnoses_served &&
+                provider.diagnoses_served.toLowerCase().includes(diagnosis)
+            );
+          }
+
+          // Filter by age if available
+          if (this.userData.age) {
+            const age = parseInt(this.userData.age);
+            if (!isNaN(age)) {
+              filtered = filtered.filter((provider) => {
+                if (!provider.age_groups_served) return false;
+
+                const ageRanges = provider.age_groups_served.split(",");
+                return ageRanges.some((range) => {
+                  range = range.trim();
+                  if (range.includes("-")) {
+                    const [min, max] = range
+                      .split("-")
+                      .map((n) => n.replace("+", "").trim());
+                    const minAge = parseInt(min);
+                    const maxAge = max.includes("+") ? 100 : parseInt(max);
+                    return age >= minAge && age <= maxAge;
+                  } else if (range.includes("+")) {
+                    const minAge = parseInt(range.replace("+", "").trim());
+                    return age >= minAge;
+                  }
+                  return false;
+                });
+              });
+            }
+          }
+
+          // Add distance property if user location is available
+          if (this.userLocation.latitude && this.userLocation.longitude) {
+            // For sample data, we'll calculate actual distances
+            filtered = filtered.map((provider) => {
+              // Calculate distance using Haversine formula
+              const userLat = this.userLocation.latitude;
+              const userLng = this.userLocation.longitude;
+              const providerLat = provider.latitude;
+              const providerLng = provider.longitude;
+
+              // Convert to radians
+              const lat1 = (userLat * Math.PI) / 180;
+              const lng1 = (userLng * Math.PI) / 180;
+              const lat2 = (providerLat * Math.PI) / 180;
+              const lng2 = (providerLng * Math.PI) / 180;
+
+              // Haversine formula
+              const dlng = lng2 - lng1;
+              const dlat = lat2 - lat1;
+              const a =
+                Math.sin(dlat / 2) ** 2 +
+                Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng / 2) ** 2;
+              const c = 2 * Math.asin(Math.sqrt(a));
+              const distance = 3959 * c; // Earth's radius in miles * c
+
+              return {
+                ...provider,
+                distance: parseFloat(distance.toFixed(1)),
+              };
+            });
+
+            // Filter by radius
+            filtered = filtered.filter((provider) => provider.distance <= this.radius);
+
+            // Sort by distance
+            filtered.sort((a, b) => a.distance - b.distance);
+          }
+
+          this.providers = filtered;
+          console.log(`Loaded ${this.providers.length} sample providers`);
+          this.loading = false;
+          return;
+        }
+
+        // Otherwise try to fetch from API with proper filtering
+        try {
+          let url = "/api/providers/";
+          const params = {};
+
+          // If we have user location, fetch nearby providers
+          if (this.userLocation.latitude && this.userLocation.longitude) {
+            url = "/api/providers/nearby/";
+            params.lat = this.userLocation.latitude;
+            params.lng = this.userLocation.longitude;
+            params.radius = this.radius;
+
+            // Add age filter if available
+            if (this.userData.age) {
+              params.age = this.userData.age;
+            }
+
+            // Add diagnosis filter if available
+            if (this.userData.diagnosis) {
+              params.diagnosis = this.userData.diagnosis;
+            }
+          }
+          // If we have diagnosis but no location, fetch by diagnosis
+          else if (this.userData.diagnosis) {
+            url = "/api/providers/by_diagnosis/";
+            params.diagnosis = this.userData.diagnosis;
+          }
+          // If we have age but no location, fetch by age group
+          else if (this.userData.age) {
+            url = "/api/providers/by_age_group/";
+            params.age = this.userData.age;
+          }
+
+          const response = await axios.get(url, { params });
+
+          console.log("Providers API response:", response.data);
+
+          // Check if response has expected format
+          if (response.data && response.data.error) {
+            console.error("API returned error:", response.data.error);
+            throw new Error(response.data.error);
+          } else if (response.data && response.data.results) {
+            this.providers = response.data.results;
+          } else if (Array.isArray(response.data)) {
+            this.providers = response.data;
+          } else {
+            console.error("Unexpected API response format:", response.data);
+            throw new Error("Unexpected API response format");
+          }
+        } catch (apiError) {
+          console.error(
+            "Error fetching providers from API, using sample data:",
+            apiError
+          );
+
+          // Fallback to sample data - simplified version
+          this.providers = [
+            {
+              id: 1,
+              name: "A & H BEHAVIORAL THERAPY",
+              phone: "909-665-7070, 818-823-1515",
+              coverage_areas:
+                "SAN FERNANDO VALLEY, SAN GABRIEL VALLEY, LONG BEACH, INGLEWOOD, COMPTON",
+              age_groups_served: "0-5, 6-12, 13-18, 19+",
+              diagnoses_served: "Autism, ADHD, Learning Disabilities",
+            },
+            {
+              id: 2,
+              name: "A CHANGE IN TRAJECTORY, INC.",
+              phone: "818-235-1414",
+              coverage_areas:
+                "ANTELOPE VALLEY, CENTRAL LOS ANGELES, POMONA VALLEY, SAN FERNANDO VALLEY",
+              age_groups_served: "6-12, 13-18, 19+",
+              diagnoses_served: "Autism, Developmental Delay",
+            },
+            {
+              id: 3,
+              name: "ABA ENHANCEMENT INC.",
+              phone: "951-317-5950",
+              coverage_areas:
+                "LONG BEACH, LAKEWOOD, HUNTINGTON PARK, DOWNEY, PICO RIVERA, LA VERNE, CLAREMONT, DIAMOND BAR, POMONA",
+              age_groups_served: "0-5, 6-12",
+              diagnoses_served: "Autism, Speech Delay, Sensory Processing",
+            },
+          ];
+        }
+
+        console.log(`Retrieved ${this.providers.length} providers`);
+        this.loading = false;
+      } catch (error) {
+        console.error("Error in fetchProviders method:", error);
+        this.loading = false;
+        this.error = "Failed to load providers";
+      }
+    },
+
+    async fetchRegionalCenters() {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        console.log("Fetching regional centers");
+
+        // Use sample data if configured to bypass API
+        if (USE_LOCAL_DATA_ONLY) {
+          // Create some sample regional centers data for testing
+          const sampleRegionalCenters = [
+            {
+              id: 1,
+              name: "Southern California Regional Center",
+              address: "2000 E Imperial Hwy",
+              city: "Los Angeles",
+              state: "CA",
+              zip_code: "90059",
+              latitude: 33.9341,
+              longitude: -118.24,
+              description: "Serving Los Angeles County",
+              phone: "323-555-1000",
+              website: "https://example.com/scrc",
+              email: "info@scrc.example.com",
+              region: "Southern California",
+              service_area: "Los Angeles County and surrounding areas",
+            },
+            {
+              id: 2,
+              name: "Central Regional Center",
+              address: "1600 9th St",
+              city: "Sacramento",
+              state: "CA",
+              zip_code: "95814",
+              latitude: 38.5816,
+              longitude: -121.4944,
+              description: "Serving Sacramento County",
+              phone: "916-555-2000",
+              website: "https://example.com/crc",
+              email: "info@crc.example.com",
+              region: "Central California",
+              service_area: "Sacramento County and surrounding areas",
+            },
+            {
+              id: 3,
+              name: "Northern California Regional Center",
+              address: "900 Lafayette St",
+              city: "Santa Clara",
+              state: "CA",
+              zip_code: "95050",
+              latitude: 37.3541,
+              longitude: -121.9552,
+              description: "Serving Santa Clara County",
+              phone: "408-555-3000",
+              website: "https://example.com/ncrc",
+              email: "info@ncrc.example.com",
+              region: "Northern California",
+              service_area: "Santa Clara County and surrounding areas",
+            },
+          ];
+
+          // If we have user location, calculate distances
+          if (this.userLocation.latitude && this.userLocation.longitude) {
+            this.regionalCenters = sampleRegionalCenters.map((center) => {
+              const userLat = this.userLocation.latitude;
+              const userLng = this.userLocation.longitude;
+              const centerLat = center.latitude;
+              const centerLng = center.longitude;
+
+              // Simple distance calculation (rough approximation)
+              const distance = Math.sqrt(
+                Math.pow((centerLat - userLat) * 111, 2) +
+                  Math.pow(
+                    (centerLng - userLng) * 111 * Math.cos(userLat * (Math.PI / 180)),
+                    2
+                  )
+              ).toFixed(1);
+
+              return {
+                ...center,
+                distance: parseFloat(distance),
+              };
+            });
+          } else {
+            this.regionalCenters = sampleRegionalCenters;
+          }
+
+          console.log(`Loaded ${this.regionalCenters.length} sample regional centers`);
+          this.loading = false;
+          return;
+        }
+
+        // Otherwise try to fetch from API with fallback
+        try {
+          const response = await axios.get("/api/regional-centers/");
+
+          console.log("Regional centers API response:", response.data);
+
+          // Check if response is paginated or has error
+          if (response.data && response.data.error) {
+            console.error("API returned error:", response.data.error);
+            throw new Error(response.data.error);
+          } else if (response.data && response.data.results) {
+            this.regionalCenters = response.data.results;
+          } else if (Array.isArray(response.data)) {
+            this.regionalCenters = response.data;
+          } else {
+            console.error("Unexpected API response format:", response.data);
+            throw new Error("Unexpected API response format");
+          }
+        } catch (apiError) {
+          console.error(
+            "Error fetching regional centers from API, using sample data:",
+            apiError
+          );
+
+          // Create fallback sample data
+          this.regionalCenters = [
+            {
+              id: 1,
+              name: "Southern California Regional Center",
+              address: "2000 E Imperial Hwy",
+              city: "Los Angeles",
+              state: "CA",
+              zip_code: "90059",
+              latitude: 33.9341,
+              longitude: -118.24,
+              description: "Serving Los Angeles County",
+              phone: "323-555-1000",
+              website: "https://example.com/scrc",
+              email: "info@scrc.example.com",
+              region: "Southern California",
+              service_area: "Los Angeles County and surrounding areas",
+            },
+            {
+              id: 2,
+              name: "Central Regional Center",
+              address: "1600 9th St",
+              city: "Sacramento",
+              state: "CA",
+              zip_code: "95814",
+              latitude: 38.5816,
+              longitude: -121.4944,
+              description: "Serving Sacramento County",
+              phone: "916-555-2000",
+              website: "https://example.com/crc",
+              email: "info@crc.example.com",
+              region: "Central California",
+              service_area: "Sacramento County and surrounding areas",
+            },
+            {
+              id: 3,
+              name: "Northern California Regional Center",
+              address: "900 Lafayette St",
+              city: "Santa Clara",
+              state: "CA",
+              zip_code: "95050",
+              latitude: 37.3541,
+              longitude: -121.9552,
+              description: "Serving Santa Clara County",
+              phone: "408-555-3000",
+              website: "https://example.com/ncrc",
+              email: "info@ncrc.example.com",
+              region: "Northern California",
+              service_area: "Santa Clara County and surrounding areas",
+            },
+          ];
+        }
+
+        console.log(`Retrieved ${this.regionalCenters.length} regional centers`);
+        this.loading = false;
+      } catch (error) {
+        console.error("Error in fetchRegionalCenters method:", error);
+        this.loading = false;
+        this.error = "Failed to load regional centers";
+      }
+    },
+
     // Map initialization
     initMap() {
       // Set Mapbox access token from environment variables or use fallback
@@ -588,7 +1378,20 @@ export default {
 
     // Map markers management
     updateMarkers() {
-      console.log(`Updating markers for ${this.filteredLocations.length} locations`);
+      // Get the appropriate data based on display type
+      let items = [];
+      if (this.displayType === "locations") {
+        items = this.filteredLocations;
+      } else if (this.displayType === "regionalCenters") {
+        items = this.filteredRegionalCenters;
+      } else if (this.displayType === "providers") {
+        // Filter providers that have coordinates
+        items = this.filteredProviders.filter(
+          (provider) => provider.latitude && provider.longitude
+        );
+      }
+
+      console.log(`Updating markers for ${items.length} ${this.displayType}`);
 
       // Remove existing markers
       this.markers.forEach((marker) => {
@@ -600,22 +1403,20 @@ export default {
       });
       this.markers = [];
 
-      // Add markers for filtered locations
-      this.filteredLocations.forEach((location) => {
+      // Add markers for filtered items (locations or regional centers)
+      items.forEach((item) => {
         try {
           // Skip if no coordinates
-          if (!location.latitude || !location.longitude) {
-            console.warn(
-              `Location ${location.id} is missing coordinates, skipping marker`
-            );
+          if (!item.latitude || !item.longitude) {
+            console.warn(`Item ${item.id} is missing coordinates, skipping marker`);
             return;
           }
 
           // Parse coordinates safely
           let lat, lng;
           try {
-            lat = parseFloat(location.latitude);
-            lng = parseFloat(location.longitude);
+            lat = parseFloat(item.latitude);
+            lng = parseFloat(item.longitude);
 
             // Check for valid coordinates
             if (
@@ -626,41 +1427,141 @@ export default {
               lng < -180 ||
               lng > 180
             ) {
-              console.warn(
-                `Location ${location.id} has invalid coordinates: ${lat}, ${lng}`
-              );
+              console.warn(`Item ${item.id} has invalid coordinates: ${lat}, ${lng}`);
               return;
             }
           } catch (e) {
-            console.error(`Error parsing coordinates for location ${location.id}:`, e);
+            console.error(`Error parsing coordinates for item ${item.id}:`, e);
             return;
           }
 
-          // Get rating stars
-          const stars = "★".repeat(Math.round(location.rating || 0));
-          const emptyStars = "☆".repeat(5 - Math.round(location.rating || 0));
+          // Get rating stars for locations
+          let ratingDisplay = "";
+          if (this.displayType === "locations" && item.rating) {
+            const stars = "★".repeat(Math.round(item.rating || 0));
+            const emptyStars = "☆".repeat(5 - Math.round(item.rating || 0));
+            ratingDisplay = `<p><span style="color: gold;">${stars}${emptyStars}</span></p>`;
+          }
 
-          // Create popup content
+          // Check if this is a recommended item based on user data
+          const isRecommended = item.recommendationLevel && item.recommendationLevel > 0;
+          const isHighlyRecommended = item.isHighlyRecommended;
+          const matchesDiagnosis = item.diagnosisMatch;
+          const servesUserArea = item.servesUserArea;
+
+          // Create recommendation badge if applicable
+          let recommendationBadge = "";
+          if (isHighlyRecommended) {
+            recommendationBadge = `<div style="background-color: #28a745; color: white; padding: 2px 5px; border-radius: 3px; display: inline-block; margin-bottom: 5px; font-size: 12px;">Highly Recommended</div>`;
+          } else if (isRecommended) {
+            recommendationBadge = `<div style="background-color: #17a2b8; color: white; padding: 2px 5px; border-radius: 3px; display: inline-block; margin-bottom: 5px; font-size: 12px;">Recommended</div>`;
+          }
+
+          // Add diagnosis match badge if applicable
+          let diagnosisBadge = "";
+          if (matchesDiagnosis) {
+            diagnosisBadge = `<div style="background-color: #dc3545; color: white; padding: 2px 5px; border-radius: 3px; display: inline-block; margin-bottom: 5px; margin-left: 5px; font-size: 12px;">Matches Diagnosis</div>`;
+          }
+
+          // Add service area badge if applicable
+          let areaBadge = "";
+          if (servesUserArea) {
+            areaBadge = `<div style="background-color: #6c757d; color: white; padding: 2px 5px; border-radius: 3px; display: inline-block; margin-bottom: 5px; margin-left: 5px; font-size: 12px;">Serves Your Area</div>`;
+          }
+
+          // Create popup content with recommendation information
           const popupContent = `
-            <div style="min-width: 200px; padding: 5px;">
-              <h5>${location.name || "Unnamed Location"}</h5>
-              <p>${location.address || ""}, ${location.city || ""}</p>
-              <p><span style="color: gold;">${stars}${emptyStars}</span></p>
+            <div style="min-width: 250px; padding: 10px;">
+              <div style="display: flex; flex-wrap: wrap;">
+                ${recommendationBadge}
+                ${diagnosisBadge}
+                ${areaBadge}
+              </div>
+              <h5>${
+                this.displayType === "regionalCenters"
+                  ? item.regional_center || "Unnamed Center"
+                  : item.name || "Unnamed Item"
+              }</h5>
+              <p>${item.address || ""}, ${item.city || ""}</p>
+              ${ratingDisplay}
+              ${
+                this.displayType === "regionalCenters" && item.county_served
+                  ? `<p>County: ${item.county_served}</p>`
+                  : ""
+              }
+              ${
+                this.displayType === "regionalCenters" && item.office_type
+                  ? `<p>Office: ${item.office_type}</p>`
+                  : ""
+              }
+              ${item.distance ? `<p>Distance: ${item.distance.toFixed(1)} miles</p>` : ""}
+              ${
+                this.userData.diagnosis && this.displayType === "regionalCenters"
+                  ? `<p><strong>Services for ${this.userData.diagnosis}:</strong> ${
+                      matchesDiagnosis ? "Yes" : "General services"
+                    }</p>`
+                  : ""
+              }
+              ${
+                this.userData.age &&
+                this.displayType === "regionalCenters" &&
+                item.recommendationLevel > 0
+                  ? `<p><strong>Age-appropriate services:</strong> Yes</p>`
+                  : ""
+              }
             </div>
           `;
 
           // Create popup
           const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
 
-          // Create marker with color based on category
+          // Create marker with color based on category and recommendation level
           const el = document.createElement("div");
           el.className = "marker";
-          el.style.backgroundColor = this.getCategoryColor(location.category);
-          el.style.width = "20px";
-          el.style.height = "20px";
+
+          // Enhanced marker style based on recommendation level
+          if (this.displayType === "regionalCenters") {
+            if (isHighlyRecommended) {
+              // Highly recommended regional centers (green with animation)
+              el.style.backgroundColor = "#28a745"; // Green
+              el.style.width = "24px";
+              el.style.height = "24px";
+              el.style.animation = "pulse 1.5s infinite";
+            } else if (isRecommended) {
+              // Recommended regional centers (light blue)
+              el.style.backgroundColor = "#17a2b8"; // Cyan
+              el.style.width = "22px";
+              el.style.height = "22px";
+            } else {
+              // Standard regional centers (purple)
+              el.style.backgroundColor = "#8A2BE2"; // Purple
+              el.style.width = "20px";
+              el.style.height = "20px";
+            }
+          } else {
+            // Regular locations use category colors
+            el.style.backgroundColor = this.getCategoryColor(item.category);
+            el.style.width = "20px";
+            el.style.height = "20px";
+          }
+
+          // Common styles
           el.style.borderRadius = "50%";
           el.style.border = "2px solid white";
           el.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
+
+          // Add pulse animation style for highly recommended items
+          if (isHighlyRecommended) {
+            const styleElement = document.createElement("style");
+            styleElement.textContent = `
+              @keyframes pulse {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.2); opacity: 0.9; }
+                100% { transform: scale(1); opacity: 1; }
+              }
+            `;
+            document.head.appendChild(styleElement);
+          }
 
           // Create marker
           const marker = new mapboxgl.Marker(el)
@@ -670,14 +1571,14 @@ export default {
 
           // Add click event to marker
           marker.getElement().addEventListener("click", () => {
-            this.selectLocation(location);
+            this.selectLocation(item);
           });
 
-          // Store marker and location data together
-          marker.locationId = location.id;
+          // Store marker and item data together
+          marker.locationId = item.id;
           this.markers.push(marker);
         } catch (e) {
-          console.error(`Error creating marker for location ${location.id}:`, e);
+          console.error(`Error creating marker for item ${item.id}:`, e);
         }
       });
 
@@ -687,10 +1588,11 @@ export default {
           const bounds = new mapboxgl.LngLatBounds();
           let boundsAdded = false;
 
-          this.filteredLocations.forEach((location) => {
+          // Use the same items array we used for adding markers
+          items.forEach((item) => {
             try {
-              const lat = parseFloat(location.latitude);
-              const lng = parseFloat(location.longitude);
+              const lat = parseFloat(item.latitude);
+              const lng = parseFloat(item.longitude);
 
               if (
                 !isNaN(lat) &&
@@ -704,7 +1606,7 @@ export default {
                 boundsAdded = true;
               }
             } catch (e) {
-              console.warn(`Error adding location ${location.id} to bounds:`, e);
+              console.warn(`Error adding item ${item.id} to bounds:`, e);
             }
           });
 

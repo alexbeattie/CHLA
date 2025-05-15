@@ -1,0 +1,207 @@
+# Generated manually
+
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('locations', '0006_provider_location_fields'),
+    ]
+
+    operations = [
+        # 1. Add PostGIS extension
+        migrations.RunSQL(
+            "CREATE EXTENSION IF NOT EXISTS postgis;",
+            "DROP EXTENSION IF EXISTS postgis;"
+        ),
+        
+        # 2. Create funding sources table
+        migrations.CreateModel(
+            name='FundingSource',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=100, unique=True)),
+                ('description', models.TextField(blank=True, null=True)),
+            ],
+        ),
+        
+        # 3. Create insurance carriers table
+        migrations.CreateModel(
+            name='InsuranceCarrier',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=100, unique=True)),
+                ('description', models.TextField(blank=True, null=True)),
+            ],
+        ),
+        
+        # 4. Create service delivery models table
+        migrations.CreateModel(
+            name='ServiceDeliveryModel',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=100, unique=True)),
+                ('description', models.TextField(blank=True, null=True)),
+            ],
+        ),
+        
+        # 5. Enhance providers table with new fields
+        migrations.AddField(
+            model_name='provider',
+            name='accepts_insurance',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='provider',
+            name='accepts_private_pay',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='provider',
+            name='accepts_regional_center',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='provider',
+            name='accepts_school_funding',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='provider',
+            name='application_process',
+            field=models.TextField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name='provider',
+            name='eligibility_requirements',
+            field=models.TextField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name='provider',
+            name='regional_centers_served',
+            field=models.TextField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name='provider',
+            name='telehealth_available',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='provider',
+            name='waiting_list',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='provider',
+            name='waiting_list_time',
+            field=models.CharField(blank=True, max_length=100, null=True),
+        ),
+        
+        # 6. Create linking tables
+        migrations.CreateModel(
+            name='ProviderFundingSource',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('funding_source', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='locations.fundingsource')),
+                ('provider', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='locations.provider')),
+            ],
+            options={
+                'unique_together': {('provider', 'funding_source')},
+            },
+        ),
+        migrations.CreateModel(
+            name='ProviderInsuranceCarrier',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('insurance_carrier', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='locations.insurancecarrier')),
+                ('provider', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='locations.provider')),
+            ],
+            options={
+                'unique_together': {('provider', 'insurance_carrier')},
+            },
+        ),
+        migrations.CreateModel(
+            name='ProviderServiceModel',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('provider', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='locations.provider')),
+                ('service_model', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='locations.servicedeliverymodel')),
+            ],
+            options={
+                'unique_together': {('provider', 'service_model')},
+            },
+        ),
+        
+        # 7. Add GeoDjango point field to Provider model
+        migrations.RunSQL(
+            "ALTER TABLE providers ADD COLUMN IF NOT EXISTS location geography(POINT, 4326);",
+            "ALTER TABLE providers DROP COLUMN IF EXISTS location;"
+        ),
+        
+        # 8. Create spatial index on providers location
+        migrations.RunSQL(
+            "CREATE INDEX IF NOT EXISTS idx_providers_location ON providers USING GIST(location);",
+            "DROP INDEX IF EXISTS idx_providers_location;"
+        ),
+        
+        # 9. Add SQL function to update provider location
+        migrations.RunSQL(
+            """
+            CREATE OR REPLACE FUNCTION update_provider_location()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                IF NEW.latitude IS NOT NULL AND NEW.longitude IS NOT NULL THEN
+                    NEW.location = ST_SetSRID(ST_MakePoint(NEW.longitude, NEW.latitude), 4326)::geography;
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+            """,
+            "DROP FUNCTION IF EXISTS update_provider_location();"
+        ),
+        
+        # 10. Create trigger on providers table
+        migrations.RunSQL(
+            """
+            CREATE TRIGGER trigger_update_provider_location
+            BEFORE INSERT OR UPDATE ON providers
+            FOR EACH ROW
+            EXECUTE FUNCTION update_provider_location();
+            """,
+            "DROP TRIGGER IF EXISTS trigger_update_provider_location ON providers;"
+        ),
+        
+        # 11. Populate reference tables with initial data
+        migrations.RunSQL(
+            """
+            INSERT INTO locations_fundingsource (name, description) VALUES
+            ('Private Pay', 'Services paid directly by families'),
+            ('Regional Center', 'Services funded through California Regional Centers'),
+            ('School/IEP', 'Services provided through school district and IEP'),
+            ('Insurance', 'Services covered by health insurance plans')
+            ON CONFLICT (name) DO NOTHING;
+            
+            INSERT INTO locations_insurancecarrier (name) VALUES
+            ('Anthem Blue Cross'),
+            ('Blue Shield of California'),
+            ('Cigna'),
+            ('Aetna'),
+            ('Magellan Health Services'),
+            ('United Behavioral Health'),
+            ('LifeSynch'),
+            ('Humana')
+            ON CONFLICT (name) DO NOTHING;
+            
+            INSERT INTO locations_servicedeliverymodel (name, description) VALUES
+            ('Center-Based', 'Services provided at the provider''s facility'),
+            ('Home-Based', 'Services provided in the client''s home'),
+            ('School-Based', 'Services provided at the client''s school'),
+            ('Telehealth', 'Services provided remotely via video conferencing')
+            ON CONFLICT (name) DO NOTHING;
+            """,
+            # No rollback SQL needed for data insertion
+            ""
+        ),
+    ]

@@ -4,39 +4,81 @@
       Results
       <span class="badge bg-primary">{{ locations.length }}</span>
     </h5>
-    
+
     <div v-if="loading" class="text-center my-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
       <p>Loading locations...</p>
     </div>
-    
+
     <div v-else-if="error" class="alert alert-danger">
       {{ error }}
     </div>
-    
+
     <div v-else-if="locations.length === 0" class="text-center my-4">
       No locations match your criteria.
     </div>
-    
+
     <div v-else class="location-list">
-      <div 
-        v-for="location in locations" 
+      <div
+        v-for="location in locations"
         :key="location.id"
         class="location-item"
-        :class="{ active: selectedLocation && selectedLocation.id === location.id }"
+        :class="{
+          active: selectedLocation && selectedLocation.id === location.id,
+          recommended: location.recommendationLevel > 0,
+          'highly-recommended': location.isHighlyRecommended,
+        }"
         @click="$emit('select', location)"
       >
-        <h5 class="mb-1">{{ location.name }}</h5>
-        <p class="mb-1 small">{{ location.address }}, {{ location.city }}</p>
-        <div class="d-flex justify-content-between">
+        <!-- Recommendation Badges -->
+        <div
+          v-if="
+            location.isHighlyRecommended ||
+            location.recommendationLevel > 0 ||
+            location.diagnosisMatch ||
+            location.servesUserArea
+          "
+          class="badges-container mb-1"
+        >
+          <span v-if="location.isHighlyRecommended" class="badge bg-success me-1"
+            >Highly Recommended</span
+          >
+          <span v-else-if="location.recommendationLevel > 0" class="badge bg-info me-1"
+            >Recommended</span
+          >
+          <span v-if="location.diagnosisMatch" class="badge bg-danger me-1"
+            >Matches Diagnosis</span
+          >
+          <span v-if="location.servesUserArea" class="badge bg-secondary me-1"
+            >Serves Your Area</span
+          >
+        </div>
+
+        <!-- Location Name -->
+        <h5 class="mb-1">
+          {{ location.name || location.regional_center || "Unnamed Location" }}
+        </h5>
+
+        <!-- Location Address -->
+        <p class="mb-1 small">
+          {{ location.address || "" }}{{ location.city ? ", " + location.city : "" }}
+        </p>
+
+        <!-- Ratings (for locations only) -->
+        <div v-if="location.rating" class="d-flex justify-content-between">
           <small class="star-rating">
-            {{ '★'.repeat(Math.round(location.rating)) }}{{ '☆'.repeat(5 - Math.round(location.rating)) }}
+            {{ "★".repeat(Math.round(location.rating))
+            }}{{ "☆".repeat(5 - Math.round(location.rating)) }}
           </small>
         </div>
+
+        <!-- Distance Badge -->
         <div v-if="location.distance" class="mt-1">
-          <span class="badge bg-info text-white">{{ location.distance.toFixed(1) }} km</span>
+          <span class="badge bg-info text-white"
+            >{{ location.distance.toFixed(1) }} miles</span
+          >
         </div>
       </div>
     </div>
@@ -45,27 +87,27 @@
 
 <script>
 export default {
-  name: 'LocationList',
-  
+  name: "LocationList",
+
   props: {
     locations: {
       type: Array,
-      required: true
+      required: true,
     },
     loading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     error: {
       type: String,
-      default: null
+      default: null,
     },
     selectedLocation: {
       type: Object,
-      default: null
-    }
-  }
-}
+      default: null,
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -89,7 +131,7 @@ export default {
   transition: all 0.2s ease-out;
   border: 1px solid #eee;
   background-color: white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   position: relative;
   user-select: none; /* Prevent text selection when tapping */
   touch-action: manipulation; /* Optimize for touch */
@@ -99,7 +141,7 @@ export default {
 .location-item:hover {
   background-color: #f8f9fa;
   transform: translateY(-1px);
-  box-shadow: 0 3px 5px rgba(0,0,0,0.08);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08);
 }
 
 .location-item:active {
@@ -111,7 +153,35 @@ export default {
   background-color: #007bff;
   color: white;
   border-color: #0069d9;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Recommended item styling */
+.location-item.recommended {
+  border-left: 3px solid #17a2b8;
+  padding-left: 10px;
+  background-color: #f8f9fa;
+}
+
+/* Highly recommended item styling */
+.location-item.highly-recommended {
+  border-left: 4px solid #28a745;
+  padding-left: 9px;
+  background-color: #f0fff4;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+/* Badges container */
+.badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* If both recommended and active */
+.location-item.active.recommended,
+.location-item.active.highly-recommended {
+  border-left-color: white;
 }
 
 .location-item h5 {
@@ -160,7 +230,7 @@ export default {
     padding-right: 3px; /* Less padding on mobile */
     margin-bottom: 10px; /* Less margin on mobile */
   }
-  
+
   .location-item {
     padding: 10px;
     margin-bottom: 8px;
@@ -173,17 +243,17 @@ export default {
   .location-list {
     max-height: 25vh;
   }
-  
+
   /* Slightly larger targets for touch on small screens */
   .location-item {
     padding: 10px;
     margin-bottom: 6px;
   }
-  
+
   .location-item h5 {
     font-size: 0.95rem;
   }
-  
+
   .location-item p {
     font-size: 0.85rem;
     margin-bottom: 3px;

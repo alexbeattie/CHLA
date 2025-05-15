@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',  # Added for GeoDjango support
     'rest_framework',
+    'rest_framework_gis',  # Added for GIS serializers
     'corsheaders',
     'django_filters',
     'graphene_django',
@@ -84,26 +86,18 @@ WSGI_APPLICATION = 'maplocation.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use SQLite for local development by default
+# Use PostgreSQL
 import os
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Changed to PostGIS backend
+        'NAME': os.environ.get('DB_NAME', 'maplocation'),
+        'USER': os.environ.get('DB_USER', 'alexbeattie'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'xela'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
-
-# PostgreSQL configuration (commented out for now)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('DB_NAME', 'maplocation'),
-#         'USER': os.environ.get('DB_USER', 'postgres'),
-#         'PASSWORD': os.environ.get('DB_PASSWORD', 'xela'),
-#         'HOST': os.environ.get('DB_HOST', 'localhost'),
-#         'PORT': os.environ.get('DB_PORT', '5432'),
-#     }
-# }
 
 
 # Password validation

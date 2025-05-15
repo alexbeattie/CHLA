@@ -1,0 +1,25 @@
+from django.db import migrations
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('locations', '0005_modify_provider_areas_field'),
+    ]
+
+    operations = [
+        migrations.RunSQL(
+            """
+            ALTER TABLE providers 
+            ADD COLUMN address VARCHAR(255) NULL,
+            ADD COLUMN city VARCHAR(100) NULL,
+            ADD COLUMN state VARCHAR(50) NULL,
+            ADD COLUMN zip_code VARCHAR(20) NULL,
+            ADD COLUMN latitude FLOAT NULL,
+            ADD COLUMN longitude FLOAT NULL,
+            ADD COLUMN website VARCHAR(200) NULL,
+            ADD COLUMN age_groups_served VARCHAR(100) NULL,
+            ADD COLUMN diagnoses_served TEXT NULL;
+            """
+        ),
+    ]
