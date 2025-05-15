@@ -1,9 +1,21 @@
 <template>
   <div class="map-app">
+    <!-- Funding Info Modal -->
+    <funding-info-panel :showModal="showFundingInfo" @close="toggleFundingInfo" />
+
     <!-- Sidebar (always on left) -->
     <div class="sidebar-container">
       <div class="sidebar">
-        <h3 class="mb-3">Location Finder</h3>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="mb-0">Location Finder</h3>
+          <button
+            class="btn btn-sm btn-outline-primary funding-info-btn"
+            @click="toggleFundingInfo"
+            title="Funding Information"
+          >
+            <i class="bi bi-info-circle"></i> Funding Info
+          </button>
+        </div>
 
         <!-- Display Type Selector -->
         <div class="mb-3">
@@ -54,12 +66,28 @@
 
         <!-- Search Box -->
         <div class="mb-3">
-          <input
-            type="text"
-            v-model="searchText"
-            class="form-control"
-            placeholder="Search locations..."
-          />
+          <div class="input-group">
+            <input
+              type="text"
+              v-model="searchText"
+              class="form-control"
+              placeholder="Search locations..."
+              @input="debounceSearch"
+            />
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              @click="searchText = ''"
+              v-if="searchText"
+              title="Clear search"
+            >
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+          <small class="text-muted mt-1" v-if="searchText">
+            <i class="bi bi-info-circle-fill me-1"></i>
+            Searching by name, address, and service details
+          </small>
         </div>
 
         <!-- Filter Section -->
@@ -70,7 +98,12 @@
 
           <!-- Radius Filter (when geolocation is available) -->
           <div class="mb-2" v-if="userLocation.latitude && userLocation.longitude">
-            <label class="form-label">Distance Radius: {{ radius }} miles</label>
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="form-label mb-0"
+                >Distance Radius: <strong>{{ radius }} miles</strong></label
+              >
+              <span class="badge bg-info">{{ countLocationsInRadius }} found</span>
+            </div>
             <input
               type="range"
               v-model.number="radius"
@@ -78,12 +111,55 @@
               min="1"
               max="50"
               step="1"
+              @change="updateFilteredLocations"
             />
+            <div class="d-flex justify-content-between">
+              <small>1 mile</small>
+              <small>50 miles</small>
+            </div>
+          </div>
+
+          <!-- Filter Options for Providers -->
+          <div v-if="displayType === 'providers'" class="mb-3">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="filterOptions.acceptsInsurance"
+                id="acceptsInsurance"
+              />
+              <label class="form-check-label" for="acceptsInsurance">
+                Accepts Insurance
+              </label>
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="filterOptions.acceptsRegionalCenter"
+                id="acceptsRegionalCenter"
+              />
+              <label class="form-check-label" for="acceptsRegionalCenter">
+                Accepts Regional Center
+              </label>
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="filterOptions.matchesDiagnosis"
+                id="matchesDiagnosis"
+                :disabled="!userData.diagnosis"
+              />
+              <label class="form-check-label" for="matchesDiagnosis">
+                Matches My Diagnosis
+              </label>
+            </div>
           </div>
 
           <!-- Reset Button -->
           <button @click="resetFilters" class="btn btn-secondary btn-sm w-100 mt-2">
-            Reset Filters
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
           </button>
         </div>
 
@@ -144,6 +220,7 @@ import mapboxgl from "mapbox-gl";
 import UserInfoPanel from "@/components/UserInfoPanel.vue";
 import LocationList from "@/components/LocationList.vue";
 import LocationDetail from "@/components/LocationDetail.vue";
+import FundingInfoPanel from "@/components/FundingInfoPanel.vue";
 import {
   sampleCategories,
   sampleLocations,
@@ -160,12 +237,26 @@ export default {
     UserInfoPanel,
     LocationList,
     LocationDetail,
+    FundingInfoPanel,
   },
 
   data() {
     return {
+      // Modal visibility
+      showFundingInfo: false,
+
       // Display type
       displayType: "providers", // 'regionalCenters' or 'providers'
+
+      // Filter options
+      filterOptions: {
+        acceptsInsurance: false,
+        acceptsRegionalCenter: false,
+        matchesDiagnosis: false,
+      },
+
+      // Search debounce
+      searchDebounce: null,
 
       // Map data
       map: null,
@@ -217,6 +308,17 @@ export default {
         (this.userData.address && this.userData.address !== "") ||
         (this.userData.diagnosis && this.userData.diagnosis !== "")
       );
+    },
+
+    // Count of locations within radius
+    countLocationsInRadius() {
+      if (this.displayType === "providers") {
+        return this.filteredProviders.length;
+      } else if (this.displayType === "regionalCenters") {
+        return this.filteredRegionalCenters.length;
+      } else {
+        return this.filteredLocations.length;
+      }
     },
 
     // Get the current data array based on display type
@@ -362,6 +464,23 @@ export default {
         });
 
         console.log(`Found ${filtered.length} providers matching "${searchLower}"`);
+      }
+
+      // Apply additional filter options
+      if (this.filterOptions.acceptsInsurance) {
+        filtered = filtered.filter((provider) => provider.accepts_insurance);
+      }
+
+      if (this.filterOptions.acceptsRegionalCenter) {
+        filtered = filtered.filter((provider) => provider.accepts_regional_center);
+      }
+
+      if (this.filterOptions.matchesDiagnosis && this.userData.diagnosis) {
+        filtered = filtered.filter((provider) => {
+          if (!provider.diagnoses_served) return false;
+          const diagnosisLower = this.userData.diagnosis.toLowerCase();
+          return provider.diagnoses_served.toLowerCase().includes(diagnosisLower);
+        });
       }
 
       // Apply user data-based filtering if available
@@ -549,6 +668,32 @@ export default {
   },
 
   methods: {
+    // Toggle funding info modal
+    toggleFundingInfo() {
+      this.showFundingInfo = !this.showFundingInfo;
+    },
+
+    // Debounce search to improve performance
+    debounceSearch() {
+      if (this.searchDebounce) {
+        clearTimeout(this.searchDebounce);
+      }
+
+      this.searchDebounce = setTimeout(() => {
+        this.updateFilteredLocations();
+      }, 300);
+    },
+
+    // Update filtered locations based on filters
+    updateFilteredLocations() {
+      // This method forces a re-computation of filtered providers/centers/locations
+      // by triggering the reactive system to update
+      this.$nextTick(() => {
+        // The $nextTick ensures the DOM has updated before we update markers
+        this.updateMarkers();
+      });
+    },
+
     // Set display type and handle data loading
     setDisplayType(type) {
       // Update display type
@@ -1743,6 +1888,17 @@ export default {
     resetFilters() {
       this.selectedCategory = "";
       this.searchText = "";
+      this.radius = 5;
+
+      // Reset filter options
+      this.filterOptions = {
+        acceptsInsurance: false,
+        acceptsRegionalCenter: false,
+        matchesDiagnosis: false,
+      };
+
+      // Force markers to update
+      this.updateFilteredLocations();
     },
 
     // User information methods
