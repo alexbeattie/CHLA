@@ -10,7 +10,7 @@
         <div class="chla-header">
           <div class="chla-logo-container">
             <img
-              src="@/assets/Children's Hospital LA_id6jDRvrHf_1.svg"
+              src="@/assets/chla-logo.svg"
               alt="Children's Hospital Los Angeles"
               class="chla-logo"
             />
