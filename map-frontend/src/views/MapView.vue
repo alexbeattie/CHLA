@@ -79,6 +79,40 @@
             </label>
           </div>
 
+          <!-- Location Status -->
+          <div
+            class="alert mb-3"
+            :class="userLocation.detected ? 'alert-success' : 'alert-warning'"
+          >
+            <div class="d-flex align-items-center">
+              <i
+                :class="userLocation.detected ? 'bi bi-geo-alt-fill' : 'bi bi-geo-alt'"
+              ></i>
+              <div class="ms-2 flex-grow-1">
+                <strong v-if="userLocation.detected">📍 Location Detected</strong>
+                <strong v-else>⚠️ Using Default Location</strong>
+                <div class="small">
+                  {{ userData.address || "California" }}
+                  <span
+                    v-if="userLocation.accuracy && userLocation.detected"
+                    class="text-muted"
+                  >
+                    (±{{ Math.round(userLocation.accuracy) }}m)
+                  </span>
+                </div>
+                <div v-if="userLocation.error" class="small text-muted">
+                  {{ userLocation.error }}
+                </div>
+              </div>
+            </div>
+            <div v-if="!userLocation.detected" class="small mt-2">
+              <em
+                >Use the location button (🎯) on the map to enable precise location
+                detection</em
+              >
+            </div>
+          </div>
+
           <!-- Service Areas Info -->
           <small
             v-if="showServiceAreas && serviceAreasLoaded"
@@ -378,11 +412,13 @@ export default {
       selectedCategory: "",
       searchText: "",
 
-      // User location
+      // User location (will be determined by geolocation or fallback)
       userLocation: {
-        latitude: 34.0522,
-        longitude: -118.2437,
+        latitude: null,
+        longitude: null,
         accuracy: null,
+        detected: false,
+        error: null,
       },
       radius: 15, // miles (increased from 5 to find more results)
 
@@ -461,10 +497,8 @@ export default {
     // Load saved user data if available
     this.loadUserData();
 
-    // Fetch providers immediately to ensure we have data
-    setTimeout(() => {
-      this.fetchProviders();
-    }, 100);
+    // Detect user location first, then fetch providers
+    this.detectUserLocation();
   },
 
   mounted() {
@@ -599,23 +633,166 @@ export default {
       };
     },
 
+    // Detect user location using browser geolocation API
+    async detectUserLocation() {
+      console.log("🌍 Detecting user location...");
+
+      if (!navigator.geolocation) {
+        console.warn("⚠️ Geolocation not supported by this browser");
+        this.setFallbackLocation("Geolocation not supported");
+        return;
+      }
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 10000, // 10 seconds
+        maximumAge: 300000, // 5 minutes
+      };
+
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, options);
+        });
+
+        const { latitude, longitude, accuracy } = position.coords;
+
+        console.log(
+          `✅ Location detected: ${latitude}, ${longitude} (accuracy: ${accuracy}m)`
+        );
+
+        this.userLocation = {
+          latitude: latitude,
+          longitude: longitude,
+          accuracy: accuracy,
+          detected: true,
+          error: null,
+        };
+
+        // Update user address data based on location
+        this.reverseGeocode(latitude, longitude);
+
+        // Initialize map with detected location
+        this.initMap();
+
+        // Fetch providers for the detected location
+        setTimeout(() => {
+          this.fetchProviders();
+        }, 500);
+      } catch (error) {
+        console.warn("⚠️ Geolocation failed:", error.message);
+        let errorMessage = "Location detection failed";
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location access denied by user";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information unavailable";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out";
+            break;
+        }
+
+        this.setFallbackLocation(errorMessage);
+      }
+    },
+
+    // Set fallback location (default to California center for statewide coverage)
+    setFallbackLocation(error = null) {
+      console.log("🏠 Using fallback location (California center)");
+
+      this.userLocation = {
+        latitude: 36.7783, // California geographic center
+        longitude: -119.4179,
+        accuracy: null,
+        detected: false,
+        error: error,
+      };
+
+      // Update user address to reflect fallback
+      this.userData.address = "California (location detection failed)";
+
+      // Initialize map with fallback location
+      this.initMap();
+
+      // Fetch providers for the fallback location
+      setTimeout(() => {
+        this.fetchProviders();
+      }, 500);
+    },
+
+    // Reverse geocode to get address from coordinates
+    async reverseGeocode(latitude, longitude) {
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}&types=place,region`
+        );
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+          const place = data.features[0];
+          const city = place.context?.find((c) => c.id.includes("place"))?.text || "";
+          const state = place.context?.find((c) => c.id.includes("region"))?.text || "";
+
+          const address =
+            `${city}, ${state}`.replace(/^, |, $/, "") ||
+            `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+
+          console.log(`🏠 Detected address: ${address}`);
+          this.userData.address = address;
+        }
+      } catch (error) {
+        console.warn("⚠️ Reverse geocoding failed:", error);
+        this.userData.address = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      }
+    },
+
     // Map initialization
     initMap() {
+      // Ensure we have valid coordinates before initializing
+      if (!this.userLocation.latitude || !this.userLocation.longitude) {
+        console.warn(
+          "⚠️ No valid coordinates for map initialization, using California center"
+        );
+        this.userLocation.latitude = 36.7783;
+        this.userLocation.longitude = -119.4179;
+      }
+
       // Set Mapbox access token
       mapboxgl.accessToken =
         import.meta.env.VITE_MAPBOX_TOKEN ||
         "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg";
 
+      console.log(
+        `🗺️ Initializing map at: ${this.userLocation.latitude}, ${this.userLocation.longitude}`
+      );
+
       // Create Mapbox map
       this.map = new mapboxgl.Map({
         container: "map",
         style: "mapbox://styles/mapbox/streets-v12",
-        center: [this.userLocation.longitude, this.userLocation.latitude], // Los Angeles by default
-        zoom: 10,
+        center: [this.userLocation.longitude, this.userLocation.latitude],
+        zoom: this.userLocation.detected ? 12 : 6, // Zoom in more if we detected exact location
       });
 
       // Add navigation controls
       this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+      // Add geolocation control for users to manually update their location
+      this.map.addControl(
+        new mapboxgl.GeolocateControl({
+          positionOptions: {
+            enableHighAccuracy: true,
+          },
+          fitBoundsOptions: {
+            maxZoom: 15,
+          },
+          trackUserLocation: false,
+          showAccuracyCircle: true,
+        }),
+        "top-right"
+      );
 
       // When map loads, update markers
       this.map.on("load", () => {
@@ -1995,5 +2172,53 @@ export default {
 
 .pulse-marker {
   animation: pulse 2s infinite;
+}
+
+/* Fix popup z-index to appear above markers with stronger specificity */
+:global(.mapboxgl-popup) {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+:global(.mapboxgl-popup-content) {
+  z-index: 999999 !important;
+  position: relative !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid #3498db !important;
+}
+
+:global(.mapboxgl-popup-tip) {
+  z-index: 999998 !important;
+  border-top-color: #3498db !important;
+}
+
+:global(.mapboxgl-popup-close-button) {
+  z-index: 999999 !important;
+  background: #e74c3c !important;
+  color: white !important;
+  border-radius: 50% !important;
+  width: 25px !important;
+  height: 25px !important;
+  line-height: 23px !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+}
+
+/* Ensure markers have much lower z-index than popups */
+:global(.mapboxgl-marker) {
+  z-index: 100 !important;
+}
+
+/* Additional popup styling to ensure visibility */
+:global(.mapboxgl-popup-anchor-top .mapboxgl-popup-tip),
+:global(.mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip),
+:global(.mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip) {
+  border-bottom-color: #3498db !important;
+}
+
+:global(.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip),
+:global(.mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip),
+:global(.mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip) {
+  border-top-color: #3498db !important;
 }
 </style>
