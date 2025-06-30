@@ -1981,44 +1981,40 @@ export default {
         // Create marker element with CHLA branding
         const el = document.createElement("div");
         el.className = "marker chla-marker";
-        el.style.width = "28px";
-        el.style.height = "28px";
+        el.style.width = "20px";
+        el.style.height = "20px";
         el.style.borderRadius = "50%";
 
-        // Use CHLA brand colors
+        // Use CHLA brand colors - simple solid colors
         if (this.displayType === "providers") {
           if (item.accepts_insurance) {
-            el.style.background = "linear-gradient(135deg, #4DAA50 0%, #5aba4b 100%)"; // Green for insurance
+            el.style.backgroundColor = "#4DAA50"; // Green for insurance
           } else {
-            el.style.background = "linear-gradient(135deg, #0D9DDB 0%, #22b2e7 100%)"; // Light blue for providers
+            el.style.backgroundColor = "#0D9DDB"; // Light blue for providers
           }
         } else {
-          el.style.background = "linear-gradient(135deg, #004877 0%, #0D9DDB 100%)"; // CHLA blue gradient for regional centers
+          el.style.backgroundColor = "#004877"; // CHLA blue for regional centers
         }
 
-        el.style.border = "3px solid white";
-        el.style.boxShadow = "0 4px 12px rgba(0, 72, 119, 0.3)";
+        el.style.border = "2px solid white";
+        el.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.3)";
         el.style.cursor = "pointer";
-        el.style.zIndex = "1000";
-        el.style.transition = "all 0.3s ease";
         el.setAttribute("data-provider", item.name);
         el.setAttribute("data-coordinates", `${finalLat},${finalLng}`);
 
-        // Add subtle hover effect (no transform to avoid positioning issues)
+        // Simple hover effect
         el.addEventListener("mouseenter", () => {
-          el.style.boxShadow = "0 6px 16px rgba(0, 72, 119, 0.5)";
-          el.style.zIndex = "1001";
+          el.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.4)";
         });
 
         el.addEventListener("mouseleave", () => {
-          el.style.boxShadow = "0 4px 12px rgba(0, 72, 119, 0.3)";
-          el.style.zIndex = "1000";
+          el.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.3)";
         });
 
-        // Create popup
+        // Create popup with proper offset to appear next to marker
         const popup = new mapboxgl.Popup({
           offset: 25,
-          maxWidth: "90vw",
+          maxWidth: "300px",
           closeOnClick: true,
           closeButton: true,
         }).setHTML(this.createPopupContent(item, finalLat, finalLng));
@@ -2081,9 +2077,9 @@ export default {
         const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${finalLat},${finalLng}`;
 
         return `
-          <div style="width: 400px; max-width: 90vw; padding: 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.5; background: white; border-radius: 12px; border: 2px solid #004877; box-shadow: 0 4px 20px rgba(0, 72, 119, 0.15);">
-            <div style="background: #004877; margin: -20px -20px 16px -20px; padding: 16px 20px; border-radius: 10px 10px 0 0;">
-              <h4 style="color: white; margin: 0; font-size: 18px; font-weight: 700;">
+          <div style="width: 280px; max-width: 80vw; padding: 16px; font-family: Arial, Helvetica, sans-serif; line-height: 1.4; background: white; border-radius: 8px; border: 2px solid #004877; box-shadow: 0 2px 12px rgba(0, 72, 119, 0.15);">
+            <div style="background: #004877; margin: -16px -16px 12px -16px; padding: 12px 16px; border-radius: 6px 6px 0 0;">
+              <h4 style="color: white; margin: 0; font-size: 16px; font-weight: 700;">
                 🏥 ${title}
               </h4>
             </div>
@@ -2162,9 +2158,9 @@ export default {
         const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${finalLat},${finalLng}`;
 
         return `
-          <div style="width: 400px; max-width: 90vw; padding: 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.5; background: white; border-radius: 12px; border: 2px solid #004877; box-shadow: 0 4px 20px rgba(0, 72, 119, 0.15);">
-            <div style="background: #004877; margin: -20px -20px 16px -20px; padding: 16px 20px; border-radius: 10px 10px 0 0;">
-              <h4 style="color: white; margin: 0; font-size: 18px; font-weight: 700;">
+          <div style="width: 280px; max-width: 80vw; padding: 16px; font-family: Arial, Helvetica, sans-serif; line-height: 1.4; background: white; border-radius: 8px; border: 2px solid #004877; box-shadow: 0 2px 12px rgba(0, 72, 119, 0.15);">
+            <div style="background: #004877; margin: -16px -16px 12px -16px; padding: 12px 16px; border-radius: 6px 6px 0 0;">
+              <h4 style="color: white; margin: 0; font-size: 16px; font-weight: 700;">
                 🏢 ${title}
               </h4>
             </div>
@@ -2531,46 +2527,30 @@ h6 {
   animation: pulse 2s infinite;
 }
 
-/* Fix popup z-index to appear above markers */
-:global(.mapboxgl-popup) {
-  z-index: 2000 !important;
-}
-
+/* Popup styling - let Mapbox handle positioning naturally */
 :global(.mapboxgl-popup-content) {
-  z-index: 2001 !important;
-  position: relative !important;
   box-shadow: 0 4px 20px rgba(0, 72, 119, 0.2) !important;
   border: 2px solid #004877 !important;
   border-radius: 8px !important;
 }
 
 :global(.mapboxgl-popup-tip) {
-  z-index: 2000 !important;
   border-top-color: #004877 !important;
 }
 
 :global(.mapboxgl-popup-close-button) {
-  z-index: 2002 !important;
   background: #004877 !important;
   color: white !important;
   border: none !important;
   border-radius: 4px !important;
   width: 24px !important;
   height: 24px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
   font-size: 14px !important;
   font-weight: bold !important;
 }
 
 :global(.mapboxgl-popup-close-button):hover {
   background: #0d9ddb !important;
-}
-
-/* Ensure markers have lower z-index than popups */
-:global(.mapboxgl-marker) {
-  z-index: 1000 !important;
 }
 
 /* Additional popup styling to ensure visibility */
