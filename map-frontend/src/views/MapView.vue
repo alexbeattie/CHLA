@@ -2088,9 +2088,7 @@ export default {
               </h4>
             </div>
             <div style="margin-bottom: 16px; padding: 12px; background: ${
-              item.accepts_insurance
-                ? "linear-gradient(135deg, #4DAA50 0%, #5aba4b 100%)"
-                : "linear-gradient(135deg, #FFC923 0%, #ffcc0a 100%)"
+              item.accepts_insurance ? "#4DAA50" : "#FFC923"
             }; border-radius: 8px; color: ${
           item.accepts_insurance ? "white" : "#4C280F"
         };">
@@ -2124,37 +2122,31 @@ export default {
             }
             <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 2px solid #FFC923;">
               <a href="${mapsUrl}" target="_blank" 
-                 style="background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%); 
+                 style="background: #004877; 
                         color: white; 
                         padding: 12px 16px; 
-                        border-radius: 8px; 
+                        border-radius: 6px; 
                         text-decoration: none; 
                         font-size: 13px; 
                         font-weight: 600;
-                        text-transform: uppercase;
-                        letter-spacing: 0.5px;
                         flex: 1;
                         text-align: center;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 2px 8px rgba(0, 72, 119, 0.3);">
+                        border: none;">
                 🗺️ Get Directions
               </a>
               ${
                 item.phone
                   ? `<a href="tel:${item.phone}" 
-                       style="background: linear-gradient(135deg, #4DAA50 0%, #5aba4b 100%); 
+                       style="background: #4DAA50; 
                               color: white; 
                               padding: 12px 16px; 
-                              border-radius: 8px; 
+                              border-radius: 6px; 
                               text-decoration: none; 
                               font-size: 13px; 
                               font-weight: 600;
-                              text-transform: uppercase;
-                              letter-spacing: 0.5px;
                               flex: 1;
                               text-align: center;
-                              transition: all 0.3s ease;
-                              box-shadow: 0 2px 8px rgba(77, 170, 80, 0.3);">
+                              border: none;">
                         📞 Call Now
                      </a>`
                   : ""
@@ -2212,38 +2204,32 @@ export default {
             }
             <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 2px solid #FFC923;">
               <a href="${mapsUrl}" target="_blank" 
-                 style="background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%); 
+                 style="background: #004877; 
                         color: white; 
                         padding: 12px 16px; 
-                        border-radius: 8px; 
+                        border-radius: 6px; 
                         text-decoration: none; 
                         font-size: 13px; 
                         font-weight: 600;
-                        text-transform: uppercase;
-                        letter-spacing: 0.5px;
                         flex: 1;
                         text-align: center;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 2px 8px rgba(0, 72, 119, 0.3);">
+                        border: none;">
                 🗺️ Get Directions
               </a>
               ${
                 item.phone || item.telephone
                   ? `<a href="tel:${
                       item.phone || item.telephone
-                    }" style="background: linear-gradient(135deg, #4DAA50 0%, #5aba4b 100%); 
+                    }" style="background: #4DAA50; 
                               color: white; 
                               padding: 12px 16px; 
-                              border-radius: 8px; 
+                              border-radius: 6px; 
                               text-decoration: none; 
                               font-size: 13px; 
                               font-weight: 600;
-                              text-transform: uppercase;
-                              letter-spacing: 0.5px;
                               flex: 1;
                               text-align: center;
-                              transition: all 0.3s ease;
-                              box-shadow: 0 2px 8px rgba(77, 170, 80, 0.3);">
+                              border: none;">
                         📞 Call Now
                      </a>`
                   : ""
@@ -2280,7 +2266,7 @@ export default {
   height: 100vh;
   width: 100%;
   position: relative;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  background: #f8f9fa;
 }
 
 .sidebar-container {
@@ -2545,51 +2531,58 @@ h6 {
   animation: pulse 2s infinite;
 }
 
-/* Fix popup z-index to appear above markers with stronger specificity */
+/* Fix popup z-index to appear above markers */
 :global(.mapboxgl-popup) {
-  z-index: 999999 !important;
-  position: fixed !important;
+  z-index: 2000 !important;
 }
 
 :global(.mapboxgl-popup-content) {
-  z-index: 999999 !important;
+  z-index: 2001 !important;
   position: relative !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-  border: 2px solid #3498db !important;
+  box-shadow: 0 4px 20px rgba(0, 72, 119, 0.2) !important;
+  border: 2px solid #004877 !important;
+  border-radius: 8px !important;
 }
 
 :global(.mapboxgl-popup-tip) {
-  z-index: 999998 !important;
-  border-top-color: #3498db !important;
+  z-index: 2000 !important;
+  border-top-color: #004877 !important;
 }
 
 :global(.mapboxgl-popup-close-button) {
-  z-index: 999999 !important;
-  background: #e74c3c !important;
+  z-index: 2002 !important;
+  background: #004877 !important;
   color: white !important;
-  border-radius: 50% !important;
-  width: 25px !important;
-  height: 25px !important;
-  line-height: 23px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   font-size: 14px !important;
   font-weight: bold !important;
 }
 
-/* Ensure markers have much lower z-index than popups */
+:global(.mapboxgl-popup-close-button):hover {
+  background: #0d9ddb !important;
+}
+
+/* Ensure markers have lower z-index than popups */
 :global(.mapboxgl-marker) {
-  z-index: 100 !important;
+  z-index: 1000 !important;
 }
 
 /* Additional popup styling to ensure visibility */
 :global(.mapboxgl-popup-anchor-top .mapboxgl-popup-tip),
 :global(.mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip),
 :global(.mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip) {
-  border-bottom-color: #3498db !important;
+  border-bottom-color: #004877 !important;
 }
 
 :global(.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip),
 :global(.mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip),
 :global(.mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip) {
-  border-top-color: #3498db !important;
+  border-top-color: #004877 !important;
 }
 </style>
