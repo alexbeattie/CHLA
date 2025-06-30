@@ -17,7 +17,17 @@
     </div>
 
     <div v-else-if="locations.length === 0" class="text-center my-4">
-      No locations match your criteria.
+      <div class="alert alert-warning">
+        <i class="bi bi-search"></i>
+        <strong>No results found</strong>
+        <p class="mb-2 small">Try adjusting your search criteria:</p>
+        <ul class="list-unstyled small text-start">
+          <li>• Increase the distance radius</li>
+          <li>• Remove some filters</li>
+          <li>• Try a different location or zip code</li>
+          <li>• Check if you're searching for the right services</li>
+        </ul>
+      </div>
     </div>
 
     <div v-else class="location-list">
@@ -26,11 +36,10 @@
         :key="location.id"
         class="location-item"
         :class="{
-          active: selectedLocation && selectedLocation.id === location.id,
           recommended: location.recommendationLevel > 0,
           'highly-recommended': location.isHighlyRecommended,
         }"
-        @click="$emit('select', location)"
+        @click="centerOnLocation(location)"
       >
         <!-- Recommendation Badges -->
         <div
@@ -102,9 +111,12 @@ export default {
       type: String,
       default: null,
     },
-    selectedLocation: {
-      type: Object,
-      default: null,
+  },
+
+  methods: {
+    centerOnLocation(location) {
+      // Emit an event to center the map on this location
+      this.$emit("center-on-location", location);
     },
   },
 };

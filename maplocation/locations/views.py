@@ -580,14 +580,24 @@ class ProviderViewSet(viewsets.ReadOnlyModelViewSet):
         - q: Search query (searches name, specializations, services)
         - location: Address or zip code for geographic filtering
         - radius: Search radius in miles (default: 15)
-        - insurance: Insurance filter
+        - insurance: Insurance filter (can be multiple values)
         - specialization: Specialization filter
+        - lat: Latitude for geographic filtering
+        - lng: Longitude for geographic filtering
+        - age: Age for age group filtering
+        - diagnosis: Diagnosis for specialization filtering
         """
         try:
             query = request.query_params.get("q", "")
             location = request.query_params.get("location")
             radius = float(request.query_params.get("radius", 15))
-            insurance = request.query_params.get("insurance")
+            lat = request.query_params.get("lat")
+            lng = request.query_params.get("lng")
+            age = request.query_params.get("age")
+            diagnosis = request.query_params.get("diagnosis")
+
+            # Get all insurance filter values (can be multiple)
+            insurance_filters = request.query_params.getlist("insurance")
             specialization = request.query_params.get("specialization")
 
             # Start with all providers
@@ -602,19 +612,72 @@ class ProviderViewSet(viewsets.ReadOnlyModelViewSet):
                     | Q(coverage_areas__icontains=query)
                 )
 
-            # Apply insurance filter
-            if insurance:
-                providers = providers.filter(insurance_accepted__icontains=insurance)
+            # Apply insurance filters
+            if insurance_filters:
+                insurance_q = Q()
+                for insurance_type in insurance_filters:
+                    if insurance_type.lower() == "insurance":
+                        # Filter for providers that accept any form of insurance
+                        # Look for common insurance-related terms and specific insurers
+                        insurance_q |= (
+                            Q(insurance_accepted__icontains="insurance")
+                            | Q(insurance_accepted__icontains="medical")
+                            | Q(insurance_accepted__icontains="health")
+                            | Q(insurance_accepted__icontains="medi-cal")
+                            | Q(insurance_accepted__icontains="medicaid")
+                            | Q(insurance_accepted__icontains="blue")
+                            | Q(insurance_accepted__icontains="anthem")
+                            | Q(insurance_accepted__icontains="aetna")
+                            | Q(insurance_accepted__icontains="cigna")
+                            | Q(insurance_accepted__icontains="united")
+                            | Q(insurance_accepted__icontains="kaiser")
+                            | Q(insurance_accepted__icontains="optum")
+                            | Q(insurance_accepted__icontains="magellan")
+                            | Q(insurance_accepted__icontains="beacon")
+                            | Q(insurance_accepted__icontains="molina")
+                            | Q(insurance_accepted__icontains="humana")
+                            | Q(insurance_accepted__icontains="tricare")
+                            |
+                            # Exclude null/empty values
+                            Q(insurance_accepted__isnull=False)
+                            & ~Q(insurance_accepted="")
+                        )
+                    elif insurance_type.lower() == "regional center":
+                        # Filter for providers that accept regional center funding
+                        insurance_q |= Q(
+                            insurance_accepted__icontains="regional center"
+                        ) | Q(insurance_accepted__icontains="regional centre")
+                    elif insurance_type.lower() == "private pay":
+                        # Filter for providers that accept private pay
+                        insurance_q |= (
+                            Q(insurance_accepted__icontains="private pay")
+                            | Q(insurance_accepted__icontains="private")
+                            | Q(insurance_accepted__icontains="self pay")
+                        )
+                    else:
+                        # Generic insurance filter
+                        insurance_q |= Q(insurance_accepted__icontains=insurance_type)
+
+                providers = providers.filter(insurance_q)
 
             # Apply specialization filter
             if specialization:
                 providers = providers.filter(specializations__icontains=specialization)
 
-            # Apply location-based filtering
-            if location:
-                coordinates = RegionalCenter.geocode_address(location)
-                if coordinates:
-                    lat, lng = coordinates
+            # Apply diagnosis filter
+            if diagnosis:
+                providers = providers.filter(
+                    Q(specializations__icontains=diagnosis)
+                    | Q(services__icontains=diagnosis)
+                    | Q(name__icontains=diagnosis)
+                )
+
+            # Apply location-based filtering using provided coordinates
+            if lat and lng:
+                try:
+                    lat_float = float(lat)
+                    lng_float = float(lng)
+
                     # Filter by distance using raw SQL
                     from django.db import connection
 
@@ -627,7 +690,32 @@ class ProviderViewSet(viewsets.ReadOnlyModelViewSet):
                             cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
                             sin(radians(latitude)))) < %s
                         """,
-                            [lat, lng, lat, radius],
+                            [lat_float, lng_float, lat_float, radius],
+                        )
+                        nearby_ids = [row[0] for row in cursor.fetchall()]
+
+                    providers = providers.filter(id__in=nearby_ids)
+                except (ValueError, TypeError):
+                    pass  # Skip location filtering if coordinates are invalid
+
+            # Apply location-based filtering using address geocoding (fallback)
+            elif location:
+                coordinates = RegionalCenter.geocode_address(location)
+                if coordinates:
+                    lat_coord, lng_coord = coordinates
+                    # Filter by distance using raw SQL
+                    from django.db import connection
+
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            SELECT id FROM providers 
+                            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+                            AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
+                            cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
+                            sin(radians(latitude)))) < %s
+                        """,
+                            [lat_coord, lng_coord, lat_coord, radius],
                         )
                         nearby_ids = [row[0] for row in cursor.fetchall()]
 

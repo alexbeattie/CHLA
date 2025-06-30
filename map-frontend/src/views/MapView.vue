@@ -1,10 +1,7 @@
 <template>
   <div class="map-app">
     <!-- Funding Info Modal -->
-    <funding-info-panel
-      :showModal="showFundingInfo"
-      @close="toggleFundingInfo"
-    />
+    <funding-info-panel :showModal="showFundingInfo" @close="toggleFundingInfo" />
 
     <!-- Sidebar (always on left) -->
     <div class="sidebar-container">
@@ -88,8 +85,7 @@
             class="text-success d-block mt-2"
           >
             <i class="bi bi-check-circle-fill"></i>
-            {{ serviceAreas?.features?.length || 0 }} county-based service areas
-            loaded
+            {{ serviceAreas?.features?.length || 0 }} county-based service areas loaded
             <span v-if="pinServiceAreas" class="badge bg-primary ms-2">
               <i class="bi bi-pin-fill"></i> PINNED
             </span>
@@ -129,10 +125,7 @@
               <strong>{{ userData.age ? "Age: " + userData.age : "" }}</strong>
               {{ userData.diagnosis ? " | " + userData.diagnosis : "" }}
             </span>
-            <button
-              class="btn btn-sm btn-outline-primary"
-              @click="toggleUserPanel"
-            >
+            <button class="btn btn-sm btn-outline-primary" @click="toggleUserPanel">
               Edit
             </button>
           </div>
@@ -169,35 +162,31 @@
           <h5>Filters</h5>
 
           <!-- Radius Filter (when geolocation is available) -->
-          <div
-            class="mb-2"
-            v-if="userLocation.latitude && userLocation.longitude"
-          >
+          <div class="mb-2" v-if="userLocation.latitude && userLocation.longitude">
             <div class="d-flex justify-content-between align-items-center">
               <label class="form-label mb-0"
                 >Distance Radius: <strong>{{ radius }} miles</strong></label
               >
-              <span class="badge bg-info"
-                >{{ countLocationsInRadius }} found</span
-              >
+              <span class="badge bg-info">{{ countLocationsInRadius }} found</span>
             </div>
             <input
               type="range"
               v-model.number="radius"
               class="form-range"
-              min="1"
-              max="50"
-              step="1"
+              min="5"
+              max="75"
+              step="5"
               @change="updateFilteredLocations"
             />
             <div class="d-flex justify-content-between">
-              <small>1 mile</small>
-              <small>50 miles</small>
+              <small>5 miles</small>
+              <small>75 miles</small>
             </div>
           </div>
 
           <!-- Filter Options for Providers -->
           <div v-if="displayType === 'providers'" class="mb-3">
+            <h6 class="text-muted mb-2">Payment & Funding</h6>
             <div class="form-check">
               <input
                 class="form-check-input"
@@ -207,6 +196,7 @@
                 @change="updateFilteredLocations"
               />
               <label class="form-check-label" for="acceptsInsurance">
+                <i class="bi bi-credit-card me-1"></i>
                 Accepts Insurance
               </label>
             </div>
@@ -219,9 +209,25 @@
                 @change="updateFilteredLocations"
               />
               <label class="form-check-label" for="acceptsRegionalCenter">
+                <i class="bi bi-building me-1"></i>
                 Accepts Regional Center
               </label>
             </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="filterOptions.acceptsPrivatePay"
+                id="acceptsPrivatePay"
+                @change="updateFilteredLocations"
+              />
+              <label class="form-check-label" for="acceptsPrivatePay">
+                <i class="bi bi-wallet2 me-1"></i>
+                Accepts Private Pay
+              </label>
+            </div>
+
+            <h6 class="text-muted mb-2 mt-3">Service Matching</h6>
             <div class="form-check">
               <input
                 class="form-check-input"
@@ -232,16 +238,34 @@
                 @change="updateFilteredLocations"
               />
               <label class="form-check-label" for="matchesDiagnosis">
+                <i class="bi bi-person-check me-1"></i>
                 Matches My Diagnosis
+                <small class="text-muted d-block" v-if="userData.diagnosis">
+                  ({{ userData.diagnosis }})
+                </small>
+              </label>
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="filterOptions.matchesAge"
+                id="matchesAge"
+                :disabled="!userData.age"
+                @change="updateFilteredLocations"
+              />
+              <label class="form-check-label" for="matchesAge">
+                <i class="bi bi-calendar-check me-1"></i>
+                Serves My Age Group
+                <small class="text-muted d-block" v-if="userData.age">
+                  (Age {{ userData.age }})
+                </small>
               </label>
             </div>
           </div>
 
           <!-- Reset Button -->
-          <button
-            @click="resetFilters"
-            class="btn btn-secondary btn-sm w-100 mt-2"
-          >
+          <button @click="resetFilters" class="btn btn-secondary btn-sm w-100 mt-2">
             <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
           </button>
         </div>
@@ -276,8 +300,7 @@
             "
             :loading="loading"
             :error="error"
-            :selected-location="selectedLocation"
-            @select="selectLocation"
+            @center-on-location="centerMapOnLocation"
           />
         </div>
       </div>
@@ -286,13 +309,6 @@
     <!-- Map Container -->
     <div class="map-container-wrapper">
       <div id="map" class="map-container"></div>
-
-      <!-- Selected Location Details -->
-      <location-detail
-        v-if="selectedLocation"
-        :location="selectedLocation"
-        @close="closeLocationDetails"
-      />
     </div>
   </div>
 </template>
@@ -302,7 +318,6 @@ import axios from "axios";
 import mapboxgl from "mapbox-gl";
 import UserInfoPanel from "@/components/UserInfoPanel.vue";
 import LocationList from "@/components/LocationList.vue";
-import LocationDetail from "@/components/LocationDetail.vue";
 import FundingInfoPanel from "@/components/FundingInfoPanel.vue";
 import {
   sampleCategories,
@@ -319,7 +334,6 @@ export default {
   components: {
     UserInfoPanel,
     LocationList,
-    LocationDetail,
     FundingInfoPanel,
   },
 
@@ -341,7 +355,9 @@ export default {
       filterOptions: {
         acceptsInsurance: false,
         acceptsRegionalCenter: false,
+        acceptsPrivatePay: false,
         matchesDiagnosis: false,
+        matchesAge: false,
       },
 
       // Search debounce
@@ -355,7 +371,6 @@ export default {
       locations: [],
       regionalCenters: [], // Array to store regional centers
       providers: [], // Array to store providers
-      selectedLocation: null,
 
       // Categories and filters
       categories: [],
@@ -369,7 +384,7 @@ export default {
         longitude: -118.2437,
         accuracy: null,
       },
-      radius: 5, // miles
+      radius: 15, // miles (increased from 5 to find more results)
 
       // User information
       userData: {
@@ -473,16 +488,15 @@ export default {
 
     // Update filtered locations based on filters
     updateFilteredLocations() {
-      console.log(
-        "Updating filtered locations with filters:",
-        this.filterOptions
-      );
+      console.log("Updating filtered locations with filters:", this.filterOptions);
 
       // If any provider-specific filters are enabled, automatically switch to providers
       const hasProviderFilters =
         this.filterOptions.acceptsInsurance ||
         this.filterOptions.acceptsRegionalCenter ||
-        this.filterOptions.matchesDiagnosis;
+        this.filterOptions.acceptsPrivatePay ||
+        this.filterOptions.matchesDiagnosis ||
+        this.filterOptions.matchesAge;
 
       if (hasProviderFilters && this.displayType !== "providers") {
         console.log("🔄 Provider filters applied, switching to providers view");
@@ -526,10 +540,7 @@ export default {
       // Fetch data if needed
       if (type === "providers" && this.providers.length === 0) {
         this.fetchProviders();
-      } else if (
-        type === "regionalCenters" &&
-        this.regionalCenters.length === 0
-      ) {
+      } else if (type === "regionalCenters" && this.regionalCenters.length === 0) {
         this.fetchRegionalCenters();
       }
 
@@ -543,19 +554,19 @@ export default {
     resetFilters() {
       this.selectedCategory = "";
       this.searchText = "";
-      this.radius = 5;
+      this.radius = 15; // Reset to 15 miles for better coverage
 
       // Reset filter options
       this.filterOptions = {
         acceptsInsurance: false,
         acceptsRegionalCenter: false,
+        acceptsPrivatePay: false,
         matchesDiagnosis: false,
+        matchesAge: false,
       };
 
       // Re-fetch data with reset filters (maintain current display type)
-      console.log(
-        `Resetting filters, maintaining display type: ${this.displayType}`
-      );
+      console.log(`Resetting filters, maintaining display type: ${this.displayType}`);
       if (this.displayType === "providers") {
         this.fetchProviders();
       } else if (this.displayType === "regionalCenters") {
@@ -613,9 +624,7 @@ export default {
 
         // If service areas are already enabled, add them now
         if (this.showServiceAreas && this.serviceAreasLoaded) {
-          console.log(
-            "Map loaded and service areas are enabled, adding them now"
-          );
+          console.log("Map loaded and service areas are enabled, adding them now");
           this.addServiceAreasToMap();
         }
       });
@@ -659,8 +668,7 @@ export default {
               phone: "818-235-1414",
               coverage_areas: "VALLEY, CENTRAL LA",
               age_groups_served: "6-12, 13-18, 19+",
-              diagnoses_served:
-                "Autism, Developmental Delay, Learning Disability",
+              diagnoses_served: "Autism, Developmental Delay, Learning Disability",
               address: "456 Center Blvd, Sherman Oaks, CA",
               city: "Sherman Oaks",
               state: "CA",
@@ -695,39 +703,76 @@ export default {
           // Use the comprehensive search endpoint for better filtering capabilities
           let queryParams = new URLSearchParams();
 
+          // Check if we're doing specific filtering (beyond location)
+          const hasSpecificFilters =
+            this.filterOptions.acceptsInsurance ||
+            this.filterOptions.acceptsRegionalCenter ||
+            this.filterOptions.acceptsPrivatePay ||
+            this.filterOptions.matchesDiagnosis ||
+            this.filterOptions.matchesAge;
+
           // Add search text if available
           if (this.searchText && this.searchText.trim() !== "") {
             queryParams.append("q", this.searchText.trim());
           }
 
-          // Add user location if available
+          // Always add location/radius if available (for geographic relevance)
           if (this.userLocation.latitude && this.userLocation.longitude) {
             queryParams.append("lat", this.userLocation.latitude);
             queryParams.append("lng", this.userLocation.longitude);
             queryParams.append("radius", this.radius);
           }
 
-          // Add user profile data if available
-          if (this.userData.age) {
+          // Only add user profile filters if specific filters are enabled
+          if (this.filterOptions.matchesAge && this.userData.age) {
             queryParams.append("age", this.userData.age);
           }
 
-          if (this.userData.diagnosis) {
+          if (this.filterOptions.matchesDiagnosis && this.userData.diagnosis) {
             queryParams.append("diagnosis", this.userData.diagnosis);
           }
 
-          // Add filter options directly as query parameters
+          // Add insurance filter options only when explicitly checked
           if (this.filterOptions.acceptsInsurance) {
-            queryParams.append("accepts_insurance", "true");
+            queryParams.append("insurance", "insurance");
           }
 
           if (this.filterOptions.acceptsRegionalCenter) {
-            queryParams.append("accepts_regional_center", "true");
+            queryParams.append("insurance", "regional center");
           }
 
-          // Use the basic providers endpoint which supports our filter parameters
-          const url = `${apiBaseUrl}/providers/?${queryParams.toString()}`;
-          console.log(`Fetching providers from API: ${url}`);
+          if (this.filterOptions.acceptsPrivatePay) {
+            queryParams.append("insurance", "private pay");
+          }
+
+          // Add specialization filter for diagnosis matching only when enabled
+          if (this.filterOptions.matchesDiagnosis && this.userData.diagnosis) {
+            queryParams.append("specialization", this.userData.diagnosis);
+          }
+
+          // Always use comprehensive search endpoint (it handles both filtered and unfiltered)
+          const url = `${apiBaseUrl}/providers/comprehensive_search/?${queryParams.toString()}`;
+
+          if (hasSpecificFilters) {
+            console.log(`🔍 Fetching FILTERED providers from API: ${url}`);
+            console.log("🎛️ Active filters:", {
+              acceptsInsurance: this.filterOptions.acceptsInsurance,
+              acceptsRegionalCenter: this.filterOptions.acceptsRegionalCenter,
+              acceptsPrivatePay: this.filterOptions.acceptsPrivatePay,
+              matchesDiagnosis: this.filterOptions.matchesDiagnosis,
+              matchesAge: this.filterOptions.matchesAge,
+              hasSearchText: !!(this.searchText && this.searchText.trim() !== ""),
+            });
+
+            // Special debugging for insurance filter bug
+            if (this.filterOptions.acceptsInsurance) {
+              console.log("🚨 INSURANCE FILTER ACTIVE - Watch for invalid coordinates!");
+            }
+          } else {
+            console.log(`📋 Fetching ALL providers in radius from API: ${url}`);
+            console.log("🎛️ No specific filters - showing all providers in area");
+          }
+
           const response = await axios.get(url);
           console.log("API Response:", response);
 
@@ -742,6 +787,31 @@ export default {
               acceptsRegionalCenter: this.filterOptions.acceptsRegionalCenter,
               matchesDiagnosis: this.filterOptions.matchesDiagnosis,
             });
+
+            // Special debugging for insurance filter - log ALL providers
+            if (this.filterOptions.acceptsInsurance) {
+              console.log("🚨 INSURANCE FILTER RESULTS - All providers:");
+              this.providers.forEach((provider, index) => {
+                console.log(`Provider ${index + 1}: ${provider.name}`, {
+                  latitude: provider.latitude,
+                  longitude: provider.longitude,
+                  lat_type: typeof provider.latitude,
+                  lng_type: typeof provider.longitude,
+                  accepts_insurance: provider.accepts_insurance,
+                });
+              });
+            }
+
+            // Debug: Log first provider details
+            if (this.providers.length > 0) {
+              console.log("🔍 First provider details:", {
+                name: this.providers[0].name,
+                latitude: this.providers[0].latitude,
+                longitude: this.providers[0].longitude,
+                lat_type: typeof this.providers[0].latitude,
+                lng_type: typeof this.providers[0].longitude,
+              });
+            }
           }
           // Handle paginated response
           else if (response.data && Array.isArray(response.data.results)) {
@@ -760,30 +830,53 @@ export default {
           }
 
           // Convert string coordinates to numbers and validate
+          console.log(
+            `🔄 Processing ${this.providers.length} providers for coordinate conversion`
+          );
           this.providers.forEach((provider, index) => {
+            const debugInfo = {
+              name: provider.name,
+              original_lat: provider.latitude,
+              original_lng: provider.longitude,
+              lat_type: typeof provider.latitude,
+              lng_type: typeof provider.longitude,
+            };
+
+            if (index < 3) {
+              // Log first 3 providers in detail
+              console.log(`Processing provider ${index + 1}:`, debugInfo);
+            }
+
             // Convert string coordinates to numbers
             if (provider.latitude && provider.longitude) {
               provider.latitude = parseFloat(provider.latitude);
               provider.longitude = parseFloat(provider.longitude);
             }
 
+            // Check for invalid coordinates and provide fallback
             if (
               !provider.latitude ||
               !provider.longitude ||
               isNaN(provider.latitude) ||
-              isNaN(provider.longitude)
+              isNaN(provider.longitude) ||
+              provider.latitude === 0 ||
+              provider.longitude === 0
             ) {
               console.warn(
-                `Provider ${provider.name} (ID: ${provider.id}) has invalid coordinates:`,
+                `Provider ${provider.name} (ID: ${provider.id}) has invalid coordinates, SKIPPING:`,
                 {
                   latitude: provider.latitude,
                   longitude: provider.longitude,
+                  original: debugInfo,
                 }
               );
+              // Instead of fallback, mark as invalid so we skip it in marker creation
+              provider._coordinatesInvalid = true;
             } else {
               console.log(
-                `Provider ${provider.name}: lat=${provider.latitude}, lng=${provider.longitude}`
+                `✅ Provider ${provider.name}: lat=${provider.latitude}, lng=${provider.longitude}`
               );
+              provider._coordinatesInvalid = false;
             }
           });
 
@@ -815,15 +908,11 @@ export default {
       } finally {
         this.loading = false;
 
-        // Force marker update after data change
-        console.log(
-          `🎯 About to update markers with ${this.providers.length} providers`
-        );
+        // Force marker update after data change with proper timing
+        console.log(`🎯 About to update markers with ${this.providers.length} providers`);
         this.$nextTick(() => {
           this.updateMarkers();
-          console.log(
-            `🗺️ Markers updated for ${this.providers.length} providers`
-          );
+          console.log(`🗺️ Markers updated for ${this.providers.length} providers`);
         });
       }
     },
@@ -933,10 +1022,7 @@ export default {
 
         const response = await axios.get(url);
         console.log("Service areas API Response status:", response.status);
-        console.log(
-          "Service areas API Response data type:",
-          typeof response.data
-        );
+        console.log("Service areas API Response data type:", typeof response.data);
 
         if (response.data && response.data.type === "FeatureCollection") {
           this.serviceAreas = response.data;
@@ -945,10 +1031,7 @@ export default {
             `Successfully loaded ${response.data.features.length} service areas`
           );
         } else {
-          console.error(
-            "Unexpected service areas API response format:",
-            response.data
-          );
+          console.error("Unexpected service areas API response format:", response.data);
           throw new Error("Invalid API response format");
         }
       } catch (error) {
@@ -973,10 +1056,7 @@ export default {
 
     // Toggle service areas visibility
     async toggleServiceAreas() {
-      console.log(
-        "toggleServiceAreas called, showServiceAreas:",
-        this.showServiceAreas
-      );
+      console.log("toggleServiceAreas called, showServiceAreas:", this.showServiceAreas);
 
       if (!this.map) {
         console.error("Map not initialized yet");
@@ -993,10 +1073,7 @@ export default {
         if (!this.serviceAreasLoaded) {
           console.log("Loading service areas...");
           await this.fetchServiceAreas();
-          console.log(
-            "After fetch - serviceAreasLoaded:",
-            this.serviceAreasLoaded
-          );
+          console.log("After fetch - serviceAreasLoaded:", this.serviceAreasLoaded);
           console.log("After fetch - serviceAreas:", this.serviceAreas);
         }
 
@@ -1040,9 +1117,7 @@ export default {
         console.error("serviceAreas type:", typeof this.serviceAreas);
         console.error(
           "serviceAreas.features:",
-          this.serviceAreas
-            ? this.serviceAreas.features
-            : "serviceAreas is null"
+          this.serviceAreas ? this.serviceAreas.features : "serviceAreas is null"
         );
         return;
       }
@@ -1092,8 +1167,7 @@ export default {
                   .toLowerCase()
                   .includes(countyName.toLowerCase())
             );
-            county.properties.regional_center_count =
-              regionalCentersInCounty.length;
+            county.properties.regional_center_count = regionalCentersInCounty.length;
             county.properties.has_service = regionalCentersInCounty.length > 0;
           });
         }
@@ -1181,9 +1255,9 @@ export default {
             regionalCenterInfo = `
               <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bdc3c7;">
                 <h6 style="
-                  color: #27ae60; 
-                  margin: 0 0 10px 0; 
-                  font-size: 14px; 
+                  color: #27ae60;
+                  margin: 0 0 10px 0;
+                  font-size: 14px;
                   font-weight: 600;
                 ">🏛️ Regional Centers (${regionalCentersInCounty.length})</h6>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -1192,8 +1266,8 @@ export default {
                     .map(
                       (rc) => `
                     <div style="
-                      padding: 8px; 
-                      background: #f8f9fa; 
+                      padding: 8px;
+                      background: #f8f9fa;
                       border-radius: 6px;
                       border-left: 3px solid #27ae60;
                     ">
@@ -1201,12 +1275,8 @@ export default {
                         ${rc.properties.regional_center || "Regional Center"}
                       </div>
                       <div style="font-size: 12px; color: #555; display: flex; flex-direction: column; gap: 2px;">
-                        <span>📞 ${
-                          rc.properties.telephone || "Contact for info"
-                        }</span>
-                        <span>🏢 ${
-                          rc.properties.office_type || "Main Office"
-                        }</span>
+                        <span>📞 ${rc.properties.telephone || "Contact for info"}</span>
+                        <span>🏢 ${rc.properties.office_type || "Main Office"}</span>
                       </div>
                     </div>
                   `
@@ -1226,8 +1296,8 @@ export default {
             regionalCenterInfo = `
                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bdc3c7;">
                  <div style="
-                   padding: 12px; 
-                   background: #fff3cd; 
+                   padding: 12px;
+                   background: #fff3cd;
                    border-radius: 6px;
                    border-left: 3px solid #ffc107;
                    font-size: 13px;
@@ -1253,17 +1323,17 @@ export default {
             .setHTML(
               `
               <div style="
-                width: 320px; 
-                max-width: 90vw; 
-                padding: 12px; 
+                width: 320px;
+                max-width: 90vw;
+                padding: 12px;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 line-height: 1.4;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
               ">
                 <h5 style="
-                  color: #2c3e50; 
-                  margin: 0 0 12px 0; 
+                  color: #2c3e50;
+                  margin: 0 0 12px 0;
                   padding-bottom: 8px;
                   border-bottom: 2px solid #3498db;
                   font-size: 17px;
@@ -1331,10 +1401,7 @@ export default {
           "Map layers now:",
           this.map.getStyle().layers.map((l) => l.id)
         );
-        console.log(
-          "Map sources now:",
-          Object.keys(this.map.getStyle().sources)
-        );
+        console.log("Map sources now:", Object.keys(this.map.getStyle().sources));
       } catch (error) {
         console.error("Error adding service areas to map:", error);
       }
@@ -1383,10 +1450,7 @@ export default {
 
     // Toggle pin service areas (make them persistent)
     togglePinServiceAreas() {
-      console.log(
-        "togglePinServiceAreas called, pinServiceAreas:",
-        this.pinServiceAreas
-      );
+      console.log("togglePinServiceAreas called, pinServiceAreas:", this.pinServiceAreas);
 
       if (this.pinServiceAreas) {
         // When pinning, ensure service areas are always visible
@@ -1422,11 +1486,7 @@ export default {
 
     // Auto-add service areas when map reloads (for pinned mode)
     autoAddServiceAreas() {
-      if (
-        this.pinServiceAreas &&
-        this.serviceAreasLoaded &&
-        this.serviceAreas
-      ) {
+      if (this.pinServiceAreas && this.serviceAreasLoaded && this.serviceAreas) {
         // Small delay to ensure map is ready
         setTimeout(() => {
           if (!this.map.getSource("service-areas")) {
@@ -1438,11 +1498,61 @@ export default {
 
     // Update map markers
     updateMarkers() {
-      // Clear existing markers
-      this.markers.forEach((marker) => {
-        marker.remove();
+      // Prevent recursive calls
+      if (this._updatingMarkers) {
+        console.log("⚠️ updateMarkers already in progress, skipping");
+        return;
+      }
+      this._updatingMarkers = true;
+
+      console.log("🚀 updateMarkers() called");
+      console.log(`Current display type: ${this.displayType}`);
+      console.log(`providers.length: ${this.providers.length}`);
+      console.log(`filteredProviders.length: ${this.filteredProviders.length}`);
+
+      // Check map state
+      if (!this.map) {
+        console.error("❌ Map not initialized, skipping marker update");
+        this._updatingMarkers = false;
+        return;
+      }
+
+      console.log("🗺️ Map state:", {
+        loaded: this.map.loaded(),
+        style_loaded: this.map.isStyleLoaded && this.map.isStyleLoaded(),
+        zoom: this.map.getZoom(),
+        center: this.map.getCenter(),
+      });
+
+      // Clear existing markers more aggressively
+      console.log(`🧹 Clearing ${this.markers.length} existing markers`);
+      this.markers.forEach((marker, index) => {
+        console.log(`🗑️ Removing marker ${index + 1}`);
+        try {
+          marker.remove();
+        } catch (e) {
+          console.warn(`Error removing marker ${index + 1}:`, e);
+        }
       });
       this.markers = [];
+
+      // More aggressive DOM cleanup
+      const existingMarkers = document.querySelectorAll(".mapboxgl-marker");
+      console.log(`🧽 Found ${existingMarkers.length} DOM markers before cleanup`);
+      existingMarkers.forEach((marker, index) => {
+        console.log(`🧽 Removing DOM marker ${index + 1}`);
+        marker.remove();
+      });
+
+      // Double check cleanup worked
+      const remainingMarkers = document.querySelectorAll(".mapboxgl-marker");
+      if (remainingMarkers.length > 0) {
+        console.warn(
+          `⚠️ Still ${remainingMarkers.length} markers remaining after cleanup!`
+        );
+      } else {
+        console.log(`✅ All markers successfully cleaned up`);
+      }
 
       // When service areas are enabled, don't show regional center markers
       // since counties provide this information, BUT always show provider markers
@@ -1460,6 +1570,12 @@ export default {
         console.log(
           `Showing ${items.length} provider markers (always visible regardless of service areas)`
         );
+        console.log(
+          "First few providers:",
+          items
+            .slice(0, 2)
+            .map((p) => ({ name: p.name, lat: p.latitude, lng: p.longitude }))
+        );
       } else if (this.displayType === "regionalCenters") {
         items = this.filteredRegionalCenters;
         console.log(`Showing ${items.length} regional center markers`);
@@ -1472,278 +1588,341 @@ export default {
         `Display type: ${this.displayType}, Service areas enabled: ${this.showServiceAreas}`
       );
 
-      // Add markers for each item
-      items.forEach((item) => {
-        // Ensure coordinates are numbers and valid
-        const lat = parseFloat(item.latitude);
-        const lng = parseFloat(item.longitude);
+      // Ensure map is completely stable before creating ANY markers
+      const mapLoaded = this.map.loaded();
+      const styleLoaded = this.map.isStyleLoaded ? this.map.isStyleLoaded() : false;
 
-        if (isNaN(lat) || isNaN(lng) || !lat || !lng) {
-          console.warn(
-            `Skipping marker for ${item.name} due to invalid coordinates:`,
-            {
-              original_lat: item.latitude,
-              original_lng: item.longitude,
-              parsed_lat: lat,
-              parsed_lng: lng,
-            }
-          );
-          return;
+      if (!mapLoaded || !styleLoaded) {
+        console.warn(
+          `🚨 Map not ready for marker creation (loaded: ${mapLoaded}, style: ${styleLoaded}). Retrying in 100ms...`
+        );
+        // Release the lock BEFORE the recursive call
+        this._updatingMarkers = false;
+        setTimeout(() => {
+          this.updateMarkers();
+        }, 100);
+        return;
+      }
+
+      console.log("🗺️ Map confirmed ready for marker creation");
+
+      // NEW APPROACH: Add markers sequentially with delays to prevent coordinate system conflicts
+      console.log("🎯 Using sequential marker creation to avoid coordinate conflicts");
+
+      const addMarkersSequentially = async () => {
+        let markersCreated = 0;
+        let markersSkipped = 0;
+
+        for (let index = 0; index < items.length; index++) {
+          const item = items[index];
+
+          // Add a small delay between each marker
+          if (index > 0) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+          }
+
+          const result = await this.createSingleMarker(item, index, items.length);
+          if (result.created) {
+            markersCreated++;
+          } else {
+            markersSkipped++;
+          }
         }
 
+        console.log(`📊 Sequential Marker Creation Summary:`);
+        console.log(`   - Total items processed: ${items.length}`);
+        console.log(`   - Markers created: ${markersCreated}`);
+        console.log(`   - Markers skipped: ${markersSkipped}`);
         console.log(
-          `Creating marker for ${item.name} at lat=${lat}, lng=${lng}`
+          `   - Success rate: ${((markersCreated / items.length) * 100).toFixed(1)}%`
         );
+
+        // Fit map to markers if we have any
+        if (this.markers.length > 0) {
+          setTimeout(() => {
+            const bounds = new mapboxgl.LngLatBounds();
+            let boundsCount = 0;
+
+            items.forEach((item) => {
+              const lat = parseFloat(item.latitude);
+              const lng = parseFloat(item.longitude);
+              if (!isNaN(lat) && !isNaN(lng) && lat && lng) {
+                bounds.extend([lng, lat]);
+                boundsCount++;
+              }
+            });
+
+            if (boundsCount > 0) {
+              try {
+                this.map.fitBounds(bounds, {
+                  padding: 100,
+                  maxZoom: 15,
+                });
+              } catch (error) {
+                console.error("Error fitting bounds:", error);
+              }
+            }
+          }, 100);
+        }
+
+        // Release the lock
+        this._updatingMarkers = false;
+      };
+
+      // Start sequential marker creation
+      addMarkersSequentially().catch((error) => {
+        console.error("Error in sequential marker creation:", error);
+        this._updatingMarkers = false;
+      });
+
+      return; // Exit here since we're using the new sequential approach
+    },
+
+    // Create a single marker with enhanced error handling and timing
+    async createSingleMarker(item, index, totalItems) {
+      try {
+        console.log(`🔄 Processing item ${index + 1}/${totalItems}: ${item.name}`);
+
+        // Skip items marked as having invalid coordinates
+        if (item._coordinatesInvalid) {
+          console.log(`⏭️ Skipping ${item.name} due to invalid coordinates`);
+          return { created: false, reason: "invalid_coordinates_flag" };
+        }
+
+        // Ensure coordinates are numbers and valid
+        let lat = parseFloat(item.latitude);
+        let lng = parseFloat(item.longitude);
+
+        // Enhanced Debug logging
+        console.log(`🔍 Item ${index + 1} coordinates debug for ${item.name}:`, {
+          original_lat: item.latitude,
+          original_lng: item.longitude,
+          lat_type: typeof item.latitude,
+          lng_type: typeof item.longitude,
+          parsed_lat: lat,
+          parsed_lng: lng,
+          lat_isNaN: isNaN(lat),
+          lng_isNaN: isNaN(lng),
+          lat_is_zero: lat === 0,
+          lng_is_zero: lng === 0,
+          accepts_insurance: item.accepts_insurance,
+        });
+
+        // Check for invalid coordinates
+        if (
+          isNaN(lat) ||
+          isNaN(lng) ||
+          lat === 0 ||
+          lng === 0 ||
+          !lat ||
+          !lng ||
+          lat === null ||
+          lng === null ||
+          lat === undefined ||
+          lng === undefined
+        ) {
+          console.warn(`⚠️ Invalid coordinates for ${item.name}, skipping marker:`, {
+            lat,
+            lng,
+            original_lat: item.latitude,
+            original_lng: item.longitude,
+          });
+          return { created: false, reason: "invalid_coordinates" };
+        }
+
+        // Validate coordinates are within reasonable bounds for CA
+        if (lat < 32 || lat > 42 || lng > -114 || lng < -125) {
+          console.warn(
+            `⚠️ Coordinates out of CA bounds for ${item.name}: ${lat}, ${lng}`
+          );
+          return { created: false, reason: "out_of_bounds" };
+        }
+
+        console.log(`✅ Creating marker for ${item.name} at lat=${lat}, lng=${lng}`);
+
+        // Double-check coordinates before creating marker
+        const finalLng = Number(lng);
+        const finalLat = Number(lat);
+
+        if (isNaN(finalLng) || isNaN(finalLat)) {
+          console.error(`🚨 Final coordinate check failed for ${item.name}:`, {
+            finalLat,
+            finalLng,
+          });
+          return { created: false, reason: "final_coordinate_check_failed" };
+        }
+
+        // Special check for [0,0] coordinates (top-left bug)
+        if (finalLng === 0 || finalLat === 0) {
+          console.error(
+            `🚨🚨🚨 FOUND THE BUG! Provider "${item.name}" has coordinates [${finalLng}, ${finalLat}]`
+          );
+          return { created: false, reason: "zero_coordinates" };
+        }
+
+        // Enhanced map readiness check with timeout
+        const mapLoaded = this.map.loaded();
+        const styleLoaded = this.map.isStyleLoaded ? this.map.isStyleLoaded() : false;
+
+        if (!mapLoaded || !styleLoaded) {
+          console.warn(
+            `⚠️ Map not ready for ${item.name} (loaded: ${mapLoaded}, style: ${styleLoaded})`
+          );
+          return { created: false, reason: "map_not_ready" };
+        }
+
+        // Test map projection BEFORE creating marker
+        try {
+          const testPoint = this.map.project([finalLng, finalLat]);
+          if (!testPoint || isNaN(testPoint.x) || isNaN(testPoint.y)) {
+            console.error(
+              `🚨 Map projection failed for ${item.name} at [${finalLng}, ${finalLat}]`
+            );
+            return { created: false, reason: "projection_failed" };
+          }
+          console.log(
+            `🗺️ Map projection test for ${item.name}: ${JSON.stringify(testPoint)}`
+          );
+        } catch (error) {
+          console.error(`🚨 Map projection error for ${item.name}:`, error);
+          return { created: false, reason: "projection_error" };
+        }
 
         // Create marker element
         const el = document.createElement("div");
-        el.className = "marker";
-        el.style.width = "20px";
-        el.style.height = "20px";
+        el.className = "marker provider-marker";
+        el.style.width = "24px";
+        el.style.height = "24px";
         el.style.borderRadius = "50%";
         el.style.backgroundColor =
-          this.displayType === "providers" ? "#007bff" : "#28a745";
-        el.style.border = "2px solid white";
-        el.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
+          this.displayType === "providers" ? "#ff4444" : "#28a745";
+        el.style.border = "3px solid white";
+        el.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
+        el.style.cursor = "pointer";
+        el.style.zIndex = "1000";
+        el.setAttribute("data-provider", item.name);
+        el.setAttribute("data-coordinates", `${finalLat},${finalLng}`);
 
-        // Add pulse animation if the item has special attributes
-        const isSpecial =
-          this.displayType === "providers" &&
-          ((this.filterOptions.matchesDiagnosis &&
-            item.diagnoses_served &&
-            item.diagnoses_served
-              .toLowerCase()
-              .includes(this.userData.diagnosis.toLowerCase())) ||
-            (this.filterOptions.acceptsInsurance && item.accepts_insurance) ||
-            (this.filterOptions.acceptsRegionalCenter &&
-              item.accepts_regional_center));
-
-        if (isSpecial) {
-          el.classList.add("pulse-marker");
-        }
-
-        // Create popup content with better information
-        const itemType =
-          this.displayType === "providers" ? "Provider" : "Regional Center";
-        const title = item.name || item.regional_center || `${itemType}`;
-
-        let popupContent = "";
-
-        if (this.displayType === "providers") {
-          // Enhanced provider popup with proper sizing
-          popupContent = `
-            <div style="
-              width: 300px; 
-              max-width: 85vw; 
-              padding: 12px; 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              line-height: 1.4;
-              word-wrap: break-word;
-              overflow-wrap: break-word;
-            ">
-              <h5 style="
-                color: #2c3e50; 
-                margin: 0 0 10px 0; 
-                padding-bottom: 8px;
-                border-bottom: 2px solid #3498db;
-                font-size: 16px;
-                font-weight: 600;
-                word-wrap: break-word;
-              ">
-                🏥 ${title}
-              </h5>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                ${
-                  item.address
-                    ? `<div style="font-size: 13px;">
-                        <strong style="color: #2c3e50;">📍 Address:</strong><br/>
-                        <span style="color: #555; margin-left: 16px; display: block;">${item.address}</span>
-                       </div>`
-                    : ""
-                }
-                ${
-                  item.phone
-                    ? `<div style="font-size: 13px;">
-                        <strong style="color: #2c3e50;">📞 Phone:</strong> 
-                        <a href="tel:${item.phone}" style="color: #3498db; text-decoration: none;">${item.phone}</a>
-                       </div>`
-                    : ""
-                }
-                ${
-                  item.diagnoses_served
-                    ? `<div style="font-size: 13px;">
-                        <strong style="color: #2c3e50;">🎯 Diagnoses:</strong><br/>
-                        <span style="color: #555; margin-left: 16px; display: block;">${item.diagnoses_served}</span>
-                       </div>`
-                    : ""
-                }
-                ${
-                  item.age_groups_served
-                    ? `<div style="font-size: 13px;">
-                        <strong style="color: #2c3e50;">👥 Age Groups:</strong> 
-                        <span style="color: #555;">${item.age_groups_served}</span>
-                       </div>`
-                    : ""
-                }
-                ${
-                  item.coverage_areas
-                    ? `<div style="font-size: 13px;">
-                        <strong style="color: #2c3e50;">🗺️ Coverage:</strong><br/>
-                        <span style="color: #555; margin-left: 16px; display: block;">${item.coverage_areas}</span>
-                       </div>`
-                    : ""
-                }
-                <div style="
-                  margin-top: 12px; 
-                  padding-top: 10px; 
-                  border-top: 1px solid #ecf0f1;
-                  display: flex;
-                  flex-direction: column;
-                  gap: 6px;
-                ">
-                  <span style="
-                    font-size: 12px; 
-                    font-weight: 500;
-                    ${
-                      item.accepts_insurance
-                        ? "color: #27ae60;"
-                        : "color: #e74c3c;"
-                    }
-                  ">
-                    ${
-                      item.accepts_insurance
-                        ? "✓ Accepts Insurance"
-                        : "✗ No Insurance"
-                    }
-                  </span>
-                  <span style="
-                    font-size: 12px; 
-                    font-weight: 500;
-                    ${
-                      item.accepts_regional_center
-                        ? "color: #27ae60;"
-                        : "color: #e74c3c;"
-                    }
-                  ">
-                    ${
-                      item.accepts_regional_center
-                        ? "✓ Accepts Regional Center"
-                        : "✗ No Regional Center"
-                    }
-                  </span>
-                </div>
-              </div>
-            </div>
-          `;
-        } else {
-          // Regional center popup (when service areas not enabled) with proper sizing
-          popupContent = `
-            <div style="
-              width: 280px; 
-              max-width: 85vw; 
-              padding: 12px; 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              line-height: 1.4;
-              word-wrap: break-word;
-              overflow-wrap: break-word;
-            ">
-              <h5 style="
-                color: #2c3e50; 
-                margin: 0 0 10px 0; 
-                padding-bottom: 8px;
-                border-bottom: 2px solid #27ae60;
-                font-size: 16px;
-                font-weight: 600;
-                word-wrap: break-word;
-              ">
-                🏛️ ${title}
-              </h5>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                ${
-                  item.address
-                    ? `<div style="font-size: 13px;">
-                        <strong style="color: #2c3e50;">📍 Address:</strong><br/>
-                        <span style="color: #555; margin-left: 16px; display: block;">${item.address}</span>
-                       </div>`
-                    : ""
-                }
-                ${
-                  item.phone || item.telephone
-                    ? `<div style="font-size: 13px;">
-                        <strong style="color: #2c3e50;">📞 Phone:</strong> 
-                        <a href="tel:${
-                          item.phone || item.telephone
-                        }" style="color: #27ae60; text-decoration: none;">${
-                        item.phone || item.telephone
-                      }</a>
-                       </div>`
-                    : ""
-                }
-                ${
-                  item.county_served
-                    ? `<div style="font-size: 13px;">
-                        <strong style="color: #2c3e50;">🗺️ County:</strong> 
-                        <span style="color: #555;">${item.county_served}</span>
-                       </div>`
-                    : ""
-                }
-                ${
-                  item.office_type
-                    ? `<div style="font-size: 13px;">
-                        <strong style="color: #2c3e50;">🏢 Office Type:</strong> 
-                        <span style="color: #555;">${item.office_type}</span>
-                       </div>`
-                    : ""
-                }
-              </div>
-            </div>
-          `;
-        }
-
-        // Create popup with better sizing options
+        // Create popup
         const popup = new mapboxgl.Popup({
           offset: 25,
           maxWidth: "90vw",
           closeOnClick: true,
           closeButton: true,
-        }).setHTML(popupContent);
+        }).setHTML(this.createPopupContent(item, finalLat, finalLng));
 
         // Create and add marker to map
+        console.log(`🎯 CREATING MARKER: ${item.name} at [${finalLng}, ${finalLat}]`);
         const marker = new mapboxgl.Marker(el)
-          .setLngLat([lng, lat])
+          .setLngLat([finalLng, finalLat])
           .setPopup(popup)
           .addTo(this.map);
 
-        // Add click handler
-        marker.getElement().addEventListener("click", () => {
-          this.selectLocation(item);
-        });
+        // Immediate position verification
+        const markerLngLat = marker.getLngLat();
+        console.log(
+          `🔍 MARKER ACTUAL POSITION: ${item.name} at [${markerLngLat.lng}, ${markerLngLat.lat}]`
+        );
 
         // Store marker
         this.markers.push(marker);
-      });
 
-      // Fit map to markers if we have any
-      if (this.markers.length > 0) {
-        const bounds = new mapboxgl.LngLatBounds();
+        // DOM position check after a small delay
+        setTimeout(() => {
+          const markerInDom = document.querySelector(`[data-provider="${item.name}"]`);
+          if (markerInDom) {
+            const rect = markerInDom.getBoundingClientRect();
+            console.log(`📍 Marker "${item.name}" DOM position:`, {
+              x: rect.x,
+              y: rect.y,
+              coordinates_used: `[${finalLng}, ${finalLat}]`,
+              is_top_left_corner: rect.x < 100 && rect.y < 100,
+            });
 
-        items.forEach((item) => {
-          const lat = parseFloat(item.latitude);
-          const lng = parseFloat(item.longitude);
-          if (!isNaN(lat) && !isNaN(lng) && lat && lng) {
-            bounds.extend([lng, lat]);
+            if (rect.x < 100 && rect.y < 100) {
+              console.error(
+                `🚨 MARKER IN TOP-LEFT CORNER! ${item.name} at DOM position [${rect.x}, ${rect.y}]`
+              );
+            }
           }
-        });
+        }, 50);
 
-        this.map.fitBounds(bounds, { padding: 50 });
+        console.log(
+          `📌 Marker successfully created for ${item.name}. Total markers: ${this.markers.length}`
+        );
+        return { created: true, marker };
+      } catch (error) {
+        console.error(`🚨 Error creating marker for ${item.name}:`, error);
+        return { created: false, reason: "exception", error };
       }
     },
 
-    // Select a location
-    selectLocation(location) {
-      this.selectedLocation = location;
+    // Create popup content for markers
+    createPopupContent(item, finalLat, finalLng) {
+      const itemType = this.displayType === "providers" ? "Provider" : "Regional Center";
+      const title = item.name || item.regional_center || `${itemType}`;
 
-      // Center map on selected location
+      if (this.displayType === "providers") {
+        const fullAddress = [item.address, item.city, item.state, item.zip_code]
+          .filter(Boolean)
+          .join(", ");
+        const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${finalLat},${finalLng}`;
+
+        return `
+          <div style="width: 380px; max-width: 90vw; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
+            <h4 style="color: #2c3e50; margin: 0 0 12px 0; padding-bottom: 10px; border-bottom: 2px solid #3498db; font-size: 18px; font-weight: 600;">
+              🏥 ${title}
+            </h4>
+            <div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+              <div style="font-size: 13px; font-weight: 500; ${
+                item.accepts_insurance ? "color: #27ae60;" : "color: #e74c3c;"
+              }">
+                ${item.accepts_insurance ? "✓ Accepts Insurance" : "✗ No Insurance"}
+              </div>
+            </div>
+            ${
+              fullAddress
+                ? `<div style="margin-bottom: 16px;"><strong>📍 Address</strong><br/>${fullAddress}</div>`
+                : ""
+            }
+            ${
+              item.phone
+                ? `<div style="margin-bottom: 16px;"><a href="tel:${item.phone}" style="color: #3498db;">📱 ${item.phone}</a></div>`
+                : ""
+            }
+            <div style="display: flex; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #ecf0f1;">
+              <a href="${mapsUrl}" target="_blank" style="background: #3498db; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px;">🗺️ Get Directions</a>
+              ${
+                item.phone
+                  ? `<a href="tel:${item.phone}" style="background: #27ae60; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px;">📞 Call Now</a>`
+                  : ""
+              }
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div style="width: 280px; max-width: 85vw; padding: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <h5 style="color: #2c3e50; margin: 0 0 10px 0; border-bottom: 2px solid #27ae60; font-size: 16px;">🏛️ ${title}</h5>
+            ${
+              item.address
+                ? `<div><strong>📍 Address:</strong><br/>${item.address}</div>`
+                : ""
+            }
+            ${
+              item.phone || item.telephone
+                ? `<div><strong>📞 Phone:</strong> <a href="tel:${
+                    item.phone || item.telephone
+                  }" style="color: #27ae60;">${item.phone || item.telephone}</a></div>`
+                : ""
+            }
+          </div>
+        `;
+      }
+    },
+
+    // Center map on location when clicked in list
+    centerMapOnLocation(location) {
       const lat = parseFloat(location.latitude);
       const lng = parseFloat(location.longitude);
       if (!isNaN(lat) && !isNaN(lng) && lat && lng) {
@@ -1752,11 +1931,6 @@ export default {
           zoom: 14,
         });
       }
-    },
-
-    // Close location details panel
-    closeLocationDetails() {
-      this.selectedLocation = null;
     },
   },
 };

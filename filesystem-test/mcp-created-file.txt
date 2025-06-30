@@ -1,0 +1,12 @@
+This file was created using the filesystem MCP server!
+
+The MCP server provides these capabilities:
+- Read files
+- Write files
+- List directories
+- Search files
+- Get file metadata
+- Move files
+- Create directories
+
+All operations are sandboxed to allowed directories for security.
