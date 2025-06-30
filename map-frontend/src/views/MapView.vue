@@ -6,39 +6,52 @@
     <!-- Sidebar (always on left) -->
     <div class="sidebar-container">
       <div class="sidebar">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h3 class="mb-0">Location Finder</h3>
+        <!-- CHLA Header -->
+        <div class="chla-header">
+          <div class="chla-logo-container">
+            <img
+              src="@/assets/Children's Hospital LA_id6jDRvrHf_1.svg"
+              alt="Children's Hospital Los Angeles"
+              class="chla-logo"
+            />
+          </div>
+          <div class="chla-mission">
+            <h1 class="chla-title">Provider Network Map</h1>
+            <p class="chla-tagline">We create hope and build healthier futures</p>
+          </div>
           <button
-            class="btn btn-sm btn-outline-primary funding-info-btn"
+            class="btn btn-sm chla-info-btn"
             @click="toggleFundingInfo"
             title="Funding Information"
           >
-            <!-- <i class="bi bi-info-circle"></i> Funding Info -->
+            <i class="bi bi-info-circle"></i>
           </button>
         </div>
 
         <!-- Display Type Selector -->
         <div class="mb-3">
-          <div class="btn-group w-100 d-flex">
+          <div class="btn-group w-100 d-flex chla-btn-group">
             <button
-              class="btn flex-grow-1"
+              class="btn flex-grow-1 chla-btn"
               :class="{
-                'btn-primary': displayType === 'regionalCenters',
-                'btn-outline-primary': displayType !== 'regionalCenters',
+                'btn-chla-primary': displayType === 'regionalCenters',
+                'btn-chla-outline': displayType !== 'regionalCenters',
               }"
               @click="setDisplayType('regionalCenters')"
             >
-              Centers
+              <i class="bi bi-building me-1"></i>
+              Regional Centers
             </button>
             <button
-              class="btn flex-grow-1"
+              class="btn flex-grow-1 chla-btn"
               :class="{
-                'btn-primary': displayType === 'providers',
-                'btn-outline-primary': displayType !== 'providers',
+                'btn-chla-primary': displayType === 'providers',
+                'btn-chla-outline': displayType !== 'providers',
               }"
               @click="setDisplayType('providers')"
             >
-              Providers
+              <i class="bi bi-hospital me-1"></i>
+              Healthcare Providers
             </button>
           </div>
         </div>
@@ -1965,20 +1978,42 @@ export default {
           return { created: false, reason: "projection_error" };
         }
 
-        // Create marker element
+        // Create marker element with CHLA branding
         const el = document.createElement("div");
-        el.className = "marker provider-marker";
-        el.style.width = "24px";
-        el.style.height = "24px";
+        el.className = "marker chla-marker";
+        el.style.width = "28px";
+        el.style.height = "28px";
         el.style.borderRadius = "50%";
-        el.style.backgroundColor =
-          this.displayType === "providers" ? "#ff4444" : "#28a745";
+
+        // Use CHLA brand colors
+        if (this.displayType === "providers") {
+          if (item.accepts_insurance) {
+            el.style.background = "linear-gradient(135deg, #4DAA50 0%, #5aba4b 100%)"; // Green for insurance
+          } else {
+            el.style.background = "linear-gradient(135deg, #0D9DDB 0%, #22b2e7 100%)"; // Light blue for providers
+          }
+        } else {
+          el.style.background = "linear-gradient(135deg, #004877 0%, #0D9DDB 100%)"; // CHLA blue gradient for regional centers
+        }
+
         el.style.border = "3px solid white";
-        el.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
+        el.style.boxShadow = "0 4px 12px rgba(0, 72, 119, 0.3)";
         el.style.cursor = "pointer";
         el.style.zIndex = "1000";
+        el.style.transition = "all 0.3s ease";
         el.setAttribute("data-provider", item.name);
         el.setAttribute("data-coordinates", `${finalLat},${finalLng}`);
+
+        // Add hover effect
+        el.addEventListener("mouseenter", () => {
+          el.style.transform = "scale(1.2)";
+          el.style.zIndex = "1001";
+        });
+
+        el.addEventListener("mouseleave", () => {
+          el.style.transform = "scale(1)";
+          el.style.zIndex = "1000";
+        });
 
         // Create popup
         const popup = new mapboxgl.Popup({
@@ -2046,53 +2081,174 @@ export default {
         const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${finalLat},${finalLng}`;
 
         return `
-          <div style="width: 380px; max-width: 90vw; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
-            <h4 style="color: #2c3e50; margin: 0 0 12px 0; padding-bottom: 10px; border-bottom: 2px solid #3498db; font-size: 18px; font-weight: 600;">
-              🏥 ${title}
-            </h4>
-            <div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
-              <div style="font-size: 13px; font-weight: 500; ${
-                item.accepts_insurance ? "color: #27ae60;" : "color: #e74c3c;"
-              }">
-                ${item.accepts_insurance ? "✓ Accepts Insurance" : "✗ No Insurance"}
+          <div style="width: 400px; max-width: 90vw; padding: 20px; font-family: 'Futura Std', 'Arial', 'Calibri', sans-serif; line-height: 1.5; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 12px;">
+            <div style="background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%); margin: -20px -20px 16px -20px; padding: 16px 20px; border-radius: 12px 12px 0 0;">
+              <h4 style="color: white; margin: 0; font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                🏥 ${title}
+              </h4>
+            </div>
+            <div style="margin-bottom: 16px; padding: 12px; background: ${
+              item.accepts_insurance
+                ? "linear-gradient(135deg, #4DAA50 0%, #5aba4b 100%)"
+                : "linear-gradient(135deg, #FFC923 0%, #ffcc0a 100%)"
+            }; border-radius: 8px; color: ${
+          item.accepts_insurance ? "white" : "#4C280F"
+        };">
+              <div style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                ${
+                  item.accepts_insurance
+                    ? '<span style="font-size: 16px;">✓</span> Accepts Insurance'
+                    : '<span style="font-size: 16px;">⚠</span> Insurance Status Unknown'
+                }
               </div>
             </div>
             ${
               fullAddress
-                ? `<div style="margin-bottom: 16px;"><strong>📍 Address</strong><br/>${fullAddress}</div>`
+                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #004877;">
+                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                       📍 Address
+                     </strong>
+                     <span style="color: #495057;">${fullAddress}</span>
+                   </div>`
                 : ""
             }
             ${
               item.phone
-                ? `<div style="margin-bottom: 16px;"><a href="tel:${item.phone}" style="color: #3498db;">📱 ${item.phone}</a></div>`
+                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0D9DDB;">
+                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                       📱 Phone
+                     </strong>
+                     <a href="tel:${item.phone}" style="color: #0D9DDB; text-decoration: none; font-weight: 600;">${item.phone}</a>
+                   </div>`
                 : ""
             }
-            <div style="display: flex; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #ecf0f1;">
-              <a href="${mapsUrl}" target="_blank" style="background: #3498db; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px;">🗺️ Get Directions</a>
+            <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 2px solid #FFC923;">
+              <a href="${mapsUrl}" target="_blank" 
+                 style="background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%); 
+                        color: white; 
+                        padding: 12px 16px; 
+                        border-radius: 8px; 
+                        text-decoration: none; 
+                        font-size: 13px; 
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        flex: 1;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 2px 8px rgba(0, 72, 119, 0.3);">
+                🗺️ Get Directions
+              </a>
               ${
                 item.phone
-                  ? `<a href="tel:${item.phone}" style="background: #27ae60; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px;">📞 Call Now</a>`
+                  ? `<a href="tel:${item.phone}" 
+                       style="background: linear-gradient(135deg, #4DAA50 0%, #5aba4b 100%); 
+                              color: white; 
+                              padding: 12px 16px; 
+                              border-radius: 8px; 
+                              text-decoration: none; 
+                              font-size: 13px; 
+                              font-weight: 600;
+                              text-transform: uppercase;
+                              letter-spacing: 0.5px;
+                              flex: 1;
+                              text-align: center;
+                              transition: all 0.3s ease;
+                              box-shadow: 0 2px 8px rgba(77, 170, 80, 0.3);">
+                        📞 Call Now
+                     </a>`
                   : ""
               }
             </div>
           </div>
         `;
       } else {
+        // Regional Centers popup with CHLA branding
+        const fullAddress = [item.address, item.city, item.state, item.zip_code]
+          .filter(Boolean)
+          .join(", ");
+        const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${finalLat},${finalLng}`;
+
         return `
-          <div style="width: 280px; max-width: 85vw; padding: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-            <h5 style="color: #2c3e50; margin: 0 0 10px 0; border-bottom: 2px solid #27ae60; font-size: 16px;">🏛️ ${title}</h5>
+          <div style="width: 400px; max-width: 90vw; padding: 20px; font-family: 'Futura Std', 'Arial', 'Calibri', sans-serif; line-height: 1.5; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 12px;">
+            <div style="background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%); margin: -20px -20px 16px -20px; padding: 16px 20px; border-radius: 12px 12px 0 0;">
+              <h4 style="color: white; margin: 0; font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                🏢 ${title}
+              </h4>
+            </div>
             ${
-              item.address
-                ? `<div><strong>📍 Address:</strong><br/>${item.address}</div>`
+              fullAddress
+                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #004877;">
+                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                       📍 Address
+                     </strong>
+                     <span style="color: #495057;">${fullAddress}</span>
+                   </div>`
                 : ""
             }
             ${
               item.phone || item.telephone
-                ? `<div><strong>📞 Phone:</strong> <a href="tel:${
+                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0D9DDB;">
+                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                       📱 Phone
+                     </strong>
+                     <a href="tel:${
+                       item.phone || item.telephone
+                     }" style="color: #0D9DDB; text-decoration: none; font-weight: 600;">${
                     item.phone || item.telephone
-                  }" style="color: #27ae60;">${item.phone || item.telephone}</a></div>`
+                  }</a>
+                   </div>`
                 : ""
             }
+            ${
+              item.office_type
+                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #FFC923;">
+                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                       🏢 Office Type
+                     </strong>
+                     <span style="color: #495057;">${item.office_type}</span>
+                   </div>`
+                : ""
+            }
+            <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 2px solid #FFC923;">
+              <a href="${mapsUrl}" target="_blank" 
+                 style="background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%); 
+                        color: white; 
+                        padding: 12px 16px; 
+                        border-radius: 8px; 
+                        text-decoration: none; 
+                        font-size: 13px; 
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        flex: 1;
+                        text-align: center;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 2px 8px rgba(0, 72, 119, 0.3);">
+                🗺️ Get Directions
+              </a>
+              ${
+                item.phone || item.telephone
+                  ? `<a href="tel:${
+                      item.phone || item.telephone
+                    }" style="background: linear-gradient(135deg, #4DAA50 0%, #5aba4b 100%); 
+                              color: white; 
+                              padding: 12px 16px; 
+                              border-radius: 8px; 
+                              text-decoration: none; 
+                              font-size: 13px; 
+                              font-weight: 600;
+                              text-transform: uppercase;
+                              letter-spacing: 0.5px;
+                              flex: 1;
+                              text-align: center;
+                              transition: all 0.3s ease;
+                              box-shadow: 0 2px 8px rgba(77, 170, 80, 0.3);">
+                        📞 Call Now
+                     </a>`
+                  : ""
+              }
+            </div>
           </div>
         `;
       }
@@ -2114,27 +2270,253 @@ export default {
 </script>
 
 <style>
+/* CHLA Typography */
+* {
+  font-family: "Futura Std", "Arial", "Calibri", sans-serif !important;
+}
+
 .map-app {
   display: flex;
   height: 100vh;
   width: 100%;
   position: relative;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 }
 
 .sidebar-container {
-  flex: 0 0 350px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  flex: 0 0 380px;
+  box-shadow: 0 4px 20px rgba(0, 72, 119, 0.15);
   z-index: 5;
-  background: white;
+  background: #ffffff;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  border-radius: 0 12px 12px 0;
+  border-right: 3px solid #004877;
 }
 
 .sidebar {
-  padding: 16px;
+  padding: 0;
   flex: 1;
   overflow-y: auto;
+}
+
+/* CHLA Header Styling */
+.chla-header {
+  background: linear-gradient(135deg, #004877 0%, #0d9ddb 100%);
+  color: white;
+  padding: 20px;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.chla-header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20px;
+  width: 100px;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 203, 35, 0.1));
+  transform: rotate(15deg);
+}
+
+.chla-logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.chla-logo {
+  height: 60px;
+  max-width: 100%;
+  filter: brightness(0) invert(1);
+}
+
+.chla-mission {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.chla-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.chla-tagline {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.9;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.chla-info-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.chla-info-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+  color: white;
+}
+
+/* Content Padding */
+.sidebar > div:not(.chla-header) {
+  padding: 0 20px;
+}
+
+.sidebar > div:first-of-type:not(.chla-header) {
+  padding-top: 20px;
+}
+
+/* CHLA Button Styling */
+.chla-btn-group {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 72, 119, 0.15);
+}
+
+.chla-btn {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none !important;
+  transition: all 0.3s ease;
+  border-radius: 0 !important;
+}
+
+.btn-chla-primary {
+  background: linear-gradient(135deg, #004877 0%, #0d9ddb 100%) !important;
+  color: white !important;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.btn-chla-primary:hover {
+  background: linear-gradient(135deg, #003866 0%, #0a8ac4 100%) !important;
+  transform: translateY(-1px);
+}
+
+.btn-chla-outline {
+  background: white !important;
+  color: #004877 !important;
+  border: 2px solid #004877 !important;
+}
+
+.btn-chla-outline:hover {
+  background: #004877 !important;
+  color: white !important;
+  transform: translateY(-1px);
+}
+
+/* CHLA Alert Styling */
+.alert {
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+}
+
+.alert-success {
+  background: linear-gradient(135deg, #4daa50 0%, #5aba4b 100%);
+  color: white;
+}
+
+.alert-warning {
+  background: linear-gradient(135deg, #ffc923 0%, #ffcc0a 100%);
+  color: #4c280f;
+}
+
+.alert-info {
+  background: linear-gradient(135deg, #0d9ddb 0%, #22b2e7 100%);
+  color: white;
+}
+
+/* Form Controls */
+.form-control {
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #004877;
+  box-shadow: 0 0 0 0.2rem rgba(0, 72, 119, 0.25);
+}
+
+.form-check-input:checked {
+  background-color: #004877;
+  border-color: #004877;
+}
+
+.form-range::-webkit-slider-thumb {
+  background: #004877;
+}
+
+.form-range::-moz-range-thumb {
+  background: #004877;
+}
+
+/* Badges */
+.badge {
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.bg-info {
+  background: #0d9ddb !important;
+}
+
+.bg-primary {
+  background: #004877 !important;
+}
+
+/* Reset Button */
+.btn-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-1px);
+}
+
+/* Section Headers */
+h5,
+h6 {
+  color: #004877;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.results-title {
+  color: #004877;
+  border-bottom: 2px solid #ffc923;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
 }
 
 .map-container-wrapper {
@@ -2145,6 +2527,8 @@ export default {
 .map-container {
   width: 100%;
   height: 100%;
+  border-radius: 12px 0 0 12px;
+  overflow: hidden;
 }
 
 /* Service areas toggle styling */
@@ -2152,6 +2536,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: #004877;
+  font-weight: 500;
 }
 
 /* Map marker pulse animation */
