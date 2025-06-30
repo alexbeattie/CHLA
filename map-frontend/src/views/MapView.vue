@@ -2004,14 +2004,14 @@ export default {
         el.setAttribute("data-provider", item.name);
         el.setAttribute("data-coordinates", `${finalLat},${finalLng}`);
 
-        // Add hover effect
+        // Add subtle hover effect (no transform to avoid positioning issues)
         el.addEventListener("mouseenter", () => {
-          el.style.transform = "scale(1.2)";
+          el.style.boxShadow = "0 6px 16px rgba(0, 72, 119, 0.5)";
           el.style.zIndex = "1001";
         });
 
         el.addEventListener("mouseleave", () => {
-          el.style.transform = "scale(1)";
+          el.style.boxShadow = "0 4px 12px rgba(0, 72, 119, 0.3)";
           el.style.zIndex = "1000";
         });
 
@@ -2081,9 +2081,9 @@ export default {
         const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${finalLat},${finalLng}`;
 
         return `
-          <div style="width: 400px; max-width: 90vw; padding: 20px; font-family: 'Futura Std', 'Arial', 'Calibri', sans-serif; line-height: 1.5; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 12px;">
-            <div style="background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%); margin: -20px -20px 16px -20px; padding: 16px 20px; border-radius: 12px 12px 0 0;">
-              <h4 style="color: white; margin: 0; font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+          <div style="width: 400px; max-width: 90vw; padding: 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.5; background: white; border-radius: 12px; border: 2px solid #004877; box-shadow: 0 4px 20px rgba(0, 72, 119, 0.15);">
+            <div style="background: #004877; margin: -20px -20px 16px -20px; padding: 16px 20px; border-radius: 10px 10px 0 0;">
+              <h4 style="color: white; margin: 0; font-size: 18px; font-weight: 700;">
                 🏥 ${title}
               </h4>
             </div>
@@ -2170,9 +2170,9 @@ export default {
         const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${finalLat},${finalLng}`;
 
         return `
-          <div style="width: 400px; max-width: 90vw; padding: 20px; font-family: 'Futura Std', 'Arial', 'Calibri', sans-serif; line-height: 1.5; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 12px;">
-            <div style="background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%); margin: -20px -20px 16px -20px; padding: 16px 20px; border-radius: 12px 12px 0 0;">
-              <h4 style="color: white; margin: 0; font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+          <div style="width: 400px; max-width: 90vw; padding: 20px; font-family: Arial, Helvetica, sans-serif; line-height: 1.5; background: white; border-radius: 12px; border: 2px solid #004877; box-shadow: 0 4px 20px rgba(0, 72, 119, 0.15);">
+            <div style="background: #004877; margin: -20px -20px 16px -20px; padding: 16px 20px; border-radius: 10px 10px 0 0;">
+              <h4 style="color: white; margin: 0; font-size: 18px; font-weight: 700;">
                 🏢 ${title}
               </h4>
             </div>
@@ -2270,9 +2270,9 @@ export default {
 </script>
 
 <style>
-/* CHLA Typography */
+/* Typography */
 * {
-  font-family: "Futura Std", "Arial", "Calibri", sans-serif !important;
+  font-family: "Arial", "Helvetica", sans-serif !important;
 }
 
 .map-app {
@@ -2303,23 +2303,12 @@ export default {
 
 /* CHLA Header Styling */
 .chla-header {
-  background: linear-gradient(135deg, #004877 0%, #0d9ddb 100%);
-  color: white;
+  background: white;
+  color: #004877;
   padding: 20px;
-  margin: 0;
+  margin: 0 0 20px 0;
   position: relative;
-  overflow: hidden;
-}
-
-.chla-header::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  right: -20px;
-  width: 100px;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 203, 35, 0.1));
-  transform: rotate(15deg);
+  border-bottom: 3px solid #004877;
 }
 
 .chla-logo-container {
@@ -2331,7 +2320,6 @@ export default {
 .chla-logo {
   height: 60px;
   max-width: 100%;
-  filter: brightness(0) invert(1);
 }
 
 .chla-mission {
@@ -2346,13 +2334,13 @@ export default {
   margin: 0 0 8px 0;
   text-transform: uppercase;
   letter-spacing: 1px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: #004877;
 }
 
 .chla-tagline {
   font-size: 14px;
   margin: 0;
-  opacity: 0.9;
+  color: #0d9ddb;
   font-style: italic;
   font-weight: 300;
 }
@@ -2361,8 +2349,8 @@ export default {
   position: absolute;
   top: 20px;
   right: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #004877;
+  border: 1px solid #004877;
   color: white;
   border-radius: 50%;
   width: 36px;
@@ -2374,7 +2362,8 @@ export default {
 }
 
 .chla-info-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #0d9ddb;
+  border-color: #0d9ddb;
   transform: scale(1.1);
   color: white;
 }
@@ -2397,22 +2386,21 @@ export default {
 
 .chla-btn {
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   border: none !important;
   transition: all 0.3s ease;
   border-radius: 0 !important;
 }
 
 .btn-chla-primary {
-  background: linear-gradient(135deg, #004877 0%, #0d9ddb 100%) !important;
+  background: #004877 !important;
   color: white !important;
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  border-color: #004877 !important;
 }
 
 .btn-chla-primary:hover {
-  background: linear-gradient(135deg, #003866 0%, #0a8ac4 100%) !important;
-  transform: translateY(-1px);
+  background: #0d9ddb !important;
+  border-color: #0d9ddb !important;
+  color: white !important;
 }
 
 .btn-chla-outline {
@@ -2424,29 +2412,31 @@ export default {
 .btn-chla-outline:hover {
   background: #004877 !important;
   color: white !important;
-  transform: translateY(-1px);
 }
 
 /* CHLA Alert Styling */
 .alert {
   border-radius: 8px;
-  border: none;
+  border: 2px solid;
   font-weight: 500;
 }
 
 .alert-success {
-  background: linear-gradient(135deg, #4daa50 0%, #5aba4b 100%);
-  color: white;
+  background: #d4edda;
+  color: #155724;
+  border-color: #4daa50;
 }
 
 .alert-warning {
-  background: linear-gradient(135deg, #ffc923 0%, #ffcc0a 100%);
-  color: #4c280f;
+  background: #fff3cd;
+  color: #856404;
+  border-color: #ffc923;
 }
 
 .alert-info {
-  background: linear-gradient(135deg, #0d9ddb 0%, #22b2e7 100%);
-  color: white;
+  background: #d1ecf1;
+  color: #0c5460;
+  border-color: #0d9ddb;
 }
 
 /* Form Controls */
@@ -2490,17 +2480,14 @@ export default {
 
 /* Reset Button */
 .btn-secondary {
-  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  background: #6c757d;
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .btn-secondary:hover {
-  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
-  transform: translateY(-1px);
+  background: #5a6268;
 }
 
 /* Section Headers */
@@ -2508,8 +2495,6 @@ h5,
 h6 {
   color: #004877;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .results-title {
