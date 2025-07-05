@@ -63,7 +63,7 @@
       </div>
 
       <!-- Save Button -->
-      <button class="btn btn-primary w-100" @click="saveData">Save Information</button>
+      <button class="btn btn-chla-primary w-100" @click="saveData">Save Information</button>
     </div>
   </div>
 </template>

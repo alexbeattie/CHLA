@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
-from django.contrib.gis.geos import Point, MultiPolygon
-from django.contrib.gis.measure import Distance
+# from django.contrib.gis.geos import Point, MultiPolygon
+# from django.contrib.gis.measure import Distance
 from locations.models import RegionalCenter
 from django.db import transaction
 import math

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
+# from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from .models import (
     Location,
     LocationCategory,
@@ -135,62 +135,51 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
 
 
 # GeoJSON serializer for regional centers with full geospatial data
-class GeoJSONRegionalCenterSerializer(GeoFeatureModelSerializer):
-    served_providers = serializers.SerializerMethodField()
-
-    class Meta:
-        model = RegionalCenter
-        geo_field = "service_area"
-        fields = [
-            "id",
-            "regional_center",
-            "office_type",
-            "address",
-            "suite",
-            "city",
-            "state",
-            "zip_code",
-            "telephone",
-            "website",
-            "county_served",
-            "los_angeles_health_district",
-            "latitude",
-            "longitude",
-            "service_radius_miles",
-            "served_providers",
-        ]
-
-    def get_served_providers(self, obj):
-        """Get providers served by this regional center"""
-        try:
-            relationships = ProviderRegionalCenter.objects.filter(
-                regional_center=obj
-            ).select_related("provider")
-            return [
-                {
-                    "id": rel.provider.id,
-                    "name": rel.provider.name,
-                    "is_primary": rel.is_primary,
+class GeoJSONRegionalCenterSerializer(serializers.Serializer):
+    """Serializer that returns proper GeoJSON Feature objects for regional centers"""
+    
+    def to_representation(self, obj):
+        geojson_data = obj.get_service_area_as_geojson()
+        
+        if geojson_data:
+            return {
+                "type": "Feature",
+                "geometry": geojson_data,
+                "properties": {
+                    "id": obj.id,
+                    "regional_center": obj.regional_center,
+                    "county_served": obj.county_served,
+                    "office_type": obj.office_type,
+                    "address": obj.address,
+                    "city": obj.city,
+                    "state": obj.state,
+                    "zip_code": obj.zip_code,
+                    "telephone": obj.telephone,
+                    "website": obj.website,
                 }
-                for rel in relationships
-            ]
-        except:
-            return []
+            }
+        return None
 
 
 # Simplified serializer for service areas only (for map overlays)
-class ServiceAreaSerializer(GeoFeatureModelSerializer):
-    center_name = serializers.CharField(source="regional_center", read_only=True)
-
-    class Meta:
-        model = RegionalCenter
-        geo_field = "service_area"
-        fields = [
-            "id",
-            "center_name",
-            "county_served",
-            "service_radius_miles",
-        ]
+class ServiceAreaSerializer(serializers.Serializer):
+    """Serializer that returns proper GeoJSON Feature objects for service areas only"""
+    
+    def to_representation(self, obj):
+        geojson_data = obj.get_service_area_as_geojson()
+        
+        if geojson_data:
+            return {
+                "type": "Feature", 
+                "geometry": geojson_data,
+                "properties": {
+                    "id": obj.id,
+                    "center_name": obj.regional_center,
+                    "county_served": obj.county_served,
+                    "service_radius_miles": obj.service_radius_miles,
+                }
+            }
+        return None
 
 
 # New serializers for the funding and service models

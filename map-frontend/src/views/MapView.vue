@@ -16,16 +16,8 @@
             />
           </div>
           <div class="chla-mission">
-            <h1 class="chla-title">Provider Network Map</h1>
             <p class="chla-tagline">We create hope and build healthier futures</p>
           </div>
-          <button
-            class="btn btn-sm chla-info-btn"
-            @click="toggleFundingInfo"
-            title="Funding Information"
-          >
-            <i class="bi bi-info-circle"></i>
-          </button>
         </div>
 
         <!-- Display Type Selector -->
@@ -39,8 +31,8 @@
               }"
               @click="setDisplayType('regionalCenters')"
             >
-              <i class="bi bi-building me-1"></i>
-              Regional Centers
+              <i class="bi bi-building"></i>
+              <span>Regional Centers</span>
             </button>
             <button
               class="btn flex-grow-1 chla-btn"
@@ -50,8 +42,8 @@
               }"
               @click="setDisplayType('providers')"
             >
-              <i class="bi bi-hospital me-1"></i>
-              Healthcare Providers
+              <i class="bi bi-hospital"></i>
+              <span>Healthcare Providers</span>
             </button>
           </div>
         </div>
@@ -1037,36 +1029,55 @@ export default {
               console.log(`Processing provider ${index + 1}:`, debugInfo);
             }
 
-            // Convert string coordinates to numbers
-            if (provider.latitude && provider.longitude) {
-              provider.latitude = parseFloat(provider.latitude);
-              provider.longitude = parseFloat(provider.longitude);
+            // Enhanced coordinate conversion with strict validation
+            let lat = null;
+            let lng = null;
+
+            // Only attempt conversion if we have truthy values that aren't empty strings
+            if (
+              provider.latitude &&
+              provider.latitude !== "" &&
+              provider.latitude !== "null" &&
+              provider.latitude !== "undefined"
+            ) {
+              lat = parseFloat(provider.latitude);
             }
 
-            // Check for invalid coordinates and provide fallback
             if (
-              !provider.latitude ||
-              !provider.longitude ||
-              isNaN(provider.latitude) ||
-              isNaN(provider.longitude) ||
-              provider.latitude === 0 ||
-              provider.longitude === 0
+              provider.longitude &&
+              provider.longitude !== "" &&
+              provider.longitude !== "null" &&
+              provider.longitude !== "undefined"
             ) {
-              console.warn(
-                `Provider ${provider.name} (ID: ${provider.id}) has invalid coordinates, SKIPPING:`,
-                {
-                  latitude: provider.latitude,
-                  longitude: provider.longitude,
-                  original: debugInfo,
-                }
-              );
-              // Instead of fallback, mark as invalid so we skip it in marker creation
-              provider._coordinatesInvalid = true;
-            } else {
+              lng = parseFloat(provider.longitude);
+            }
+
+            // Validate converted coordinates are within reasonable California bounds
+            const isValidLatitude =
+              lat !== null && !isNaN(lat) && lat >= 32.0 && lat <= 42.0;
+            const isValidLongitude =
+              lng !== null && !isNaN(lng) && lng >= -125.0 && lng <= -114.0;
+
+            if (isValidLatitude && isValidLongitude) {
+              provider.latitude = lat;
+              provider.longitude = lng;
+              provider._coordinatesInvalid = false;
               console.log(
                 `✅ Provider ${provider.name}: lat=${provider.latitude}, lng=${provider.longitude}`
               );
-              provider._coordinatesInvalid = false;
+            } else {
+              console.warn(
+                `❌ Provider ${provider.name} (ID: ${provider.id}) has invalid coordinates, SKIPPING:`,
+                {
+                  original_lat: debugInfo.original_lat,
+                  original_lng: debugInfo.original_lng,
+                  converted_lat: lat,
+                  converted_lng: lng,
+                  lat_valid: isValidLatitude,
+                  lng_valid: isValidLongitude,
+                }
+              );
+              provider._coordinatesInvalid = true;
             }
           });
 
@@ -1928,6 +1939,14 @@ export default {
           return { created: false, reason: "out_of_bounds" };
         }
 
+        // Additional safety check for coordinates that would place markers at origin (0,0) or other invalid positions
+        if (Math.abs(lat) < 0.01 || Math.abs(lng) < 0.01) {
+          console.error(
+            `🚨 BLOCKED INVALID COORDINATES: ${item.name} has coordinates too close to origin: ${lat}, ${lng}`
+          );
+          return { created: false, reason: "coordinates_too_close_to_origin" };
+        }
+
         console.log(`✅ Creating marker for ${item.name} at lat=${lat}, lng=${lng}`);
 
         // Double-check coordinates before creating marker
@@ -1978,46 +1997,50 @@ export default {
           return { created: false, reason: "projection_error" };
         }
 
-        // Create marker element with CHLA branding
+        // Create marker element - small and stable
         const el = document.createElement("div");
         el.className = "marker chla-marker";
-        el.style.width = "20px";
-        el.style.height = "20px";
+        el.style.width = "16px";
+        el.style.height = "16px";
         el.style.borderRadius = "50%";
 
-        // Use CHLA brand colors - simple solid colors
+        // Use simple colors for providers and regional centers
         if (this.displayType === "providers") {
-          if (item.accepts_insurance) {
-            el.style.backgroundColor = "#4DAA50"; // Green for insurance
-          } else {
-            el.style.backgroundColor = "#0D9DDB"; // Light blue for providers
-          }
+          el.style.backgroundColor = "#007bff"; // Blue for providers
         } else {
-          el.style.backgroundColor = "#004877"; // CHLA blue for regional centers
+          el.style.backgroundColor = "#28a745"; // Green for regional centers
         }
 
         el.style.border = "2px solid white";
-        el.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.3)";
+        el.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.3)";
         el.style.cursor = "pointer";
+
+        // NO TRANSFORMS OR POSITIONING - let Mapbox handle all positioning
+        el.style.touchAction = "manipulation";
+        el.style.userSelect = "none";
+
         el.setAttribute("data-provider", item.name);
         el.setAttribute("data-coordinates", `${finalLat},${finalLng}`);
 
-        // Simple hover effect
+        // Simple hover effect WITHOUT transforms that interfere with positioning
         el.addEventListener("mouseenter", () => {
-          el.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.4)";
+          el.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.5)";
+          el.style.borderWidth = "3px";
         });
 
         el.addEventListener("mouseleave", () => {
-          el.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.3)";
+          el.style.boxShadow = "0 1px 4px rgba(0, 0, 0, 0.3)";
+          el.style.borderWidth = "2px";
         });
 
-        // Create popup with proper offset to appear next to marker
+        // Create simple popup
         const popup = new mapboxgl.Popup({
-          offset: 25,
-          maxWidth: "300px",
+          offset: 30,
+          maxWidth: "280px",
           closeOnClick: true,
           closeButton: true,
-        }).setHTML(this.createPopupContent(item, finalLat, finalLng));
+          className: "simple-popup",
+        }).setHTML(this.createSimplePopup(item));
 
         // Create and add marker to map
         console.log(`🎯 CREATING MARKER: ${item.name} at [${finalLng}, ${finalLat}]`);
@@ -2065,175 +2088,45 @@ export default {
       }
     },
 
-    // Create popup content for markers
-    createPopupContent(item, finalLat, finalLng) {
-      const itemType = this.displayType === "providers" ? "Provider" : "Regional Center";
-      const title = item.name || item.regional_center || `${itemType}`;
+    // Create simple popup content
+    createSimplePopup(item) {
+      const title = item.name || item.regional_center || "Location";
+      const fullAddress = [item.address, item.city, item.state, item.zip_code]
+        .filter(Boolean)
+        .join(", ");
+      const phone = item.phone || item.telephone;
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;
 
-      if (this.displayType === "providers") {
-        const fullAddress = [item.address, item.city, item.state, item.zip_code]
-          .filter(Boolean)
-          .join(", ");
-        const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${finalLat},${finalLng}`;
-
-        return `
-          <div style="width: 280px; max-width: 80vw; padding: 16px; font-family: Arial, Helvetica, sans-serif; line-height: 1.4; background: white; border-radius: 8px; border: 2px solid #004877; box-shadow: 0 2px 12px rgba(0, 72, 119, 0.15);">
-            <div style="background: #004877; margin: -16px -16px 12px -16px; padding: 12px 16px; border-radius: 6px 6px 0 0;">
-              <h4 style="color: white; margin: 0; font-size: 16px; font-weight: 700;">
-                🏥 ${title}
-              </h4>
-            </div>
-            <div style="margin-bottom: 16px; padding: 12px; background: ${
-              item.accepts_insurance ? "#4DAA50" : "#FFC923"
-            }; border-radius: 8px; color: ${
-          item.accepts_insurance ? "white" : "#4C280F"
-        };">
-              <div style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                ${
-                  item.accepts_insurance
-                    ? '<span style="font-size: 16px;">✓</span> Accepts Insurance'
-                    : '<span style="font-size: 16px;">⚠</span> Insurance Status Unknown'
-                }
-              </div>
-            </div>
+      return `
+        <div style="padding: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+          <h5 style="margin: 0 0 8px 0; color: #333; font-size: 16px; font-weight: 600;">${title}</h5>
+          ${
+            fullAddress
+              ? `<div style="margin-bottom: 8px; color: #555; font-size: 14px;">${fullAddress}</div>`
+              : ""
+          }
+          ${
+            item.distance
+              ? `<div style="margin-bottom: 8px; color: #007bff; font-size: 13px; font-weight: 500;">${item.distance.toFixed(
+                  1
+                )} miles away</div>`
+              : ""
+          }
+          ${
+            phone
+              ? `<div style="margin-bottom: 12px; color: #333; font-size: 14px;">${phone}</div>`
+              : ""
+          }
+          <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <a href="${mapsUrl}" target="_blank" style="background: #007bff; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 500; flex: 1; text-align: center;">Directions</a>
             ${
-              fullAddress
-                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #004877;">
-                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                       📍 Address
-                     </strong>
-                     <span style="color: #495057;">${fullAddress}</span>
-                   </div>`
+              phone
+                ? `<a href="tel:${phone}" style="background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 500; flex: 1; text-align: center;">Call</a>`
                 : ""
             }
-            ${
-              item.phone
-                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0D9DDB;">
-                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                       📱 Phone
-                     </strong>
-                     <a href="tel:${item.phone}" style="color: #0D9DDB; text-decoration: none; font-weight: 600;">${item.phone}</a>
-                   </div>`
-                : ""
-            }
-            <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 2px solid #FFC923;">
-              <a href="${mapsUrl}" target="_blank" 
-                 style="background: #004877; 
-                        color: white; 
-                        padding: 12px 16px; 
-                        border-radius: 6px; 
-                        text-decoration: none; 
-                        font-size: 13px; 
-                        font-weight: 600;
-                        flex: 1;
-                        text-align: center;
-                        border: none;">
-                🗺️ Get Directions
-              </a>
-              ${
-                item.phone
-                  ? `<a href="tel:${item.phone}" 
-                       style="background: #4DAA50; 
-                              color: white; 
-                              padding: 12px 16px; 
-                              border-radius: 6px; 
-                              text-decoration: none; 
-                              font-size: 13px; 
-                              font-weight: 600;
-                              flex: 1;
-                              text-align: center;
-                              border: none;">
-                        📞 Call Now
-                     </a>`
-                  : ""
-              }
-            </div>
           </div>
-        `;
-      } else {
-        // Regional Centers popup with CHLA branding
-        const fullAddress = [item.address, item.city, item.state, item.zip_code]
-          .filter(Boolean)
-          .join(", ");
-        const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${finalLat},${finalLng}`;
-
-        return `
-          <div style="width: 280px; max-width: 80vw; padding: 16px; font-family: Arial, Helvetica, sans-serif; line-height: 1.4; background: white; border-radius: 8px; border: 2px solid #004877; box-shadow: 0 2px 12px rgba(0, 72, 119, 0.15);">
-            <div style="background: #004877; margin: -16px -16px 12px -16px; padding: 12px 16px; border-radius: 6px 6px 0 0;">
-              <h4 style="color: white; margin: 0; font-size: 16px; font-weight: 700;">
-                🏢 ${title}
-              </h4>
-            </div>
-            ${
-              fullAddress
-                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #004877;">
-                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                       📍 Address
-                     </strong>
-                     <span style="color: #495057;">${fullAddress}</span>
-                   </div>`
-                : ""
-            }
-            ${
-              item.phone || item.telephone
-                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0D9DDB;">
-                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                       📱 Phone
-                     </strong>
-                     <a href="tel:${
-                       item.phone || item.telephone
-                     }" style="color: #0D9DDB; text-decoration: none; font-weight: 600;">${
-                    item.phone || item.telephone
-                  }</a>
-                   </div>`
-                : ""
-            }
-            ${
-              item.office_type
-                ? `<div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #FFC923;">
-                     <strong style="color: #004877; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                       🏢 Office Type
-                     </strong>
-                     <span style="color: #495057;">${item.office_type}</span>
-                   </div>`
-                : ""
-            }
-            <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 2px solid #FFC923;">
-              <a href="${mapsUrl}" target="_blank" 
-                 style="background: #004877; 
-                        color: white; 
-                        padding: 12px 16px; 
-                        border-radius: 6px; 
-                        text-decoration: none; 
-                        font-size: 13px; 
-                        font-weight: 600;
-                        flex: 1;
-                        text-align: center;
-                        border: none;">
-                🗺️ Get Directions
-              </a>
-              ${
-                item.phone || item.telephone
-                  ? `<a href="tel:${
-                      item.phone || item.telephone
-                    }" style="background: #4DAA50; 
-                              color: white; 
-                              padding: 12px 16px; 
-                              border-radius: 6px; 
-                              text-decoration: none; 
-                              font-size: 13px; 
-                              font-weight: 600;
-                              flex: 1;
-                              text-align: center;
-                              border: none;">
-                        📞 Call Now
-                     </a>`
-                  : ""
-              }
-            </div>
-          </div>
-        `;
-      }
+        </div>
+      `;
     },
 
     // Center map on location when clicked in list
@@ -2267,14 +2160,14 @@ export default {
 
 .sidebar-container {
   flex: 0 0 380px;
-  box-shadow: 0 4px 20px rgba(0, 72, 119, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 5;
   background: #ffffff;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-radius: 0 12px 12px 0;
-  border-right: 3px solid #004877;
+  border-radius: 0;
+  border-right: 1px solid #dee2e6;
 }
 
 .sidebar {
@@ -2290,7 +2183,7 @@ export default {
   padding: 20px;
   margin: 0 0 20px 0;
   position: relative;
-  border-bottom: 3px solid #004877;
+  border-bottom: 1px solid #dee2e6;
 }
 
 .chla-logo-container {
@@ -2364,43 +2257,77 @@ export default {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 72, 119, 0.15);
+  border: 1px solid #dee2e6;
 }
 
 .chla-btn {
-  font-weight: 600;
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 0.5px;
   border: none !important;
   transition: all 0.3s ease;
   border-radius: 0 !important;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.chla-btn:not(:last-child) {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+.btn-chla-primary:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.chla-btn i {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.chla-btn span {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: inherit;
+  letter-spacing: inherit;
 }
 
 .btn-chla-primary {
   background: #004877 !important;
   color: white !important;
-  border-color: #004877 !important;
+  font-weight: 500;
+  border: none !important;
 }
 
 .btn-chla-primary:hover {
   background: #0d9ddb !important;
-  border-color: #0d9ddb !important;
   color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 72, 119, 0.3);
 }
 
 .btn-chla-outline {
   background: white !important;
   color: #004877 !important;
-  border: 2px solid #004877 !important;
+  font-weight: 400;
+  border: none !important;
 }
 
 .btn-chla-outline:hover {
-  background: #004877 !important;
-  color: white !important;
+  background: #f8f9fa !important;
+  color: #004877 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 72, 119, 0.2);
 }
 
 /* CHLA Alert Styling */
 .alert {
-  border-radius: 8px;
-  border: 2px solid;
-  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid;
+  font-weight: 400;
 }
 
 .alert-success {
@@ -2423,9 +2350,9 @@ export default {
 
 /* Form Controls */
 .form-control {
-  border-radius: 8px;
-  border: 2px solid #e9ecef;
-  transition: all 0.3s ease;
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  transition: all 0.2s ease;
 }
 
 .form-control:focus {
@@ -2454,6 +2381,34 @@ export default {
 
 .bg-info {
   background: #0d9ddb !important;
+}
+
+/* Map marker improvements */
+.marker.chla-marker {
+  transition: all 0.2s ease;
+}
+
+.marker.chla-marker:hover {
+  z-index: 1000 !important;
+}
+
+/* Simple popup styling */
+.mapboxgl-popup.simple-popup .mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #ddd;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-close-button {
+  font-size: 18px;
+  padding: 8px;
+  color: #666;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-close-button:hover {
+  background: #f5f5f5;
+  color: #333;
 }
 
 .bg-primary {

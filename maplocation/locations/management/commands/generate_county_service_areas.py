@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from django.contrib.gis.geos import Polygon, MultiPolygon
+# from django.contrib.gis.geos import Polygon, MultiPolygon
 from locations.models import RegionalCenter
 import math
 

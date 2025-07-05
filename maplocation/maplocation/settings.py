@@ -37,9 +37,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.gis",  # Added for GeoDjango support
+    # "django.contrib.gis",  # Temporarily disabled due to GDAL issues
     "rest_framework",
-    "rest_framework_gis",  # Added for GIS serializers
+    # "rest_framework_gis",  # Temporarily disabled due to GDAL issues
     "corsheaders",
     "django_filters",
     "graphene_django",
@@ -84,12 +84,12 @@ WSGI_APPLICATION = "maplocation.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use PostgreSQL
+# Use SQLite for development (simpler than PostGIS)
 import os
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",  # PostGIS backend for spatial support
+        "ENGINE": "django.db.backends.postgresql",  # Regular PostgreSQL backend  
         "NAME": os.environ.get("DB_NAME", "shafali"),
         "USER": os.environ.get("DB_USER", "alexbeattie"),
         "PASSWORD": os.environ.get("DB_PASSWORD", ""),

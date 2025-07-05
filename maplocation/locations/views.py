@@ -2,8 +2,8 @@ from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, Avg
-from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import D
+# from django.contrib.gis.geos import Point
+# from django.contrib.gis.measure import D
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import (
     LocationCategory,
@@ -322,10 +322,8 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
                 serializer = GeoJSONRegionalCenterSerializer(centers, many=True)
                 features = serializer.data
 
-                # Ensure features is a list
-            if isinstance(features, dict) and "features" in features:
-                # If the serializer returned a nested FeatureCollection, extract the features
-                features = features["features"]
+            # Filter out None results (centers without valid geometry)
+            features = [f for f in features if f is not None]
 
             return Response({"type": "FeatureCollection", "features": features})
 

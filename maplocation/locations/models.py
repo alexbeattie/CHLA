@@ -1,7 +1,7 @@
 from django.db import models
-from django.contrib.gis.db import models as gis_models
-from django.contrib.gis.geos import Point, Polygon, MultiPolygon
-from django.contrib.gis.measure import Distance
+# from django.contrib.gis.db import models as gis_models
+# from django.contrib.gis.geos import Point, Polygon, MultiPolygon
+# from django.contrib.gis.measure import Distance
 from decimal import Decimal
 import math
 
@@ -68,11 +68,11 @@ class RegionalCenter(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
 
-    # Add geometry field for service area boundaries
-    service_area = gis_models.MultiPolygonField(
+    # Add geometry field for service area boundaries (temporarily stored as text)
+    service_area = models.TextField(
         blank=True,
         null=True,
-        help_text="Geographic service area boundary for this regional center",
+        help_text="Geographic service area boundary for this regional center (stored as text temporarily)",
     )
 
     # Add approximate service radius for fallback calculations
@@ -91,43 +91,25 @@ class RegionalCenter(models.Model):
     def get_service_area_as_geojson(self):
         """Return the service area as GeoJSON"""
         if self.service_area:
-            return {
-                "type": "Feature",
-                "properties": {
-                    "name": self.regional_center,
-                    "id": self.id,
-                    "office_type": self.office_type,
-                    "county_served": self.county_served,
-                },
-                "geometry": {
-                    "type": self.service_area.geom_type,
-                    "coordinates": self.service_area.coords,
-                },
-            }
+            try:
+                from django.db import connection
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT ST_AsGeoJSON(service_area) FROM regional_centers WHERE id = %s",
+                        [self.id]
+                    )
+                    result = cursor.fetchone()
+                    if result and result[0]:
+                        import json
+                        return json.loads(result[0])
+            except Exception as e:
+                print(f"Error converting geometry to GeoJSON: {e}")
+                return None
         return None
 
     def create_approximate_service_area(self):
         """Create an approximate circular service area based on the center location and service radius"""
-        if self.latitude and self.longitude:
-            from django.contrib.gis.geos import Point
-            from django.contrib.gis.measure import Distance
-
-            center_point = Point(float(self.longitude), float(self.latitude))
-            # Create a buffer around the center point
-            radius_in_degrees = (
-                self.service_radius_miles / 69.0
-            )  # Rough conversion miles to degrees
-            buffer = center_point.buffer(radius_in_degrees)
-
-            # Convert to MultiPolygon if it's a Polygon
-            if buffer.geom_type == "Polygon":
-                from django.contrib.gis.geos import MultiPolygon
-
-                self.service_area = MultiPolygon(buffer)
-            else:
-                self.service_area = buffer
-
-            return self.service_area
+        # Temporarily disabled due to GIS dependencies
         return None
 
     @classmethod
@@ -174,19 +156,7 @@ class RegionalCenter(models.Model):
     @classmethod
     def find_by_location(cls, latitude, longitude):
         """Find regional centers that serve a specific geographic point"""
-        from django.contrib.gis.geos import Point
-
-        point = Point(
-            float(longitude), float(latitude)
-        )  # Note: Point takes (longitude, latitude)
-
-        # First try to find centers whose service area contains the point
-        centers_with_area = cls.objects.filter(service_area__contains=point)
-
-        if centers_with_area.exists():
-            return list(centers_with_area)
-
-        # Fallback to distance-based search
+        # Temporarily use only distance-based search due to GIS being disabled
         return cls.find_nearest(latitude, longitude, radius_miles=25, limit=3)
 
     @classmethod
