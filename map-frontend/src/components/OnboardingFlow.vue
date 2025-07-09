@@ -800,6 +800,16 @@ export default {
   color: #0d9ddb;
 }
 
+.service-content strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.service-content small {
+  display: block;
+  color: #6c757d;
+}
+
 /* Results Step */
 .results-preview {
   margin: 32px 0;
