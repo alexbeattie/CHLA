@@ -152,12 +152,10 @@ export default {
 
 .location-item:hover {
   background-color: #f8f9fa;
-  transform: translateY(-1px);
   box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08);
 }
 
 .location-item:active {
-  transform: translateY(0);
   background-color: #f1f3f5;
 }
 

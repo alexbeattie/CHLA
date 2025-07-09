@@ -63,7 +63,9 @@
       </div>
 
       <!-- Save Button -->
-      <button class="btn btn-chla-primary w-100" @click="saveData">Save Information</button>
+      <button class="btn btn-chla-primary w-100" @click="saveData">
+        Save Information
+      </button>
     </div>
   </div>
 </template>
@@ -163,12 +165,11 @@ export default {
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary:active {
-  transform: translateY(0);
+  /* No transform to avoid animation artifacts */
 }
 
 /* Mobile adjustments */

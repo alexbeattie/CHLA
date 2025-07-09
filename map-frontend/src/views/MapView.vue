@@ -1807,80 +1807,63 @@ export default {
 
       console.log("🗺️ Map confirmed ready for marker creation");
 
-      // NEW APPROACH: Add markers sequentially with delays to prevent coordinate system conflicts
-      console.log("🎯 Using sequential marker creation to avoid coordinate conflicts");
+      // IMPROVED APPROACH: Create markers all at once without delays to prevent animation artifacts
+      console.log("🎯 Creating all markers simultaneously to avoid animation issues");
 
-      const addMarkersSequentially = async () => {
-        let markersCreated = 0;
-        let markersSkipped = 0;
+      let markersCreated = 0;
+      let markersSkipped = 0;
 
-        for (let index = 0; index < items.length; index++) {
-          const item = items[index];
-
-          // Add a small delay between each marker
-          if (index > 0) {
-            await new Promise((resolve) => setTimeout(resolve, 50));
-          }
-
-          const result = await this.createSingleMarker(item, index, items.length);
-          if (result.created) {
-            markersCreated++;
-          } else {
-            markersSkipped++;
-          }
+      // Create all markers at once
+      for (let index = 0; index < items.length; index++) {
+        const item = items[index];
+        const result = this.createSingleMarker(item, index, items.length);
+        if (result.created) {
+          markersCreated++;
+        } else {
+          markersSkipped++;
         }
+      }
 
-        console.log(`📊 Sequential Marker Creation Summary:`);
-        console.log(`   - Total items processed: ${items.length}`);
-        console.log(`   - Markers created: ${markersCreated}`);
-        console.log(`   - Markers skipped: ${markersSkipped}`);
-        console.log(
-          `   - Success rate: ${((markersCreated / items.length) * 100).toFixed(1)}%`
-        );
+      console.log(`📊 Marker Creation Summary:`);
+      console.log(`   - Total items processed: ${items.length}`);
+      console.log(`   - Markers created: ${markersCreated}`);
+      console.log(`   - Markers skipped: ${markersSkipped}`);
+      console.log(
+        `   - Success rate: ${((markersCreated / items.length) * 100).toFixed(1)}%`
+      );
 
-        // Fit map to markers if we have any
-        if (this.markers.length > 0) {
-          setTimeout(() => {
-            const bounds = new mapboxgl.LngLatBounds();
-            let boundsCount = 0;
+      // Fit map to markers if we have any
+      if (this.markers.length > 0) {
+        const bounds = new mapboxgl.LngLatBounds();
+        let boundsCount = 0;
 
-            items.forEach((item) => {
-              const lat = parseFloat(item.latitude);
-              const lng = parseFloat(item.longitude);
-              if (!isNaN(lat) && !isNaN(lng) && lat && lng) {
-                bounds.extend([lng, lat]);
-                boundsCount++;
-              }
+        items.forEach((item) => {
+          const lat = parseFloat(item.latitude);
+          const lng = parseFloat(item.longitude);
+          if (!isNaN(lat) && !isNaN(lng) && lat && lng) {
+            bounds.extend([lng, lat]);
+            boundsCount++;
+          }
+        });
+
+        if (boundsCount > 0) {
+          try {
+            this.map.fitBounds(bounds, {
+              padding: 100,
+              maxZoom: 15,
             });
-
-            if (boundsCount > 0) {
-              try {
-                this.map.fitBounds(bounds, {
-                  padding: 100,
-                  maxZoom: 15,
-                });
-              } catch (error) {
-                console.error("Error fitting bounds:", error);
-              }
-            }
-          }, 100);
+          } catch (error) {
+            console.error("Error fitting bounds:", error);
+          }
         }
+      }
 
-        // Release the lock
-        this._updatingMarkers = false;
-      };
-
-      // Start sequential marker creation
-      addMarkersSequentially().catch((error) => {
-        console.error("Error in sequential marker creation:", error);
-        this._updatingMarkers = false;
-      });
-
-      return; // Exit here since we're using the new sequential approach
+      // Release the lock
+      this._updatingMarkers = false;
     },
 
-    // Create a single marker with enhanced error handling and timing
-    async createSingleMarker(item, index, totalItems) {
+    // Create a single marker with enhanced error handling
+    createSingleMarker(item, index, totalItems) {
       try {
         console.log(`🔄 Processing item ${index + 1}/${totalItems}: ${item.name}`);
 
@@ -2058,26 +2041,6 @@ export default {
         // Store marker
         this.markers.push(marker);
 
-        // DOM position check after a small delay
-        setTimeout(() => {
-          const markerInDom = document.querySelector(`[data-provider="${item.name}"]`);
-          if (markerInDom) {
-            const rect = markerInDom.getBoundingClientRect();
-            console.log(`📍 Marker "${item.name}" DOM position:`, {
-              x: rect.x,
-              y: rect.y,
-              coordinates_used: `[${finalLng}, ${finalLat}]`,
-              is_top_left_corner: rect.x < 100 && rect.y < 100,
-            });
-
-            if (rect.x < 100 && rect.y < 100) {
-              console.error(
-                `🚨 MARKER IN TOP-LEFT CORNER! ${item.name} at DOM position [${rect.x}, ${rect.y}]`
-              );
-            }
-          }
-        }, 50);
-
         console.log(
           `📌 Marker successfully created for ${item.name}. Total markers: ${this.markers.length}`
         );
@@ -2239,7 +2202,6 @@ export default {
 .chla-info-btn:hover {
   background: #0d9ddb;
   border-color: #0d9ddb;
-  transform: scale(1.1);
   color: white;
 }
 
@@ -2290,7 +2252,7 @@ export default {
 }
 
 .chla-btn span {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-weight: inherit;
   letter-spacing: inherit;
 }
@@ -2305,7 +2267,6 @@ export default {
 .btn-chla-primary:hover {
   background: #0d9ddb !important;
   color: white !important;
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 72, 119, 0.3);
 }
 
@@ -2319,7 +2280,6 @@ export default {
 .btn-chla-outline:hover {
   background: #f8f9fa !important;
   color: #004877 !important;
-  transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 72, 119, 0.2);
 }
 
@@ -2383,9 +2343,9 @@ export default {
   background: #0d9ddb !important;
 }
 
-/* Map marker improvements */
+/* Map marker improvements - removed transitions to prevent animation artifacts */
 .marker.chla-marker {
-  transition: all 0.2s ease;
+  /* No transitions to prevent interference with map positioning */
 }
 
 .marker.chla-marker:hover {
@@ -2462,18 +2422,15 @@ h6 {
   font-weight: 500;
 }
 
-/* Map marker pulse animation */
+/* Map marker pulse animation - more subtle to avoid interference */
 @keyframes pulse {
   0% {
-    transform: scale(1);
     opacity: 1;
   }
   50% {
-    transform: scale(1.2);
     opacity: 0.7;
   }
   100% {
-    transform: scale(1);
     opacity: 1;
   }
 }

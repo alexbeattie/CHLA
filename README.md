@@ -32,6 +32,10 @@ This is a monorepo containing both frontend and backend code:
 
 ```bash
 cd maplocation
+```shell
+cd maplocation && source venv/bin/activate
+```
+
 python manage.py runserver
 ```
 
