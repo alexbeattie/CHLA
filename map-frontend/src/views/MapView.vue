@@ -1,5 +1,14 @@
 <template>
   <div class="map-app">
+    <!-- Onboarding Flow -->
+    <onboarding-flow 
+      :showOnboarding="showOnboarding" 
+      @onboarding-complete="handleOnboardingComplete"
+      @onboarding-skipped="handleOnboardingSkipped"
+      @location-detected="handleLocationDetected"
+      @location-manual="handleLocationManual"
+    />
+    
     <!-- Funding Info Modal -->
     <funding-info-panel :showModal="showFundingInfo" @close="toggleFundingInfo" />
 
@@ -358,6 +367,8 @@ import mapboxgl from "mapbox-gl";
 import UserInfoPanel from "@/components/UserInfoPanel.vue";
 import LocationList from "@/components/LocationList.vue";
 import FundingInfoPanel from "@/components/FundingInfoPanel.vue";
+import OnboardingFlow from "@/components/OnboardingFlow.vue";
+import UserProfileManager from "@/components/UserProfileManager.vue";
 import {
   sampleCategories,
   sampleLocations,
@@ -374,12 +385,15 @@ export default {
     UserInfoPanel,
     LocationList,
     FundingInfoPanel,
+    OnboardingFlow,
+    UserProfileManager,
   },
 
   data() {
     return {
       // Modal visibility
       showFundingInfo: false,
+      showOnboarding: false,
 
       // Display type
       displayType: "providers", // 'regionalCenters' or 'providers'
@@ -499,11 +513,16 @@ export default {
     this.markers = [];
     this.providers = [];
 
+    // Check if onboarding should be shown
+    this.checkOnboardingStatus();
+
     // Load saved user data if available
     this.loadUserData();
 
-    // Detect user location first, then fetch providers
-    this.detectUserLocation();
+    // Detect user location first, then fetch providers (only if not showing onboarding)
+    if (!this.showOnboarding) {
+      this.detectUserLocation();
+    }
   },
 
   mounted() {
@@ -2102,6 +2121,134 @@ export default {
           zoom: 14,
         });
       }
+    },
+
+    // Onboarding Methods
+    checkOnboardingStatus() {
+      // Check if user has completed onboarding
+      const onboardingComplete = localStorage.getItem('chla-onboarding-complete');
+      const hasProfile = localStorage.getItem('chla-user-profile');
+      
+      // Show onboarding if not completed and no profile exists
+      this.showOnboarding = !onboardingComplete && !hasProfile;
+    },
+
+    handleOnboardingComplete(data) {
+      console.log('Onboarding completed:', data);
+      
+      // Update user data with onboarding results
+      this.userData = { ...this.userData, ...data.userProfile };
+      
+      // Set location if provided
+      if (data.userLocation) {
+        this.userData.address = data.userLocation;
+      }
+      
+      // Hide onboarding
+      this.showOnboarding = false;
+      
+      // Initialize map and start fetching data
+      this.initializeAfterOnboarding();
+    },
+
+    handleOnboardingSkipped() {
+      console.log('Onboarding skipped');
+      
+      // Mark onboarding as complete to prevent showing again
+      localStorage.setItem('chla-onboarding-complete', 'true');
+      
+      // Hide onboarding
+      this.showOnboarding = false;
+      
+      // Initialize with default behavior
+      this.initializeAfterOnboarding();
+    },
+
+    handleLocationDetected(locationData) {
+      console.log('Location detected from onboarding:', locationData);
+      
+      // Update user location
+      this.userLocation = {
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        accuracy: null,
+        detected: true,
+        error: null,
+      };
+      
+      // Update address
+      this.userData.address = locationData.address;
+    },
+
+    handleLocationManual(address) {
+      console.log('Manual location from onboarding:', address);
+      
+      // Update address
+      this.userData.address = address;
+      
+      // Try to geocode the address
+      this.geocodeAddress(address);
+    },
+
+    async geocodeAddress(address) {
+      try {
+        // This would use your geocoding service
+        // For now, we'll use a basic implementation
+        const coordinates = this.basicGeocode(address);
+        if (coordinates) {
+          this.userLocation = {
+            latitude: coordinates.lat,
+            longitude: coordinates.lng,
+            accuracy: null,
+            detected: true,
+            error: null,
+          };
+        }
+      } catch (error) {
+        console.error('Geocoding failed:', error);
+      }
+    },
+
+    basicGeocode(address) {
+      // Basic geocoding for common CA locations
+      const locations = {
+        'los angeles': { lat: 34.0522, lng: -118.2437 },
+        'san francisco': { lat: 37.7749, lng: -122.4194 },
+        'san diego': { lat: 32.7157, lng: -117.1611 },
+        'sacramento': { lat: 38.5816, lng: -121.4944 },
+        'fresno': { lat: 36.7468, lng: -119.7725 },
+        'oakland': { lat: 37.8044, lng: -122.2712 },
+        'long beach': { lat: 33.7701, lng: -118.1937 },
+        'santa monica': { lat: 34.0195, lng: -118.4912 },
+        'beverly hills': { lat: 34.0736, lng: -118.4004 },
+        'pasadena': { lat: 34.1478, lng: -118.1445 },
+      };
+      
+      const addressLower = address.toLowerCase();
+      for (const [city, coords] of Object.entries(locations)) {
+        if (addressLower.includes(city)) {
+          return coords;
+        }
+      }
+      
+      // Check for ZIP codes (basic implementation)
+      const zipMatch = address.match(/\d{5}/);
+      if (zipMatch) {
+        // Return LA center for any ZIP code (would normally use geocoding service)
+        return { lat: 34.0522, lng: -118.2437 };
+      }
+      
+      return null;
+    },
+
+    initializeAfterOnboarding() {
+      // Initialize map if not already done
+      if (!this.map) {
+        this.detectUserLocation();
+      }
+      
+      // Start fetching data
+      this.fetchProviders();
     },
   },
 };
