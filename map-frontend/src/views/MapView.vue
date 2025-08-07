@@ -206,6 +206,7 @@ export default {
 
       // Layout handling
       resizeTimeout: null,
+      searchDebounceTimer: null, // Timer for debouncing search text changes
     };
   },
 
@@ -507,6 +508,21 @@ export default {
         this.fetchNearbyLocations();
       }
     },
+    
+    // Watch for city searches in the search text
+    searchText: {
+      handler(newValue) {
+        // Debounce the search to avoid too many API calls
+        if (this.searchDebounceTimer) {
+          clearTimeout(this.searchDebounceTimer);
+        }
+        
+        this.searchDebounceTimer = setTimeout(() => {
+          this.handleSearchTextChange(newValue);
+        }, 500);
+      },
+      immediate: false
+    }
   },
 
   mounted() {
@@ -1907,6 +1923,99 @@ export default {
         .catch((error) => {
           console.error("Error geocoding address:", error);
         });
+    },
+    
+    // Handle search text changes to detect city searches
+    async handleSearchTextChange(searchValue) {
+      if (!searchValue || searchValue.trim().length < 3) {
+        return;
+      }
+      
+      const searchTerm = searchValue.trim().toLowerCase();
+      
+      // List of common city names to detect
+      const cityPatterns = [
+        'los angeles', 'la', 'san diego', 'san francisco', 'sf', 'sacramento',
+        'san jose', 'oakland', 'long beach', 'anaheim', 'santa ana', 'riverside',
+        'pasadena', 'glendale', 'burbank', 'santa monica', 'beverly hills',
+        'compton', 'inglewood', 'torrance', 'fullerton', 'orange', 'irvine',
+        'pomona', 'ontario', 'corona', 'palmdale', 'lancaster', 'el monte',
+        'downey', 'costa mesa', 'carlsbad', 'west covina', 'norwalk', 'berkeley',
+        'vallejo', 'fairfield', 'richmond', 'antioch', 'daly city', 'ventura',
+        'santa barbara', 'fresno', 'bakersfield', 'stockton', 'modesto', 'oxnard',
+        'escondido', 'sunnyvale', 'hayward', 'salinas', 'visalia', 'chula vista',
+        'oceanside', 'santa rosa', 'rancho cucamonga', 'concord', 'roseville'
+      ];
+      
+      // Check if the search term matches a city
+      const isCity = cityPatterns.some(city => 
+        searchTerm === city || 
+        searchTerm.startsWith(city + ' ') ||
+        searchTerm.endsWith(' ' + city)
+      );
+      
+      if (isCity) {
+        console.log('🔍 Searching for city:', searchTerm);
+        const geocodeResult = await this.geocodeAddressForSearch(searchTerm);
+        console.log('Geocoding result:', geocodeResult);
+        
+        if (geocodeResult) {
+          // Update user location with the geocoded city
+          this.userLocation = {
+            latitude: geocodeResult.lat,
+            longitude: geocodeResult.lng,
+            accuracy: null
+          };
+          
+          // Center map on the city
+          if (this.map) {
+            this.map.flyTo({
+              center: [geocodeResult.lng, geocodeResult.lat],
+              zoom: 12
+            });
+          }
+          
+          // Fetch providers in this area
+          if (this.displayType === 'providers') {
+            this.fetchProviders();
+          } else if (this.displayType === 'regionalCenters') {
+            this.fetchRegionalCenters();
+          }
+        }
+      }
+    },
+    
+    // Geocode an address for search purposes
+    async geocodeAddressForSearch(searchTerm) {
+      try {
+        // Add California to the search to ensure we get CA results
+        const searchQuery = searchTerm.includes('california') || searchTerm.includes('ca') 
+          ? searchTerm 
+          : `${searchTerm}, California`;
+          
+        const encodedAddress = encodeURIComponent(searchQuery);
+        const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxgl.accessToken}&country=US&types=place`;
+        
+        const response = await axios.get(geocodingUrl);
+        
+        if (response.data && response.data.features && response.data.features.length > 0) {
+          const feature = response.data.features[0];
+          const [lng, lat] = feature.center;
+          
+          console.log(`Found ${searchTerm} coordinates:`, {lat, lng});
+          
+          return {
+            lat: lat,
+            lng: lng,
+            name: feature.place_name
+          };
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('Error geocoding search term:', error);
+        return null;
+      }
     },
 
     updateUserCoordinates(latitude, longitude) {
