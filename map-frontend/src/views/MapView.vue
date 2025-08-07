@@ -189,7 +189,7 @@ export default {
         longitude: null,
         accuracy: null,
       },
-      radius: 5, // km
+      radius: 5, // miles (not km)
 
       // User information
       userData: {
@@ -206,6 +206,7 @@ export default {
 
       // Layout handling
       resizeTimeout: null,
+      searchDebounceTimer: null, // Timer for debouncing search text changes
     };
   },
 
@@ -507,6 +508,21 @@ export default {
         this.fetchNearbyLocations();
       }
     },
+    
+    // Watch for city searches in the search text
+    searchText: {
+      handler(newValue) {
+        // Debounce the search to avoid too many API calls
+        if (this.searchDebounceTimer) {
+          clearTimeout(this.searchDebounceTimer);
+        }
+        
+        this.searchDebounceTimer = setTimeout(() => {
+          this.handleSearchTextChange(newValue);
+        }, 500);
+      },
+      immediate: false
+    }
   },
 
   mounted() {
@@ -798,6 +814,8 @@ export default {
             params.lat = this.userLocation.latitude;
             params.lng = this.userLocation.longitude;
             params.radius = this.radius;
+            
+            console.log(`Fetching providers near lat=${params.lat}, lng=${params.lng}, radius=${params.radius} miles`);
 
             // Add age filter if available
             if (this.userData.age) {
@@ -823,6 +841,8 @@ export default {
           const response = await axios.get(url, { params });
 
           console.log("Providers API response:", response.data);
+          console.log("API URL:", url);
+          console.log("API params:", params);
 
           // Check if response has expected format
           if (response.data && response.data.error) {
@@ -830,8 +850,38 @@ export default {
             throw new Error(response.data.error);
           } else if (response.data && response.data.results) {
             this.providers = response.data.results;
+            console.log(`API returned ${this.providers.length} providers with pagination`);
+            
+            // Log first few providers to see their structure
+            if (this.providers.length > 0) {
+              console.log('Sample provider data:', this.providers.slice(0, 3).map(p => ({
+                id: p.id,
+                name: p.name,
+                latitude: p.latitude,
+                longitude: p.longitude,
+                location: p.location,
+                address: p.address,
+                city: p.city,
+                coverage_areas: p.coverage_areas
+              })));
+            }
           } else if (Array.isArray(response.data)) {
             this.providers = response.data;
+            console.log(`API returned ${this.providers.length} providers as array`);
+            
+            // Log first few providers to see their structure
+            if (this.providers.length > 0) {
+              console.log('Sample provider data:', this.providers.slice(0, 3).map(p => ({
+                id: p.id,
+                name: p.name,
+                latitude: p.latitude,
+                longitude: p.longitude,
+                location: p.location,
+                address: p.address,
+                city: p.city,
+                coverage_areas: p.coverage_areas
+              })));
+            }
           } else {
             console.error("Unexpected API response format:", response.data);
             throw new Error("Unexpected API response format");
@@ -876,10 +926,22 @@ export default {
 
         console.log(`Retrieved ${this.providers.length} providers`);
         this.loading = false;
+        
+        // If no providers found and we have a location, show a helpful message
+        if (this.providers.length === 0 && this.userLocation.latitude && this.userLocation.longitude) {
+          this.error = `No providers found within ${this.radius} miles of your location. Try increasing the search radius or searching in a different area.`;
+        }
       } catch (error) {
         console.error("Error in fetchProviders method:", error);
         this.loading = false;
         this.error = "Failed to load providers";
+        
+        // If the API call fails, show a more helpful error message
+        if (error.response && error.response.status === 404) {
+          this.error = "Provider search service is not available. Please try again later.";
+        } else if (error.response && error.response.status === 500) {
+          this.error = "Server error while searching for providers. Please try again later.";
+        }
       }
     },
 
@@ -1385,10 +1447,57 @@ export default {
       } else if (this.displayType === "regionalCenters") {
         items = this.filteredRegionalCenters;
       } else if (this.displayType === "providers") {
-        // Filter providers that have coordinates
-        items = this.filteredProviders.filter(
-          (provider) => provider.latitude && provider.longitude
+        console.log(`Total filtered providers: ${this.filteredProviders.length}`);
+        
+        // Check how many providers have coordinates
+        const providersWithCoords = this.filteredProviders.filter(
+          (provider) => {
+            // Check if provider has lat/lng directly
+            if (provider.latitude && provider.longitude) {
+              return true;
+            }
+            // Check if provider has location object (PostGIS format)
+            if (provider.location && provider.location.coordinates) {
+              // Extract coordinates from location object
+              provider.longitude = provider.location.coordinates[0];
+              provider.latitude = provider.location.coordinates[1];
+              return true;
+            }
+            return false;
+          }
         );
+        const providersWithoutCoords = this.filteredProviders.filter(
+          (provider) => {
+            // No direct lat/lng and no location object
+            return (!provider.latitude || !provider.longitude) && 
+                   (!provider.location || !provider.location.coordinates);
+          }
+        );
+        
+        console.log(`Providers with coordinates: ${providersWithCoords.length}`);
+        console.log(`Providers without coordinates: ${providersWithoutCoords.length}`);
+        
+        if (providersWithoutCoords.length > 0) {
+          console.log('Providers missing coordinates:', providersWithoutCoords.map(p => ({
+            name: p.name,
+            lat: p.latitude,
+            lng: p.longitude,
+            address: p.address,
+            city: p.city
+          })));
+          
+          // Show a warning message if many providers are missing coordinates
+          if (providersWithoutCoords.length > providersWithCoords.length) {
+            console.warn(`⚠️ ${providersWithoutCoords.length} out of ${this.filteredProviders.length} providers are missing coordinates!`);
+            this.error = `Some providers are missing location data. ${providersWithCoords.length} providers shown on map.`;
+            
+            // Try to geocode providers with addresses but no coordinates
+            this.geocodeMissingProviders(providersWithoutCoords);
+          }
+        }
+        
+        // Filter providers that have coordinates
+        items = providersWithCoords;
       }
 
       console.log(`Updating markers for ${items.length} ${this.displayType}`);
@@ -1908,6 +2017,150 @@ export default {
           console.error("Error geocoding address:", error);
         });
     },
+    
+    // Handle search text changes to detect city searches
+    async handleSearchTextChange(searchValue) {
+      if (!searchValue || searchValue.trim().length < 3) {
+        return;
+      }
+      
+      const searchTerm = searchValue.trim().toLowerCase();
+      
+      // List of common city names to detect
+      const cityPatterns = [
+        'los angeles', 'la', 'san diego', 'san francisco', 'sf', 'sacramento',
+        'san jose', 'oakland', 'long beach', 'anaheim', 'santa ana', 'riverside',
+        'pasadena', 'glendale', 'burbank', 'santa monica', 'beverly hills',
+        'compton', 'inglewood', 'torrance', 'fullerton', 'orange', 'irvine',
+        'pomona', 'ontario', 'corona', 'palmdale', 'lancaster', 'el monte',
+        'downey', 'costa mesa', 'carlsbad', 'west covina', 'norwalk', 'berkeley',
+        'vallejo', 'fairfield', 'richmond', 'antioch', 'daly city', 'ventura',
+        'santa barbara', 'fresno', 'bakersfield', 'stockton', 'modesto', 'oxnard',
+        'escondido', 'sunnyvale', 'hayward', 'salinas', 'visalia', 'chula vista',
+        'oceanside', 'santa rosa', 'rancho cucamonga', 'concord', 'roseville'
+      ];
+      
+      // Check if the search term matches a city
+      const isCity = cityPatterns.some(city => 
+        searchTerm === city || 
+        searchTerm.startsWith(city + ' ') ||
+        searchTerm.endsWith(' ' + city)
+      );
+      
+      if (isCity) {
+        console.log('🔍 Searching for city:', searchTerm);
+        const geocodeResult = await this.geocodeAddressForSearch(searchTerm);
+        console.log('Geocoding result:', geocodeResult);
+        
+        if (geocodeResult) {
+          // Store the previous radius to restore later
+          const previousRadius = this.radius;
+          
+          // Update user location with the geocoded city
+          this.userLocation = {
+            latitude: geocodeResult.lat,
+            longitude: geocodeResult.lng,
+            accuracy: null
+          };
+          
+          // Increase radius for city searches to cover more area
+          // Most cities need at least 25-50 miles to cover surrounding areas
+          this.radius = 50;
+          
+          // Center map on the city
+          if (this.map) {
+            this.map.flyTo({
+              center: [geocodeResult.lng, geocodeResult.lat],
+              zoom: 10  // Slightly zoomed out to show more area
+            });
+          }
+          
+          // Show loading state
+          this.loading = true;
+          
+          // First, let's check if there are ANY providers in the database
+          if (this.providers.length === 0) {
+            console.log('Checking if database has any providers...');
+            try {
+              const allProvidersResponse = await axios.get('/api/providers/');
+              console.log('All providers check:', allProvidersResponse.data);
+              const totalProviders = Array.isArray(allProvidersResponse.data) 
+                ? allProvidersResponse.data.length 
+                : (allProvidersResponse.data.results ? allProvidersResponse.data.results.length : 0);
+              console.log(`Total providers in database: ${totalProviders}`);
+            } catch (err) {
+              console.error('Error checking all providers:', err);
+            }
+          }
+          
+          // Fetch providers in this area
+          try {
+            if (this.displayType === 'providers') {
+              await this.fetchProviders();
+              
+              // Check if we found any providers
+              if (this.providers.length === 0) {
+                // Try a larger radius
+                this.radius = 100;
+                await this.fetchProviders();
+                
+                if (this.providers.length === 0) {
+                  console.warn(`No providers found within 100 miles of ${searchTerm}`);
+                  this.error = `No providers found in the ${searchTerm} area. Try searching for a different city or increasing the search radius.`;
+                }
+              } else {
+                console.log(`Found ${this.providers.length} providers in ${searchTerm} area`);
+              }
+            } else if (this.displayType === 'regionalCenters') {
+              await this.fetchRegionalCenters();
+              
+              if (this.regionalCenters.length === 0) {
+                console.warn(`No regional centers found near ${searchTerm}`);
+                this.error = `No regional centers found in the ${searchTerm} area.`;
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching data after city search:', error);
+            this.error = `Error loading data for ${searchTerm}. Please try again.`;
+          } finally {
+            this.loading = false;
+          }
+        }
+      }
+    },
+    
+    // Geocode an address for search purposes
+    async geocodeAddressForSearch(searchTerm) {
+      try {
+        // Add California to the search to ensure we get CA results
+        const searchQuery = searchTerm.includes('california') || searchTerm.includes('ca') 
+          ? searchTerm 
+          : `${searchTerm}, California`;
+          
+        const encodedAddress = encodeURIComponent(searchQuery);
+        const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxgl.accessToken}&country=US&types=place`;
+        
+        const response = await axios.get(geocodingUrl);
+        
+        if (response.data && response.data.features && response.data.features.length > 0) {
+          const feature = response.data.features[0];
+          const [lng, lat] = feature.center;
+          
+          console.log(`Found ${searchTerm} coordinates:`, {lat, lng});
+          
+          return {
+            lat: lat,
+            lng: lng,
+            name: feature.place_name
+          };
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('Error geocoding search term:', error);
+        return null;
+      }
+    },
 
     updateUserCoordinates(latitude, longitude) {
       // Update user profile with geocoded coordinates
@@ -2087,6 +2340,57 @@ export default {
           }
         }
       }, 300); // Wait 300ms after last resize event
+    },
+
+    // Geocode providers that are missing coordinates
+    async geocodeMissingProviders(providers) {
+      console.log(`Attempting to geocode ${providers.length} providers...`);
+      
+      let geocodedCount = 0;
+      
+      for (const provider of providers) {
+        // Only geocode if we have an address
+        if (provider.address && provider.city) {
+          try {
+            const fullAddress = `${provider.address}, ${provider.city}, ${provider.state || 'CA'}`;
+            const encodedAddress = encodeURIComponent(fullAddress);
+            const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxgl.accessToken}&country=US`;
+            
+            const response = await axios.get(geocodingUrl);
+            
+            if (response.data && response.data.features && response.data.features.length > 0) {
+              const feature = response.data.features[0];
+              const [lng, lat] = feature.center;
+              
+              // Update the provider's coordinates in our local data
+              provider.longitude = lng;
+              provider.latitude = lat;
+              geocodedCount++;
+              
+              console.log(`✓ Geocoded ${provider.name}: ${lat}, ${lng}`);
+              
+              // Optional: Send update to backend
+              // await this.updateProviderCoordinates(provider.id, lat, lng);
+            } else {
+              console.warn(`✗ Could not geocode ${provider.name} at ${fullAddress}`);
+            }
+          } catch (error) {
+            console.error(`Error geocoding ${provider.name}:`, error);
+          }
+          
+          // Small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      console.log(`Geocoded ${geocodedCount} out of ${providers.length} providers`);
+      
+      // If we geocoded any providers, update the markers
+      if (geocodedCount > 0) {
+        this.$nextTick(() => {
+          this.updateMarkers();
+        });
+      }
     },
   },
 };
