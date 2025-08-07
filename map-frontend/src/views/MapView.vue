@@ -789,12 +789,12 @@ export default {
 
         // Otherwise try to fetch from API with proper filtering
         try {
-          let url = "/api/providers/";
+          let url = "/api/providers-v2/";
           const params = {};
 
           // If we have user location, fetch nearby providers
           if (this.userLocation.latitude && this.userLocation.longitude) {
-            url = "/api/providers/nearby/";
+            // For providers-v2, we pass all params to the main endpoint
             params.lat = this.userLocation.latitude;
             params.lng = this.userLocation.longitude;
             params.radius = this.radius;
@@ -809,14 +809,12 @@ export default {
               params.diagnosis = this.userData.diagnosis;
             }
           }
-          // If we have diagnosis but no location, fetch by diagnosis
+          // If we have diagnosis but no location, still use main endpoint with filters
           else if (this.userData.diagnosis) {
-            url = "/api/providers/by_diagnosis/";
             params.diagnosis = this.userData.diagnosis;
           }
-          // If we have age but no location, fetch by age group
+          // If we have age but no location, still use main endpoint with filters
           else if (this.userData.age) {
-            url = "/api/providers/by_age_group/";
             params.age = this.userData.age;
           }
 
