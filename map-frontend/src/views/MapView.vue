@@ -54,12 +54,18 @@
 
         <!-- Search Box -->
         <div class="mb-3">
-          <input
-            type="text"
-            v-model="searchText"
-            class="form-control"
-            placeholder="Search locations..."
-          />
+          <div class="input-group">
+            <input
+              type="text"
+              v-model="searchText"
+              class="form-control"
+              placeholder="Search locations or city name..."
+              @keyup.enter="handleSearch"
+            />
+            <button class="btn btn-outline-secondary" type="button" @click="handleSearch">
+              Search
+            </button>
+          </div>
         </div>
 
         <!-- Filter Section -->
@@ -1743,6 +1749,90 @@ export default {
     resetFilters() {
       this.selectedCategory = "";
       this.searchText = "";
+    },
+
+    // Handle search input - could be a city name or location search
+    async handleSearch() {
+      if (!this.searchText || this.searchText.trim() === "") {
+        return;
+      }
+
+      const searchTerm = this.searchText.trim();
+      console.log(`🔍 Searching for: ${searchTerm}`);
+
+      // Always try to geocode when the search button is explicitly clicked
+      // This allows users to search for cities even if there are matching providers
+      await this.searchForCity(searchTerm);
+    },
+
+    // Search for a city and center the map on it
+    async searchForCity(cityName) {
+      console.log(`🗺️ Searching for city: ${cityName}`);
+      
+      try {
+        // Format the address for the API - add California to help with geocoding
+        const searchQuery = `${cityName}, California`;
+        const encodedAddress = encodeURIComponent(searchQuery);
+
+        // Use Mapbox Geocoding API
+        const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxgl.accessToken}&types=place,region&country=US`;
+
+        const response = await axios.get(geocodingUrl);
+        console.log("Geocoding response:", response.data);
+
+        if (response.data.features && response.data.features.length > 0) {
+          // Get the first result
+          const place = response.data.features[0];
+          const coordinates = place.center; // [longitude, latitude]
+          
+          console.log(`Found ${place.place_name} at coordinates:`, {
+            lat: coordinates[1],
+            lng: coordinates[0]
+          });
+
+          // Update user location to the city center
+          this.userLocation = {
+            latitude: coordinates[1],
+            longitude: coordinates[0],
+            accuracy: null,
+          };
+
+          // Center map on the city
+          if (this.map) {
+            this.map.flyTo({
+              center: coordinates,
+              zoom: 12, // Good zoom level for a city
+              speed: 1.2,
+              essential: true,
+            });
+          }
+
+          // Fetch locations near this city
+          await this.fetchNearbyLocations();
+
+          // Show a success message (you could add a toast notification here)
+          console.log(`✅ Map centered on ${place.place_name}`);
+          
+          return {
+            success: true,
+            place: place.place_name,
+            coordinates: coordinates
+          };
+        } else {
+          console.warn(`No results found for city: ${cityName}`);
+          return {
+            success: false,
+            message: `No results found for "${cityName}"`
+          };
+        }
+      } catch (error) {
+        console.error("Error searching for city:", error);
+        return {
+          success: false,
+          message: "Error searching for location",
+          error: error
+        };
+      }
     },
 
     // User information methods
