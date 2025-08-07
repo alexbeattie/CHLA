@@ -851,9 +851,37 @@ export default {
           } else if (response.data && response.data.results) {
             this.providers = response.data.results;
             console.log(`API returned ${this.providers.length} providers with pagination`);
+            
+            // Log first few providers to see their structure
+            if (this.providers.length > 0) {
+              console.log('Sample provider data:', this.providers.slice(0, 3).map(p => ({
+                id: p.id,
+                name: p.name,
+                latitude: p.latitude,
+                longitude: p.longitude,
+                location: p.location,
+                address: p.address,
+                city: p.city,
+                coverage_areas: p.coverage_areas
+              })));
+            }
           } else if (Array.isArray(response.data)) {
             this.providers = response.data;
             console.log(`API returned ${this.providers.length} providers as array`);
+            
+            // Log first few providers to see their structure
+            if (this.providers.length > 0) {
+              console.log('Sample provider data:', this.providers.slice(0, 3).map(p => ({
+                id: p.id,
+                name: p.name,
+                latitude: p.latitude,
+                longitude: p.longitude,
+                location: p.location,
+                address: p.address,
+                city: p.city,
+                coverage_areas: p.coverage_areas
+              })));
+            }
           } else {
             console.error("Unexpected API response format:", response.data);
             throw new Error("Unexpected API response format");
@@ -1419,10 +1447,57 @@ export default {
       } else if (this.displayType === "regionalCenters") {
         items = this.filteredRegionalCenters;
       } else if (this.displayType === "providers") {
-        // Filter providers that have coordinates
-        items = this.filteredProviders.filter(
-          (provider) => provider.latitude && provider.longitude
+        console.log(`Total filtered providers: ${this.filteredProviders.length}`);
+        
+        // Check how many providers have coordinates
+        const providersWithCoords = this.filteredProviders.filter(
+          (provider) => {
+            // Check if provider has lat/lng directly
+            if (provider.latitude && provider.longitude) {
+              return true;
+            }
+            // Check if provider has location object (PostGIS format)
+            if (provider.location && provider.location.coordinates) {
+              // Extract coordinates from location object
+              provider.longitude = provider.location.coordinates[0];
+              provider.latitude = provider.location.coordinates[1];
+              return true;
+            }
+            return false;
+          }
         );
+        const providersWithoutCoords = this.filteredProviders.filter(
+          (provider) => {
+            // No direct lat/lng and no location object
+            return (!provider.latitude || !provider.longitude) && 
+                   (!provider.location || !provider.location.coordinates);
+          }
+        );
+        
+        console.log(`Providers with coordinates: ${providersWithCoords.length}`);
+        console.log(`Providers without coordinates: ${providersWithoutCoords.length}`);
+        
+        if (providersWithoutCoords.length > 0) {
+          console.log('Providers missing coordinates:', providersWithoutCoords.map(p => ({
+            name: p.name,
+            lat: p.latitude,
+            lng: p.longitude,
+            address: p.address,
+            city: p.city
+          })));
+          
+          // Show a warning message if many providers are missing coordinates
+          if (providersWithoutCoords.length > providersWithCoords.length) {
+            console.warn(`⚠️ ${providersWithoutCoords.length} out of ${this.filteredProviders.length} providers are missing coordinates!`);
+            this.error = `Some providers are missing location data. ${providersWithCoords.length} providers shown on map.`;
+            
+            // Try to geocode providers with addresses but no coordinates
+            this.geocodeMissingProviders(providersWithoutCoords);
+          }
+        }
+        
+        // Filter providers that have coordinates
+        items = providersWithCoords;
       }
 
       console.log(`Updating markers for ${items.length} ${this.displayType}`);
@@ -2265,6 +2340,57 @@ export default {
           }
         }
       }, 300); // Wait 300ms after last resize event
+    },
+
+    // Geocode providers that are missing coordinates
+    async geocodeMissingProviders(providers) {
+      console.log(`Attempting to geocode ${providers.length} providers...`);
+      
+      let geocodedCount = 0;
+      
+      for (const provider of providers) {
+        // Only geocode if we have an address
+        if (provider.address && provider.city) {
+          try {
+            const fullAddress = `${provider.address}, ${provider.city}, ${provider.state || 'CA'}`;
+            const encodedAddress = encodeURIComponent(fullAddress);
+            const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxgl.accessToken}&country=US`;
+            
+            const response = await axios.get(geocodingUrl);
+            
+            if (response.data && response.data.features && response.data.features.length > 0) {
+              const feature = response.data.features[0];
+              const [lng, lat] = feature.center;
+              
+              // Update the provider's coordinates in our local data
+              provider.longitude = lng;
+              provider.latitude = lat;
+              geocodedCount++;
+              
+              console.log(`✓ Geocoded ${provider.name}: ${lat}, ${lng}`);
+              
+              // Optional: Send update to backend
+              // await this.updateProviderCoordinates(provider.id, lat, lng);
+            } else {
+              console.warn(`✗ Could not geocode ${provider.name} at ${fullAddress}`);
+            }
+          } catch (error) {
+            console.error(`Error geocoding ${provider.name}:`, error);
+          }
+          
+          // Small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      console.log(`Geocoded ${geocodedCount} out of ${providers.length} providers`);
+      
+      // If we geocoded any providers, update the markers
+      if (geocodedCount > 0) {
+        this.$nextTick(() => {
+          this.updateMarkers();
+        });
+      }
     },
   },
 };
