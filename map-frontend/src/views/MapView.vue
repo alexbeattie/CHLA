@@ -66,7 +66,22 @@
         <div class="filter-group mb-3">
           <h5>Filters</h5>
 
-          <!-- We've removed the Category Filter as it's not relevant for providers -->
+          <!-- Insurance/Funding Filter -->
+          <div class="mb-3" v-if="displayType === 'providers'">
+            <label class="form-label">Insurance/Funding</label>
+            <div class="form-check" v-for="option in insuranceOptions" :key="option.value">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                :id="`insurance-${option.value}`"
+                :value="option.value"
+                v-model="selectedInsurance"
+              />
+              <label class="form-check-label" :for="`insurance-${option.value}`">
+                {{ option.label }}
+              </label>
+            </div>
+          </div>
 
           <!-- Radius Filter (when geolocation is available) -->
           <div class="mb-2" v-if="userLocation.latitude && userLocation.longitude">
@@ -79,6 +94,22 @@
               max="50"
               step="1"
             />
+          </div>
+
+          <!-- Map Overlays -->
+          <div class="mb-3">
+            <label class="form-label">Map Overlays</label>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="county-overlay"
+                v-model="showCountyOverlay"
+              />
+              <label class="form-check-label" for="county-overlay">
+                Show County Boundaries
+              </label>
+            </div>
           </div>
 
           <!-- Reset Button -->
@@ -182,6 +213,18 @@ export default {
       category: null, // Add this property explicitly to avoid warnings
       selectedCategory: "",
       searchText: "",
+      
+      // Insurance filters
+      selectedInsurance: [],
+      insuranceOptions: [
+        { value: 'insurance', label: 'Accepts Insurance' },
+        { value: 'private_pay', label: 'Private Pay' },
+        { value: 'regional_center', label: 'Regional Center' },
+        { value: 'school_funding', label: 'School/IEP Funding' }
+      ],
+      
+      // Map overlays
+      showCountyOverlay: false,
 
       // User location
       userLocation: {
@@ -507,6 +550,19 @@ export default {
         this.fetchNearbyLocations();
       }
     },
+    // Update providers when insurance filter changes
+    selectedInsurance: {
+      handler() {
+        if (this.displayType === "providers") {
+          this.fetchProviders();
+        }
+      },
+      deep: true,
+    },
+    // Handle county overlay toggle
+    showCountyOverlay(newVal) {
+      this.toggleCountyOverlay(newVal);
+    },
   },
 
   mounted() {
@@ -818,7 +874,25 @@ export default {
             params.age = this.userData.age;
           }
 
-          const response = await axios.get(url, { params });
+          // Build the URL with insurance filters as multiple parameters
+          let queryUrl = url;
+          if (this.selectedInsurance.length > 0 || Object.keys(params).length > 0) {
+            const searchParams = new URLSearchParams();
+            
+            // Add regular params
+            Object.keys(params).forEach(key => {
+              searchParams.append(key, params[key]);
+            });
+            
+            // Add multiple insurance parameters
+            this.selectedInsurance.forEach(insurance => {
+              searchParams.append('insurance', insurance);
+            });
+            
+            queryUrl = `${url}?${searchParams.toString()}`;
+          }
+
+          const response = await axios.get(queryUrl);
 
           console.log("Providers API response:", response.data);
 
@@ -1741,6 +1815,7 @@ export default {
     resetFilters() {
       this.selectedCategory = "";
       this.searchText = "";
+      this.selectedInsurance = [];
     },
 
     // User information methods
@@ -2085,6 +2160,61 @@ export default {
           }
         }
       }, 300); // Wait 300ms after last resize event
+    },
+
+    // Toggle county overlay on the map
+    toggleCountyOverlay(show) {
+      if (!this.map) return;
+
+      if (show) {
+        // Add county overlay layer
+        // This is a placeholder - actual implementation would load GeoJSON data
+        console.log("County overlay feature enabled - GeoJSON data needed for implementation");
+        
+        // Example of how it would work with actual data:
+        // if (!this.map.getSource('counties')) {
+        //   this.map.addSource('counties', {
+        //     type: 'geojson',
+        //     data: '/api/counties/geojson/' // or local GeoJSON file
+        //   });
+        // }
+        // 
+        // if (!this.map.getLayer('county-boundaries')) {
+        //   this.map.addLayer({
+        //     id: 'county-boundaries',
+        //     type: 'line',
+        //     source: 'counties',
+        //     paint: {
+        //       'line-color': '#627BC1',
+        //       'line-width': 2,
+        //       'line-opacity': 0.7
+        //     }
+        //   });
+        //   
+        //   this.map.addLayer({
+        //     id: 'county-labels',
+        //     type: 'symbol',
+        //     source: 'counties',
+        //     layout: {
+        //       'text-field': ['get', 'name'],
+        //       'text-size': 12
+        //     },
+        //     paint: {
+        //       'text-color': '#627BC1',
+        //       'text-halo-color': '#ffffff',
+        //       'text-halo-width': 1
+        //     }
+        //   });
+        // }
+      } else {
+        // Remove county overlay layers
+        if (this.map.getLayer('county-boundaries')) {
+          this.map.removeLayer('county-boundaries');
+        }
+        if (this.map.getLayer('county-labels')) {
+          this.map.removeLayer('county-labels');
+        }
+      }
     },
   },
 };
