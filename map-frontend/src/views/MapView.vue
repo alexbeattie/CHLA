@@ -189,7 +189,7 @@ export default {
         longitude: null,
         accuracy: null,
       },
-      radius: 5, // km
+      radius: 5, // miles (not km)
 
       // User information
       userData: {
@@ -814,6 +814,8 @@ export default {
             params.lat = this.userLocation.latitude;
             params.lng = this.userLocation.longitude;
             params.radius = this.radius;
+            
+            console.log(`Fetching providers near lat=${params.lat}, lng=${params.lng}, radius=${params.radius} miles`);
 
             // Add age filter if available
             if (this.userData.age) {
@@ -839,6 +841,8 @@ export default {
           const response = await axios.get(url, { params });
 
           console.log("Providers API response:", response.data);
+          console.log("API URL:", url);
+          console.log("API params:", params);
 
           // Check if response has expected format
           if (response.data && response.data.error) {
@@ -846,8 +850,10 @@ export default {
             throw new Error(response.data.error);
           } else if (response.data && response.data.results) {
             this.providers = response.data.results;
+            console.log(`API returned ${this.providers.length} providers with pagination`);
           } else if (Array.isArray(response.data)) {
             this.providers = response.data;
+            console.log(`API returned ${this.providers.length} providers as array`);
           } else {
             console.error("Unexpected API response format:", response.data);
             throw new Error("Unexpected API response format");
@@ -892,10 +898,22 @@ export default {
 
         console.log(`Retrieved ${this.providers.length} providers`);
         this.loading = false;
+        
+        // If no providers found and we have a location, show a helpful message
+        if (this.providers.length === 0 && this.userLocation.latitude && this.userLocation.longitude) {
+          this.error = `No providers found within ${this.radius} miles of your location. Try increasing the search radius or searching in a different area.`;
+        }
       } catch (error) {
         console.error("Error in fetchProviders method:", error);
         this.loading = false;
         this.error = "Failed to load providers";
+        
+        // If the API call fails, show a more helpful error message
+        if (error.response && error.response.status === 404) {
+          this.error = "Provider search service is not available. Please try again later.";
+        } else if (error.response && error.response.status === 500) {
+          this.error = "Server error while searching for providers. Please try again later.";
+        }
       }
     },
 
@@ -1960,6 +1978,9 @@ export default {
         console.log('Geocoding result:', geocodeResult);
         
         if (geocodeResult) {
+          // Store the previous radius to restore later
+          const previousRadius = this.radius;
+          
           // Update user location with the geocoded city
           this.userLocation = {
             latitude: geocodeResult.lat,
@@ -1967,19 +1988,67 @@ export default {
             accuracy: null
           };
           
+          // Increase radius for city searches to cover more area
+          // Most cities need at least 25-50 miles to cover surrounding areas
+          this.radius = 50;
+          
           // Center map on the city
           if (this.map) {
             this.map.flyTo({
               center: [geocodeResult.lng, geocodeResult.lat],
-              zoom: 12
+              zoom: 10  // Slightly zoomed out to show more area
             });
           }
           
+          // Show loading state
+          this.loading = true;
+          
+          // First, let's check if there are ANY providers in the database
+          if (this.providers.length === 0) {
+            console.log('Checking if database has any providers...');
+            try {
+              const allProvidersResponse = await axios.get('/api/providers/');
+              console.log('All providers check:', allProvidersResponse.data);
+              const totalProviders = Array.isArray(allProvidersResponse.data) 
+                ? allProvidersResponse.data.length 
+                : (allProvidersResponse.data.results ? allProvidersResponse.data.results.length : 0);
+              console.log(`Total providers in database: ${totalProviders}`);
+            } catch (err) {
+              console.error('Error checking all providers:', err);
+            }
+          }
+          
           // Fetch providers in this area
-          if (this.displayType === 'providers') {
-            this.fetchProviders();
-          } else if (this.displayType === 'regionalCenters') {
-            this.fetchRegionalCenters();
+          try {
+            if (this.displayType === 'providers') {
+              await this.fetchProviders();
+              
+              // Check if we found any providers
+              if (this.providers.length === 0) {
+                // Try a larger radius
+                this.radius = 100;
+                await this.fetchProviders();
+                
+                if (this.providers.length === 0) {
+                  console.warn(`No providers found within 100 miles of ${searchTerm}`);
+                  this.error = `No providers found in the ${searchTerm} area. Try searching for a different city or increasing the search radius.`;
+                }
+              } else {
+                console.log(`Found ${this.providers.length} providers in ${searchTerm} area`);
+              }
+            } else if (this.displayType === 'regionalCenters') {
+              await this.fetchRegionalCenters();
+              
+              if (this.regionalCenters.length === 0) {
+                console.warn(`No regional centers found near ${searchTerm}`);
+                this.error = `No regional centers found in the ${searchTerm} area.`;
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching data after city search:', error);
+            this.error = `Error loading data for ${searchTerm}. Please try again.`;
+          } finally {
+            this.loading = false;
           }
         }
       }
