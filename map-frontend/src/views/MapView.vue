@@ -1,14 +1,14 @@
 <template>
   <div class="map-app">
     <!-- Onboarding Flow -->
-    <onboarding-flow 
-      :showOnboarding="showOnboarding" 
+    <onboarding-flow
+      :showOnboarding="showOnboarding"
       @onboarding-complete="handleOnboardingComplete"
       @onboarding-skipped="handleOnboardingSkipped"
       @location-detected="handleLocationDetected"
       @location-manual="handleLocationManual"
     />
-    
+
     <!-- Funding Info Modal -->
     <funding-info-panel :showModal="showFundingInfo" @close="toggleFundingInfo" />
 
@@ -840,7 +840,7 @@ export default {
 
       try {
         console.log("Fetching providers from API");
-        const apiBaseUrl = "http://127.0.0.1:8001/api"; // Temporarily use direct URL to bypass proxy
+        const apiBaseUrl = "http://127.0.0.1:8000/api"; // Temporarily use direct URL to bypass proxy
 
         // If using local data, use sample data
         if (USE_LOCAL_DATA_ONLY) {
@@ -1144,7 +1144,7 @@ export default {
 
       try {
         console.log("Fetching regional centers");
-        const apiBaseUrl = "http://127.0.0.1:8001/api"; // Temporarily use direct URL to bypass proxy
+        const apiBaseUrl = "http://127.0.0.1:8000/api"; // Temporarily use direct URL to bypass proxy
 
         // If using local data, use sample data
         if (USE_LOCAL_DATA_ONLY) {
@@ -1237,7 +1237,7 @@ export default {
 
       try {
         console.log("Fetching service areas from API...");
-        const apiBaseUrl = "http://127.0.0.1:8001/api"; // Temporarily use direct URL to bypass proxy
+        const apiBaseUrl = "http://127.0.0.1:8000/api"; // Temporarily use direct URL to bypass proxy
         const url = `${apiBaseUrl}/regional-centers/service_areas/`;
 
         const response = await axios.get(url);
@@ -1372,7 +1372,7 @@ export default {
 
         // Add California counties source using our free API
         const countiesResponse = await fetch(
-          "http://127.0.0.1:8001/api/california-counties/"
+          "http://127.0.0.1:8000/api/california-counties/"
         );
         const countiesData = await countiesResponse.json();
 
@@ -2126,47 +2126,47 @@ export default {
     // Onboarding Methods
     checkOnboardingStatus() {
       // Check if user has completed onboarding
-      const onboardingComplete = localStorage.getItem('chla-onboarding-complete');
-      const hasProfile = localStorage.getItem('chla-user-profile');
-      
+      const onboardingComplete = localStorage.getItem("chla-onboarding-complete");
+      const hasProfile = localStorage.getItem("chla-user-profile");
+
       // Show onboarding if not completed and no profile exists
       this.showOnboarding = !onboardingComplete && !hasProfile;
     },
 
     handleOnboardingComplete(data) {
-      console.log('Onboarding completed:', data);
-      
+      console.log("Onboarding completed:", data);
+
       // Update user data with onboarding results
       this.userData = { ...this.userData, ...data.userProfile };
-      
+
       // Set location if provided
       if (data.userLocation) {
         this.userData.address = data.userLocation;
       }
-      
+
       // Hide onboarding
       this.showOnboarding = false;
-      
+
       // Initialize map and start fetching data
       this.initializeAfterOnboarding();
     },
 
     handleOnboardingSkipped() {
-      console.log('Onboarding skipped');
-      
+      console.log("Onboarding skipped");
+
       // Mark onboarding as complete to prevent showing again
-      localStorage.setItem('chla-onboarding-complete', 'true');
-      
+      localStorage.setItem("chla-onboarding-complete", "true");
+
       // Hide onboarding
       this.showOnboarding = false;
-      
+
       // Initialize with default behavior
       this.initializeAfterOnboarding();
     },
 
     handleLocationDetected(locationData) {
-      console.log('Location detected from onboarding:', locationData);
-      
+      console.log("Location detected from onboarding:", locationData);
+
       // Update user location
       this.userLocation = {
         latitude: locationData.latitude,
@@ -2175,17 +2175,17 @@ export default {
         detected: true,
         error: null,
       };
-      
+
       // Update address
       this.userData.address = locationData.address;
     },
 
     handleLocationManual(address) {
-      console.log('Manual location from onboarding:', address);
-      
+      console.log("Manual location from onboarding:", address);
+
       // Update address
       this.userData.address = address;
-      
+
       // Try to geocode the address
       this.geocodeAddress(address);
     },
@@ -2205,97 +2205,97 @@ export default {
           };
         }
       } catch (error) {
-        console.error('Geocoding failed:', error);
+        console.error("Geocoding failed:", error);
       }
     },
 
     basicGeocode(address) {
       // Enhanced ZIP code geocoding for LA area
       const zipCodes = {
-        '91361': { lat: 34.1678, lng: -118.5946 }, // Westlake Village
-        '91362': { lat: 34.1678, lng: -118.5946 }, // Westlake Village
-        '91377': { lat: 34.1678, lng: -118.5946 }, // Westlake Village
-        '90210': { lat: 34.1030, lng: -118.4104 }, // Beverly Hills
-        '90211': { lat: 34.0901, lng: -118.4065 }, // Beverly Hills
-        '90028': { lat: 34.1016, lng: -118.3267 }, // Hollywood
-        '90046': { lat: 34.1056, lng: -118.3632 }, // West Hollywood
-        '91436': { lat: 34.1559, lng: -118.4818 }, // Encino
-        '91301': { lat: 34.2209, lng: -118.6010 }, // Agoura Hills
-        '90405': { lat: 34.0195, lng: -118.4912 }, // Santa Monica
-        '90401': { lat: 34.0194, lng: -118.4912 }, // Santa Monica
-        '91505': { lat: 34.1808, lng: -118.3090 }, // Burbank
-        '91304': { lat: 34.2703, lng: -118.7370 }, // Canoga Park
-        '91302': { lat: 34.1678, lng: -118.5946 }, // Calabasas
-        '91307': { lat: 34.1984, lng: -118.6120 }, // West Hills
-        '91316': { lat: 34.1610, lng: -118.5079 }, // Encino
-        '91324': { lat: 34.2386, lng: -118.5645 }, // Northridge
-        '91325': { lat: 34.2386, lng: -118.5645 }, // Northridge
-        '91326': { lat: 34.2386, lng: -118.5645 }, // Northridge
-        '91356': { lat: 34.1713, lng: -118.5358 }, // Tarzana
-        '91357': { lat: 34.1713, lng: -118.5358 }, // Tarzana
-        '91364': { lat: 34.1678, lng: -118.5946 }, // Woodland Hills
-        '91365': { lat: 34.1678, lng: -118.5946 }, // Woodland Hills
-        '91367': { lat: 34.1699, lng: -118.6078 }, // Woodland Hills
-        '91401': { lat: 34.1716, lng: -118.4192 }, // Van Nuys
-        '91406': { lat: 34.2008, lng: -118.5030 }, // Van Nuys
-        '91423': { lat: 34.1869, lng: -118.4456 }, // Sherman Oaks
-        '91601': { lat: 34.1808, lng: -118.3090 }, // North Hollywood
-        '91604': { lat: 34.1446, lng: -118.4112 }, // Studio City
-        '91607': { lat: 34.1508, lng: -118.3912 }, // Valley Village
-        '92660': { lat: 33.6189, lng: -117.9298 }, // Newport Beach
-        '92661': { lat: 33.6189, lng: -117.9298 }, // Newport Beach
-        '92625': { lat: 33.6000, lng: -117.6720 }, // Mission Viejo
-        '92688': { lat: 33.5225, lng: -117.7075 }, // Laguna Niguel
-        '92630': { lat: 33.5225, lng: -117.7075 }, // Lake Forest
-        '92614': { lat: 33.6846, lng: -117.8265 }, // Irvine
-        '92602': { lat: 33.6846, lng: -117.8265 }, // Irvine
-        '92603': { lat: 33.6846, lng: -117.8265 }, // Irvine
-        '92604': { lat: 33.6846, lng: -117.8265 }, // Irvine
-        '92606': { lat: 33.6846, lng: -117.8265 }, // Irvine
-        '92612': { lat: 33.6846, lng: -117.8265 }, // Irvine
-        '92618': { lat: 33.6846, lng: -117.8265 }, // Irvine
-        '92620': { lat: 33.6846, lng: -117.8265 }, // Irvine
-        '90019': { lat: 34.0522, lng: -118.2437 }, // Los Angeles
-        '90020': { lat: 34.0522, lng: -118.2437 }, // Los Angeles
-        '90036': { lat: 34.0522, lng: -118.2437 }, // Los Angeles
-        '90048': { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        91361: { lat: 34.1678, lng: -118.5946 }, // Westlake Village
+        91362: { lat: 34.1678, lng: -118.5946 }, // Westlake Village
+        91377: { lat: 34.1678, lng: -118.5946 }, // Westlake Village
+        90210: { lat: 34.103, lng: -118.4104 }, // Beverly Hills
+        90211: { lat: 34.0901, lng: -118.4065 }, // Beverly Hills
+        90028: { lat: 34.1016, lng: -118.3267 }, // Hollywood
+        90046: { lat: 34.1056, lng: -118.3632 }, // West Hollywood
+        91436: { lat: 34.1559, lng: -118.4818 }, // Encino
+        91301: { lat: 34.2209, lng: -118.601 }, // Agoura Hills
+        90405: { lat: 34.0195, lng: -118.4912 }, // Santa Monica
+        90401: { lat: 34.0194, lng: -118.4912 }, // Santa Monica
+        91505: { lat: 34.1808, lng: -118.309 }, // Burbank
+        91304: { lat: 34.2703, lng: -118.737 }, // Canoga Park
+        91302: { lat: 34.1678, lng: -118.5946 }, // Calabasas
+        91307: { lat: 34.1984, lng: -118.612 }, // West Hills
+        91316: { lat: 34.161, lng: -118.5079 }, // Encino
+        91324: { lat: 34.2386, lng: -118.5645 }, // Northridge
+        91325: { lat: 34.2386, lng: -118.5645 }, // Northridge
+        91326: { lat: 34.2386, lng: -118.5645 }, // Northridge
+        91356: { lat: 34.1713, lng: -118.5358 }, // Tarzana
+        91357: { lat: 34.1713, lng: -118.5358 }, // Tarzana
+        91364: { lat: 34.1678, lng: -118.5946 }, // Woodland Hills
+        91365: { lat: 34.1678, lng: -118.5946 }, // Woodland Hills
+        91367: { lat: 34.1699, lng: -118.6078 }, // Woodland Hills
+        91401: { lat: 34.1716, lng: -118.4192 }, // Van Nuys
+        91406: { lat: 34.2008, lng: -118.503 }, // Van Nuys
+        91423: { lat: 34.1869, lng: -118.4456 }, // Sherman Oaks
+        91601: { lat: 34.1808, lng: -118.309 }, // North Hollywood
+        91604: { lat: 34.1446, lng: -118.4112 }, // Studio City
+        91607: { lat: 34.1508, lng: -118.3912 }, // Valley Village
+        92660: { lat: 33.6189, lng: -117.9298 }, // Newport Beach
+        92661: { lat: 33.6189, lng: -117.9298 }, // Newport Beach
+        92625: { lat: 33.6, lng: -117.672 }, // Mission Viejo
+        92688: { lat: 33.5225, lng: -117.7075 }, // Laguna Niguel
+        92630: { lat: 33.5225, lng: -117.7075 }, // Lake Forest
+        92614: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92602: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92603: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92604: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92606: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92612: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92618: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92620: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        90019: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        90020: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        90036: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        90048: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
       };
-      
+
       // Basic geocoding for common CA locations
       const locations = {
-        'los angeles': { lat: 34.0522, lng: -118.2437 },
-        'san francisco': { lat: 37.7749, lng: -122.4194 },
-        'san diego': { lat: 32.7157, lng: -117.1611 },
-        'sacramento': { lat: 38.5816, lng: -121.4944 },
-        'fresno': { lat: 36.7468, lng: -119.7725 },
-        'oakland': { lat: 37.8044, lng: -122.2712 },
-        'long beach': { lat: 33.7701, lng: -118.1937 },
-        'santa monica': { lat: 34.0195, lng: -118.4912 },
-        'beverly hills': { lat: 34.0736, lng: -118.4004 },
-        'pasadena': { lat: 34.1478, lng: -118.1445 },
-        'westlake village': { lat: 34.1678, lng: -118.5946 },
-        'thousand oaks': { lat: 34.1706, lng: -118.8376 },
-        'agoura hills': { lat: 34.2209, lng: -118.6010 },
-        'calabasas': { lat: 34.1678, lng: -118.5946 },
-        'woodland hills': { lat: 34.1678, lng: -118.5946 },
-        'encino': { lat: 34.1559, lng: -118.4818 },
-        'tarzana': { lat: 34.1713, lng: -118.5358 },
-        'van nuys': { lat: 34.2008, lng: -118.5030 },
-        'sherman oaks': { lat: 34.1869, lng: -118.4456 },
-        'studio city': { lat: 34.1446, lng: -118.4112 },
-        'north hollywood': { lat: 34.1808, lng: -118.3090 },
-        'burbank': { lat: 34.1808, lng: -118.3090 },
-        'west hills': { lat: 34.1984, lng: -118.6120 },
-        'canoga park': { lat: 34.2703, lng: -118.7370 },
-        'northridge': { lat: 34.2386, lng: -118.5645 },
-        'irvine': { lat: 33.6846, lng: -117.8265 },
-        'newport beach': { lat: 33.6189, lng: -117.9298 },
-        'mission viejo': { lat: 33.6000, lng: -117.6720 },
-        'laguna niguel': { lat: 33.5225, lng: -117.7075 },
+        "los angeles": { lat: 34.0522, lng: -118.2437 },
+        "san francisco": { lat: 37.7749, lng: -122.4194 },
+        "san diego": { lat: 32.7157, lng: -117.1611 },
+        sacramento: { lat: 38.5816, lng: -121.4944 },
+        fresno: { lat: 36.7468, lng: -119.7725 },
+        oakland: { lat: 37.8044, lng: -122.2712 },
+        "long beach": { lat: 33.7701, lng: -118.1937 },
+        "santa monica": { lat: 34.0195, lng: -118.4912 },
+        "beverly hills": { lat: 34.0736, lng: -118.4004 },
+        pasadena: { lat: 34.1478, lng: -118.1445 },
+        "westlake village": { lat: 34.1678, lng: -118.5946 },
+        "thousand oaks": { lat: 34.1706, lng: -118.8376 },
+        "agoura hills": { lat: 34.2209, lng: -118.601 },
+        calabasas: { lat: 34.1678, lng: -118.5946 },
+        "woodland hills": { lat: 34.1678, lng: -118.5946 },
+        encino: { lat: 34.1559, lng: -118.4818 },
+        tarzana: { lat: 34.1713, lng: -118.5358 },
+        "van nuys": { lat: 34.2008, lng: -118.503 },
+        "sherman oaks": { lat: 34.1869, lng: -118.4456 },
+        "studio city": { lat: 34.1446, lng: -118.4112 },
+        "north hollywood": { lat: 34.1808, lng: -118.309 },
+        burbank: { lat: 34.1808, lng: -118.309 },
+        "west hills": { lat: 34.1984, lng: -118.612 },
+        "canoga park": { lat: 34.2703, lng: -118.737 },
+        northridge: { lat: 34.2386, lng: -118.5645 },
+        irvine: { lat: 33.6846, lng: -117.8265 },
+        "newport beach": { lat: 33.6189, lng: -117.9298 },
+        "mission viejo": { lat: 33.6, lng: -117.672 },
+        "laguna niguel": { lat: 33.5225, lng: -117.7075 },
       };
-      
+
       const addressLower = address.toLowerCase();
-      
+
       // Check for exact ZIP code match first
       const zipMatch = address.match(/\b\d{5}\b/);
       if (zipMatch) {
@@ -2304,24 +2304,24 @@ export default {
           console.log(`Found ZIP code ${zipCode} coordinates:`, zipCodes[zipCode]);
           return zipCodes[zipCode];
         }
-        
+
         // If ZIP code not found, try to infer from first digits
         const firstTwo = zipCode.substring(0, 2);
-        if (firstTwo === '91' || firstTwo === '90') {
+        if (firstTwo === "91" || firstTwo === "90") {
           // LA area ZIP codes
           return { lat: 34.0522, lng: -118.2437 };
-        } else if (firstTwo === '92') {
+        } else if (firstTwo === "92") {
           // Orange County ZIP codes
           return { lat: 33.6846, lng: -117.8265 };
-        } else if (firstTwo === '93') {
+        } else if (firstTwo === "93") {
           // Central Valley ZIP codes
           return { lat: 36.7468, lng: -119.7725 };
-        } else if (firstTwo === '94' || firstTwo === '95') {
+        } else if (firstTwo === "94" || firstTwo === "95") {
           // Bay Area ZIP codes
           return { lat: 37.7749, lng: -122.4194 };
         }
       }
-      
+
       // Check for city names
       for (const [city, coords] of Object.entries(locations)) {
         if (addressLower.includes(city)) {
@@ -2329,7 +2329,7 @@ export default {
           return coords;
         }
       }
-      
+
       return null;
     },
 
@@ -2340,15 +2340,15 @@ export default {
       } else {
         // Update map center to user location if available
         if (this.userLocation.latitude && this.userLocation.longitude) {
-          console.log('Updating map center to user location:', this.userLocation);
+          console.log("Updating map center to user location:", this.userLocation);
           this.map.flyTo({
             center: [this.userLocation.longitude, this.userLocation.latitude],
             zoom: 12,
-            duration: 1000
+            duration: 1000,
           });
         }
       }
-      
+
       // Start fetching data
       this.fetchProviders();
     },

@@ -676,23 +676,34 @@ class ProviderViewSet(viewsets.ReadOnlyModelViewSet):
                     lat_float = float(lat)
                     lng_float = float(lng)
 
-                    # Filter by distance using raw SQL
-                    from django.db import connection
+                    # Get IDs of already filtered providers
+                    filtered_provider_ids = list(providers.values_list('id', flat=True))
+                    
+                    if filtered_provider_ids:
+                        # Filter by distance using raw SQL, but only for already filtered providers
+                        from django.db import connection
 
-                    with connection.cursor() as cursor:
-                        cursor.execute(
-                            """
-                            SELECT id FROM providers 
-                            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-                            AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                            cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                            sin(radians(latitude)))) < %s
-                        """,
-                            [lat_float, lng_float, lat_float, radius],
-                        )
-                        nearby_ids = [row[0] for row in cursor.fetchall()]
+                        # Convert provider IDs to a comma-separated string for SQL IN clause
+                        id_list = ','.join(map(str, filtered_provider_ids))
+                        
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                f"""
+                                SELECT id FROM providers 
+                                WHERE id IN ({id_list})
+                                AND latitude IS NOT NULL AND longitude IS NOT NULL
+                                AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
+                                cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
+                                sin(radians(latitude)))) < %s
+                            """,
+                                [lat_float, lng_float, lat_float, radius],
+                            )
+                            nearby_ids = [row[0] for row in cursor.fetchall()]
 
-                    providers = providers.filter(id__in=nearby_ids)
+                        providers = providers.filter(id__in=nearby_ids)
+                    else:
+                        # If no providers match the non-geographic filters, return empty queryset
+                        providers = providers.none()
                 except (ValueError, TypeError):
                     pass  # Skip location filtering if coordinates are invalid
 
@@ -701,23 +712,35 @@ class ProviderViewSet(viewsets.ReadOnlyModelViewSet):
                 coordinates = RegionalCenter.geocode_address(location)
                 if coordinates:
                     lat_coord, lng_coord = coordinates
-                    # Filter by distance using raw SQL
-                    from django.db import connection
+                    
+                    # Get IDs of already filtered providers
+                    filtered_provider_ids = list(providers.values_list('id', flat=True))
+                    
+                    if filtered_provider_ids:
+                        # Filter by distance using raw SQL, but only for already filtered providers
+                        from django.db import connection
 
-                    with connection.cursor() as cursor:
-                        cursor.execute(
-                            """
-                            SELECT id FROM providers 
-                            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-                            AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                            cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                            sin(radians(latitude)))) < %s
-                        """,
-                            [lat_coord, lng_coord, lat_coord, radius],
-                        )
-                        nearby_ids = [row[0] for row in cursor.fetchall()]
+                        # Convert provider IDs to a comma-separated string for SQL IN clause
+                        id_list = ','.join(map(str, filtered_provider_ids))
+                        
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                f"""
+                                SELECT id FROM providers 
+                                WHERE id IN ({id_list})
+                                AND latitude IS NOT NULL AND longitude IS NOT NULL
+                                AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
+                                cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
+                                sin(radians(latitude)))) < %s
+                            """,
+                                [lat_coord, lng_coord, lat_coord, radius],
+                            )
+                            nearby_ids = [row[0] for row in cursor.fetchall()]
 
-                    providers = providers.filter(id__in=nearby_ids)
+                        providers = providers.filter(id__in=nearby_ids)
+                    else:
+                        # If no providers match the non-geographic filters, return empty queryset
+                        providers = providers.none()
 
             # Limit results
             providers = providers[:50]
