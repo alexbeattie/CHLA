@@ -3,6 +3,9 @@ djangorestframework==3.15.2
 django-cors-headers==4.7.0
 django-filter==24.3
 Pillow==11.2.1
-# psycopg2-binary==2.9.9  # PostgreSQL adapter - commented out due to Python 3.13 compatibility issues
 graphene-django==3.1.5  # GraphQL for Django
 djangorestframework-gis==1.1
+gunicorn==22.0.0
+psycopg2-binary==2.9.9; python_version < "3.13"
+psycopg[binary]==3.1.19; python_version >= "3.13"
+whitenoise==6.7.0

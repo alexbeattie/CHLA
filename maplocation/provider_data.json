@@ -1,0 +1,2000 @@
+[
+{
+  "model": "locations.provider",
+  "pk": 1,
+  "fields": {
+    "name": "A & H BEHAVIORAL THERAPY",
+    "phone": "909-665-7070, 818-823-1515",
+    "address": "16000 Ventura Blvd #1103, Encino, CA 91436, United States",
+    "website_domain": "http://www.ahappyfam.com/",
+    "latitude": "34.155931",
+    "longitude": "-118.481844",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY,SAN GABRIEL VALLEY,LONG BEACH,INGLEWOOD,COMPTON",
+    "specializations": "Autism",
+    "insurance_accepted": "Health Net, MHN, Magellan, Blue Shield, Anthem/Blue Cross, Regional center, Self-determination programs, Kaiser/Easterseal",
+    "services": "In Home ABA Therapy, Autism Behavioral Intervention, Autism Training for Parents, One-to-One Autism Therapy, Early Intervention, Telehealth",
+    "coverage_areas": "SAN FERNANDO VALLEY, SAN GABRIEL VALLEY, LONG BEACH, INGLEWOOD, COMPTON"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 2,
+  "fields": {
+    "name": "A CHANGE IN TRAJECTORY, INC.",
+    "phone": "818-235-1414",
+    "address": "7226 Sepulveda Blvd, Van Nuys, CA 91405, United States",
+    "website_domain": "http://www.act-works.net/",
+    "latitude": "34.202020",
+    "longitude": "-118.465905",
+    "center_based_services": null,
+    "areas": "ANTELOPE VALLEY,CENTRAL LOS ANGELES,POMONA VALLEY,SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Blue Shield, Anthem/Blue Cross, Aetna, Cigna, The Holman Group, MHN, Kaiser Permanente, Molina Health Care, Magellan, Inland Empire Health Plan, L.A. Care, United Behavioral Health",
+    "services": "16-Hour Parent Education Groups, Functional Behavior Assessment, Infant Development Program, In-Home Parent Training, Behavior Health Treatment,\nAdaptive Skills Training, Social Skills Groups Assessment and Intervention, Parent Seminars, Teacher Workshop,\nSchool-Based Behavior Support-Shadows, Behavior Respite Services, Community Integration Program, School-Based Behavior Support – Shadows,",
+    "coverage_areas": "ANTELOPE VALLEY, CENTRAL LOS ANGELES, POMONA VALLEY, SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 3,
+  "fields": {
+    "name": "ABA ENHANCEMENT INC.",
+    "phone": "951-317-5950",
+    "address": "3491 Elm Ave, Long Beach, CA 90807, United States",
+    "website_domain": "http://www.baetherapy.com/",
+    "latitude": "33.820309",
+    "longitude": "-118.188222",
+    "center_based_services": null,
+    "areas": "LONG BEACH,LAKEWOOD,HUNTINGTON PARK,DOWNEY,PICO RIVERA,LA VERNE,CLAREMONT,DIAMOND BAR,POMONA",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "LONG BEACH, LAKEWOOD, HUNTINGTON PARK, DOWNEY, PICO RIVERA, LA VERNE, CLAREMONT, DIAMOND BAR, POMONA"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 4,
+  "fields": {
+    "name": "ABA WORKS, INC.",
+    "phone": "888-286-8715",
+    "address": "25124 Narbonne Ave Ste 102, Lomita, CA 90717, United States",
+    "website_domain": "https://aba-works.com/",
+    "latitude": "33.796041",
+    "longitude": "-118.319498",
+    "center_based_services": "LOMITA",
+    "areas": "LONG BEACH",
+    "specializations": null,
+    "insurance_accepted": "MHN, Magellan, Medicaid, Blue Cross, Molina, Blue Shield, Anthem",
+    "services": null,
+    "coverage_areas": "LONG BEACH"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 5,
+  "fields": {
+    "name": "ACCEL THERAPIES",
+    "phone": "949-630-8290",
+    "address": "140 S Flower St Suite 100, Orange, CA 92868, United States",
+    "website_domain": "https://acceltherapies.com/",
+    "latitude": "33.787094",
+    "longitude": "-117.877546",
+    "center_based_services": null,
+    "areas": "EAST LA (LAKEWOOD,NORWALK,DOWNEY,ETC.) & SOUTH BAY (TORRANCE,LONG BEACH,CARSON,ETC.)",
+    "specializations": null,
+    "insurance_accepted": "Aetna, Optum, Magellan, Blue Shield, Blue Cross Blue Shield, Blue Cross, CalOptima, Tricare, Medicaid, Anthem",
+    "services": null,
+    "coverage_areas": "EAST LA (LAKEWOOD, NORWALK, DOWNEY, ETC.) & SOUTH BAY (TORRANCE, LONG BEACH, CARSON, ETC.)"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 6,
+  "fields": {
+    "name": "ACCELERATED BEHAVIORAL CHANGE, INC.",
+    "phone": "747-221-4222",
+    "address": "16400 Ventura Blvd UNIT 327, Encino, CA 91436, United States",
+    "website_domain": "http://www.abcspectrum.com/",
+    "latitude": "34.156912",
+    "longitude": "-118.490414",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 7,
+  "fields": {
+    "name": "ACCELERATION BEHAVIORAL THERAPIES, INC.",
+    "phone": "818-356-8106",
+    "address": "16501 Ventura Blvd suite 400, Encino, CA 91436, United States",
+    "website_domain": "https://www.accelerationbt.com/",
+    "latitude": "34.158243",
+    "longitude": "-118.492931",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 8,
+  "fields": {
+    "name": "ACES COMPREHENSIVE EDUCATIONAL SERVICES, INC. DBA",
+    "phone": "949-833-2237",
+    "address": "16360 Roscoe Blvd #100, Van Nuys, CA 91406, United States",
+    "website_domain": "https://www.acesaba.com/location-sfv/",
+    "latitude": "34.220727",
+    "longitude": "-118.489045",
+    "center_based_services": null,
+    "areas": "GATEWAY CITIES,POMONA VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "GATEWAY CITIES, POMONA VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 9,
+  "fields": {
+    "name": "ADVANCED FOR BEHAVIOR & EDUCATIONAL DEVELOPMENT & INTERVENTION, INC. (ABEDI)",
+    "phone": "949-250-1101",
+    "address": "17203 Ventura Blvd #3, Encino, CA 91316, United States",
+    "website_domain": "http://www.teamabi.com/",
+    "latitude": "34.161064",
+    "longitude": "-118.507937",
+    "center_based_services": "VAN NUYS",
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 10,
+  "fields": {
+    "name": "ADVANCED PEDIATRIC BEHAVIORAL HEALTH",
+    "phone": "818-646-9229",
+    "address": "15720 Ventura Blvd #210, Encino, CA 91436, United States",
+    "website_domain": "https://advancedpsychiatryassociates.com/",
+    "latitude": "34.154998",
+    "longitude": "-118.475721",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Medicare",
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 11,
+  "fields": {
+    "name": "ALTERNATIVE BEHAVIOR STRATEGIES, LLC (ABS KIDS)",
+    "phone": "858-264-5858",
+    "address": "2235 E Garvey Ave N, West Covina, CA 91791, United States",
+    "website_domain": "https://www.acesaba.com/locations/west-covina",
+    "latitude": "34.073417",
+    "longitude": "-117.897598",
+    "center_based_services": null,
+    "areas": "AZUSA,BALDWIN PARK,CHINO HILLS,CITY OF INDUSTRY,CLAREMONT,COVINA,DIAMOND BAR,GLENDORA,HACIENDA HEIGHTS,LA PUENTE,LA VERNE,POMONA,SAN DIMAS,WALNUT,WEST COVINA",
+    "specializations": null,
+    "insurance_accepted": "Aetna, Blue Cross Blue Shield, Beacon, Blue Cross, Blue Shield",
+    "services": null,
+    "coverage_areas": "AZUSA, BALDWIN PARK, CHINO HILLS, CITY OF INDUSTRY, CLAREMONT, COVINA, DIAMOND BAR, GLENDORA, HACIENDA HEIGHTS, LA PUENTE, LA VERNE, POMONA, SAN DIMAS, WALNUT, WEST COVINA"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 12,
+  "fields": {
+    "name": "APPLIED BEHAVIOR ANALYSIS CONSULTATION SERVICES, INC.",
+    "phone": "844-422-2435",
+    "address": "5665 Wilshire Blvd SUITE 1049, Los Angeles, CA 90036, United States",
+    "website_domain": "http://www.amplejoyabaservices.com/",
+    "latitude": "34.062860",
+    "longitude": "-118.352134",
+    "center_based_services": "WHITTIER",
+    "areas": "EAST LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": "Medi-Cal",
+    "services": null,
+    "coverage_areas": "EAST LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 13,
+  "fields": {
+    "name": "APPLIED BEHAVIOR CONSULTANTS, INC. (ABC)",
+    "phone": "909-484-2848",
+    "address": "10604 Trademark Pkwy N Ste 308, Rancho Cucamonga, CA 91730, United States",
+    "website_domain": "http://www.abcreal.com/",
+    "latitude": "34.081238",
+    "longitude": "-117.572340",
+    "center_based_services": "LANCASTER, SANTA CLARITA, RESEDA, ONTARIO",
+    "areas": "ANTELOPE VALLEY,SAN FERNANDO VALLEY,SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Covered California, Medi-Cal",
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, SAN FERNANDO VALLEY, SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 15,
+  "fields": {
+    "name": "APPLIED BEHAVIOR & LEARNING ENTERPRISES, INC. (ABLE)",
+    "phone": "818-909-2253",
+    "address": "21363 Lassen St # 202, Chatsworth, CA 91311, United States",
+    "website_domain": "http://www.ablenterprises.com/",
+    "latitude": "34.250242",
+    "longitude": "-118.597112",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 16,
+  "fields": {
+    "name": "APPLIED BEHAVIORAL LEARNING GROUP",
+    "phone": "818-668-3999, 661-837-7090",
+    "address": "21363 Lassen St # 202, Chatsworth, CA 91311, United States",
+    "website_domain": "http://www.ablenterprises.com/",
+    "latitude": "34.250242",
+    "longitude": "-118.597112",
+    "center_based_services": null,
+    "areas": "ANTELOPE VALLEY,SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 17,
+  "fields": {
+    "name": "ASSESSMENT, CONSULTATION & TREATMENT",
+    "phone": "626-824-0982",
+    "address": "2700 E Foothill Blvd Lobby, Pasadena, CA 91107, United States",
+    "website_domain": "http://www.actpsychology.com/",
+    "latitude": "34.149435",
+    "longitude": "-118.094644",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Medi-Cal",
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 18,
+  "fields": {
+    "name": "ASTERI BEHAVIORAL HEALTH",
+    "phone": "800-400-9748",
+    "address": "879 W 190th St Suite 400, Gardena, CA 90248, United States",
+    "website_domain": "http://www.asteribehavioraltreatment.com/",
+    "latitude": "33.860130",
+    "longitude": "-118.289188",
+    "center_based_services": "WEST COVINA",
+    "areas": "LANCASTER,PALMDAE,EAST LA,SOUTH LA,LONG BEACH,WEST COVINA,GARDENA,MONROVIA,CLAREMONT,POMONA",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "LANCASTER, PALMDAE, EAST LA, SOUTH LA, LONG BEACH, WEST COVINA, GARDENA, MONROVIA, CLAREMONT, POMONA"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 19,
+  "fields": {
+    "name": "ATLAS BEHAVIOR SERVICES",
+    "phone": "818-634-1163",
+    "address": "2707 Empire Ave, Burbank, CA 91504, United States",
+    "website_domain": "https://atlasaba.com/",
+    "latitude": "34.192051",
+    "longitude": "-118.340602",
+    "center_based_services": "BURBANK",
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 20,
+  "fields": {
+    "name": "AULTRUISM INC",
+    "phone": "562-889-4256",
+    "address": "10568 Magnolia Ave #102, Anaheim, CA 92804, United States",
+    "website_domain": "http://aultruism.com/",
+    "latitude": "33.809440",
+    "longitude": "-117.974665",
+    "center_based_services": null,
+    "areas": "ANTELOPE VALLEY,EAST AND SOUTH LOS ANGELES,LONG BEACH AND SURROUNDING AREAS,SOUTH BAY (TORRANCE,CARSON,GARDENA,LAWNDALE,EL SEGUNDO),GATEWAY CITIES (LYNWOOD,DOWNEY,WHITTIER,BELLFLOWER,PARAMOUNT,COMPTON),SOUTHEAST LOS ANGELES (INGLEWOOD,HUNTINGTON PARK,BELL GARDENS,VERNON),SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, EAST AND SOUTH LOS ANGELES, LONG BEACH AND SURROUNDING AREAS, SOUTH BAY (TORRANCE, CARSON, GARDENA, LAWNDALE, EL SEGUNDO), GATEWAY CITIES (LYNWOOD, DOWNEY, WHITTIER, BELLFLOWER, PARAMOUNT, COMPTON), SOUTHEAST LOS ANGELES (INGLEWOOD, HUNTINGTON PARK, BELL GARDENS, VERNON), SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 21,
+  "fields": {
+    "name": "AUTISM BEHAVIOR CONSULTANTS, INC.",
+    "phone": "310-320-1333",
+    "address": "2909 Oregon Ct A1, Torrance, CA 90503, United States",
+    "website_domain": "http://www.autismprograms.com/",
+    "latitude": "33.846611",
+    "longitude": "-118.339096",
+    "center_based_services": null,
+    "areas": "SOUTH BAY,LAKEWOOD,LONG BEACH",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SOUTH BAY, LAKEWOOD, LONG BEACH"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 22,
+  "fields": {
+    "name": "AUTISM BEHAVIOR INTERVENTION",
+    "phone": "844-646-7516",
+    "address": "17203 Ventura Blvd #3, Encino, CA 91316, United States",
+    "website_domain": "http://www.teamabi.com/",
+    "latitude": "34.161064",
+    "longitude": "-118.507937",
+    "center_based_services": "ENCINO, SANTA CLARITA, GLENDALE",
+    "areas": "SAN FERNANDO VALLEY,CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY, CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 23,
+  "fields": {
+    "name": "AUTISM BEHAVIOR SERVICES",
+    "phone": "855-581-0100",
+    "address": "16000 Ventura Blvd #1103, Encino, CA 91436, United States",
+    "website_domain": "http://www.ahappyfam.com/",
+    "latitude": "34.155931",
+    "longitude": "-118.481844",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": "Health Net, MHN, Magellan, Blue Shield",
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 24,
+  "fields": {
+    "name": "AUTISM LEARNING PARTNERS",
+    "phone": "818-241-6780, 855-976-5740",
+    "address": "741 Glenvia St Suite 102 & 200, Glendale, CA 91206, United States",
+    "website_domain": "https://www.autismlearningpartners.com/",
+    "latitude": "34.155746",
+    "longitude": "-118.245307",
+    "center_based_services": "GLENDALE DOWNEY",
+    "areas": "SAN FERNANDO VALLEY,SANTA CLARITA ANTELOPE VALLEY,CENTRAL LOS ANGELES PASADENA,SOUTH BAY (TORRANCE,LAKEWOOD,LONG BEACH),CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY, SANTA CLARITA ANTELOPE VALLEY, CENTRAL LOS ANGELES PASADENA, SOUTH BAY (TORRANCE, LAKEWOOD, LONG BEACH), CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 25,
+  "fields": {
+    "name": "AUTISM SPECTRUM INTERVENTIONS, INC.",
+    "phone": "562-972-4846",
+    "address": "713 W Commonwealth Ave, Fullerton, CA 92832, United States",
+    "website_domain": "http://asiautism.org/",
+    "latitude": "33.870382",
+    "longitude": "-117.938208",
+    "center_based_services": null,
+    "areas": "ANTELOPE VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 26,
+  "fields": {
+    "name": "AUTISM SPECTRUM THERAPIES",
+    "phone": "818-565-3442",
+    "address": "515 E Fairview Ave Building K, San Gabriel, CA 91776, United States",
+    "website_domain": "https://autismtherapies.com/",
+    "latitude": "34.090633",
+    "longitude": "-118.094181",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Aetna, Cigna, Blue Shield, Tricare, Medicaid",
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 27,
+  "fields": {
+    "name": "BANAITIS, INC. DBA LIMITLESS MINDS AKA BUILDING BRIDGES",
+    "phone": "310-658-0390",
+    "address": "11022 Santa Monica Blvd #120, Los Angeles, CA 90025, United States",
+    "website_domain": null,
+    "latitude": "34.048115",
+    "longitude": "-118.441789",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 28,
+  "fields": {
+    "name": "BEHAVIOR AND DEVELOPMENT CENTER",
+    "phone": "323-208-1551",
+    "address": "5554 Reseda Blvd #203, Tarzana, CA 91356, United States",
+    "website_domain": "http://www.learningandbehavioralcenter.com/",
+    "latitude": "34.171312",
+    "longitude": "-118.535824",
+    "center_based_services": "HUNTINGTON BEACH",
+    "areas": "LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 29,
+  "fields": {
+    "name": "BEHAVIOR AND EDUCATION, INC.",
+    "phone": "310-406-1500",
+    "address": "15335 Morrison St Suite #117, Sherman Oaks, CA 91403, United States",
+    "website_domain": "http://www.baetherapy.com/",
+    "latitude": "34.161190",
+    "longitude": "-118.467867",
+    "center_based_services": "TORRANCE, LANCASTER, SHERMAN OAKS",
+    "areas": "SAN FERNANDO VALLEY,ANTELOPE VALLEY,POMONA,SOUTH BAY (TORRANCE,LAKEWOOD,LONG BEACH)",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY, ANTELOPE VALLEY, POMONA, SOUTH BAY (TORRANCE, LAKEWOOD, LONG BEACH)"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 30,
+  "fields": {
+    "name": "BEHAVIOR EDUCATION SERVICES TEAM",
+    "phone": "818-576-0464",
+    "address": "17037 Chatsworth St # 102, Granada Hills, CA 91344, United States",
+    "website_domain": "http://b-est.org/",
+    "latitude": "34.264958",
+    "longitude": "-118.503699",
+    "center_based_services": null,
+    "areas": "ANTELOPE VALLEY,SAN FERNANDO VALLEY,CENTRAL LOS ANGELES,WESTSIDE,SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, SAN FERNANDO VALLEY, CENTRAL LOS ANGELES, WESTSIDE, SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 31,
+  "fields": {
+    "name": "BEHAVIOR FRONTIERS SERVICES, INC.",
+    "phone": "310-856-0800",
+    "address": "310 W Palmdale Blvd Ste G, Palmdale, CA 93550, United States",
+    "website_domain": "https://www.behaviorfrontiers.com/palmdale-california/",
+    "latitude": "34.581231",
+    "longitude": "-118.135255",
+    "center_based_services": "GARDENA, NORWALK",
+    "areas": "ANTELOPE VALLEY,CENTRAL LOS ANGELES,SOUTH/EAST LOS ANGELES,SAN FERNANDO VALLEY,GATEWAY CITIES/ LONG BEACH,SAN GABRIEL VALLEY,POMONA VALLEY,SOUTH BAY,WEST SIDE",
+    "specializations": null,
+    "insurance_accepted": "MHN, Optum, Magellan, Beacon, Molina, Medi-Cal",
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, CENTRAL LOS ANGELES, SOUTH/EAST LOS ANGELES, SAN FERNANDO VALLEY, GATEWAY CITIES/ LONG BEACH, SAN GABRIEL VALLEY, POMONA VALLEY, SOUTH BAY, WEST SIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 32,
+  "fields": {
+    "name": "BEHAVIOR GUIDANCE GROUP",
+    "phone": "310-853-8025",
+    "address": "13101 Washington Blvd, Los Angeles, CA 90066, United States",
+    "website_domain": "http://www.behaviorguidance.com/contact-us/",
+    "latitude": "33.994087",
+    "longitude": "-118.441118",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 33,
+  "fields": {
+    "name": "BEHAVIOR ONE AUTISM SOLUTIONS",
+    "phone": "877-338-7736",
+    "address": "155 N Lake Ave 8th floor, Pasadena, CA 91101, United States",
+    "website_domain": "https://www.beonebehavior.com/",
+    "latitude": "34.148473",
+    "longitude": "-118.132846",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY AND SOUTH LOS ANGELES (LAKEWOOD,LOS ANGELES,ARTESIA,BELL GARDENS,CERRITOS,NORWALK,BELL,COMPTON,WHITTIER,BELLFLOWER,SANTA FE SPRINGS)",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY AND SOUTH LOS ANGELES (LAKEWOOD, LOS ANGELES, ARTESIA, BELL GARDENS, CERRITOS, NORWALK, BELL, COMPTON, WHITTIER, BELLFLOWER, SANTA FE SPRINGS)"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 34,
+  "fields": {
+    "name": "BEHAVIORAL AUTISM THERAPIES, LLC",
+    "phone": "909-483-5000",
+    "address": "21 Rancho Camino Dr #105, Pomona, CA 91766, United States",
+    "website_domain": "https://www.acesaba.com/location-phillips-ranch/",
+    "latitude": "34.025782",
+    "longitude": "-117.760015",
+    "center_based_services": null,
+    "areas": "POMONA VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Aetna, Blue Cross Blue Shield, Beacon, Blue Cross, Blue Shield",
+    "services": null,
+    "coverage_areas": "POMONA VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 35,
+  "fields": {
+    "name": "BEHAVIORAL HEALTH WORKS, INC.",
+    "phone": "800-249-1266",
+    "address": "1301 E Orangewood Ave, Anaheim, CA 92805, United States",
+    "website_domain": "http://www.bhwcares.com/",
+    "latitude": "33.796735",
+    "longitude": "-117.892677",
+    "center_based_services": null,
+    "areas": "ANAHEIM DOWNEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "ANAHEIM DOWNEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 36,
+  "fields": {
+    "name": "BEHAVIORAL INTERVENTION SPECIALISTS OF LA",
+    "phone": "800-258-0659",
+    "address": "11022 Santa Monica Blvd #120, Los Angeles, CA 90025, United States",
+    "website_domain": null,
+    "latitude": "34.048115",
+    "longitude": "-118.441789",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 37,
+  "fields": {
+    "name": "BEHAVIORAL LEARNING CENTER, INC.",
+    "phone": "661-254-7086",
+    "address": "41769 11th St W Suite A, Palmdale, CA 93551, United States",
+    "website_domain": "http://www.blcca.com/",
+    "latitude": "34.642023",
+    "longitude": "-118.150279",
+    "center_based_services": "PALMDALE",
+    "areas": "ANTELOPE VALLEY,SAN FERNANDO VALLEY,SANTA CLARITA VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Cigna",
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, SAN FERNANDO VALLEY, SANTA CLARITA VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 38,
+  "fields": {
+    "name": "BEHAVIORAL LEARNING NETWORK",
+    "phone": "310-933-4499",
+    "address": "16030 Ventura Blvd #490, Encino, CA 91436, United States",
+    "website_domain": "https://www.blnautism.com/locations/southern-california/",
+    "latitude": "34.155913",
+    "longitude": "-118.482497",
+    "center_based_services": "ENCINO",
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": "Aetna, Optum, Magellan, United Healthcare, Medi-Cal, Medicaid, Anthem, Kaiser Permanente",
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 39,
+  "fields": {
+    "name": "BRIGHTVIEW BEHAVIORAL HEALTH CENTER",
+    "phone": "323-244-8300, 626-432-7270",
+    "address": "35 N Lake Ave # 710, Pasadena, CA 91101, United States",
+    "website_domain": "http://www.brightviewbehavior.com/",
+    "latitude": "34.146865",
+    "longitude": "-118.132716",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 40,
+  "fields": {
+    "name": "BUTTERFLY EFFECTS",
+    "phone": "866-530-5601",
+    "address": "41 N Garfield Ave #207, Alhambra, CA 91801, United States",
+    "website_domain": "http://www.abaeffects.com/",
+    "latitude": "34.095860",
+    "longitude": "-118.127488",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 41,
+  "fields": {
+    "name": "CALIFORNIA BEHAVIORAL CARE",
+    "phone": "323-744-1314",
+    "address": "1722 1/2 Colorado Blvd, Los Angeles, CA 90041, United States",
+    "website_domain": "http://www.californiabehavioralcare.com/",
+    "latitude": "34.139051",
+    "longitude": "-118.204501",
+    "center_based_services": null,
+    "areas": "EAST LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "EAST LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 42,
+  "fields": {
+    "name": "CALIFORNIA BEHAVIORAL TREATMENT CENTER",
+    "phone": "818-574-1440",
+    "address": "6404 Wilshire Blvd # 1020, Los Angeles, CA 90048, United States",
+    "website_domain": "http://www.cbtcalifornia.com/",
+    "latitude": "34.063407",
+    "longitude": "-118.368659",
+    "center_based_services": null,
+    "areas": "CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 43,
+  "fields": {
+    "name": "CALIFORNIA PEDIATRIC & FAMILY SERVICES, INC.",
+    "phone": "626-812-0055",
+    "address": "326 E Foothill Blvd, Azusa, CA 91702, United States",
+    "website_domain": "http://www.cal-peds.com/",
+    "latitude": "34.133333",
+    "longitude": "-117.904438",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 44,
+  "fields": {
+    "name": "CALIFORNIA PSYCHCARE",
+    "phone": "888-320-1272",
+    "address": "624 Commerce Ave STE E, Palmdale, CA 93551, United States",
+    "website_domain": "https://360behavioralhealth.com/city/palmdale/",
+    "latitude": "34.589258",
+    "longitude": "-118.141785",
+    "center_based_services": "PALMDALE, COVINA, VAN NUYS, MONTEREY PARK, LONG BEACH",
+    "areas": "ANTELOPE VALLEY,SAN FERNANDO VALLEY,SANTA CLARITA VALLEY,SAN GABRIEL VALLEY,POMONA VALLEY,LONG BEACH",
+    "specializations": null,
+    "insurance_accepted": "Medicaid",
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, SAN FERNANDO VALLEY, SANTA CLARITA VALLEY, SAN GABRIEL VALLEY, POMONA VALLEY, LONG BEACH"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 45,
+  "fields": {
+    "name": "CASTILLO BEHAVIOR SERVICES",
+    "phone": "818-294-2004",
+    "address": "624 Commerce Ave STE E, Palmdale, CA 93551, United States",
+    "website_domain": "https://360behavioralhealth.com/city/palmdale/",
+    "latitude": "34.589258",
+    "longitude": "-118.141785",
+    "center_based_services": null,
+    "areas": "PALMDALE,LANCASTER,LITTLE ROCK,SANTA CLARITA VALLEY,LAKE LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": "Medicaid",
+    "services": null,
+    "coverage_areas": "PALMDALE, LANCASTER, LITTLE ROCK, SANTA CLARITA VALLEY, LAKE LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 46,
+  "fields": {
+    "name": "CBC EDUCATION",
+    "phone": "805-277-3392",
+    "address": "222 E Las Tunas Dr, San Gabriel, CA 91776, United States",
+    "website_domain": "https://cbceducation.net/",
+    "latitude": "34.102773",
+    "longitude": "-118.097397",
+    "center_based_services": "EL MONTE, SAN GABRIEL",
+    "areas": "SAN GABRIEL VALLEY,POMONA VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY, POMONA VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 47,
+  "fields": {
+    "name": "CENTER FOR APPLIED BEHAVIOR ANALYSIS, LLC",
+    "phone": "310-997-0571",
+    "address": "11150 W Olympic Blvd # 1160, Los Angeles, CA 90064, United States",
+    "website_domain": "http://www.centerforaba.com/",
+    "latitude": "34.039169",
+    "longitude": "-118.438870",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 48,
+  "fields": {
+    "name": "CHILD COUNSELING AND BEHAVIOR THERAPY CLINIC THE SPEECH PATHOLOGY GROUP",
+    "phone": "818-788-2388",
+    "address": "15760 Ventura Blvd, Encino, CA 91436, United States",
+    "website_domain": null,
+    "latitude": "34.154977",
+    "longitude": "-118.476335",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 49,
+  "fields": {
+    "name": "CHILDRENS DEVELOPMENTAL MILESTONES, INC.",
+    "phone": "818-203-5063",
+    "address": "21241 Ventura Blvd, Woodland Hills, CA 91364, United States",
+    "website_domain": "http://www.cdmtherapy.com/",
+    "latitude": "34.167839",
+    "longitude": "-118.594615",
+    "center_based_services": "WOODLAND HILLS",
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Beacon",
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 50,
+  "fields": {
+    "name": "CIELO BEHAVIOR SERVICES",
+    "phone": "951-624-7630",
+    "address": null,
+    "website_domain": "https://www.cielobehavior.com",
+    "latitude": "34.022442",
+    "longitude": "-118.166974",
+    "center_based_services": null,
+    "areas": "EAST LA,SOUTH LA,LONG BEACH,HAWAIIAN GARDENS,CARSON,CERRITOS,LAKEWOOD,PARAMOUNT,DOWNEY,BELLFLOWER,COMPTON,NORWALK,SANTA FE SPRINGS,WHITTIER,PICO RIVERA,LA PUENTE,WEST COVINA,COVINA,EL MONTE,MONTEBELLO,CUDAHY,BELL,BELL GARDENS,SOUTHGATE,LYNWOOD,MAYWOOD",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "EAST LA, SOUTH LA, LONG BEACH, HAWAIIAN GARDENS, CARSON, CERRITOS, LAKEWOOD, PARAMOUNT, DOWNEY, BELLFLOWER, COMPTON, NORWALK, SANTA FE SPRINGS, WHITTIER, PICO RIVERA, LA PUENTE, WEST COVINA, COVINA, EL MONTE, MONTEBELLO, CUDAHY, BELL, BELL GARDENS, SOUTHGATE, LYNWOOD, MAYWOOD"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 51,
+  "fields": {
+    "name": "COMPREHENSIVE EDUCATIONAL SERVICES, INC. DBA (ACES)",
+    "phone": "949-833-2237",
+    "address": "4300 Long Beach Blvd Suite 100, Long Beach, CA 90807, United States",
+    "website_domain": "https://www.acesaba.com/location-long-beach/",
+    "latitude": "33.836426",
+    "longitude": "-118.189631",
+    "center_based_services": null,
+    "areas": "GATEWAY CITIES,POMONA VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Aetna, Blue Cross Blue Shield, Beacon, Blue Cross, Blue Shield",
+    "services": null,
+    "coverage_areas": "GATEWAY CITIES, POMONA VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 52,
+  "fields": {
+    "name": "CONNECTING DOT BY DOT, INC.",
+    "phone": "818-458-5836",
+    "address": "1521 W Cameron Ave suite 250, West Covina, CA 91790, United States",
+    "website_domain": "http://www.connectingdotbydot.com/",
+    "latitude": "34.069090",
+    "longitude": "-117.941514",
+    "center_based_services": null,
+    "areas": "POMONA VALLEY",
+    "specializations": null,
+    "insurance_accepted": "MHN, Aetna, Magellan, Cigna, Health Net, Blue Cross, Molina, Humana, Medi-Cal, Anthem",
+    "services": null,
+    "coverage_areas": "POMONA VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 53,
+  "fields": {
+    "name": "CREATIVE BEHAVIORAL CONSULTANTS, INC.",
+    "phone": "818-932-9644",
+    "address": "22055 Clarendon St # 208, Woodland Hills, CA 91367, United States",
+    "website_domain": "https://www.cbc-autism.com/",
+    "latitude": "34.169855",
+    "longitude": "-118.607765",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 54,
+  "fields": {
+    "name": "DREAM BIG CHILDREN'S CENTER",
+    "phone": "909-229-4502",
+    "address": null,
+    "website_domain": null,
+    "latitude": null,
+    "longitude": null,
+    "center_based_services": "MONROVIA",
+    "areas": "SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 55,
+  "fields": {
+    "name": "EXCEPTIONAL CHILDREN FOUNDATION",
+    "phone": "310-773-9371",
+    "address": "10918 Barman Ave, Culver City, CA 90230, United States",
+    "website_domain": "http://www.ecf.net/adults/residential/",
+    "latitude": "34.008112",
+    "longitude": "-118.403713",
+    "center_based_services": "CULVER CITY",
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 56,
+  "fields": {
+    "name": "FAMILIAS FIRST: TELLO & ASSOCIATES CORPORATION",
+    "phone": "626-444-4840, 626-320-1317",
+    "address": "222 E Las Tunas Dr, San Gabriel, CA 91776, United States",
+    "website_domain": "http://www.familiasfirst.com/",
+    "latitude": "34.102903",
+    "longitude": "-118.097406",
+    "center_based_services": "EL MONTE, SAN GABRIEL",
+    "areas": "SAN GABRIEL VALLEY,POMONA VALLEY,SOUTH CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY, POMONA VALLEY, SOUTH CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 57,
+  "fields": {
+    "name": "FAMILY CARE SPECTRUM THERAPIES",
+    "phone": "323-828-9551",
+    "address": "5800 Hannum Ave suite b, Culver City, CA 90230, United States",
+    "website_domain": "http://castautism.com/",
+    "latitude": "33.986852",
+    "longitude": "-118.385788",
+    "center_based_services": "SOUTH GATE",
+    "areas": "GATEWAY CITIES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "GATEWAY CITIES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 58,
+  "fields": {
+    "name": "FIRST STEPS FOR KIDS, INC.",
+    "phone": "310-374-3300",
+    "address": "3424 Motor Ave #101, Los Angeles, CA 90034, United States",
+    "website_domain": "https://www.firststepsforkids.com/",
+    "latitude": "34.027478",
+    "longitude": "-118.408965",
+    "center_based_services": "WEST LA, REDONDO BEACH, CALABASAS, ALHAMBRA",
+    "areas": "WESTSIDE,SOUTHBAY,SAN FERNANDO VALLEY,SAN GABRIEL VALLEY,POMONA VALLEY,SOUTH CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE, SOUTHBAY, SAN FERNANDO VALLEY, SAN GABRIEL VALLEY, POMONA VALLEY, SOUTH CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 59,
+  "fields": {
+    "name": "FLEX LEARNING, LLC",
+    "phone": "562-661-8900",
+    "address": "3777 Long Beach Blvd #400, Long Beach, CA 90807, United States",
+    "website_domain": "http://www.learningtreetherapy.com/",
+    "latitude": "33.826401",
+    "longitude": "-118.189570",
+    "center_based_services": null,
+    "areas": "LONG BEACH",
+    "specializations": null,
+    "insurance_accepted": "Anthem",
+    "services": null,
+    "coverage_areas": "LONG BEACH"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 60,
+  "fields": {
+    "name": "FOOTHILL CHILD DEVELOPMENT SERVICES, INC.",
+    "phone": "818-353-3772",
+    "address": "16946 Sherman Way, Van Nuys, CA 91406, United States",
+    "website_domain": "http://www.foothillchild.com/",
+    "latitude": "34.200831",
+    "longitude": "-118.502955",
+    "center_based_services": "LAKE BALBOA",
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 61,
+  "fields": {
+    "name": "HOLDING HANDS, INC.",
+    "phone": "323-938-3434 ext. 118",
+    "address": "2115 Beverly Blvd, Los Angeles, CA 90057, United States",
+    "website_domain": "http://holdinghandsinc.com/",
+    "latitude": "34.067190",
+    "longitude": "-118.270760",
+    "center_based_services": "DOWNTOWN LA, BURBANK, CALABASAS",
+    "areas": "CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 62,
+  "fields": {
+    "name": "HOWARD CHUDLER & ASSOC.",
+    "phone": "714-529-2549",
+    "address": "1274 Center Ct Dr #211, Covina, CA 91724, United States",
+    "website_domain": "http://www.alorabh.com/",
+    "latitude": "34.072610",
+    "longitude": "-117.864201",
+    "center_based_services": null,
+    "areas": "POMONA VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "POMONA VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 63,
+  "fields": {
+    "name": "HYPERION BEHAVIORAL HEALTH CENTER",
+    "phone": "818-274-2587",
+    "address": "1224 Vine St, Los Angeles, CA 90038, United States",
+    "website_domain": "https://dmh.lacounty.gov/",
+    "latitude": "34.093318",
+    "longitude": "-118.326150",
+    "center_based_services": null,
+    "areas": "CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 64,
+  "fields": {
+    "name": "ICAN-B",
+    "phone": "818-616-1069",
+    "address": "7141 Woodley Ave, Van Nuys, CA 91406, United States",
+    "website_domain": "http://ican-b.com/",
+    "latitude": "34.200576",
+    "longitude": "-118.483686",
+    "center_based_services": "VAN NUYS",
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 65,
+  "fields": {
+    "name": "IGCN HEALTHCARE PARTNERS",
+    "phone": "323-433-4165",
+    "address": null,
+    "website_domain": null,
+    "latitude": "34.068945",
+    "longitude": "-118.323634",
+    "center_based_services": null,
+    "areas": "CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 66,
+  "fields": {
+    "name": "INCLUSIVE EDUCATION & COMMUNITY PARTNERSHIP",
+    "phone": "805-985-4808",
+    "address": "13130 Burbank Blvd, Sherman Oaks, CA 91401, United States",
+    "website_domain": "http://www.thehelpgroup.org/",
+    "latitude": "34.171623",
+    "longitude": "-118.419217",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 67,
+  "fields": {
+    "name": "INNOVATIVE BEHAVIORAL THERAPIES",
+    "phone": "800-807-0305",
+    "address": "3700 Wilshire Blvd #435, Los Angeles, CA 90010, United States",
+    "website_domain": "https://abatherapies.com/",
+    "latitude": "34.060546",
+    "longitude": "-118.307227",
+    "center_based_services": "MID-WILSHIRE, WHITTIER",
+    "areas": "CENTAL LOS ANGELES,EAST LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "CENTAL LOS ANGELES, EAST LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 68,
+  "fields": {
+    "name": "INSPIRA BEHAVIOR AND ADVOCACY SPECIALISTS",
+    "phone": "844-467-7763",
+    "address": "8135 Painter Ave # 201, Whittier, CA 90602, United States",
+    "website_domain": null,
+    "latitude": "33.965813",
+    "longitude": "-118.033034",
+    "center_based_services": null,
+    "areas": "SOUTH LOS ANGELES,LONG BEACH",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SOUTH LOS ANGELES, LONG BEACH"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 69,
+  "fields": {
+    "name": "INSTITUTE FOR APPLIED BEHAVIOR ANALYSIS (IABA)",
+    "phone": "310-649-0499",
+    "address": "11150 W Olympic Blvd # 1160, Los Angeles, CA 90064, United States",
+    "website_domain": "http://www.centerforaba.com/",
+    "latitude": "34.039169",
+    "longitude": "-118.438870",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 70,
+  "fields": {
+    "name": "INSTITUTE FOR EFFECTIVE BEHAVIORAL INTERVENTIONS (IEBI)",
+    "phone": "818-501-0822",
+    "address": "15335 Morrison St, Sherman Oaks, CA 91403, United States",
+    "website_domain": "http://www.iebionline.com/",
+    "latitude": "34.161187",
+    "longitude": "-118.467826",
+    "center_based_services": "ENCINO",
+    "areas": "SAN FERNANDO VALLEY,SANTA CLARITA,LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY, SANTA CLARITA, LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 71,
+  "fields": {
+    "name": "JADE BEHAVIORAL CONSULTANTS, INC.",
+    "phone": "714-829-4138",
+    "address": "2115 W Crescent Ave #244, Anaheim, CA 92801, United States",
+    "website_domain": "https://www.jadebehavioralconsultants.org/",
+    "latitude": "33.840558",
+    "longitude": "-117.955760",
+    "center_based_services": null,
+    "areas": "LONG BEACH,COMPTON,DOWNEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "LONG BEACH, COMPTON, DOWNEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 72,
+  "fields": {
+    "name": "JENNIFER KEANY & ASSOCIATES",
+    "phone": "310-287-0382",
+    "address": "8936 S Sepulveda Blvd Ste 200, Los Angeles, CA 90045, United States",
+    "website_domain": null,
+    "latitude": "33.954970",
+    "longitude": "-118.395817",
+    "center_based_services": null,
+    "areas": "TORRANCE/GARDENA/MANHATTAN BEACH/BRENTWOOD,WESTWOOD,BEVERLY HILLS,MID-WILSHIRE/ SANTA MONICA",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "TORRANCE/GARDENA/MANHATTAN BEACH/BRENTWOOD, WESTWOOD, BEVERLY HILLS, MID-WILSHIRE/ SANTA MONICA"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 73,
+  "fields": {
+    "name": "KYO AUTISM THERAPY",
+    "phone": "877-539-7730",
+    "address": "200 E Del Mar Blvd STE 112, Pasadena, CA 91105, United States",
+    "website_domain": "https://kyocare.com/",
+    "latitude": "34.140011",
+    "longitude": "-118.146638",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY,CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY, CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 74,
+  "fields": {
+    "name": "LEAPS N BOUNDZ",
+    "phone": "310-821-0963",
+    "address": "5433 Beethoven St, Los Angeles, CA 90066, United States",
+    "website_domain": "http://leapsnboundz.com/",
+    "latitude": "33.976800",
+    "longitude": "-118.422243",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 75,
+  "fields": {
+    "name": "LEARNING BEHAVIORAL CENTER LLC",
+    "phone": "818-705-5522",
+    "address": "5554 Reseda Blvd #203, Tarzana, CA 91356, United States",
+    "website_domain": "http://www.learningandbehavioralcenter.com/",
+    "latitude": "34.171312",
+    "longitude": "-118.535824",
+    "center_based_services": "TARZANA",
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 76,
+  "fields": {
+    "name": "LOVAAS INSTITUTE FOR EARLY INTERVENTION",
+    "phone": "818-231-2400",
+    "address": "5601 W Slauson Ave Suite 266, Culver City, CA 90230, United States",
+    "website_domain": "http://www.lovaas.com/",
+    "latitude": "33.989614",
+    "longitude": "-118.379953",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 77,
+  "fields": {
+    "name": "LUMARY THERAPY",
+    "phone": "818-638-9586",
+    "address": "3210 W Burbank Blvd B, Burbank, CA 91505, United States",
+    "website_domain": "https://www.lumarytherapy.com/",
+    "latitude": "34.176090",
+    "longitude": "-118.345568",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 78,
+  "fields": {
+    "name": "LUNA BEHAVIORAL HEALTH TREATMENT",
+    "phone": "949-989-6932",
+    "address": "9010 SW 137th Ave #233, Miami, FL 33186, United States",
+    "website_domain": "https://lunabehavior.com/",
+    "latitude": "25.683065",
+    "longitude": "-80.417610",
+    "center_based_services": "CITY OF ORANGE",
+    "areas": "DOWNEY,NORWALK,CERRITOS,LA PALMA,WHITTIER,SANTA FE,LYNWOOD,COMPTON,COMMERCE,BELL GARDEN,MONTEBELLO,BELLFLOWER",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "DOWNEY, NORWALK, CERRITOS, LA PALMA, WHITTIER, SANTA FE, LYNWOOD, COMPTON, COMMERCE, BELL GARDEN, MONTEBELLO, BELLFLOWER"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 79,
+  "fields": {
+    "name": "MAXIM HEALTHCARE SERVICES",
+    "phone": "310-819-4523",
+    "address": "3255 Wilshire Blvd Suite 700, Los Angeles, CA 90010, United States",
+    "website_domain": null,
+    "latitude": "34.062248",
+    "longitude": "-118.293230",
+    "center_based_services": null,
+    "areas": "SOUTH LOS ANGELES,POMONA VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SOUTH LOS ANGELES, POMONA VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 80,
+  "fields": {
+    "name": "MCRORY BEHAVIORAL AND FAMILY SUPPORT SERVICES, INC.",
+    "phone": "818-501-8352",
+    "address": "19019 Ventura Blvd, Tarzana, CA 91356, United States",
+    "website_domain": "http://www.mcrorypediatrics.com/",
+    "latitude": "34.172740",
+    "longitude": "-118.548278",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 81,
+  "fields": {
+    "name": "MHDCI, LLC",
+    "phone": "818-288-3460",
+    "address": "3580 Wilshire Blvd # 2000, Los Angeles, CA 90010, United States",
+    "website_domain": "http://www.imces.org/",
+    "latitude": "34.061114",
+    "longitude": "-118.302815",
+    "center_based_services": null,
+    "areas": "CENTRAL LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "CENTRAL LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 82,
+  "fields": {
+    "name": "MONARCH CENTER FOR DEVELOPMENTAL SERVICES",
+    "phone": "818-649-0153",
+    "address": "425 W Broadway #450, Glendale, CA 91204, United States",
+    "website_domain": "https://monarchcenterla.com/",
+    "latitude": "34.147145",
+    "longitude": "-118.262621",
+    "center_based_services": "GLENDALE",
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 83,
+  "fields": {
+    "name": "myHHBS, INC.",
+    "phone": "323-795-2054",
+    "address": "237 N Central Ave STE A, Glendale, CA 91203, United States",
+    "website_domain": "http://www.myhhbs.com/",
+    "latitude": "34.149426",
+    "longitude": "-118.258090",
+    "center_based_services": "GLENDALE, LOS ANGELES, SANTA CLARITA",
+    "areas": "SAN FERNANDO VALLEY,SANTA CLARITA,HOLLYWOOD,POMONA,SOUTH LA,EAST LA,SANTA MONICA,WEST LA,LONG BEACH",
+    "specializations": null,
+    "insurance_accepted": "MHN, Aetna, Magellan, Cigna, Beacon, Blue Cross, Humana, Blue Shield, Anthem",
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY, SANTA CLARITA, HOLLYWOOD, POMONA, SOUTH LA, EAST LA, SANTA MONICA, WEST LA, LONG BEACH"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 84,
+  "fields": {
+    "name": "NOGA KLAIN",
+    "phone": "310-692-4229",
+    "address": "879 W 190th St Suite 400, Gardena, CA 90248, United States",
+    "website_domain": "http://nogaklain.com/",
+    "latitude": "33.860126",
+    "longitude": "-118.289242",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 85,
+  "fields": {
+    "name": "NURTURE & NATURE",
+    "phone": "818-538-6539",
+    "address": "12750 Ventura Blvd, Studio City, CA 91604, United States",
+    "website_domain": "http://www.nurtureandnatureaba.com/contact",
+    "latitude": "34.144578",
+    "longitude": "-118.411215",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY,SOUTH LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY, SOUTH LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 86,
+  "fields": {
+    "name": "OHANA BEHAVIORAL GROUP",
+    "phone": "562-454-7998",
+    "address": "6 Lower Ragsdale Dr, Monterey, CA 93940, United States",
+    "website_domain": "https://www.montagehealth.org/locations/profile/ohana/",
+    "latitude": "36.575250",
+    "longitude": "-121.820136",
+    "center_based_services": null,
+    "areas": "GATEWAY CITIES,SOUTH & EAST LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "GATEWAY CITIES, SOUTH & EAST LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 87,
+  "fields": {
+    "name": "OPTIMA FAMILY SERVICES, INC.",
+    "phone": "818-844-3376",
+    "address": "150 S Los Robles Ave Suite # 950, Pasadena, CA 91101, United States",
+    "website_domain": "http://www.optimafamilyservices.com/",
+    "latitude": "34.143366",
+    "longitude": "-118.140884",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Medi-Cal, UHC, Blue Cross",
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 88,
+  "fields": {
+    "name": "PENINSULA HEALTH PARTNERS",
+    "phone": "310-606-1349",
+    "address": "On the street level, facing Hawthorne, 22330 Hawthorne Blvd suite j, Torrance, CA 90505, United States",
+    "website_domain": "https://www.penhcc.com/",
+    "latitude": "33.824549",
+    "longitude": "-118.350291",
+    "center_based_services": null,
+    "areas": "HARBOR/ SOUTH BAY: LONG BEACH,WEST LOS ANGELES,SOUTH AND EAST LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "HARBOR/ SOUTH BAY: LONG BEACH, WEST LOS ANGELES, SOUTH AND EAST LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 89,
+  "fields": {
+    "name": "POSITIVE BEHAVIOR SUPPORTS CORPORATION",
+    "phone": "855-832-6727",
+    "address": "8832 Syracuse Ave, Anaheim, CA 92804, United States",
+    "website_domain": "https://www.teampbs.com/aba_therapy.aspx?Region=CA&RegionName=LA%20Metro",
+    "latitude": "33.805130",
+    "longitude": "-117.978555",
+    "center_based_services": null,
+    "areas": "WESTSIDE,SOUTH BAY,SOUTH LA,SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": "Magellan, Medicaid, Beacon, CalOptima, Molina, Blue Shield, Anthem",
+    "services": null,
+    "coverage_areas": "WESTSIDE, SOUTH BAY, SOUTH LA, SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 90,
+  "fields": {
+    "name": "PROMISE ABA LLC",
+    "phone": "818-748-3390",
+    "address": "217 E Alameda Ave #301, Burbank, CA 91502, United States",
+    "website_domain": "http://promiseaba.com/",
+    "latitude": "34.175329",
+    "longitude": "-118.299416",
+    "center_based_services": "BURBANK",
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 91,
+  "fields": {
+    "name": "QUANTUM BEHAVIORAL SOLUTIONS, INC.",
+    "phone": "626-531-6999",
+    "address": "440 E Huntington Dr # 300, Arcadia, CA 91006, United States",
+    "website_domain": "http://www.quantumbehavioralsolutions.com/",
+    "latitude": "34.139065",
+    "longitude": "-118.021951",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 92,
+  "fields": {
+    "name": "REACH INTEGRATED SERVICES",
+    "phone": "626-741-5401",
+    "address": "7200 Greenleaf Ave #140, Whittier, CA 90602, United States",
+    "website_domain": "http://www.reach.services/",
+    "latitude": "33.977076",
+    "longitude": "-118.037127",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 93,
+  "fields": {
+    "name": "SAGE BEHAVIOR SERVICES",
+    "phone": "714-773-0077",
+    "address": "4105 E Broadway # 102, Long Beach, CA 90803, United States",
+    "website_domain": null,
+    "latitude": "33.764639",
+    "longitude": "-118.144601",
+    "center_based_services": null,
+    "areas": "LONG BEACH,CERRITOS,NORWALK,LANCASTER",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "LONG BEACH, CERRITOS, NORWALK, LANCASTER"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 94,
+  "fields": {
+    "name": "SHABANI INSTITUTE/CENTER FOR BEHAVIOR ANALYSIS & LANGUAGE DEVELOPMENT",
+    "phone": "310-310-2931",
+    "address": "982 Artesia Blvd, Hermosa Beach, CA 90254, United States",
+    "website_domain": "http://shabani-institute.com/",
+    "latitude": "33.872524",
+    "longitude": "-118.393107",
+    "center_based_services": null,
+    "areas": "SOUTH LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SOUTH LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 95,
+  "fields": {
+    "name": "SIERRA MADRE LEARNING CENTER TOTAL PROGRAMS LLC",
+    "phone": "626-355-5160",
+    "address": "370 W Sierra Madre Blvd # B, Sierra Madre, CA 91024, United States",
+    "website_domain": "https://www.totalprograms.org/",
+    "latitude": "34.161717",
+    "longitude": "-118.060386",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY,PALMDALE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY, PALMDALE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 96,
+  "fields": {
+    "name": "SPECIAL EDUCATION FOR EXCEPTIONAL KIDS DBA (SEEK) EDUCATION INC.",
+    "phone": "626-943-7772",
+    "address": "9060 Huntington Dr, San Gabriel, CA 91775, United States",
+    "website_domain": "http://www.seekeducation.org/",
+    "latitude": "34.130143",
+    "longitude": "-118.071013",
+    "center_based_services": null,
+    "areas": "SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 97,
+  "fields": {
+    "name": "SPECIAL NEEDS NETWORK, INC.",
+    "phone": "323-291-7100",
+    "address": "4401 Crenshaw Blvd suite 215, View Park, CA 90043, United States",
+    "website_domain": "http://www.snnla.org/",
+    "latitude": "34.003332",
+    "longitude": "-118.331960",
+    "center_based_services": null,
+    "areas": "SOUTH LOS ANGELES,LONG BEACH,SAN FERNANDO VALLLEY,SAN GABRIEL VALLEY,PASADENA",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SOUTH LOS ANGELES, LONG BEACH, SAN FERNANDO VALLLEY, SAN GABRIEL VALLEY, PASADENA"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 98,
+  "fields": {
+    "name": "SPECTRUM SOLUTIONS THERAPY",
+    "phone": "562-444-5026",
+    "address": "16900 Lakewood Blvd #212, Bellflower, CA 90706, United States",
+    "website_domain": "https://sstaba.com/",
+    "latitude": "33.880471",
+    "longitude": "-118.141886",
+    "center_based_services": null,
+    "areas": "GATEWAY CITIES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "GATEWAY CITIES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 99,
+  "fields": {
+    "name": "SPEECH, LANGUAGE and EDUCATIONAL ASSOCIATES",
+    "phone": "818-616-5013",
+    "address": "16500 Ventura Blvd, Encino, CA 91436, United States",
+    "website_domain": "http://www.sleatherapies.com/",
+    "latitude": "34.157427",
+    "longitude": "-118.492722",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY,ANTELOPE VALLEY,LOS ANGELES COUNTY,SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY, ANTELOPE VALLEY, LOS ANGELES COUNTY, SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 100,
+  "fields": {
+    "name": "STAR OF CALIFORNIA, INC.",
+    "phone": "805-644-7827",
+    "address": "969 Colorado Blvd # 201, Los Angeles, CA 90041, United States",
+    "website_domain": "https://starofca.com/",
+    "latitude": "34.138648",
+    "longitude": "-118.187128",
+    "center_based_services": null,
+    "areas": "WESTSIDE,SOUTHBAY,EAST LOS ANGELES,VENTURA COUNTY,LONG BEACH",
+    "specializations": null,
+    "insurance_accepted": "Cigna",
+    "services": null,
+    "coverage_areas": "WESTSIDE, SOUTHBAY, EAST LOS ANGELES, VENTURA COUNTY, LONG BEACH"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 101,
+  "fields": {
+    "name": "SYMPHONY BEHAVIORAL HEALTH",
+    "phone": "661-214-3063",
+    "address": "25350 Magic Mountain Pkwy Suite 300, Santa Clarita, CA 91355, United States",
+    "website_domain": "http://www.symphonybh.com/",
+    "latitude": "34.423285",
+    "longitude": "-118.577843",
+    "center_based_services": null,
+    "areas": "SANTA CLARITA VALLEY,PALMDALE,LANCASTER,SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SANTA CLARITA VALLEY, PALMDALE, LANCASTER, SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 102,
+  "fields": {
+    "name": "THERAPUTIC LEARNING CONSULTANTS, INC.",
+    "phone": "408-373-3256",
+    "address": "711 Colorado Ave, Palo Alto, CA 94303, United States",
+    "website_domain": "https://tlcpractices.com/",
+    "latitude": "37.433464",
+    "longitude": "-122.128159",
+    "center_based_services": null,
+    "areas": "SANTA CLARA COUNTY,SAN GABRIEL VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SANTA CLARA COUNTY, SAN GABRIEL VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 103,
+  "fields": {
+    "name": "THERAPY LOUNGE CENTER",
+    "phone": "310-553-2695",
+    "address": "1505 W Ave J STE 301, Lancaster, CA 93534, United States",
+    "website_domain": "http://www.therapyloungecenter.com/",
+    "latitude": "34.689703",
+    "longitude": "-118.157092",
+    "center_based_services": "DOWNTOWN LA, EAGLE ROCK, DOWNEY, GARDENA, VAN NUYS, LANCASTER, HUNTINGTON PARK, WEST COVINA",
+    "areas": "ANTELOPE VALLEY,GARDENA,LANCASTER,DOWNTOWN,VAN NUYS,WEST COVINA,HUNTINGTON PARK,WALNUT,KOREA TOWN",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, GARDENA, LANCASTER, DOWNTOWN, VAN NUYS, WEST COVINA, HUNTINGTON PARK, WALNUT, KOREA TOWN"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 104,
+  "fields": {
+    "name": "TRUMPET BEHAVIORAL HEALTH, LLC",
+    "phone": "562-248-6435",
+    "address": "5834 Adenmoor Ave, Lakewood, CA 90713, United States",
+    "website_domain": "https://www.bluesprigautism.com/centers/california/long-beach/",
+    "latitude": "33.861490",
+    "longitude": "-118.123737",
+    "center_based_services": null,
+    "areas": "LAKEWOOD",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "LAKEWOOD"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 105,
+  "fields": {
+    "name": "UNITED THERAPY CENTER INC.",
+    "phone": "800-234-3234",
+    "address": "7462 N Figueroa St Suite 103, Los Angeles, CA 90041, United States",
+    "website_domain": "https://www.unitedtherapycenter.com/?utm_source=gmb_auth",
+    "latitude": "34.139518",
+    "longitude": "-118.186547",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY,EAST LOS ANGELES",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY, EAST LOS ANGELES"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 106,
+  "fields": {
+    "name": "UNLIMITED POTENTIAL",
+    "phone": "657-229-1417",
+    "address": "1652 W Ave J, Lancaster, CA 93534, United States",
+    "website_domain": null,
+    "latitude": "34.689077",
+    "longitude": "-118.160486",
+    "center_based_services": null,
+    "areas": "ANTELOPE VALLEY,EAST LA,SOUTH LA,AND LONG BEACH",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, EAST LA, SOUTH LA, AND LONG BEACH"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 107,
+  "fields": {
+    "name": "VICTORY CARE",
+    "phone": "424-260-1985",
+    "address": "9744 Wilshire Blvd UNIT 309, Beverly Hills, CA 90212, United States",
+    "website_domain": "https://victorycare.com/",
+    "latitude": "34.066762",
+    "longitude": "-118.408086",
+    "center_based_services": null,
+    "areas": "WESTSIDE",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "WESTSIDE"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 108,
+  "fields": {
+    "name": "VISTA CENTER FOR BEHAVIORAL ANALYSIS",
+    "phone": "805-685-5740",
+    "address": "23030 Lyons Ave suite 200, Newhall, CA 91321, United States",
+    "website_domain": "http://www.vistacba.com/",
+    "latitude": "34.379857",
+    "longitude": "-118.536061",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 109,
+  "fields": {
+    "name": "WORKING WITH AUTISM, INC.",
+    "phone": "818-582-2200",
+    "address": "14724 Ventura Blvd, Sherman Oaks, CA 91403, United States",
+    "website_domain": "http://www.workingwithautism.com/",
+    "latitude": "34.151401",
+    "longitude": "-118.454368",
+    "center_based_services": null,
+    "areas": "SAN FERNANDO VALLEY",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "SAN FERNANDO VALLEY"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 110,
+  "fields": {
+    "name": "ZOI AND MIND CLINICS",
+    "phone": "800-371-1121",
+    "address": "1016 E Broadway STE 200, Glendale, CA 91205, United States",
+    "website_domain": "http://www.zoiandmindclinics.com/",
+    "latitude": "34.146022",
+    "longitude": "-118.242292",
+    "center_based_services": null,
+    "areas": "ANTELOPE VALLEY,SAN GABRIEL VALLEY,EAST LOS ANGELES,SOUTH LOS ANGELES,SAN FERNANDO VALLEY,LONG BEACH,COMPTON",
+    "specializations": null,
+    "insurance_accepted": null,
+    "services": null,
+    "coverage_areas": "ANTELOPE VALLEY, SAN GABRIEL VALLEY, EAST LOS ANGELES, SOUTH LOS ANGELES, SAN FERNANDO VALLEY, LONG BEACH, COMPTON"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 111,
+  "fields": {
+    "name": "AUTISM RESEARCH INSTITUTE",
+    "phone": "619-281-7165",
+    "address": "4182 Adams Ave, San Diego, CA 92116, United States",
+    "website_domain": "http://www.autism.com/",
+    "latitude": "32.759000",
+    "longitude": "-117.135000",
+    "center_based_services": null,
+    "areas": "SAN DIEGO",
+    "specializations": "Autism",
+    "insurance_accepted": "Private Pay, Some Insurance",
+    "services": "Applied Behavior Analysis (ABA); Early Intervention; Speech & Language Pathology; Nutrition; DAN! Protocol",
+    "coverage_areas": "SAN DIEGO"
+  }
+},
+{
+  "model": "locations.provider",
+  "pk": 112,
+  "fields": {
+    "name": "CORTICA",
+    "phone": "760-539-5818",
+    "address": "San Diego location, Sorrento Valley, San Diego, CA",
+    "website_domain": "https://www.corticacare.com/locations/ca/san-diego",
+    "latitude": "32.900000",
+    "longitude": "-117.250000",
+    "center_based_services": "San Diego",
+    "areas": "SAN DIEGO, SORRENTO VALLEY",
+    "specializations": "Comprehensive autism care, neurodevelopmental differences",
+    "insurance_accepted": "Most major insurance plans",
+    "services": "ABA, developmental therapies, medical care",
+    "coverage_areas": "SAN DIEGO, SORRENTO VALLEY"
+  }
+}
+]

@@ -55,3 +55,8 @@ coverage
 
 # Keep the database file since it has sample data (normally this would be in .gitignore)
 # !db.sqlite3
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

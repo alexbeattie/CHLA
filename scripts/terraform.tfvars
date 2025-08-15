@@ -1,0 +1,7 @@
+profile     = "personal"
+region      = "us-west-2"
+zone_id     = "Z0467239OKDU4Z74D3ZB"
+bucket_name = "kinddhelp-frontend-1755148345"
+domain      = "kinddhelp.com"
+api_domain  = "api.kinddhelp.com"
+eb_cname    = "chla-api-env.eba-9aiqcppx.us-west-2.elasticbeanstalk.com"

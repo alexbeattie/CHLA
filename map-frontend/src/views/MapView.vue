@@ -12,8 +12,25 @@
     <!-- Funding Info Modal -->
     <funding-info-panel :showModal="showFundingInfo" @close="toggleFundingInfo" />
 
+    <!-- Mobile Toggle Button - ALWAYS VISIBLE -->
+    <button
+      v-show="!showOnboarding"
+      class="mobile-toggle d-md-none"
+      @click="toggleMobileSidebar"
+      :class="{ active: showMobileSidebar }"
+    >
+      <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Mobile Backdrop -->
+    <div
+      v-if="showMobileSidebar"
+      class="mobile-backdrop d-md-none"
+      @click="toggleMobileSidebar"
+    ></div>
+
     <!-- Sidebar (always on left) -->
-    <div class="sidebar-container">
+    <div class="sidebar-container" :class="{ 'mobile-open': showMobileSidebar }">
       <div class="sidebar">
         <!-- CHLA Header -->
         <div class="chla-header">
@@ -394,6 +411,7 @@ export default {
       // Modal visibility
       showFundingInfo: false,
       showOnboarding: false,
+      showMobileSidebar: false,
 
       // Display type
       displayType: "providers", // 'regionalCenters' or 'providers'
@@ -539,6 +557,11 @@ export default {
   },
 
   methods: {
+    // Toggle mobile sidebar
+    toggleMobileSidebar() {
+      this.showMobileSidebar = !this.showMobileSidebar;
+    },
+
     // Toggle funding info modal
     toggleFundingInfo() {
       this.showFundingInfo = !this.showFundingInfo;
@@ -840,7 +863,8 @@ export default {
 
       try {
         console.log("Fetching providers from API");
-        const apiBaseUrl = "http://127.0.0.1:8000/api"; // Temporarily use direct URL to bypass proxy
+        const apiBaseUrl =
+          import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 
         // If using local data, use sample data
         if (USE_LOCAL_DATA_ONLY) {
@@ -917,10 +941,26 @@ export default {
             queryParams.append("q", this.searchText.trim());
           }
 
-          // Always add location/radius if available (for geographic relevance)
-          if (this.userLocation.latitude && this.userLocation.longitude) {
-            queryParams.append("lat", this.userLocation.latitude);
-            queryParams.append("lng", this.userLocation.longitude);
+          // Add location/radius - but use search text location if it's a city name
+          let searchLat = this.userLocation.latitude;
+          let searchLng = this.userLocation.longitude;
+
+          // Check if search text is a known city/location
+          if (this.searchText && this.searchText.trim() !== "") {
+            const searchLocation = this.getLocationFromSearch(this.searchText.trim());
+            if (searchLocation) {
+              searchLat = searchLocation.lat;
+              searchLng = searchLocation.lng;
+              console.log(
+                `🔍 Using search location coordinates for "${this.searchText}": ${searchLat}, ${searchLng}`
+              );
+            }
+          }
+
+          // Add location/radius if available (using search location or user location)
+          if (searchLat && searchLng) {
+            queryParams.append("lat", searchLat);
+            queryParams.append("lng", searchLng);
             queryParams.append("radius", this.radius);
           }
 
@@ -1144,7 +1184,8 @@ export default {
 
       try {
         console.log("Fetching regional centers");
-        const apiBaseUrl = "http://127.0.0.1:8000/api"; // Temporarily use direct URL to bypass proxy
+        const apiBaseUrl =
+          import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 
         // If using local data, use sample data
         if (USE_LOCAL_DATA_ONLY) {
@@ -1237,7 +1278,8 @@ export default {
 
       try {
         console.log("Fetching service areas from API...");
-        const apiBaseUrl = "http://127.0.0.1:8000/api"; // Temporarily use direct URL to bypass proxy
+        const apiBaseUrl =
+          import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
         const url = `${apiBaseUrl}/regional-centers/service_areas/`;
 
         const response = await axios.get(url);
@@ -2259,6 +2301,32 @@ export default {
         90020: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
         90036: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
         90048: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        // San Diego area ZIP codes
+        92101: { lat: 32.7157, lng: -117.1611 }, // Downtown San Diego
+        92102: { lat: 32.7066, lng: -117.1364 }, // Golden Hill
+        92103: { lat: 32.7284, lng: -117.1712 }, // Balboa Park
+        92104: { lat: 32.7023, lng: -117.1364 }, // North Park
+        92105: { lat: 32.7081, lng: -117.1059 }, // City Heights
+        92106: { lat: 32.7461, lng: -117.2186 }, // Point Loma
+        92107: { lat: 32.7572, lng: -117.2316 }, // Ocean Beach
+        92108: { lat: 32.7672, lng: -117.1978 }, // Mission Bay
+        92109: { lat: 32.7959, lng: -117.2348 }, // Pacific Beach
+        92110: { lat: 32.7831, lng: -117.1994 }, // Bay Park
+        92111: { lat: 32.8067, lng: -117.1661 }, // Clairemont
+        92113: { lat: 32.6958, lng: -117.1059 }, // Southeast San Diego
+        92114: { lat: 32.7031, lng: -117.0364 }, // Encanto
+        92115: { lat: 32.7267, lng: -117.0364 }, // College Area
+        92116: { lat: 32.7592, lng: -117.135 }, // Normal Heights (AUTISM RESEARCH INSTITUTE)
+        92117: { lat: 32.8256, lng: -117.1661 }, // Clairemont Mesa
+        92119: { lat: 32.7892, lng: -117.0442 }, // San Carlos
+        92120: { lat: 32.7831, lng: -117.0981 }, // Del Cerro
+        92121: { lat: 32.9, lng: -117.25 }, // Sorrento Valley (CORTICA)
+        92122: { lat: 32.8667, lng: -117.2081 }, // University City
+        92123: { lat: 32.8172, lng: -117.1428 }, // Serra Mesa
+        92124: { lat: 32.8172, lng: -117.0817 }, // Tierrasanta
+        92126: { lat: 32.9067, lng: -117.1383 }, // Mira Mesa
+        92127: { lat: 32.9714, lng: -117.0795 }, // Rancho Bernardo
+        92128: { lat: 32.9481, lng: -117.0242 }, // Rancho Peñasquitos
       };
 
       // Basic geocoding for common CA locations
@@ -2333,6 +2401,12 @@ export default {
       return null;
     },
 
+    // Get coordinates for a search location (simpler version of basicGeocode for search)
+    getLocationFromSearch(searchText) {
+      // Use the same logic as basicGeocode but just for the search functionality
+      return this.basicGeocode(searchText);
+    },
+
     initializeAfterOnboarding() {
       // Initialize map if not already done
       if (!this.map) {
@@ -2380,6 +2454,88 @@ export default {
   flex-direction: column;
   border-radius: 0;
   border-right: 1px solid #dee2e6;
+  transition: transform 0.3s ease;
+}
+
+/* Mobile responsive sidebar - HIDDEN BY DEFAULT */
+@media (max-width: 767.98px) {
+  .app-container {
+    flex-direction: row; /* Keep normal layout */
+  }
+
+  .sidebar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1050;
+    transform: translateX(-100%); /* Hidden off-screen */
+    flex: none;
+    width: 320px;
+    max-width: 85vw;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar-container.mobile-open {
+    transform: translateX(0); /* Slide in when toggled */
+  }
+
+  /* Map takes full width on mobile when sidebar is hidden */
+  .map-container {
+    flex: 1;
+    width: 100%;
+  }
+}
+
+/* Mobile toggle button */
+.mobile-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1060;
+  background: #004877;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 72, 119, 0.3);
+  font-size: 20px;
+  transition: all 0.3s ease;
+}
+
+.mobile-toggle:hover {
+  background: #003d66;
+  transform: scale(1.05);
+}
+
+.mobile-toggle.active {
+  background: #ffc923;
+  color: #004877;
+}
+
+/* Mobile backdrop */
+.mobile-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .sidebar {

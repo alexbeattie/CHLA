@@ -21,6 +21,20 @@ CHLAProj/
 
 ## 🔧 Starting the Application
 
+### AWS Profile (Personal) Setup
+
+Ensure all AWS commands in this repo use your personal account:
+
+```bash
+aws configure set aws_access_key_id YOUR_ACCESS_KEY_ID --profile personal
+aws configure set aws_secret_access_key YOUR_SECRET_ACCESS_KEY --profile personal
+aws configure set region us-west-2 --profile personal
+aws configure set output json --profile personal
+
+# In any new shell session, source the env helper:
+source scripts/aws_env.sh  # sets AWS_PROFILE=personal and region
+```
+
 ### Step 1: Start the Backend (Django)
 
 1. **Open Terminal 1** and navigate to the backend directory:
