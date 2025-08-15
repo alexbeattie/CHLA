@@ -143,7 +143,7 @@ User profiles are automatically created when users enter their information in th
 - CSS styles are embedded in the template file
 - Additional Vue components can be added as needed
 
-### Working with PostgreSQL and GraphQL
+### Working with PostgreSQL and GraphQL always use the following file:
 
 See [README-POSTGRES-GRAPHQL.md](README-POSTGRES-GRAPHQL.md) for detailed instructions on:
 
