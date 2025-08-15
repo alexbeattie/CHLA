@@ -55,3 +55,20 @@ coverage
 
 # Keep the database file since it has sample data (normally this would be in .gitignore)
 # !db.sqlite3
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform.lock.hcl
+
+# Virtual environments
+maplocation/.venv/
+venv/
+.venv/

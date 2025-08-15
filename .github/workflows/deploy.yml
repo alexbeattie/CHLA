@@ -1,0 +1,206 @@
+name: Deploy CHLA Provider Map
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-west-2
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '18'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('maplocation/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Cache Node dependencies
+      uses: actions/cache@v3
+      with:
+        path: map-frontend/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('map-frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    
+    - name: Install backend dependencies
+      run: |
+        cd maplocation
+        pip install -r requirements.txt
+    
+    - name: Install frontend dependencies
+      run: |
+        cd map-frontend
+        npm ci
+    
+    - name: Run backend tests
+      run: |
+        cd maplocation
+        python manage.py check
+        # Add more tests when available
+        # python manage.py test
+    
+    - name: Lint frontend
+      run: |
+        cd map-frontend
+        npm run build
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: map-frontend/dist/
+        retention-days: 1
+
+  deploy-backend:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install EB CLI
+      run: |
+        pip install awsebcli
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Deploy to Elastic Beanstalk
+      run: |
+        cd maplocation
+        eb deploy ${{ secrets.EB_ENVIRONMENT_NAME }} --staged
+      env:
+        AWS_PROFILE: default
+    
+    - name: Update environment variables
+      run: |
+        cd maplocation
+        eb setenv \
+          DJANGO_SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
+          DJANGO_DEBUG="false" \
+          ALLOWED_HOSTS="api.kinddhelp.com,localhost" \
+          CORS_ALLOWED_ORIGINS="https://kinddhelp.com,https://www.kinddhelp.com" \
+          CSRF_TRUSTED_ORIGINS="https://kinddhelp.com,https://www.kinddhelp.com" \
+          DB_NAME="postgres" \
+          DB_USER="chla_admin" \
+          DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+          DB_HOST="${{ secrets.DB_HOST }}" \
+          DB_PORT="5432"
+      env:
+        AWS_PROFILE: default
+    
+    - name: Verify deployment
+      run: |
+        echo "Checking backend health..."
+        sleep 30  # Wait for deployment to settle
+        curl -f https://api.kinddhelp.com/api/ || exit 1
+
+  deploy-frontend:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Cache Node dependencies
+      uses: actions/cache@v3
+      with:
+        path: map-frontend/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('map-frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    
+    - name: Install dependencies
+      run: |
+        cd map-frontend
+        npm ci
+    
+    - name: Build frontend
+      run: |
+        cd map-frontend
+        VITE_API_BASE_URL="https://api.kinddhelp.com/api" npm run build
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Deploy to S3
+      run: |
+        cd map-frontend
+        aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
+    
+    - name: Invalidate CloudFront cache
+      run: |
+        aws cloudfront create-invalidation \
+          --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+          --paths "/*"
+    
+    - name: Verify deployment
+      run: |
+        echo "Waiting for CloudFront invalidation to propagate..."
+        sleep 60
+        echo "Checking frontend..."
+        curl -f https://kinddhelp.com/ || exit 1
+
+  notify:
+    needs: [deploy-backend, deploy-frontend]
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Deployment Status
+      run: |
+        if [[ "${{ needs.deploy-backend.result }}" == "success" && "${{ needs.deploy-frontend.result }}" == "success" ]]; then
+          echo "✅ Deployment successful!"
+          echo "Backend: https://api.kinddhelp.com"
+          echo "Frontend: https://kinddhelp.com"
+        else
+          echo "❌ Deployment failed!"
+          echo "Backend status: ${{ needs.deploy-backend.result }}"
+          echo "Frontend status: ${{ needs.deploy-frontend.result }}"
+          exit 1
+        fi

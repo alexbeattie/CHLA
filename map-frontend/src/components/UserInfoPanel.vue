@@ -63,7 +63,9 @@
       </div>
 
       <!-- Save Button -->
-      <button class="btn btn-primary w-100" @click="saveData">Save Information</button>
+      <button class="btn btn-chla-primary w-100" @click="saveData">
+        Save Information
+      </button>
     </div>
   </div>
 </template>
@@ -131,9 +133,10 @@ export default {
 <style scoped>
 .user-info-panel {
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden to visible to prevent button clipping */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  margin-bottom: 20px; /* Added margin to ensure space after panel */
 }
 
 .card-header {
@@ -154,23 +157,25 @@ export default {
 }
 
 .btn-primary {
-  margin-top: 5px;
+  margin-top: 10px;
+  margin-bottom: 5px; /* Added margin-bottom to prevent clipping */
   transition: all 0.2s ease;
+  position: relative; /* Ensure button is positioned properly */
+  z-index: 10; /* Higher z-index to ensure visibility */
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary:active {
-  transform: translateY(0);
+  /* No transform to avoid animation artifacts */
 }
 
 /* Mobile adjustments */
 @media (max-width: 768px) {
   .user-info-panel {
-    margin-bottom: 12px !important;
+    margin-bottom: 20px !important; /* Increased to prevent clipping */
   }
 
   .card-header {
@@ -187,6 +192,15 @@ export default {
 
   .mb-3 {
     margin-bottom: 10px !important;
+  }
+
+  /* Ensure the button is not clipped on mobile */
+  .card-body {
+    padding-bottom: 16px;
+  }
+
+  .btn-primary {
+    margin-bottom: 8px;
   }
 }
 </style>

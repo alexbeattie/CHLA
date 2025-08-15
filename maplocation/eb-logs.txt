@@ -1,0 +1,4 @@
+Retrieving logs...
+Logs were saved to /Users/alexbeattie/Documents/Cline/CHLAProj/maplocation/.elasticbeanstalk/logs/250814_002317
+Logs were saved to /Users/alexbeattie/Documents/Cline/CHLAProj/maplocation/.elasticbeanstalk/logs/250814_002317
+Updated symlink at /Users/alexbeattie/Documents/Cline/CHLAProj/maplocation/.elasticbeanstalk/logs/latest

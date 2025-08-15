@@ -1,0 +1,126 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}Import Providers from CSV{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='locations' %}">Locations</a>
+    &rsaquo; <a href="{% url 'admin:locations_provider_changelist' %}">Providers</a>
+    &rsaquo; {% trans 'Import from CSV' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="module">
+    <h2>Import Providers from CSV</h2>
+    
+    <div class="help">
+        <p>Use this form to import provider data from a CSV file. The CSV file should contain the following columns:</p>
+        <ul>
+            <li><strong>Name</strong> (required) - Provider name</li>
+            <li><strong>Phone</strong> - Contact phone number</li>
+            <li><strong>Address</strong> - Full address</li>
+            <li><strong>Latitude</strong> - Latitude coordinate</li>
+            <li><strong>Longitude</strong> - Longitude coordinate</li>
+            <li><strong>Website</strong> - Website URL</li>
+            <li><strong>Areas</strong> - Service areas</li>
+            <li><strong>Coverage Areas</strong> - Coverage areas</li>
+            <li><strong>Center Based Services</strong> - Center-based services</li>
+            <li><strong>Specializations</strong> - Specializations (comma-separated)</li>
+            <li><strong>Services</strong> - Services offered (comma-separated)</li>
+            <li><strong>Insurance Accepted</strong> - Insurance types accepted</li>
+            <li><strong>Regional Centers</strong> - Associated regional centers (comma-separated)</li>
+        </ul>
+        
+        <p>
+            <a href="{% url 'admin:provider_download_template' %}" class="button">Download CSV Template</a>
+        </p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <fieldset class="module aligned">
+            <div class="form-row">
+                <div>
+                    <label for="id_csv_file">CSV File:</label>
+                    <input type="file" id="id_csv_file" name="csv_file" accept=".csv" required>
+                    <p class="help">Select a CSV file to import. Maximum file size: 10MB</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_update_existing">
+                        <input type="checkbox" id="id_update_existing" name="update_existing" value="true">
+                        Update existing providers
+                    </label>
+                    <p class="help">If checked, existing providers with the same name will be updated. Otherwise, duplicates will be skipped.</p>
+                </div>
+            </div>
+        </fieldset>
+        
+        <div class="submit-row">
+            <input type="submit" value="Import CSV" class="default">
+            <a href="{% url 'admin:locations_provider_changelist' %}" class="button cancel-link">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.help {
+    background: #ffc;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.help ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.help li {
+    margin: 5px 0;
+}
+
+.submit-row {
+    background: #f8f8f8;
+    border-top: 1px solid #ddd;
+    padding: 12px 14px;
+    margin: 0 -14px;
+    text-align: right;
+}
+
+.submit-row input[type="submit"] {
+    background: #417690;
+    border: 1px solid #205067;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submit-row input[type="submit"]:hover {
+    background: #205067;
+}
+
+.cancel-link {
+    background: #ba2121;
+    border: 1px solid #ba2121;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.cancel-link:hover {
+    background: #a41515;
+    color: white;
+}
+</style>
+{% endblock %}

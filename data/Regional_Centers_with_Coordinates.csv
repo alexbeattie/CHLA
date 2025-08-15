@@ -1,0 +1,406 @@
+id,regional_center,office_type,address,suite,city,state,zip_code,telephone,website,county_served,los_angeles_health_district,location_coordinates,latitude,longitude
+1,Far Northern Regional Center,Field,421 Chestnut Street,,Mt. Shasta,CA,96067,(530) 222-4791,www.farnorthernrc.org,,,"421 Chestnut Street
+Mt. Shasta 96067
+(41.315457, -122.313684)",41.315457,-122.313684
+2,North Bay Regional Center,Main,610 Airpark Road,,Napa,CA,94558,(707) 256-1100,www.nbrc.net,Solano,,"610 Airpark Road
+Napa 94558
+(38.218198, -122.269063)",38.218198,-122.269063
+3,San Andreas Regional Center,Main,300 Orchard City Drive,Ste. 170,Campbell,CA,95008,(408) 374-9960,www.sarc.org,Santa Clara,,"300 Orchard City Drive
+Campbell 95008
+(37.286235, -121.944083)",37.286235,-121.944083
+4,Regional Center of Orange County,Mailing,P.O Box 22010,,Santa Ana,CA,92702,(714) 796-5100,www.rcocdd.com,,,"P.O Box 22010
+Santa Ana 92702
+",,
+5,Inland Regional Center,Main,1365 South Waterman Avenue,,San Bernardino,CA,92408,(909) 890-3000,www.inlandrc.org,San Bernardino,,"1365 South Waterman Avenue
+San Bernardino 92408
+(34.075389, -117.278652)",34.075389,-117.278652
+6,Frank D. Lanterman Regional Center,Main,3303 Wilshire Blvd.,Ste. 700,Los Angeles,CA,90010,(213) 383-1300,www.lanterman.org,Los Angeles,Central,"3303 Wilshire Blvd.
+Los Angeles 90010
+(34.061772, -118.294495)",34.061772,-118.294495
+7,Valley Mountain Regional Center,Main,702 North Aurora Street,,Stockton,CA,95202,(209) 473-0951,www.vmrc.net,Calaveras,,"702 North Aurora Street
+Stockton 95202
+(37.96191, -121.281678)",37.96191,-121.281678
+8,Redwood Coast Regional Center,Field,270 Chestnut Street,Ste. A,Fort Bragg,CA,95437,(707) 964-6387,www.redwoodcoastrc.org,,,"270 Chestnut Street
+Fort Bragg 95437
+(39.436304, -123.803333)",39.436304,-123.803333
+9,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,Yuba,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+10,Valley Mountain Regional Center,Main,702 North Aurora Street,,Stockton,CA,95202,(209) 473-0951,www.vmrc.net,Stanislaus,,"702 North Aurora Street
+Stockton 95202
+(37.96191, -121.281678)",37.96191,-121.281678
+11,North Los Angeles County Regional Center,Main,15400 Sherman Way,Ste. 170,Van Nuys,CA,91406,(818) 778-1900,www.nlacrc.org,Los Angeles,East Valley,"15400 Sherman Way
+Van Nuys 91406
+(34.201126, -118.468492)",34.201126,-118.468492
+12,Kern Regional Center,Field,825 North Downs,Ste. D,Ridgecrest,CA,93555,(760) 375-9512,www.kernrc.org,,,"825 North Downs
+Ridgecrest 93555
+(35.636997, -117.68775)",35.636997,-117.68775
+13,Westside Regional Center,Main,5901 Green Valley Circle,Ste. 320,Culver City,CA,90230,(310) 258-4000,www.westsiderc.org,Los Angeles,Santa Monica-West,"5901 Green Valley Circle
+Culver City 90230
+(33.983957, -118.392)",33.983957,-118.392
+14,Far Northern Regional Center,Main,1900 Churn Creek Road,Ste. 319,Redding,CA,96002,(530) 222-4791,www.farnorthernrc.org,Shasta,,"1900 Churn Creek Road
+Redding 96002
+(40.579248, -122.354053)",40.579248,-122.354053
+15,Central Valley Regional Center,Field,5441 West Cypress Avenue,,Visalia,CA,93277,(559) 738-2200,www.cvrc.org,,,"5441 West Cypress Avenue
+Visalia 93277
+(36.325155, -119.352463)",36.325155,-119.352463
+16,San Andreas Regional Center,Main,300 Orchard City Drive,Ste. 170,Campbell,CA,95008,(408) 374-9960,www.sarc.org,Monterey,,"300 Orchard City Drive
+Campbell 95008
+(37.286235, -121.944083)",37.286235,-121.944083
+17,North Los Angeles County Regional Center,Field,43210 Gingham Avenue,Ste. 6,Lancaster,CA,93535,(661) 945-6761,www.nlacrc.org,,,"43210 Gingham Avenue
+Lancaster 93535
+(34.668096, -118.122282)",34.668096,-118.122282
+18,Harbor Regional Center,Main,21231 Hawthorne Blvd.,,Torrance,CA,90503,(310) 540-1711,www.harborrc.org,Los Angeles,Bellflower,"21231 Hawthorne Blvd.
+Torrance 90503
+(33.836732, -118.353594)",33.836732,-118.353594
+19,Kern Regional Center,Field,1160 East Lerdo Highway,Ste. E,Shafter,CA,93263,(661) 746-3918,www.kernrc.org,,,"1160 East Lerdo Highway
+Shafter 93263
+(35.499895, -119.258422)",35.499895,-119.258422
+20,San Gabriel/Pomona Regional Center,Main,75 Rancho Camino Drive,,Pomona,CA,91766,(909) 620-7722,www.sgprc.org,Los Angeles,Glendora,"75 Rancho Camino Drive
+Pomona 91766
+(34.027688, -117.756777)",34.027688,-117.756777
+21,Alta California Regional Center,Field,333 Crown Point Circle,Ste. 200,Grass Valley,CA,95945,(530) 272-4231,www.altraregional.org,,,"333 Crown Point Circle
+Grass Valley 95945
+(39.220811, -121.030066)",39.220811,-121.030066
+22,Central Valley Regional Center,Main,4615 North Marty Avenue,,Fresno,CA,93722,(559) 276-4300,www.cvrc.org,Madera,,"4615 North Marty Avenue
+Fresno 93722
+(36.805246, -119.858062)",36.805246,-119.858062
+23,Harbor Regional Center,Main,21231 Hawthorne Blvd.,,Torrance,CA,90503,(310) 540-1711,www.harborrc.org,Los Angeles,Torrance,"21231 Hawthorne Blvd.
+Torrance 90503
+(33.836732, -118.353594)",33.836732,-118.353594
+24,Alta California Regional Center,Field,344 Placerville Drive,Ste. 1,Placerville,CA,95667,(530) 626-1353,www.altraregional.org,,,"344 Placerville Drive
+Placerville 95667
+(38.731596, -120.833787)",38.731596,-120.833787
+25,Tri-Counties Regional Center,Main,520 East Montecito Street,,Santa Barbara,CA,93103,(805) 962-7881,www.tri-counties.org,San Luis Obispo,,"520 East Montecito Street
+Santa Barbara 93103
+(34.420707, -119.686748)",34.420707,-119.686748
+26,Tri-Counties Regional Center,Main,520 East Montecito Street,,Santa Barbara,CA,93103,(805) 962-7881,www.tri-counties.org,Santa Barbara,,"520 East Montecito Street
+Santa Barbara 93103
+(34.420707, -119.686748)",34.420707,-119.686748
+27,Regional Center of Orange County,Field,10803 Hope Street,Ste. A,Cypress,CA,90630,(714) 796-2900,www.rcocdd.com,,,"10803 Hope Street
+Cypress 90630
+(33.80493, -118.024091)",33.80493,-118.024091
+28,Redwood Coast Regional Center,Main,525 2nd Street,Ste. 300,Eureka,CA,95501,(707) 445-0893,www.redwoodcoastrc.org,Mendocino,,"525 2nd Street
+Eureka 95501
+(40.804481, -124.166116)",40.804481,-124.166116
+29,Kern Regional Center,Field,915 North 10th Street,Ste. 6,Taft,CA,93268,(661) 763-7974,www.kernrc.org,,,"915 North 10th Street
+Taft 93268
+(35.150442, -119.465199)",35.150442,-119.465199
+30,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,Placer,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+31,Frank D. Lanterman Regional Center,Main,3303 Wilshire Blvd.,Ste. 700,Los Angeles,CA,90010,(213) 383-1300,www.lanterman.org,Los Angeles,Hollywood-Wilshire,"3303 Wilshire Blvd.
+Los Angeles 90010
+(34.061772, -118.294495)",34.061772,-118.294495
+32,Frank D. Lanterman Regional Center,Main,3303 Wilshire Blvd.,Ste. 700,Los Angeles,CA,90010,(213) 383-1300,www.lanterman.org,Los Angeles,Glendale,"3303 Wilshire Blvd.
+Los Angeles 90010
+(34.061772, -118.294495)",34.061772,-118.294495
+33,Regional Center of Orange County,Main,1525 North Tustin Avenue,,Santa Ana,CA,92705,(714) 796-5100,www.rcocdd.com,Orange,,"1525 North Tustin Avenue
+Santa Ana 92705
+(33.758623, -117.834155)",33.758623,-117.834155
+34,Eastern Los Angeles Regional Center,Main,1000 South Fremont Avenue,,Alhambra,CA,91802,(626) 299-4700,www.elarc.org,Los Angeles,Alhambra,"1000 South Fremont Avenue
+Alhambra 91802
+(34.080352, -118.151849)",34.080352,-118.151849
+35,Valley Mountain Regional Center,Main,702 North Aurora Street,,Stockton,CA,95202,(209) 473-0951,www.vmrc.net,Amador,,"702 North Aurora Street
+Stockton 95202
+(37.96191, -121.281678)",37.96191,-121.281678
+36,South Central Los Angeles Regional Center,Main,2500 South Western Avenue,,Los Angeles,CA,90018,(213) 744-7000,www.sclarc.org,Los Angeles,Southeast,"2500 South Western Avenue
+Los Angeles 90018
+(34.032682, -118.308972)",34.032682,-118.308972
+37,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,Alpine,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+38,Central Valley Regional Center,Main,4615 North Marty Avenue,,Fresno,CA,93722,(559) 276-4300,www.cvrc.org,Tulare,,"4615 North Marty Avenue
+Fresno 93722
+(36.805246, -119.858062)",36.805246,-119.858062
+39,North Los Angeles County Regional Center,Main,15400 Sherman Way,Ste. 170,Van Nuys,CA,91406,(818) 778-1900,www.nlacrc.org,Los Angeles,San Fernando,"15400 Sherman Way
+Van Nuys 91406
+(34.201126, -118.468492)",34.201126,-118.468492
+40,Far Northern Regional Center,Field,401 Peninsula Drive,Ste. 2,Westwood,CA,96137,(530) 895-8633,www.farnorthernrc.org,,,"401 Peninsula Drive
+Westwood 96137
+(40.275206, -121.129363)",40.275206,-121.129363
+41,North Los Angeles County Regional Center,Main,15400 Sherman Way,Ste. 170,Van Nuys,CA,91406,(818) 778-1900,www.nlacrc.org,Los Angeles,West Valley,"15400 Sherman Way
+Van Nuys 91406
+(34.201126, -118.468492)",34.201126,-118.468492
+42,Golden Gate Regional Center,Main,1355 Market Street,Ste. 220,San Francisco,CA,94103,(415) 546-9222,www.ggrc.org,Marin,,"1355 Market Street
+San Francisco 94103
+(37.776948, -122.417006)",37.776948,-122.417006
+43,Redwood Coast Regional Center,Main,525 2nd Street,Ste. 300,Eureka,CA,95501,(707) 445-0893,www.redwoodcoastrc.org,Humboldt,,"525 2nd Street
+Eureka 95501
+(40.804481, -124.166116)",40.804481,-124.166116
+44,Regional Center of the East Bay,Main,500 Davis Street,Ste. 100,San Leandro,CA,94577,(510) 618-6100,www.rceb.org,Contra Costa,,"500 Davis Street
+San Leandro 94577
+(37.724223, -122.160823)",37.724223,-122.160823
+45,Valley Mountain Regional Center,Field,704 Mountain Ranch Road,Ste. 203,San Andreas,CA,95249,(209) 754-1871,www.vmrc.net,,,"704 Mountain Ranch Road
+San Andreas 95249
+(38.190538, -120.668263)",38.190538,-120.668263
+46,Tri-Counties Regional Center,Field,2401 East Gonzales Road,Ste. 100,Oxnard,CA,93036,(805) 485-3177,www.tri-counties.org,,,"2401 East Gonzales Road
+Oxnard 93036
+(34.218882, -119.144418)",34.218882,-119.144418
+47,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,Nevada,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+48,Inland Regional Center,Field,1500 Iowa Avenue,Ste. 100,Riverside,CA,92507,(951) 826-2608,www.inlandrc.org,,,"1500 Iowa Avenue
+Riverside 92507
+(33.99804, -117.339844)",33.99804,-117.339844
+49,Alta California Regional Center,Field,13450 Donner Pass Road,Ste. B,Truckee,CA,96161,(530) 550-3018,www.altraregional.org,,,"13450 Donner Pass Road
+Truckee 96161
+(39.328274, -120.24665)",39.328274,-120.24665
+50,Central Valley Regional Center,Main,4615 North Marty Avenue,,Fresno,CA,93722,(559) 276-4300,www.cvrc.org,Merced,,"4615 North Marty Avenue
+Fresno 93722
+(36.805246, -119.858062)",36.805246,-119.858062
+51,Eastern Los Angeles Regional Center,Field,13215 Penn Street,Ste. 410,Whittier,CA,90602,(562) 698-0146,www.elarc.org,,,"13215 Penn Street
+Whittier 90602
+(33.975424, -118.034416)",33.975424,-118.034416
+52,Valley Mountain Regional Center,Field,1820 Blue Gum Avenue,,Modesto,CA,95358,(209) 529-2626,www.vmrc.net,,,"1820 Blue Gum Avenue
+Modesto 95358
+(37.660415, -121.035089)",37.660415,-121.035089
+53,San Diego Regional Center,Field,2727 Hoover Avenue,Ste. 100,National City,CA,91950,(619) 336-6600,www.sdrc.org,,,"2727 Hoover Avenue
+National City 91950
+(32.658389, -117.103578)",32.658389,-117.103578
+54,San Diego Regional Center,Field,5931 Priestly Drive,Ste. 100,Carlsbad,CA,92008,(760) 736-1200,www.sdrc.org,,,"5931 Priestly Drive
+Carlsbad 92008
+(33.133187, -117.273008)",33.133187,-117.273008
+55,Harbor Regional Center,Main,21231 Hawthorne Blvd.,,Torrance,CA,90503,(310) 540-1711,www.harborrc.org,Los Angeles,Harbor,"21231 Hawthorne Blvd.
+Torrance 90503
+(33.836732, -118.353594)",33.836732,-118.353594
+56,Far Northern Regional Center,Main,1900 Churn Creek Road,Ste. 319,Redding,CA,96002,(530) 222-4791,www.farnorthernrc.org,Butte,,"1900 Churn Creek Road
+Redding 96002
+(40.579248, -122.354053)",40.579248,-122.354053
+57,Kern Regional Center,Main,3200 North Sillect Avenue,,Bakersfield,CA,93308,(661) 327-8531,www.kernrc.org,Mono,,"3200 North Sillect Avenue
+Bakersfield 93308
+",,
+58,Central Valley Regional Center,Main,4615 North Marty Avenue,,Fresno,CA,93722,(559) 276-4300,www.cvrc.org,Fresno,,"4615 North Marty Avenue
+Fresno 93722
+(36.805246, -119.858062)",36.805246,-119.858062
+59,Redwood Coast Regional Center,Field,1116 Airport Park Blvd.,,Ukiah,CA,95482,(707) 462-3832,www.redwoodcoastrc.org,,,"1116 Airport Park Blvd.
+Ukiah 95482
+(39.134568, -123.198898)",39.134568,-123.198898
+60,Far Northern Regional Center,Main,1900 Churn Creek Road,Ste. 319,Redding,CA,96002,(530) 222-4791,www.farnorthernrc.org,Lassen,,"1900 Churn Creek Road
+Redding 96002
+(40.579248, -122.354053)",40.579248,-122.354053
+61,Kern Regional Center,Field,20031 West Valley Blvd.,Ste. C,Tehachapi,CA,93561,(661) 822-1288,www.kernrc.org,,,"20031 West Valley Blvd.
+Tehachapi 93561
+(35.1245, -118.4872)",35.1245,-118.4872
+62,Central Valley Regional Center,Main,4615 North Marty Avenue,,Fresno,CA,93722,(559) 276-4300,www.cvrc.org,Kings,,"4615 North Marty Avenue
+Fresno 93722
+(36.805246, -119.858062)",36.805246,-119.858062
+63,San Andreas Regional Center,Field,1110 Main Street,,Watsonville,CA,95076,(831) 728-1781,www.sarc.org,,,"1110 Main Street
+Watsonville 95076
+(36.916177, -121.769137)",36.916177,-121.769137
+64,South Central Los Angeles Regional Center,Main,2500 South Western Avenue,,Los Angeles,CA,90018,(213) 744-7000,www.sclarc.org,Los Angeles,San Antonio,"2500 South Western Avenue
+Los Angeles 90018
+(34.032682, -118.308972)",34.032682,-118.308972
+65,Central Valley Regional Center,Field,530 West 16th Street,,Merced,CA,95340,(209) 723-4245,www.cvrc.org,,,"530 West 16th Street
+Merced 95340
+(37.30069, -120.484657)",37.30069,-120.484657
+66,Redwood Coast Regional Center,Main,525 2nd Street,Ste. 300,Eureka,CA,95501,(707) 445-0893,www.redwoodcoastrc.org,Del Norte,,"525 2nd Street
+Eureka 95501
+(40.804481, -124.166116)",40.804481,-124.166116
+67,Inland Regional Center,Main,1365 South Waterman Avenue,,San Bernardino,CA,92408,(909) 890-3000,www.inlandrc.org,Riverside,,"1365 South Waterman Avenue
+San Bernardino 92408
+(34.075389, -117.278652)",34.075389,-117.278652
+68,San Andreas Regional Center,Mailing,P.O. Box 50002,,San Jose,CA,95150,(408) 374-9960,www.sarc.org,,,"P.O. Box 50002
+San Jose 95150
+",,
+69,San Andreas Regional Center,Main,300 Orchard City Drive,Ste. 170,Campbell,CA,95008,(408) 374-9960,www.sarc.org,San Benito,,"300 Orchard City Drive
+Campbell 95008
+(37.286235, -121.944083)",37.286235,-121.944083
+70,Redwood Coast Regional Center,Main,525 2nd Street,Ste. 300,Eureka,CA,95501,(707) 445-0893,www.redwoodcoastrc.org,Lake,,"525 2nd Street
+Eureka 95501
+(40.804481, -124.166116)",40.804481,-124.166116
+71,Tri-Counties Regional Center,Field,3450 Broad Street,Ste. 111,San Luis Obispo,CA,93401,(805) 543-2833,www.tri-counties.org,,,"3450 Broad Street
+San Luis Obispo 93401
+(35.257593, -120.647604)",35.257593,-120.647604
+72,Eastern Los Angeles Regional Center,Main,1000 South Fremont Avenue,,Alhambra,CA,91802,(626) 299-4700,www.elarc.org,Los Angeles,East Los Angeles,"1000 South Fremont Avenue
+Alhambra 91802
+(34.080352, -118.151849)",34.080352,-118.151849
+73,Far Northern Regional Center,Field,1377 East Lassen Avenue,,Chico,CA,95973,(530) 895-8633,www.farnorthernrc.org,,,"1377 East Lassen Avenue
+Chico 95973
+(39.772995, -121.840246)",39.772995,-121.840246
+74,Golden Gate Regional Center,Main,1355 Market Street,Ste. 220,San Francisco,CA,94103,(415) 546-9222,www.ggrc.org,San Mateo,,"1355 Market Street
+San Francisco 94103
+(37.776948, -122.417006)",37.776948,-122.417006
+75,Far Northern Regional Center,Main,1900 Churn Creek Road,Ste. 319,Redding,CA,96002,(530) 222-4791,www.farnorthernrc.org,Plumas,,"1900 Churn Creek Road
+Redding 96002
+(40.579248, -122.354053)",40.579248,-122.354053
+76,Far Northern Regional Center,Main,1900 Churn Creek Road,Ste. 319,Redding,CA,96002,(530) 222-4791,www.farnorthernrc.org,Siskiyou,,"1900 Churn Creek Road
+Redding 96002
+(40.579248, -122.354053)",40.579248,-122.354053
+77,Golden Gate Regional Center,Field,3130 La Selva Drive,Ste. 202,San Mateo,CA,94403,(650) 574-9232,www.ggrc.org,,,"3130 La Selva Drive
+San Mateo 94403
+(37.542953, -122.285077)",37.542953,-122.285077
+78,Tri-Counties Regional Center,Field,1234 Fairway Drive,Ste. A,Santa Maria,CA,93455,(805) 922-4640,www.tri-counties.org,,,"1234 Fairway Drive
+Santa Maria 93455
+(34.913461, -120.455659)",34.913461,-120.455659
+79,Kern Regional Center,Main,3200 North Sillect Avenue,,Bakersfield,CA,93308,(661) 327-8531,www.kernrc.org,Kern,,"3200 North Sillect Avenue
+Bakersfield 93308
+",,
+80,San Diego Regional Center,Field,8760 Cuyamaca Street,Ste. 100,Santee,CA,92071,(619) 596-1000,www.sdrc.org,,,"8760 Cuyamaca Street
+Santee 92071
+(32.834878, -116.983881)",32.834878,-116.983881
+81,Far Northern Regional Center,Main,1900 Churn Creek Road,Ste. 319,Redding,CA,96002,(530) 222-4791,www.farnorthernrc.org,Modoc,,"1900 Churn Creek Road
+Redding 96002
+(40.579248, -122.354053)",40.579248,-122.354053
+82,San Gabriel/Pomona Regional Center,Main,75 Rancho Camino Drive,,Pomona,CA,91766,(909) 620-7722,www.sgprc.org,Los Angeles,El Monte,"75 Rancho Camino Drive
+Pomona 91766
+(34.027688, -117.756777)",34.027688,-117.756777
+83,South Central Los Angeles Regional Center,Main,2500 South Western Avenue,,Los Angeles,CA,90018,(213) 744-7000,www.sclarc.org,Los Angeles,Compton,"2500 South Western Avenue
+Los Angeles 90018
+(34.032682, -118.308972)",34.032682,-118.308972
+84,San Diego Regional Center,Main,4355 Ruffin Road,Ste. 200,San Diego,CA,92123,(858) 576-2996,www.sdrc.org,San Diego,,"4355 Ruffin Road
+San Diego 92123
+(32.820117, -117.127051)",32.820117,-117.127051
+85,Kern Regional Center,Field,8601 High Street,Ste. D,Delano,CA,93215,(661) 725-2172,www.kernrc.org,,,"8601 High Street
+Delano 93215
+",,
+86,Golden Gate Regional Center,Main,1355 Market Street,Ste. 220,San Francisco,CA,94103,(415) 546-9222,www.ggrc.org,San Francisco,,"1355 Market Street
+San Francisco 94103
+(37.776948, -122.417006)",37.776948,-122.417006
+87,Golden Gate Regional Center,Field,4000 Civic Center Drive,Ste. 310,San Rafael,CA,94903,(415) 446-3000,www.ggrc.org,,,"4000 Civic Center Drive
+San Rafael 94903
+(38.003886, -122.53864)",38.003886,-122.53864
+88,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,El Dorado,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+89,North Los Angeles County Regional Center,Field,25360 Magic Mountain Parkway,Ste. 150,Santa Clarita,CA,91355,(661) 775-8450,www.nlacrc.org,,,"25360 Magic Mountain Parkway
+Santa Clarita 91355
+(34.423967, -118.580168)",34.423967,-118.580168
+90,San Andreas Regional Center,Field,7855 Wren Avenue,Ste. A,Gilroy,CA,95020,(408) 846-8805,www.sarc.org,,,"7855 Wren Avenue
+Gilroy 95020
+(37.011294, -121.586997)",37.011294,-121.586997
+91,Alta California Regional Center,Field,250 West Main Street,Ste. 100,Woodland,CA,95695,(530) 666-3391,www.altraregional.org,,,"250 West Main Street
+Woodland 95695
+(38.677621, -121.795492)",38.677621,-121.795492
+92,San Gabriel/Pomona Regional Center,Main,75 Rancho Camino Drive,,Pomona,CA,91766,(909) 620-7722,www.sgprc.org,Los Angeles,Monrovia,"75 Rancho Camino Drive
+Pomona 91766
+(34.027688, -117.756777)",34.027688,-117.756777
+93,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,Colusa,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+94,Alta California Regional Center,Field,2489 Lake Tahoe Blvd.,Ste. 1,South Lake Tahoe,CA,96150,(530) 542-0442,www.altraregional.org,,,"2489 Lake Tahoe Blvd.
+South Lake Tahoe 96150
+(38.923787, -119.988572)",38.923787,-119.988572
+95,Eastern Los Angeles Regional Center,Main,1000 South Fremont Avenue,,Alhambra,CA,91802,(626) 299-4700,www.elarc.org,Los Angeles,Northeast,"1000 South Fremont Avenue
+Alhambra 91802
+(34.080352, -118.151849)",34.080352,-118.151849
+96,Tri-Counties Regional Center,Field,2635 Park Center Drive,Ste. A,Simi Valley,CA,93065,(805) 522-8030,www.tri-counties.org,,,"2635 Park Center Drive
+Simi Valley 93065
+(34.283448, -118.797342)",34.283448,-118.797342
+97,Harbor Regional Center,Field,1155 East San Antonio Drive,Ste. A,Long Beach,CA,90807,(310) 540-1711,www.harborrc.org,,,"1155 East San Antonio Drive
+Long Beach 90807
+(33.841256, -118.176874)",33.841256,-118.176874
+98,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,Sutter,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+99,San Andreas Regional Center,Main,300 Orchard City Drive,Ste. 170,Campbell,CA,95008,(408) 374-9960,www.sarc.org,Santa Cruz,,"300 Orchard City Drive
+Campbell 95008
+(37.286235, -121.944083)",37.286235,-121.944083
+100,Tri-Counties Regional Center,Main,520 East Montecito Street,,Santa Barbara,CA,93103,(805) 962-7881,www.tri-counties.org,Ventura,,"520 East Montecito Street
+Santa Barbara 93103
+(34.420707, -119.686748)",34.420707,-119.686748
+101,Redwood Coast Regional Center,Field,1301-A Northcrest Drive,,Crescent City,CA,95531,(707) 464-7488,www.redwoodcoastrc.org,,,"1301-A Northcrest Drive
+Crescent City 95531
+(41.769173, -124.199293)",41.769173,-124.199293
+102,Harbor Regional Center,Main,21231 Hawthorne Blvd.,,Torrance,CA,90503,(310) 540-1711,www.harborrc.org,Los Angeles,Long Beach,"21231 Hawthorne Blvd.
+Torrance 90503
+(33.836732, -118.353594)",33.836732,-118.353594
+103,San Diego Regional Center,Field,512 West Aten Road,,Imperial,CA,92251,(760) 355-8383,www.sdrc.org,,,"512 West Aten Road
+Imperial 92251
+(32.825562, -115.580664)",32.825562,-115.580664
+104,South Central Los Angeles Regional Center,Main,2500 Sout Western Avenue,,Los Angeles,CA,90018,(213) 744-7000,www.sclarc.org,Los Angeles,Southwest,"2500 Sout Western Avenue
+Los Angeles 90018
+(34.032682, -118.308972)",34.032682,-118.308972
+105,Eastern Los Angeles Regional Center,Main,1000 South Fremont Avenue,,Alhambra,CA,91802,(626) 299-4700,www.elarc.org,Los Angeles,Whittier,"1000 South Fremont Avenue
+Alhambra 91802
+(34.080352, -118.151849)",34.080352,-118.151849
+106,Valley Mountain Regional Center,Main,702 North Aurora Street,,Stockton,CA,95202,(209) 473-0951,www.vmrc.net,San Joaquin,,"702 North Aurora Street
+Stockton 95202
+(37.96191, -121.281678)",37.96191,-121.281678
+107,North Bay Regional Center,Main,610 Airpark Road,,Napa,CA,94558,(707) 256-1100,www.nbrc.net,Sonoma,,"610 Airpark Road
+Napa 94558
+(38.218198, -122.269063)",38.218198,-122.269063
+108,Tri-Counties Regional Center,Field,7305 Morro Road,Ste. 101,Atascadero,CA,93422,(805) 461-7402,www.tri-counties.org,,,"7305 Morro Road
+Atascadero 93422
+(35.478774, -120.667023)",35.478774,-120.667023
+109,South Central Los Angeles Regional Center,Main,2500 South Western Avenue,,Los Angeles,CA,90018,(213) 744-7000,www.sclarc.org,Los Angeles,South,"2500 South Western Avenue
+Los Angeles 90018
+(34.032682, -118.308972)",34.032682,-118.308972
+110,San Diego Regional Center,Main,4355 Ruffin Road,Ste. 200,San Diego,CA,92123,(858) 576-2996,www.sdrc.org,Imperial,,"4355 Ruffin Road
+San Diego 92123
+(32.820117, -117.127051)",32.820117,-117.127051
+111,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,Yolo,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+112,Redwood Coast Regional Center,Field,180 3rd Street,,Lakeport,CA,95453,(707) 262-0470,www.redwoodcoastrc.org,,,"180 3rd Street
+Lakeport 95453
+(39.043911, -122.91588)",39.043911,-122.91588
+113,North Bay Regional Center,Main,610 Airpark Road,,Napa,CA,94558,(707) 256-1100,www.nbrc.net,Napa,,"610 Airpark Road
+Napa 94558
+(38.218198, -122.269063)",38.218198,-122.269063
+114,San Gabriel/Pomona Regional Center,Main,75 Rancho Camino Drive,,Pomona,CA,91766,(909) 620-7722,www.sgprc.org,Los Angeles,Pomona,"75 Rancho Camino Drive
+Pomona 91766
+(34.027688, -117.756777)",34.027688,-117.756777
+115,North Bay Regional Center,Field,2351 Mendocino Avenue,,Santa Rosa,CA,95403,(707) 569-2000,www.nbrc.net,,,"2351 Mendocino Avenue
+Santa Rosa 95403
+(38.463832, -122.718691)",38.463832,-122.718691
+116,Alta California Regional Center,Field,950 Tharp Road,Ste. 202,Yuba City,CA,95993,(530) 674-3070,www.altraregional.org,,,"950 Tharp Road
+Yuba City 95993
+(39.138989, -121.648493)",39.138989,-121.648493
+117,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,Sacramento,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+118,Westside Regional Center,Main,5901 Green Valley Circle,Ste. 320,Culver City,CA,90230,(310) 258-4000,www.westsiderc.org,Los Angeles,Inglewood,"5901 Green Valley Circle
+Culver City 90230
+(33.983957, -118.392)",33.983957,-118.392
+119,Valley Mountain Regional Center,Mailing,P.O. Box 692290,,Stockton,CA,95269,(209) 473-0951,www.vmrc.net,,,"P.O. Box 692290
+Stockton 95269
+",,
+120,San Andreas Regional Center,Field,344 Salinas Street,Ste. 207,Salinas,CA,93901,(831) 759-7500,www.sarc.org,,,"344 Salinas Street
+Salinas 93901
+(36.672085, -121.655742)",36.672085,-121.655742
+121,Eastern Los Angeles Regional Center,Mailing,P.O. Box 7916,,Alhambra,CA,91802,(626) 299-4700,www.elarc.org,,,"P.O. Box 7916
+Alhambra 91802
+",,
+122,Regional Center of the East Bay,Field,1320 Willow Pass Road,Ste. 300,Concord,CA,94520,(925) 691-2300,www.rceb.org,,,"1320 Willow Pass Road
+Concord 94520
+(37.968843, -122.051823)",37.968843,-122.051823
+123,Valley Mountain Regional Center,Main,702 North Aurora Street,,Stockton,CA,95202,(209) 473-0951,www.vmrc.net,Tuolumne,,"702 North Aurora Street
+Stockton 95202
+(37.96191, -121.281678)",37.96191,-121.281678
+124,Inland Regional Center,Mailing,P.O. Box 19037,,San Bernardino,CA,92423,(909) 890-3000,www.inlandrc.org,,,"P.O. Box 19037
+San Bernardino 92423
+",,
+125,Far Northern Regional Center,Main,1900 Churn Creek Road,Ste. 319,Redding,CA,96002,(530) 222-4791,www.farnorthernrc.org,Trinity,,"1900 Churn Creek Road
+Redding 96002
+(40.579248, -122.354053)",40.579248,-122.354053
+126,Alta California Regional Center,Main,2241 Harvard Street,Ste. 100,Sacramento,CA,95815,(916) 978-6400,www.altraregional.org,Sierra,,"2241 Harvard Street
+Sacramento 95815
+(38.606023, -121.437173)",38.606023,-121.437173
+127,Far Northern Regional Center,Main,1900 Churn Creek Road,Ste. 319,Redding,CA,96002,(530) 222-4791,www.farnorthernrc.org,Glenn,,"1900 Churn Creek Road
+Redding 96002
+(40.579248, -122.354053)",40.579248,-122.354053
+128,Kern Regional Center,Main,3200 North Sillect Avenue,,Bakersfield,CA,93308,(661) 327-8531,www.kernrc.org,Inyo,,"3200 North Sillect Avenue
+Bakersfield 93308
+",,
+129,Kern Regional Center,Field,459 West Line Street,,Bishop,CA,93514,(760) 873-7411,www.kernrc.org,,,"459 West Line Street
+Bishop 93514
+(37.361362, -118.398834)",37.361362,-118.398834
+130,Far Northern Regional Center,Main,1900 Churn Creek Road,Ste. 319,Redding,CA,96002,(530) 222-4791,www.farnorthernrc.org,Tehama,,"1900 Churn Creek Road
+Redding 96002
+(40.579248, -122.354053)",40.579248,-122.354053
+131,Kern Regional Center,Field,7707 Panama Road,,Lamont,CA,93241,(661) 845-2286,www.kernrc.org,,,"7707 Panama Road
+Lamont 93241
+(35.266974, -118.919632)",35.266974,-118.919632
+132,Alta California Regional Center,Field,1620 Santa Clara Drive,Ste. 100,Roseville,CA,95661,(916) 786-8110,www.altraregional.org,,,"1620 Santa Clara Drive
+Roseville 95661
+(38.742394, -121.262109)",38.742394,-121.262109
+133,Frank D. Lanterman Regional Center,Main,3303 Wilshire Blvd.,Ste. 700,Los Angeles,CA,90010,(213) 383-1300,www.lanterman.org,Los Angeles,Pasadena,"3303 Wilshire Blvd.
+Los Angeles 90010
+(34.061772, -118.294495)",34.061772,-118.294495
+134,Regional Center of the East Bay,Main,500 Davis Street,Ste. 100,San Leandro,CA,94577,(510) 618-6100,www.rceb.org,Alameda,,"500 Davis Street
+San Leandro 94577
+(37.724223, -122.160823)",37.724223,-122.160823
+135,Central Valley Regional Center,Main,4615 North Marty Avenue,,Fresno,CA,93722,(559) 276-4300,www.cvrc.org,Mariposa,,"4615 North Marty Avenue
+Fresno 93722
+(36.805246, -119.858062)",36.805246,-119.858062

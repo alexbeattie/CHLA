@@ -1,9 +1,3 @@
-This is a test file to demonstrate the filesystem MCP server.
-Here are some of its capabilities (now successfully implemented!):
-- Read and write files
-- Edit files
-- Create directories
-- List directory contents
-- Move files and directories
-- Search files
-- Get file metadata
+This is a test file for the filesystem MCP server.
+It contains multiple lines to demonstrate file operations.
+Line 3: Testing filesystem capabilities.

@@ -1,0 +1,17 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.git/
+.gitignore
+*.swp
+.DS_Store
+node_modules/
+dist/
+build/
+.eggs/
+*.egg-info/
+staticfiles/
