@@ -30,7 +30,7 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
     
     - name: Cache Python dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('maplocation/requirements.txt') }}
@@ -38,7 +38,7 @@ jobs:
           ${{ runner.os }}-pip-
     
     - name: Cache Node dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: map-frontend/node_modules
         key: ${{ runner.os }}-node-${{ hashFiles('map-frontend/package-lock.json') }}
@@ -68,7 +68,7 @@ jobs:
         npm run build
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: frontend-build
         path: map-frontend/dist/
@@ -144,7 +144,7 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
     
     - name: Cache Node dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: map-frontend/node_modules
         key: ${{ runner.os }}-node-${{ hashFiles('map-frontend/package-lock.json') }}
