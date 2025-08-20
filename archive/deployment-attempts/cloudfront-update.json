@@ -1,0 +1,31 @@
+{
+  "DistributionConfig": {
+    "Origins": {
+      "Quantity": 2,
+      "Items": [
+        {
+          "Id": "s3-frontend",
+          "DomainName": "kinddhelp-frontend-1755148345.s3.us-west-2.amazonaws.com",
+          "S3OriginConfig": {
+            "OriginAccessIdentity": ""
+          }
+        },
+        {
+          "Id": "eb-backend",
+          "DomainName": "chla-api-env-v2.eba-9aiqcppx.us-west-2.elasticbeanstalk.com",
+          "CustomOriginConfig": {
+            "HTTPPort": 80,
+            "HTTPSPort": 443,
+            "OriginProtocolPolicy": "https-only",
+            "OriginSslProtocols": {
+              "Quantity": 3,
+              "Items": ["TLSv1", "TLSv1.1", "TLSv1.2"]
+            },
+            "OriginReadTimeout": 30,
+            "OriginKeepaliveTimeout": 5
+          }
+        }
+      ]
+    }
+  }
+}

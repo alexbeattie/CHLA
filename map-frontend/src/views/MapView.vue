@@ -1226,21 +1226,37 @@ export default {
       }
 
       // Set Mapbox access token
-      mapboxgl.accessToken =
+      const mapboxToken =
         import.meta.env.VITE_MAPBOX_TOKEN ||
         "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg";
+      mapboxgl.accessToken = mapboxToken;
 
+      console.log("🗺️ Mapbox token:", mapboxToken.substring(0, 20) + "...");
       console.log(
         `🗺️ Initializing map at: ${this.userLocation.latitude}, ${this.userLocation.longitude}`
       );
 
-      // Create Mapbox map
-      this.map = new mapboxgl.Map({
-        container: "map",
-        style: "mapbox://styles/mapbox/streets-v12",
-        center: [this.userLocation.longitude, this.userLocation.latitude],
-        zoom: this.userLocation.detected ? 12 : 6, // Zoom in more if we detected exact location
-      });
+      // Check if map container exists
+      const mapContainer = document.getElementById("map");
+      if (!mapContainer) {
+        console.error("❌ Map container 'map' not found!");
+        return;
+      }
+
+      try {
+        // Create Mapbox map
+        this.map = new mapboxgl.Map({
+          container: "map",
+          style: "mapbox://styles/mapbox/streets-v12",
+          center: [this.userLocation.longitude, this.userLocation.latitude],
+          zoom: this.userLocation.detected ? 12 : 6, // Zoom in more if we detected exact location
+        });
+
+        console.log("✅ Mapbox map instance created successfully");
+      } catch (error) {
+        console.error("❌ Error creating Mapbox map:", error);
+        return;
+      }
 
       // Add navigation controls
       this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
@@ -1262,7 +1278,7 @@ export default {
 
       // When map loads, update markers
       this.map.on("load", () => {
-        console.log("Map loaded successfully");
+        console.log("✅ Map loaded successfully");
         this.updateMarkers();
 
         // If service areas are already enabled, add them now
@@ -1270,6 +1286,15 @@ export default {
           console.log("Map loaded and service areas are enabled, adding them now");
           this.addServiceAreasToMap();
         }
+      });
+
+      // Add error handling for map loading
+      this.map.on("error", (error) => {
+        console.error("❌ Map error:", error);
+      });
+
+      this.map.on("styleimagemissing", (error) => {
+        console.warn("⚠️ Map style image missing:", error);
       });
 
       console.log("Map initialization complete");
@@ -1846,9 +1871,9 @@ export default {
           [...new Set(this.serviceAreas.features.map((f) => f.id))].slice(0, 20)
         );
 
-        // Add California counties source using our free API
+        // Add California counties source using our production API
         const countiesResponse = await fetch(
-          "http://127.0.0.1:8000/api/california-counties/"
+          `${this.getApiRoot()}/api/california-counties/`
         );
         const countiesData = await countiesResponse.json();
 
@@ -2056,24 +2081,32 @@ export default {
         this.map.on("mouseenter", "california-counties-fill", (e) => {
           this.map.getCanvas().style.cursor = "pointer";
 
-          if (e.features.length > 0) {
+          if (e.features.length > 0 && e.features[0].id) {
             if (hoveredCountyId !== null) {
+              try {
+                this.map.setFeatureState(
+                  {
+                    source: "counties",
+                    id: hoveredCountyId,
+                  },
+                  { hover: false }
+                );
+              } catch (error) {
+                console.warn("Could not reset feature state:", error);
+              }
+            }
+            hoveredCountyId = e.features[0].id;
+            try {
               this.map.setFeatureState(
                 {
                   source: "counties",
                   id: hoveredCountyId,
                 },
-                { hover: false }
+                { hover: true }
               );
+            } catch (error) {
+              console.warn("Could not set feature state:", error);
             }
-            hoveredCountyId = e.features[0].id;
-            this.map.setFeatureState(
-              {
-                source: "counties",
-                id: hoveredCountyId,
-              },
-              { hover: true }
-            );
           }
         });
 
@@ -2081,13 +2114,17 @@ export default {
           this.map.getCanvas().style.cursor = "";
 
           if (hoveredCountyId !== null) {
-            this.map.setFeatureState(
-              {
-                source: "counties",
-                id: hoveredCountyId,
-              },
-              { hover: false }
-            );
+            try {
+              this.map.setFeatureState(
+                {
+                  source: "counties",
+                  id: hoveredCountyId,
+                },
+                { hover: false }
+              );
+            } catch (error) {
+              console.warn("Could not reset feature state on leave:", error);
+            }
           }
           hoveredCountyId = null;
         });

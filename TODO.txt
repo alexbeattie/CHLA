@@ -1,4 +1,0 @@
-1. Set the environment variables for the database connection.
-2. Run the Django server with `cd maplocation && source venv/bin/activate && python3 manage.py runserver`.
-3. Run the Vue frontend with `cd map-frontend && npm run dev`.
-4. Navigate to the MapView in the frontend to see the todo list.

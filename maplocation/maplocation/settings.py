@@ -97,6 +97,8 @@ DATABASES = {
         "PASSWORD": os.environ.get("DB_PASSWORD", ""),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "5432"),
+        # Enable TLS to RDS when requested via env (keeps local simple)
+        "OPTIONS": {"sslmode": "require"} if os.environ.get("DB_SSL_REQUIRE", "false").lower() == "true" else {},
     }
 }
 
