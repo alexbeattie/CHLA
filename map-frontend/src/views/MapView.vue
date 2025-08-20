@@ -7,6 +7,7 @@
       @onboarding-skipped="handleOnboardingSkipped"
       @location-detected="handleLocationDetected"
       @location-manual="handleLocationManual"
+      @regional-center-matched="handleRegionalCenterMatched"
     />
 
     <!-- Funding Info Modal -->
@@ -110,6 +111,42 @@
             </label>
           </div>
 
+          <!-- Focus on Los Angeles County -->
+          <div class="form-check mt-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              v-model="focusLACounty"
+              id="focusLACounty"
+              @change="applyLACountyFocus"
+            />
+            <label class="form-check-label" for="focusLACounty">
+              <i class="bi bi-geo"></i> Focus on Los Angeles County
+            </label>
+          </div>
+
+          <!-- LA County: Find my regional center by ZIP -->
+          <div class="mt-2">
+            <div class="input-group w-100" style="max-width: 100%">
+              <input
+                type="text"
+                class="form-control"
+                v-model="laZipInput"
+                placeholder="Enter your ZIP code"
+                @keyup.enter="findRegionalCenterByZip"
+              />
+              <button
+                class="btn btn-chla-primary"
+                type="button"
+                @click="findRegionalCenterByZip"
+              >
+                Find My Regional Center
+              </button>
+            </div>
+            <small class="text-muted d-block mt-1">Works best for LA ZIPs</small>
+            <div v-if="laZipError" class="text-danger small mt-1">{{ laZipError }}</div>
+          </div>
+
           <!-- Location Status -->
           <div
             class="alert mb-3"
@@ -182,6 +219,28 @@
           @toggle="toggleUserPanel"
           @save="saveUserData"
         />
+
+        <!-- Matched Regional Center (from ZIP) -->
+        <div v-if="matchedRegionalCenter" class="alert alert-primary mt-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div><strong>Matched Regional Center</strong></div>
+              <div class="small">
+                {{ matchedRegionalCenter.regional_center }} ({{
+                  matchedRegionalCenter.city
+                }})
+              </div>
+            </div>
+            <div class="ms-2">
+              <button
+                class="btn btn-sm btn-outline-primary"
+                @click="showMatchedCenterOnMap"
+              >
+                Show on map
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- User Info Summary - shown when panel is collapsed but data exists -->
         <div v-if="!showUserPanel && hasUserData" class="alert alert-info mb-3">
@@ -278,19 +337,7 @@
                 Accepts Regional Center
               </label>
             </div>
-            <div class="form-check">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                v-model="filterOptions.acceptsPrivatePay"
-                id="acceptsPrivatePay"
-                @change="updateFilteredLocations"
-              />
-              <label class="form-check-label" for="acceptsPrivatePay">
-                <i class="bi bi-wallet2 me-1"></i>
-                Accepts Private Pay
-              </label>
-            </div>
+            <!-- Removed Private Pay filter -->
 
             <h6 class="text-muted mb-2 mt-3">Service Matching</h6>
             <div class="form-check">
@@ -326,6 +373,32 @@
                   (Age {{ userData.age }})
                 </small>
               </label>
+            </div>
+
+            <h6 class="text-muted mb-2 mt-3">Diagnoses</h6>
+            <div class="form-check" v-for="d in diagnosisOptions" :key="'diag-' + d">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                :id="'diag-' + d"
+                :value="d"
+                v-model="filterOptions.diagnoses"
+                @change="updateFilteredLocations"
+              />
+              <label class="form-check-label" :for="'diag-' + d">{{ d }}</label>
+            </div>
+
+            <h6 class="text-muted mb-2 mt-3">Therapies</h6>
+            <div class="form-check" v-for="t in therapyOptions" :key="'ther-' + t">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                :id="'ther-' + t"
+                :value="t"
+                v-model="filterOptions.therapies"
+                @change="updateFilteredLocations"
+              />
+              <label class="form-check-label" :for="'ther-' + t">{{ t }}</label>
             </div>
           </div>
 
@@ -395,6 +468,12 @@ import {
 // Flag to use actual API data instead of sample data - set to false to query the database
 const USE_LOCAL_DATA_ONLY = false;
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(
+  /\/+$/,
+  ""
+);
+const API_ROOT = API_BASE.endsWith("/api") ? API_BASE : `${API_BASE}/api`;
+
 export default {
   name: "MapView",
 
@@ -421,15 +500,35 @@ export default {
       pinServiceAreas: false,
       serviceAreas: null,
       serviceAreasLoaded: false,
+      focusLACounty: false,
+      matchedRegionalCenter: null,
+      laZipInput: "",
+      laZipError: "",
 
       // Filter options
       filterOptions: {
         acceptsInsurance: false,
         acceptsRegionalCenter: false,
-        acceptsPrivatePay: false,
         matchesDiagnosis: false,
         matchesAge: false,
+        diagnoses: [],
+        therapies: [],
       },
+      diagnosisOptions: [
+        "Global Development Delay",
+        "Autism Spectrum Disorder",
+        "Intellectual Disability",
+        "Speech and Language Disorder",
+        "ADHD",
+      ],
+      therapyOptions: [
+        "ABA therapy",
+        "Speech therapy",
+        "Occupational therapy",
+        "Physical therapy",
+        "Feeding therapy",
+        "Parent child interaction therapy/parent training behavior management",
+      ],
 
       // Search debounce
       searchDebounce: null,
@@ -614,6 +713,71 @@ export default {
       }, 300);
     },
 
+    // Simple geocoder using Nominatim (frontend) to make the search box reliable
+    async geocodeTextToCoords(text) {
+      try {
+        if (!text || !text.trim()) return null;
+        // Bias searches to California (or current map center) to avoid Westlake, TX, etc.
+        const inCA = (lat, lng) =>
+          lat >= 32.0 && lat <= 42.5 && lng >= -125.0 && lng <= -114.0;
+        let q = text.trim();
+        if (
+          !/\bCA\b|California/i.test(q) &&
+          inCA(this.userLocation.latitude || 0, this.userLocation.longitude || 0)
+        ) {
+          q = `${q}, California`;
+        }
+        const viewbox = "-124.5,42.5,-114.0,32.0"; // lonW,latN,lonE,latS
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&bounded=1&viewbox=${viewbox}&q=${encodeURIComponent(
+          q
+        )}`;
+        const res = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data || data.length === 0) return null;
+        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      } catch (e) {
+        return null;
+      }
+    },
+
+    getApiRoot() {
+      let base = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+      base = (base || "").replace(/\/+$/, "");
+      // Strip trailing /api to prevent double /api
+      base = base.replace(/\/api$/, "");
+      return base || "http://127.0.0.1:8000";
+    },
+
+    findNearestRegionalCenterFromList(lat, lng) {
+      if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
+        return null;
+      }
+      let best = null;
+      let bestDist = Infinity;
+      const toRad = (d) => (d * Math.PI) / 180;
+      for (const c of this.regionalCenters) {
+        const clat = parseFloat(c.latitude);
+        const clng = parseFloat(c.longitude);
+        if (isNaN(clat) || isNaN(clng)) continue;
+        const dlat = toRad(clat - lat);
+        const dlng = toRad(clng - lng);
+        const a =
+          Math.sin(dlat / 2) * Math.sin(dlat / 2) +
+          Math.cos(toRad(lat)) *
+            Math.cos(toRad(clat)) *
+            Math.sin(dlng / 2) *
+            Math.sin(dlng / 2);
+        const cang = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const dist = 3959 * cang; // miles
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = c;
+        }
+      }
+      return best;
+    },
+
     // Set display type
     setDisplayType(type) {
       this.displayType = type;
@@ -629,6 +793,48 @@ export default {
       this.$nextTick(() => {
         this.updateMarkers();
       });
+
+      // When switching to regional centers, highlight Los Angeles County without zooming
+      if (type === "regionalCenters") {
+        // If user is in LA County, use the same bounds as the LA focus toggle
+        if (this.map && this.userLocation?.latitude && this.userLocation?.longitude) {
+          const laBounds = this.getLACountyBounds();
+          const inLA = this.isPointInBounds(
+            this.userLocation.longitude,
+            this.userLocation.latitude,
+            laBounds
+          );
+          if (inLA) {
+            this.map.fitBounds(laBounds, { padding: 40, duration: 600 });
+          } else {
+            // Otherwise, center on user's location with a reasonable zoom
+            const targetZoom = Math.max(this.map.getZoom() || 0, 10);
+            this.map.flyTo({
+              center: [this.userLocation.longitude, this.userLocation.latitude],
+              zoom: targetZoom,
+              duration: 600,
+            });
+          }
+        }
+        // Ensure service areas are visible and layers are present
+        (async () => {
+          try {
+            if (!this.serviceAreasLoaded) {
+              await this.fetchServiceAreas();
+            }
+            if (this.serviceAreasLoaded) {
+              if (
+                !this.map.getSource("service-areas") ||
+                !this.map.getLayer("california-counties-fill")
+              ) {
+                this.addServiceAreasToMap();
+              }
+              // Apply visual highlight to LA only (no camera move)
+              this.highlightLACountyVisual();
+            }
+          } catch (_) {}
+        })();
+      }
     },
 
     // Reset all filters
@@ -654,6 +860,219 @@ export default {
         this.fetchRegionalCenters();
       } else {
         this.updateFilteredLocations();
+      }
+    },
+
+    handleRegionalCenterMatched(center) {
+      this.matchedRegionalCenter = center;
+      // Center map softly on the matched center
+      if (center && this.map && center.latitude && center.longitude) {
+        this.map.flyTo({ center: [center.longitude, center.latitude], zoom: 10 });
+      }
+    },
+
+    showMatchedCenterOnMap() {
+      const c = this.matchedRegionalCenter;
+      if (!c || !this.map) return;
+      const lng = parseFloat(c.longitude);
+      const lat = parseFloat(c.latitude);
+      if (isNaN(lat) || isNaN(lng)) return;
+      this.map.flyTo({ center: [lng, lat], zoom: 11 });
+      // Drop a temporary marker
+      const el = document.createElement("div");
+      el.className = "marker marker-regional-center";
+      el.style.width = "14px";
+      el.style.height = "14px";
+      el.style.background = "#1f618d";
+      el.style.border = "2px solid white";
+      el.style.borderRadius = "50%";
+      const marker = new mapboxgl.Marker(el).setLngLat([lng, lat]).addTo(this.map);
+      setTimeout(() => marker.remove(), 8000);
+    },
+
+    applyLACountyFocus() {
+      // If toggled on, zoom to LA County bounds and fade other counties
+      if (!this.map) return;
+      if (this.focusLACounty) {
+        // LA County approximate bounds
+        const laBounds = [
+          [-119.1, 33.3],
+          [-117.5, 34.9],
+        ];
+        this.map.fitBounds(laBounds, { padding: 40, duration: 700 });
+
+        // If counties layer exists, highlight LA
+        if (this.map.getLayer("california-counties-fill")) {
+          // Add a filter to emphasize Los Angeles
+          this.map.setPaintProperty("california-counties-fill", "fill-opacity", [
+            "case",
+            ["==", ["downcase", ["get", "name"]], "los angeles"],
+            0.55,
+            0.12,
+          ]);
+          this.map.setPaintProperty("california-counties-fill", "fill-color", [
+            "case",
+            ["==", ["downcase", ["get", "name"]], "los angeles"],
+            "#e67e22",
+            [
+              "interpolate",
+              ["linear"],
+              ["get", "regional_center_count"],
+              0,
+              "#e8e8e8",
+              2,
+              "#a8d5e5",
+              5,
+              "#5dade2",
+              10,
+              "#3498db",
+              11,
+              "#1f618d",
+            ],
+          ]);
+        }
+      } else {
+        // Restore normal styling
+        if (this.map.getLayer("california-counties-fill")) {
+          this.map.setPaintProperty("california-counties-fill", "fill-opacity", 0.2);
+          this.map.setPaintProperty("california-counties-fill", "fill-color", [
+            "interpolate",
+            ["linear"],
+            ["get", "regional_center_count"],
+            0,
+            "#e8e8e8",
+            2,
+            "#a8d5e5",
+            5,
+            "#5dade2",
+            10,
+            "#3498db",
+            11,
+            "#1f618d",
+          ]);
+        }
+      }
+    },
+
+    highlightLACountyVisual() {
+      if (!this.map) return;
+      if (this.map.getLayer("california-counties-fill")) {
+        // Emphasize LA via color/opacity without adjusting camera
+        this.map.setPaintProperty("california-counties-fill", "fill-opacity", [
+          "case",
+          ["==", ["downcase", ["get", "name"]], "los angeles"],
+          0.55,
+          0.2,
+        ]);
+        this.map.setPaintProperty("california-counties-fill", "fill-color", [
+          "case",
+          ["==", ["downcase", ["get", "name"]], "los angeles"],
+          "#e67e22",
+          [
+            "interpolate",
+            ["linear"],
+            ["get", "regional_center_count"],
+            0,
+            "#e8e8e8",
+            2,
+            "#a8d5e5",
+            5,
+            "#5dade2",
+            10,
+            "#3498db",
+            11,
+            "#1f618d",
+          ],
+        ]);
+      }
+    },
+
+    getLACountyBounds() {
+      // Approximate LA County bounds
+      return [
+        [-119.1, 33.3],
+        [-117.5, 34.9],
+      ];
+    },
+
+    isPointInBounds(lng, lat, bounds) {
+      if (!Array.isArray(bounds) || bounds.length !== 2) return false;
+      const [[minLng, minLat], [maxLng, maxLat]] = bounds;
+      return lng >= minLng && lng <= maxLng && lat >= minLat && lat <= maxLat;
+    },
+
+    async findRegionalCenterByZip() {
+      try {
+        this.laZipError = "";
+        const zip = (this.laZipInput || "").trim();
+        if (!/^\d{5}$/.test(zip)) {
+          this.laZipError = "Enter a valid 5-digit ZIP";
+          return;
+        }
+        const apiRoot = this.getApiRoot();
+        const url = `${apiRoot}/api/regional-centers/by_location/?location=${zip}&radius=60&limit=5`;
+
+        let center = null;
+        try {
+          const res = await fetch(url, { headers: { Accept: "application/json" } });
+          if (res.ok) {
+            const centers = await res.json();
+            if (Array.isArray(centers) && centers.length > 0) {
+              center = centers[0];
+            }
+          }
+        } catch (e) {
+          console.warn("ZIP center lookup API failed; using fallback", e);
+        }
+
+        if (!center) {
+          try {
+            if (this.regionalCenters.length === 0) {
+              await this.fetchRegionalCenters();
+            }
+          } catch (_) {}
+          let coords = null;
+          try {
+            coords = this.basicGeocode(Number(zip));
+          } catch (_) {}
+          if (!coords) {
+            try {
+              const gc = await this.geocodeTextToCoords(zip);
+              if (gc) coords = { lat: gc.lat, lng: gc.lng };
+            } catch (_) {}
+          }
+          if (coords) {
+            try {
+              center = this.findNearestRegionalCenterFromList(coords.lat, coords.lng);
+            } catch (_) {}
+          }
+          if (!center) {
+            this.laZipError = "No regional center found for that ZIP";
+            return;
+          }
+        }
+
+        this.matchedRegionalCenter = center;
+        const lng = parseFloat(center.longitude);
+        const lat = parseFloat(center.latitude);
+        if (this.map && !isNaN(lat) && !isNaN(lng)) {
+          if (this.focusLACounty) {
+            this.map.fitBounds(this.getLACountyBounds(), { padding: 40, duration: 0 });
+          }
+          this.map.flyTo({ center: [lng, lat], zoom: 11, duration: 600 });
+          const el = document.createElement("div");
+          el.className = "marker marker-regional-center";
+          el.style.width = "14px";
+          el.style.height = "14px";
+          el.style.background = "#1f618d";
+          el.style.border = "2px solid white";
+          el.style.borderRadius = "50%";
+          const marker = new mapboxgl.Marker(el).setLngLat([lng, lat]).addTo(this.map);
+          setTimeout(() => marker.remove(), 8000);
+        }
+      } catch (err) {
+        console.error("ZIP lookup handler error:", err);
+        this.laZipError = "Lookup failed. Try again.";
       }
     },
 
@@ -863,8 +1282,6 @@ export default {
 
       try {
         console.log("Fetching providers from API");
-        const apiBaseUrl =
-          import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 
         // If using local data, use sample data
         if (USE_LOCAL_DATA_ONLY) {
@@ -941,20 +1358,31 @@ export default {
             queryParams.append("q", this.searchText.trim());
           }
 
-          // Add location/radius - but use search text location if it's a city name
+          // Add location/radius - prefer client-side geocode of searchText if we can
           let searchLat = this.userLocation.latitude;
           let searchLng = this.userLocation.longitude;
 
           // Check if search text is a known city/location
           if (this.searchText && this.searchText.trim() !== "") {
-            const searchLocation = this.getLocationFromSearch(this.searchText.trim());
+            // 1) Try our quick local table
+            let searchLocation = this.getLocationFromSearch(this.searchText.trim());
+            // 2) If that fails, try Nominatim
+            if (!searchLocation) {
+              const nom = await this.geocodeTextToCoords(this.searchText.trim());
+              if (nom) searchLocation = nom;
+            }
             if (searchLocation) {
               searchLat = searchLocation.lat;
               searchLng = searchLocation.lng;
               console.log(
-                `🔍 Using search location coordinates for "${this.searchText}": ${searchLat}, ${searchLng}`
+                `🔍 Using frontend geocode for "${this.searchText}": ${searchLat}, ${searchLng}`
               );
             }
+          }
+
+          // Always pass location text to backend so it can geocode precisely
+          if (this.searchText && this.searchText.trim() !== "") {
+            queryParams.append("location", this.searchText.trim());
           }
 
           // Add location/radius if available (using search location or user location)
@@ -972,6 +1400,14 @@ export default {
           if (this.filterOptions.matchesDiagnosis && this.userData.diagnosis) {
             queryParams.append("diagnosis", this.userData.diagnosis);
           }
+
+          // Add enum-based filters
+          (this.filterOptions.diagnoses || []).forEach((d) =>
+            queryParams.append("diagnosis", d)
+          );
+          (this.filterOptions.therapies || []).forEach((t) =>
+            queryParams.append("therapy", t)
+          );
 
           // Add insurance filter options only when explicitly checked
           if (this.filterOptions.acceptsInsurance) {
@@ -992,7 +1428,7 @@ export default {
           }
 
           // Always use comprehensive search endpoint (it handles both filtered and unfiltered)
-          const url = `${apiBaseUrl}/providers/comprehensive_search/?${queryParams.toString()}`;
+          const url = `${API_ROOT}/providers/comprehensive_search/?${queryParams.toString()}`;
 
           if (hasSpecificFilters) {
             console.log(`🔍 Fetching FILTERED providers from API: ${url}`);
@@ -1184,8 +1620,7 @@ export default {
 
       try {
         console.log("Fetching regional centers");
-        const apiBaseUrl =
-          import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+        const apiRoot = this.getApiRoot();
 
         // If using local data, use sample data
         if (USE_LOCAL_DATA_ONLY) {
@@ -1218,7 +1653,7 @@ export default {
           this.regionalCenters = sampleRegionalCenters;
         } else {
           // Fetch from API
-          const url = `${apiBaseUrl}/regional-centers/`;
+          const url = `${apiRoot}/api/regional-centers/`;
           console.log(`Fetching regional centers from API: ${url}`);
 
           try {
@@ -1278,9 +1713,8 @@ export default {
 
       try {
         console.log("Fetching service areas from API...");
-        const apiBaseUrl =
-          import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
-        const url = `${apiBaseUrl}/regional-centers/service_areas/`;
+        const apiRoot = this.getApiRoot();
+        const url = `${apiRoot}/api/regional-centers/service_areas/`;
 
         const response = await axios.get(url);
         console.log("Service areas API Response status:", response.status);
@@ -1816,14 +2250,8 @@ export default {
         console.log(`✅ All markers successfully cleaned up`);
       }
 
-      // When service areas are enabled, don't show regional center markers
-      // since counties provide this information, BUT always show provider markers
-      if (this.showServiceAreas && this.displayType === "regionalCenters") {
-        console.log(
-          "Service areas enabled - hiding regional center markers (data integrated in counties)"
-        );
-        return;
-      }
+      // Service areas overlay should NOT suppress regional center markers.
+      // We keep markers visible for both providers and regional centers regardless of overlay state.
 
       // Get the appropriate data based on display type
       let items = [];
@@ -1893,28 +2321,48 @@ export default {
         `   - Success rate: ${((markersCreated / items.length) * 100).toFixed(1)}%`
       );
 
-      // Fit map to markers if we have any
+      // Fit map to markers if we have any, but avoid zooming out to entire state
       if (this.markers.length > 0) {
-        const bounds = new mapboxgl.LngLatBounds();
-        let boundsCount = 0;
-
-        items.forEach((item) => {
-          const lat = parseFloat(item.latitude);
-          const lng = parseFloat(item.longitude);
-          if (!isNaN(lat) && !isNaN(lng) && lat && lng) {
-            bounds.extend([lng, lat]);
-            boundsCount++;
-          }
-        });
-
-        if (boundsCount > 0) {
+        // For regional centers, prefer centering around the user's location if known
+        if (
+          this.displayType === "regionalCenters" &&
+          this.userLocation &&
+          this.userLocation.latitude &&
+          this.userLocation.longitude
+        ) {
           try {
-            this.map.fitBounds(bounds, {
-              padding: 100,
-              maxZoom: 15,
+            const currentZoom = this.map.getZoom() || 0;
+            const targetZoom = Math.max(currentZoom, 10);
+            this.map.flyTo({
+              center: [this.userLocation.longitude, this.userLocation.latitude],
+              zoom: targetZoom,
+              duration: 400,
             });
           } catch (error) {
-            console.error("Error fitting bounds:", error);
+            console.error("Error centering to user location:", error);
+          }
+        } else {
+          const bounds = new mapboxgl.LngLatBounds();
+          let boundsCount = 0;
+
+          items.forEach((item) => {
+            const lat = parseFloat(item.latitude);
+            const lng = parseFloat(item.longitude);
+            if (!isNaN(lat) && !isNaN(lng) && lat && lng) {
+              bounds.extend([lng, lat]);
+              boundsCount++;
+            }
+          });
+
+          if (boundsCount > 0) {
+            try {
+              this.map.fitBounds(bounds, {
+                padding: 100,
+                maxZoom: 13,
+              });
+            } catch (error) {
+              console.error("Error fitting bounds:", error);
+            }
           }
         }
       }
@@ -1926,11 +2374,13 @@ export default {
     // Create a single marker with enhanced error handling
     createSingleMarker(item, index, totalItems) {
       try {
-        console.log(`🔄 Processing item ${index + 1}/${totalItems}: ${item.name}`);
+        const itemName =
+          item && (item.name || item.regional_center || item.title || "Location");
+        console.log(`🔄 Processing item ${index + 1}/${totalItems}: ${itemName}`);
 
         // Skip items marked as having invalid coordinates
         if (item._coordinatesInvalid) {
-          console.log(`⏭️ Skipping ${item.name} due to invalid coordinates`);
+          console.log(`⏭️ Skipping ${itemName} due to invalid coordinates`);
           return { created: false, reason: "invalid_coordinates_flag" };
         }
 
@@ -1939,7 +2389,7 @@ export default {
         let lng = parseFloat(item.longitude);
 
         // Enhanced Debug logging
-        console.log(`🔍 Item ${index + 1} coordinates debug for ${item.name}:`, {
+        console.log(`🔍 Item ${index + 1} coordinates debug for ${itemName}:`, {
           original_lat: item.latitude,
           original_lng: item.longitude,
           lat_type: typeof item.latitude,
@@ -1966,7 +2416,7 @@ export default {
           lat === undefined ||
           lng === undefined
         ) {
-          console.warn(`⚠️ Invalid coordinates for ${item.name}, skipping marker:`, {
+          console.warn(`⚠️ Invalid coordinates for ${itemName}, skipping marker:`, {
             lat,
             lng,
             original_lat: item.latitude,
@@ -1977,28 +2427,26 @@ export default {
 
         // Validate coordinates are within reasonable bounds for CA
         if (lat < 32 || lat > 42 || lng > -114 || lng < -125) {
-          console.warn(
-            `⚠️ Coordinates out of CA bounds for ${item.name}: ${lat}, ${lng}`
-          );
+          console.warn(`⚠️ Coordinates out of CA bounds for ${itemName}: ${lat}, ${lng}`);
           return { created: false, reason: "out_of_bounds" };
         }
 
         // Additional safety check for coordinates that would place markers at origin (0,0) or other invalid positions
         if (Math.abs(lat) < 0.01 || Math.abs(lng) < 0.01) {
           console.error(
-            `🚨 BLOCKED INVALID COORDINATES: ${item.name} has coordinates too close to origin: ${lat}, ${lng}`
+            `🚨 BLOCKED INVALID COORDINATES: ${itemName} has coordinates too close to origin: ${lat}, ${lng}`
           );
           return { created: false, reason: "coordinates_too_close_to_origin" };
         }
 
-        console.log(`✅ Creating marker for ${item.name} at lat=${lat}, lng=${lng}`);
+        console.log(`✅ Creating marker for ${itemName} at lat=${lat}, lng=${lng}`);
 
         // Double-check coordinates before creating marker
         const finalLng = Number(lng);
         const finalLat = Number(lat);
 
         if (isNaN(finalLng) || isNaN(finalLat)) {
-          console.error(`🚨 Final coordinate check failed for ${item.name}:`, {
+          console.error(`🚨 Final coordinate check failed for ${itemName}:`, {
             finalLat,
             finalLng,
           });
@@ -2279,6 +2727,7 @@ export default {
         91365: { lat: 34.1678, lng: -118.5946 }, // Woodland Hills
         91367: { lat: 34.1699, lng: -118.6078 }, // Woodland Hills
         91401: { lat: 34.1716, lng: -118.4192 }, // Van Nuys
+        91403: { lat: 34.1611, lng: -118.4678 }, // Sherman Oaks
         91406: { lat: 34.2008, lng: -118.503 }, // Van Nuys
         91423: { lat: 34.1869, lng: -118.4456 }, // Sherman Oaks
         91601: { lat: 34.1808, lng: -118.309 }, // North Hollywood

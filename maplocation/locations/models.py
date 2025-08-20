@@ -180,6 +180,9 @@ class RegionalCenter(models.Model):
     def _geocode_zip(cls, zip_code):
         """Basic zip code to coordinates mapping for LA area"""
         zip_coords = {
+            "91361": (34.1678, -118.5946),  # Westlake Village (approx)
+            "91362": (34.1678, -118.5946),  # Westlake Village (approx)
+            "91377": (34.1678, -118.5946),  # Oak Park (approx)
             "90210": (34.1030, -118.4104),  # Beverly Hills
             "90211": (34.0901, -118.4065),  # Beverly Hills
             "90028": (34.1016, -118.3267),  # Hollywood

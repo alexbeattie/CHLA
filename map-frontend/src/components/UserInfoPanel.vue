@@ -37,17 +37,13 @@
         <label class="form-label">Diagnosis</label>
         <select v-model="formData.diagnosis" class="form-select">
           <option value="">Select diagnosis...</option>
-          <option value="Autism">Autism</option>
-          <option value="dup15q">dup15q</option>
-          <option value="TSC">TSC</option>
+          <option value="Global Development Delay">Global Development Delay</option>
+          <option value="Autism Spectrum Disorder">Autism Spectrum Disorder</option>
+          <option value="Intellectual Disability">Intellectual Disability</option>
+          <option value="Speech and Language Disorder">
+            Speech and Language Disorder
+          </option>
           <option value="ADHD">ADHD</option>
-          <option value="Angelman Syndrome">Angelman Syndrome</option>
-          <option value="Rhetts">Rhetts</option>
-          <option value="Anxiety/Depression">Anxiety/Depression</option>
-          <option value="Developmental Delay">Developmental Delay</option>
-          <option value="Speech Delay">Speech Delay</option>
-          <option value="Learning Disability">Learning Disability</option>
-          <option value="Other">Other</option>
         </select>
       </div>
 

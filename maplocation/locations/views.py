@@ -27,6 +27,7 @@ from .serializers import (
     LocationReviewSerializer,
     RegionalCenterSerializer,
     ProviderSerializer,
+    ProviderWriteSerializer,
     ProviderGeoSerializer,
     FundingSourceSerializer,
     InsuranceCarrierSerializer,
@@ -37,6 +38,7 @@ from .serializers import (
 )
 import math
 from rest_framework.decorators import api_view
+from django.db.models.expressions import RawSQL
 
 
 class LocationCategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -431,7 +433,7 @@ class ServiceDeliveryModelViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ["name", "description"]
 
 
-class ProviderViewSet(viewsets.ReadOnlyModelViewSet):
+class ProviderViewSet(viewsets.ModelViewSet):
     queryset = Provider.objects.all()
     serializer_class = ProviderSerializer
     filter_backends = [
@@ -441,6 +443,12 @@ class ProviderViewSet(viewsets.ReadOnlyModelViewSet):
     ]
     search_fields = ["name", "coverage_areas", "center_based_services"]
     ordering_fields = ["name"]
+    
+    def get_serializer_class(self):
+        """Use different serializers for different operations"""
+        if self.action in ['create', 'update', 'partial_update']:
+            return ProviderWriteSerializer
+        return ProviderSerializer
 
     @action(detail=False, methods=["get"])
     def by_area(self, request):
@@ -603,11 +611,16 @@ class ProviderViewSet(viewsets.ReadOnlyModelViewSet):
 
             # Apply text search
             if query:
+                # Text search across common text fields, including address
                 providers = providers.filter(
                     Q(name__icontains=query)
+                    | Q(address__icontains=query)
                     | Q(specializations__icontains=query)
                     | Q(services__icontains=query)
+                    | Q(center_based_services__icontains=query)
+                    | Q(areas__icontains=query)
                     | Q(coverage_areas__icontains=query)
+                    | Q(insurance_accepted__icontains=query)
                 )
 
             # Apply insurance filters
@@ -658,16 +671,32 @@ class ProviderViewSet(viewsets.ReadOnlyModelViewSet):
 
                 providers = providers.filter(insurance_q)
 
-            # Apply specialization filter
+            # Apply specialization filter (diagnosis) against enum[] using UNNEST
             if specialization:
-                providers = providers.filter(specializations__icontains=specialization)
+                providers = providers.filter(
+                    RawSQL(
+                        "EXISTS (SELECT 1 FROM unnest(specializations) s WHERE lower(s::text)=lower(%s))",
+                        [specialization],
+                    )
+                )
 
-            # Apply diagnosis filter
+            # Apply diagnosis filter (enum[])
             if diagnosis:
                 providers = providers.filter(
-                    Q(specializations__icontains=diagnosis)
-                    | Q(services__icontains=diagnosis)
-                    | Q(name__icontains=diagnosis)
+                    RawSQL(
+                        "EXISTS (SELECT 1 FROM unnest(specializations) s WHERE lower(s::text)=lower(%s))",
+                        [diagnosis],
+                    )
+                )
+
+            # Apply therapy filters (multiple allowed)
+            therapy_values = request.query_params.getlist("therapy")
+            for therapy in therapy_values:
+                providers = providers.filter(
+                    RawSQL(
+                        "EXISTS (SELECT 1 FROM unnest(services) sv WHERE lower(sv::text)=lower(%s))",
+                        [therapy],
+                    )
                 )
 
             # Apply location-based filtering using provided coordinates

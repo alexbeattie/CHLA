@@ -72,3 +72,4 @@ coverage
 maplocation/.venv/
 venv/
 .venv/
+aws-credentials/

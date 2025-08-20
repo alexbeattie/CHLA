@@ -19,13 +19,13 @@ export default defineConfig(({ mode }) => {
       port: env.VITE_PORT || 3000,
       proxy: {
         '/api': {
-          target: env.VITE_API_URL || 'http://127.0.0.1:8001',
+          target: (env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, ''),
           changeOrigin: true,
           secure: false,
           ws: true,
         },
         '/graphql': {
-          target: env.VITE_API_URL || 'http://127.0.0.1:8001',
+          target: (env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, ''),
           changeOrigin: true,
           secure: false,
           ws: true,

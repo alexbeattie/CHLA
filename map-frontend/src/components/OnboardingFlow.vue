@@ -5,11 +5,9 @@
       <div class="progress-bar">
         <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
       </div>
-      
+
       <!-- Step Counter -->
-      <div class="step-counter">
-        Step {{ currentStep }} of {{ totalSteps }}
-      </div>
+      <div class="step-counter">Step {{ currentStep }} of {{ totalSteps }}</div>
 
       <!-- Step Content -->
       <div class="step-content">
@@ -46,9 +44,9 @@
         <div v-if="currentStep === 2" class="step location-step">
           <h3>Let's find services near you</h3>
           <p>We'll use your location to show the most relevant providers in your area.</p>
-          
+
           <div class="location-options">
-            <button 
+            <button
               class="btn btn-chla-primary location-btn"
               @click="detectLocation"
               :disabled="locationDetecting"
@@ -57,20 +55,20 @@
               <span v-if="locationDetecting">Detecting Location...</span>
               <span v-else>Use My Current Location</span>
             </button>
-            
+
             <div class="location-divider">
               <span>OR</span>
             </div>
-            
+
             <div class="manual-location">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 class="form-control location-input"
                 placeholder="Enter your ZIP code or city"
                 v-model="userLocation"
                 @keyup.enter="validateLocation"
               />
-              <button 
+              <button
                 class="btn btn-chla-outline"
                 @click="validateLocation"
                 :disabled="!userLocation"
@@ -79,7 +77,7 @@
               </button>
             </div>
           </div>
-          
+
           <div v-if="locationError" class="alert alert-warning">
             <i class="bi bi-exclamation-triangle"></i>
             {{ locationError }}
@@ -90,11 +88,11 @@
         <div v-if="currentStep === 3" class="step profile-step">
           <h3>Tell us about your needs</h3>
           <p>This helps us show you the most relevant providers and services.</p>
-          
+
           <form @submit.prevent="nextStep" class="profile-form">
             <div class="form-group">
               <label for="ageGroup">Age Group</label>
-              <select id="ageGroup" v-model="userProfile.ageGroup" class="form-control">
+              <select id="ageGroup" v-model="userProfile.age" class="form-control">
                 <option value="">Select age group</option>
                 <option value="0-5">Early Childhood (0-5)</option>
                 <option value="6-12">School Age (6-12)</option>
@@ -102,35 +100,27 @@
                 <option value="19+">Adult (19+)</option>
               </select>
             </div>
-            
+
             <div class="form-group">
-              <label for="diagnosis">Primary Diagnosis (Optional)</label>
-              <select id="diagnosis" v-model="userProfile.primaryDiagnosis" class="form-control">
-                <option value="">Select primary diagnosis</option>
-                <option value="Autism">Autism Spectrum Disorder</option>
+              <label for="diagnosis">Diagnosis (Optional)</label>
+              <select id="diagnosis" v-model="userProfile.diagnosis" class="form-control">
+                <option value="">Select diagnosis</option>
+                <option value="Global Development Delay">Global Development Delay</option>
+                <option value="Autism Spectrum Disorder">Autism Spectrum Disorder</option>
+                <option value="Intellectual Disability">Intellectual Disability</option>
+                <option value="Speech and Language Disorder">
+                  Speech and Language Disorder
+                </option>
                 <option value="ADHD">ADHD</option>
-                <option value="Developmental Delay">Developmental Delay</option>
-                <option value="Learning Disabilities">Learning Disabilities</option>
-                <option value="Speech Delay">Speech Delay</option>
-                <option value="Other">Other</option>
               </select>
             </div>
-            
-            <div v-if="userProfile.primaryDiagnosis === 'Other'" class="form-group">
-              <label for="otherDiagnosis">Please specify</label>
-              <input 
-                type="text" 
-                id="otherDiagnosis"
-                v-model="userProfile.otherDiagnosis"
-                class="form-control"
-                placeholder="Enter diagnosis"
-              />
-            </div>
-            
+
             <div class="insurance-section">
               <h4>Insurance & Funding</h4>
-              <p class="insurance-help">Select all that apply to see relevant providers:</p>
-              
+              <p class="insurance-help">
+                Select all that apply to see relevant providers:
+              </p>
+
               <div class="insurance-options">
                 <label class="insurance-option">
                   <input type="checkbox" v-model="userProfile.hasInsurance" />
@@ -140,22 +130,13 @@
                     <small>Most major insurers accepted</small>
                   </div>
                 </label>
-                
+
                 <label class="insurance-option">
                   <input type="checkbox" v-model="userProfile.hasRegionalCenter" />
                   <span class="checkmark"></span>
                   <div class="option-content">
                     <strong>I work with a regional center</strong>
                     <small>Regional center funded services</small>
-                  </div>
-                </label>
-                
-                <label class="insurance-option">
-                  <input type="checkbox" v-model="userProfile.canPrivatePay" />
-                  <span class="checkmark"></span>
-                  <div class="option-content">
-                    <strong>I can pay privately</strong>
-                    <small>Self-pay and private funding</small>
                   </div>
                 </label>
               </div>
@@ -165,18 +146,16 @@
 
         <!-- Services Step -->
         <div v-if="currentStep === 4" class="step services-step">
-          <h3>What type of services are you looking for?</h3>
-          <p>Select the services you're interested in to get personalized recommendations.</p>
-          
+          <h3>Which therapies are you seeking?</h3>
+          <p>Select all that apply.</p>
           <div class="service-types">
-            <label class="service-option" v-for="service in serviceOptions" :key="service.id">
-              <input type="checkbox" v-model="userProfile.interestedServices" :value="service.id" />
+            <label class="service-option" v-for="t in therapyOptions" :key="t">
+              <input type="checkbox" v-model="userProfile.therapies" :value="t" />
               <span class="checkmark"></span>
               <div class="service-content">
-                <i :class="service.icon"></i>
+                <i class="bi bi-check2-circle"></i>
                 <div>
-                  <strong>{{ service.name }}</strong>
-                  <small>{{ service.description }}</small>
+                  <strong>{{ t }}</strong>
                 </div>
               </div>
             </label>
@@ -186,8 +165,11 @@
         <!-- Results Step -->
         <div v-if="currentStep === 5" class="step results-step">
           <h3>Perfect! Here's what we found for you</h3>
-          <p>Based on your preferences, we've found <strong>{{ resultsCount }}</strong> relevant providers in your area.</p>
-          
+          <p>
+            Based on your preferences, we've found
+            <strong>{{ resultsCount }}</strong> relevant providers in your area.
+          </p>
+
           <div class="results-preview">
             <div class="result-stats">
               <div class="stat">
@@ -203,7 +185,7 @@
                 <span>{{ userLocationDisplay }}</span>
               </div>
             </div>
-            
+
             <div class="quick-tutorial">
               <h4>Quick Tutorial</h4>
               <div class="tutorial-steps">
@@ -222,7 +204,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="results-actions">
             <button class="btn btn-chla-primary btn-lg" @click="completeOnboarding">
               Explore Providers
@@ -236,19 +218,15 @@
 
       <!-- Navigation -->
       <div class="step-navigation">
-        <button 
-          v-if="currentStep > 1" 
-          class="btn btn-secondary"
-          @click="previousStep"
-        >
+        <button v-if="currentStep > 1" class="btn btn-secondary" @click="previousStep">
           <i class="bi bi-arrow-left"></i>
           Back
         </button>
-        
+
         <div class="nav-spacer"></div>
-        
-        <button 
-          v-if="currentStep < totalSteps && currentStep !== 2" 
+
+        <button
+          v-if="currentStep < totalSteps && currentStep !== 2"
           class="btn btn-chla-primary"
           @click="nextStep"
           :disabled="!canProceed"
@@ -256,8 +234,8 @@
           Continue
           <i class="bi bi-arrow-right"></i>
         </button>
-        
-        <button 
+
+        <button
           v-if="currentStep < totalSteps"
           class="btn btn-link skip-btn"
           @click="skipOnboarding"
@@ -271,79 +249,47 @@
 
 <script>
 export default {
-  name: 'OnboardingFlow',
-  
+  name: "OnboardingFlow",
+
   props: {
     showOnboarding: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
-  
+
   data() {
     return {
       currentStep: 1,
       totalSteps: 5,
       locationDetecting: false,
       locationError: null,
-      userLocation: '',
+      userLocation: "",
       userProfile: {
-        ageGroup: '',
-        primaryDiagnosis: '',
-        otherDiagnosis: '',
+        age: "",
+        diagnosis: "",
         hasInsurance: false,
         hasRegionalCenter: false,
-        canPrivatePay: false,
-        interestedServices: []
+        therapies: [],
       },
-      serviceOptions: [
-        {
-          id: 'therapy',
-          name: 'Therapy Services',
-          description: 'Speech, occupational, physical therapy',
-          icon: 'bi bi-chat-heart'
-        },
-        {
-          id: 'medical',
-          name: 'Medical Services',
-          description: 'Specialized medical care and treatment',
-          icon: 'bi bi-heart-pulse'
-        },
-        {
-          id: 'educational',
-          name: 'Educational Support',
-          description: 'Special education and learning support',
-          icon: 'bi bi-mortarboard'
-        },
-        {
-          id: 'behavioral',
-          name: 'Behavioral Services',
-          description: 'ABA therapy and behavioral interventions',
-          icon: 'bi bi-person-check'
-        },
-        {
-          id: 'diagnostic',
-          name: 'Diagnostic Services',
-          description: 'Assessments and evaluations',
-          icon: 'bi bi-clipboard-data'
-        },
-        {
-          id: 'support',
-          name: 'Family Support',
-          description: 'Counseling and family resources',
-          icon: 'bi bi-people'
-        }
+      therapyOptions: [
+        "ABA therapy",
+        "Speech therapy",
+        "Occupational therapy",
+        "Physical therapy",
+        "Feeding therapy",
+        "Parent child interaction therapy/parent training behavior management",
       ],
       resultsCount: 0,
-      regionalCentersCount: 0
-    }
+      regionalCentersCount: 0,
+    };
   },
-  
+
   computed: {
     progressPercentage() {
       return (this.currentStep / this.totalSteps) * 100;
     },
-    
+
     canProceed() {
       switch (this.currentStep) {
         case 1:
@@ -360,16 +306,16 @@ export default {
           return false;
       }
     },
-    
+
     locationDetected() {
       return this.userLocation && this.userLocation.length > 0;
     },
-    
+
     userLocationDisplay() {
-      return this.userLocation || 'Current Location';
-    }
+      return this.userLocation || "Current Location";
+    },
   },
-  
+
   methods: {
     nextStep() {
       if (this.currentStep < this.totalSteps) {
@@ -379,105 +325,117 @@ export default {
         }
       }
     },
-    
+
     previousStep() {
       if (this.currentStep > 1) {
         this.currentStep--;
       }
     },
-    
+
     async detectLocation() {
       this.locationDetecting = true;
       this.locationError = null;
-      
+
       try {
         const position = await this.getCurrentPosition();
         const { latitude, longitude } = position.coords;
-        
+
         // Reverse geocode to get address
         const address = await this.reverseGeocode(latitude, longitude);
         this.userLocation = address;
-        
+
         // Emit location data to parent
-        this.$emit('location-detected', {
+        this.$emit("location-detected", {
           latitude,
           longitude,
-          address
+          address,
         });
-        
+
         this.nextStep();
       } catch (error) {
-        this.locationError = 'Unable to detect location. Please enter manually.';
-        console.error('Location detection failed:', error);
+        this.locationError = "Unable to detect location. Please enter manually.";
+        console.error("Location detection failed:", error);
       } finally {
         this.locationDetecting = false;
       }
     },
-    
+
     getCurrentPosition() {
       return new Promise((resolve, reject) => {
         if (!navigator.geolocation) {
-          reject(new Error('Geolocation not supported'));
+          reject(new Error("Geolocation not supported"));
           return;
         }
-        
-        navigator.geolocation.getCurrentPosition(
-          resolve,
-          reject,
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000
-          }
-        );
+
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000,
+        });
       });
     },
-    
+
     async reverseGeocode(latitude, longitude) {
       try {
         // This would use your geocoding service
         // For now, return a placeholder
         return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
       } catch (error) {
-        console.error('Reverse geocoding failed:', error);
-        return 'Location detected';
+        console.error("Reverse geocoding failed:", error);
+        return "Location detected";
       }
     },
-    
+
     validateLocation() {
       if (this.userLocation.trim()) {
-        this.$emit('location-manual', this.userLocation);
+        this.$emit("location-manual", this.userLocation);
+        this.matchRegionalCenterByLocation(this.userLocation).catch(() => {});
         this.nextStep();
       }
     },
-    
+
+    async matchRegionalCenterByLocation(locationText) {
+      try {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+        const url = `${apiBaseUrl}/api/regional-centers/by_location/?location=${encodeURIComponent(
+          locationText
+        )}&radius=40&limit=5`;
+        const res = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!res.ok) return;
+        const centers = await res.json();
+        if (Array.isArray(centers) && centers.length > 0) {
+          this.$emit("regional-center-matched", centers[0]);
+        }
+      } catch (e) {}
+    },
+
     generateResults() {
       // This would query your API for actual results
       // For now, generate sample counts
       this.resultsCount = Math.floor(Math.random() * 20) + 10;
       this.regionalCentersCount = Math.floor(Math.random() * 5) + 2;
     },
-    
+
     completeOnboarding() {
       this.saveProfile();
-      this.$emit('onboarding-complete', {
+      this.$emit("onboarding-complete", {
         userProfile: this.userProfile,
-        userLocation: this.userLocation
+        userLocation: this.userLocation,
       });
     },
-    
+
     saveProfile() {
       // Save profile to localStorage
-      localStorage.setItem('chla-user-profile', JSON.stringify(this.userProfile));
-      localStorage.setItem('chla-user-location', this.userLocation);
-      localStorage.setItem('chla-onboarding-complete', 'true');
+      localStorage.setItem("chla-user-profile", JSON.stringify(this.userProfile));
+      localStorage.setItem("chla-user-location", this.userLocation);
+      localStorage.setItem("chla-onboarding-complete", "true");
     },
-    
+
     skipOnboarding() {
-      this.$emit('onboarding-skipped');
-    }
-  }
-}
+      this.$emit("onboarding-skipped");
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -608,7 +566,7 @@ export default {
 }
 
 .location-divider::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 0;
@@ -722,7 +680,7 @@ export default {
 }
 
 .insurance-option input:checked + .checkmark::after {
-  content: '✓';
+  content: "✓";
   color: white;
   position: absolute;
   top: 50%;
@@ -780,7 +738,7 @@ export default {
 }
 
 .service-option input:checked + .checkmark::after {
-  content: '✓';
+  content: "✓";
   color: white;
   position: absolute;
   top: 50%;
@@ -974,20 +932,20 @@ export default {
     width: 95%;
     max-height: 95vh;
   }
-  
+
   .step-content {
     padding: 24px 16px;
   }
-  
+
   .service-types {
     grid-template-columns: 1fr;
   }
-  
+
   .result-stats {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .results-actions {
     flex-direction: column;
   }
