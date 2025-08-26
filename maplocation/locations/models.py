@@ -4,6 +4,7 @@ from django.db import models
 # from django.contrib.gis.measure import Distance
 from decimal import Decimal
 import math
+import uuid
 
 
 class LocationCategory(models.Model):
@@ -81,6 +82,22 @@ class RegionalCenter(models.Model):
         help_text="Approximate service radius in miles (used when no service area polygon is available)",
     )
 
+    # LA-specific fields
+    zip_codes = models.JSONField(
+        blank=True, 
+        null=True,
+        help_text="List of ZIP codes served by this regional center (LA-specific)"
+    )
+    service_areas = models.JSONField(
+        blank=True, 
+        null=True,
+        help_text="List of service area names (LA-specific)"
+    )
+    is_la_regional_center = models.BooleanField(
+        default=False,
+        help_text="Whether this is a Los Angeles County regional center"
+    )
+
     def __str__(self):
         return self.regional_center
 
@@ -111,6 +128,20 @@ class RegionalCenter(models.Model):
         """Create an approximate circular service area based on the center location and service radius"""
         # Temporarily disabled due to GIS dependencies
         return None
+
+    @classmethod
+    def find_by_zip_code(cls, zip_code):
+        """Find regional center that serves a specific ZIP code (LA-specific)"""
+        try:
+            # First try to find by exact ZIP code match in zip_codes field
+            if cls.objects.filter(zip_codes__contains=[zip_code]).exists():
+                return cls.objects.filter(zip_codes__contains=[zip_code]).first()
+            
+            # Fallback: try to find by the center's own zip_code field
+            return cls.objects.filter(zip_code=zip_code).first()
+        except Exception as e:
+            print(f"Error finding regional center by ZIP code {zip_code}: {e}")
+            return None
 
     @classmethod
     def find_nearest(cls, latitude, longitude, radius_miles=25, limit=10):
@@ -423,6 +454,169 @@ class Provider(models.Model):
     @property
     def website(self):
         return self.website_domain
+
+
+class ProviderV2(models.Model):
+    """New provider model with actual database structure"""
+    
+    # Primary key and basic info
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=100, blank=True, null=True)
+    phone = models.CharField(max_length=100, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    verified = models.BooleanField(default=False)
+    
+    # Geographic coordinates
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    hours = models.TextField(blank=True, null=True)
+    
+    # Service details
+    insurance_accepted = models.TextField(blank=True, null=True)  # PostgreSQL array stored as text
+    languages_spoken = models.TextField(blank=True, null=True)  # PostgreSQL array stored as text
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "providers_v2"
+        verbose_name = "Provider V2"
+        verbose_name_plural = "Providers V2"
+    
+    def __str__(self):
+        return self.name
+    
+    # Helper properties for frontend compatibility
+    @property
+    def city(self):
+        if self.address:
+            parts = self.address.split(",")
+            if len(parts) >= 2:
+                return parts[-2].strip().split()[-2] if len(parts[-2].strip().split()) > 1 else ""
+        return ""
+    
+    @property
+    def state(self):
+        if self.address:
+            parts = self.address.split(",")
+            if len(parts) >= 2:
+                last_part = parts[-1].strip()
+                if " " in last_part:
+                    return last_part.split()[0]
+        return "CA"
+    
+    @property
+    def zip_code(self):
+        if self.address:
+            parts = self.address.split(",")
+            if len(parts) >= 2:
+                last_part = parts[-1].strip()
+                if " " in last_part:
+                    return last_part.split()[-1]
+        return ""
+    
+    # Backward compatibility properties
+    @property
+    def age_groups_served(self):
+        return ""
+    
+    @property
+    def diagnoses_served(self):
+        return self.type or ""
+    
+    @property
+    def accepts_insurance(self):
+        return bool(self.insurance_accepted and self.insurance_accepted.strip())
+    
+    @property
+    def accepts_regional_center(self):
+        return self.insurance_accepted and "regional center" in self.insurance_accepted.lower()
+    
+    @property
+    def website_domain(self):
+        return self.website
+    
+    @property
+    def center_based_services(self):
+        return ""
+    
+    @property
+    def areas(self):
+        return ""
+    
+    @property
+    def specializations(self):
+        return [self.type] if self.type else []
+    
+    @property
+    def services(self):
+        return []
+    
+    @property
+    def coverage_areas(self):
+        return []
+    
+    @classmethod
+    def find_nearest(cls, latitude, longitude, radius_miles=10, limit=20):
+        """Find providers within radius of given coordinates"""
+        from django.db import connection
+        
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT id, name, phone, address, latitude, longitude,
+                       (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
+                       cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
+                       sin(radians(latitude)))) AS distance
+                FROM providers_v2 
+                WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+                AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
+                cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
+                sin(radians(latitude)))) < %s
+                ORDER BY distance
+                LIMIT %s
+            """,
+                [latitude, longitude, latitude, latitude, longitude, latitude, radius_miles, limit],
+            )
+            
+            columns = [col[0] for col in cursor.description]
+            results = []
+            for row in cursor.fetchall():
+                provider_data = dict(zip(columns, row))
+                provider = cls.objects.get(id=provider_data["id"])
+                provider.distance = provider_data["distance"]
+                results.append(provider)
+            return results
+    
+    @classmethod
+    def geocode_and_search(cls, address_or_zip, radius_miles=10, limit=20):
+        """Geocode an address/zip and find nearby providers"""
+        coordinates = RegionalCenter.geocode_address(address_or_zip)
+        if coordinates:
+            return cls.find_nearest(coordinates[0], coordinates[1], radius_miles, limit)
+        return []
+    
+    def get_distance_to(self, latitude, longitude):
+        """Calculate distance from provider to given coordinates"""
+        if not self.latitude or not self.longitude:
+            return None
+        
+        lat1, lon1 = float(self.latitude), float(self.longitude)
+        lat2, lon2 = float(latitude), float(longitude)
+        
+        R = 3959  # Earth's radius in miles
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = math.sin(dlat / 2) * math.sin(dlat / 2) + math.cos(
+            math.radians(lat1)
+        ) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) * math.sin(dlon / 2)
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
 
 
 class ProviderRegionalCenter(models.Model):

@@ -82,6 +82,21 @@
             <i class="bi bi-exclamation-triangle"></i>
             {{ locationError }}
           </div>
+
+          <!-- Regional Center Display -->
+          <div v-if="matchedRegionalCenter" class="regional-center-info">
+            <div class="alert alert-success">
+              <i class="bi bi-building"></i>
+              <strong>Regional Center Found!</strong>
+              <div class="rc-details">
+                <div class="rc-name">{{ matchedRegionalCenter.name }}</div>
+                <div class="rc-address">{{ matchedRegionalCenter.address }}</div>
+                <div class="rc-phone" v-if="matchedRegionalCenter.phone">
+                  📞 {{ matchedRegionalCenter.phone }}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Profile Step -->
@@ -272,6 +287,7 @@ export default {
         hasRegionalCenter: false,
         therapies: [],
       },
+      matchedRegionalCenter: null,
       therapyOptions: [
         "ABA therapy",
         "Speech therapy",
@@ -297,9 +313,9 @@ export default {
         case 2:
           return this.userLocation || this.locationDetected;
         case 3:
-          return this.userProfile.ageGroup; // Age group is required
+          return this.userProfile.age; // Age is required
         case 4:
-          return this.userProfile.interestedServices.length > 0;
+          return this.userProfile.therapies.length > 0;
         case 5:
           return true;
         default:
@@ -404,9 +420,12 @@ export default {
         if (!res.ok) return;
         const centers = await res.json();
         if (Array.isArray(centers) && centers.length > 0) {
+          this.matchedRegionalCenter = centers[0];
           this.$emit("regional-center-matched", centers[0]);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error("Regional center lookup failed:", e);
+      }
     },
 
     generateResults() {
@@ -924,6 +943,40 @@ export default {
   background: #fff3cd;
   color: #856404;
   border: 1px solid #ffeaa7;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.regional-center-info {
+  margin-top: 20px;
+}
+
+.rc-details {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.rc-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #155724;
+  margin-bottom: 4px;
+}
+
+.rc-address {
+  font-size: 14px;
+  color: #155724;
+  margin-bottom: 4px;
+}
+
+.rc-phone {
+  font-size: 14px;
+  color: #155724;
+  font-weight: 500;
 }
 
 /* Responsive */

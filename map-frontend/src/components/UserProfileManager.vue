@@ -76,16 +76,11 @@
               <label for="diagnosis">Primary Diagnosis</label>
               <select id="diagnosis" v-model="profile.primaryDiagnosis" class="form-control">
                 <option value="">Select diagnosis (optional)</option>
-                <option value="Autism">Autism Spectrum Disorder</option>
-                <option value="ADHD">ADHD</option>
-                <option value="Developmental Delay">Developmental Delay</option>
-                <option value="Learning Disabilities">Learning Disabilities</option>
+                <option value="Global Development Delay">Global Development Delay</option>
+                <option value="Autism Spectrum Disorder">Autism Spectrum Disorder</option>
                 <option value="Intellectual Disability">Intellectual Disability</option>
-                <option value="Cerebral Palsy">Cerebral Palsy</option>
-                <option value="Speech Delay">Speech/Language Delay</option>
-                <option value="Sensory Processing">Sensory Processing Disorder</option>
-                <option value="Mental Health">Mental Health Condition</option>
-                <option value="Other">Other</option>
+                <option value="Speech and Language Disorder">Speech and Language Disorder</option>
+                <option value="ADHD">ADHD</option>
               </select>
             </div>
           </div>
@@ -279,39 +274,39 @@ export default {
       },
       availableServices: [
         {
-          id: 'therapy',
-          name: 'Therapy Services',
-          description: 'Speech, occupational, physical therapy',
-          icon: 'bi bi-chat-heart'
-        },
-        {
-          id: 'medical',
-          name: 'Medical Services',
-          description: 'Specialized medical care',
-          icon: 'bi bi-heart-pulse'
-        },
-        {
-          id: 'behavioral',
-          name: 'Behavioral Services',
-          description: 'ABA therapy, behavioral interventions',
+          id: 'aba',
+          name: 'ABA Therapy',
+          description: 'Applied Behavior Analysis therapy',
           icon: 'bi bi-person-check'
         },
         {
-          id: 'educational',
-          name: 'Educational Support',
-          description: 'Special education, tutoring',
-          icon: 'bi bi-mortarboard'
+          id: 'speech',
+          name: 'Speech Therapy',
+          description: 'Speech and language therapy',
+          icon: 'bi bi-chat-heart'
         },
         {
-          id: 'diagnostic',
-          name: 'Diagnostic Services',
-          description: 'Assessments, evaluations',
-          icon: 'bi bi-clipboard-data'
+          id: 'occupational',
+          name: 'Occupational Therapy',
+          description: 'Occupational therapy services',
+          icon: 'bi bi-heart-pulse'
         },
         {
-          id: 'support',
-          name: 'Support Services',
-          description: 'Respite care, family support',
+          id: 'physical',
+          name: 'Physical Therapy',
+          description: 'Physical therapy services',
+          icon: 'bi bi-activity'
+        },
+        {
+          id: 'feeding',
+          name: 'Feeding Therapy',
+          description: 'Feeding therapy services',
+          icon: 'bi bi-cup-hot'
+        },
+        {
+          id: 'parent-training',
+          name: 'Parent Training',
+          description: 'Parent child interaction therapy and behavior management',
           icon: 'bi bi-people'
         }
       ]

@@ -70,10 +70,132 @@
           {{ location.name || location.regional_center || "Unnamed Location" }}
         </h5>
 
-        <!-- Location Address -->
-        <p class="mb-1 small">
-          {{ location.address || "" }}{{ location.city ? ", " + location.city : "" }}
+        <!-- Provider Type Badge -->
+        <div v-if="location.type" class="mb-2">
+          <span class="badge bg-primary me-1">{{ location.type }}</span>
+        </div>
+
+        <!-- Location Address (cleaned) -->
+        <p class="mb-2 small text-muted">
+          {{ formatAddress(location) }}
         </p>
+
+        <!-- Description -->
+        <div v-if="location.description" class="mb-2">
+          <div
+            class="small"
+            style="
+              background: #fff3cd;
+              padding: 8px 12px;
+              border-radius: 6px;
+              border-left: 3px solid #ffc107;
+              margin: 0;
+            "
+          >
+            <div
+              style="
+                color: #856404;
+                font-size: 11px;
+                font-weight: 600;
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              "
+            >
+              📍 Service Areas
+            </div>
+            <div style="color: #856404; font-size: 13px; line-height: 1.4">
+              {{ formatDescription(location.description) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Insurance Information -->
+        <div
+          v-if="location.insurance_accepted && location.insurance_accepted !== '[]'"
+          class="mb-2"
+        >
+          <div
+            class="small"
+            style="
+              background: #d4edda;
+              padding: 8px 12px;
+              border-radius: 6px;
+              border-left: 3px solid #28a745;
+              color: #155724;
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 600;
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              "
+            >
+              🏥 Insurance Accepted
+            </div>
+            <div style="font-size: 13px; line-height: 1.4">
+              {{ formatInsurance(location.insurance_accepted) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Languages -->
+        <div
+          v-if="location.languages_spoken && location.languages_spoken !== '[]'"
+          class="mb-2"
+        >
+          <div
+            class="small"
+            style="
+              background: #e2e3e5;
+              padding: 8px 12px;
+              border-radius: 6px;
+              border-left: 3px solid #6c757d;
+              color: #383d41;
+            "
+          >
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 600;
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              "
+            >
+              🗣️ Languages
+            </div>
+            <div style="font-size: 13px; line-height: 1.4">
+              {{ formatLanguages(location.languages_spoken) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Website -->
+        <div v-if="location.website" class="mb-2">
+          <a
+            :href="
+              location.website.startsWith('http')
+                ? location.website
+                : 'https://' + location.website
+            "
+            target="_blank"
+            class="small text-decoration-none"
+            style="
+              background: #f8f9fa;
+              padding: 6px 8px;
+              border-radius: 4px;
+              border-left: 3px solid #6f42c1;
+              color: #6f42c1;
+              display: inline-block;
+            "
+          >
+            🌐 Visit Website
+          </a>
+        </div>
 
         <!-- Ratings (for locations only) -->
         <div v-if="location.rating" class="d-flex justify-content-between">
@@ -114,6 +236,120 @@ export default {
   },
 
   methods: {
+    formatAddress(location) {
+      const parts = [];
+
+      // Handle address field which might be JSON string or object
+      let addressData = null;
+      if (location.address) {
+        try {
+          // Try to parse if it's a JSON string
+          if (typeof location.address === "string") {
+            addressData = JSON.parse(location.address);
+          } else {
+            addressData = location.address;
+          }
+        } catch (e) {
+          // If parsing fails, treat as plain text
+          addressData = null;
+        }
+      }
+
+      // Build address from parsed data or fallback to individual fields
+      if (addressData && typeof addressData === "object") {
+        // Use parsed JSON data
+        if (addressData.street) parts.push(addressData.street);
+        if (addressData.city) parts.push(addressData.city);
+        if (addressData.state) parts.push(addressData.state);
+        if (addressData.zip) parts.push(addressData.zip);
+      } else {
+        // Fallback to individual fields (for backward compatibility)
+        if (location.address && !addressData) {
+          parts.push(String(location.address).replace(/,?\s*United States\b/i, ""));
+        }
+        if (location.city) parts.push(location.city);
+        if (location.state) parts.push(location.state);
+        if (location.zip_code) parts.push(location.zip_code);
+      }
+
+      // Clean up and filter out empty parts
+      return parts.filter(Boolean).join(", ");
+    },
+    formatDescription(description) {
+      if (!description) return "";
+
+      // Clean up the description text
+      let cleanDescription = description;
+
+      // Clean up formatting without removing directional words
+      cleanDescription = cleanDescription
+        .replace(/,/g, ", ") // Add space after commas
+        .replace(/\s+/g, " ") // Normalize whitespace
+        .trim();
+
+      // Convert to proper title case (capitalize first letter of each word)
+      cleanDescription = cleanDescription
+        .toLowerCase()
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+
+      return cleanDescription;
+    },
+
+    formatInsurance(insurance) {
+      if (!insurance) return "";
+
+      try {
+        // Try to parse as JSON first
+        const parsed = JSON.parse(insurance);
+        if (Array.isArray(parsed)) {
+          return parsed.join(", ");
+        } else if (typeof parsed === "object") {
+          return Object.values(parsed).join(", ");
+        }
+      } catch (e) {
+        // If not JSON, treat as string
+      }
+
+      // Clean up insurance text
+      let cleanInsurance = insurance;
+
+      // Remove array brackets and quotes
+      cleanInsurance = cleanInsurance
+        .replace(/^\[|\]$/g, "") // Remove outer brackets
+        .replace(/'/g, "") // Remove single quotes
+        .replace(/"/g, "") // Remove double quotes
+        .replace(/,/g, ", ") // Add space after commas
+        .trim();
+
+      return cleanInsurance;
+    },
+    formatLanguages(languages) {
+      if (!languages) return "";
+
+      try {
+        const parsed = JSON.parse(languages);
+        if (Array.isArray(parsed)) {
+          return parsed.join(", ");
+        } else if (typeof parsed === "object") {
+          return Object.values(parsed).join(", ");
+        }
+      } catch (e) {
+        // If not JSON, treat as string
+      }
+
+      // Clean up languages text
+      let cleanLanguages = languages;
+
+      // Remove array brackets and quotes
+      cleanLanguages = cleanLanguages
+        .replace(/^\[|\]$/g, "") // Remove outer brackets
+        .replace(/'/g, "") // Remove single quotes
+        .replace(/"/g, "") // Remove double quotes
+        .replace(/,/g, ", ") // Add space after commas
+        .trim();
+
+      return cleanLanguages;
+    },
     centerOnLocation(location) {
       // Emit an event to center the map on this location
       this.$emit("center-on-location", location);
@@ -137,33 +373,35 @@ export default {
 
 .location-item {
   cursor: pointer;
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  transition: all 0.2s ease-out;
-  border: 1px solid #eee;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease-out;
+  border: 1px solid #e9ecef;
   background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   position: relative;
-  user-select: none; /* Prevent text selection when tapping */
-  touch-action: manipulation; /* Optimize for touch */
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .location-item:hover {
   background-color: #f8f9fa;
-  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
 }
 
 .location-item:active {
-  background-color: #f1f3f5;
+  background-color: #e9ecef;
+  transform: translateY(0);
 }
 
 .location-item.active {
   background-color: #007bff;
   color: white;
-  border-color: #0069d9;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-color: #0056b3;
+  box-shadow: 0 4px 16px rgba(0, 123, 255, 0.3);
 }
 
 /* Recommended item styling */
@@ -188,25 +426,38 @@ export default {
   gap: 4px;
 }
 
+/* Enhanced badge styling */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* If both recommended and active */
 .location-item.active.recommended,
 .location-item.active.highly-recommended {
   border-left-color: white;
 }
 
+/* Improved typography */
 .location-item h5 {
-  font-size: 1rem;
-  margin-bottom: 4px;
-  line-height: 1.3;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  line-height: 1.4;
   word-break: break-word;
-  font-weight: 600;
+  font-weight: 700;
+  color: #2c3e50;
 }
 
 .location-item p {
-  margin-bottom: 4px;
-  line-height: 1.4;
+  margin-bottom: 8px;
+  line-height: 1.5;
   word-break: break-word;
-  opacity: 0.85;
+  opacity: 0.9;
+  color: #495057;
 }
 
 .star-rating {
