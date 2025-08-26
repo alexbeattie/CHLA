@@ -34,7 +34,8 @@ urlpatterns = [
     path('leaflet/', TemplateView.as_view(template_name='vue_app/leaflet.html'), name='leaflet'),
     path('vue/', TemplateView.as_view(template_name='vue_app/vue_mapbox_raw.html'), name='vue_mapbox'),
     path('simple/', TemplateView.as_view(template_name='vue_app/simple.html'), name='simple'),
-    path('', TemplateView.as_view(template_name='vue_app/vue_mapbox_raw.html'), name='home'),  # Set Vue version as default
+    # Remove the root path that was causing template errors
+    # path('', TemplateView.as_view(template_name='vue_app/vue_mapbox_raw.html'), name='home'),
 ]
 
 # Serve media files in development

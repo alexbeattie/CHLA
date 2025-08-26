@@ -28,8 +28,8 @@
               <th>Name</th>
               <th>Phone</th>
               <th>Address</th>
-              <th>Areas</th>
-              <th>Insurance</th>
+              <th>Description</th>
+              <th>Insurance Accepted</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -38,17 +38,20 @@
               <td>{{ provider.name }}</td>
               <td>{{ provider.phone || "N/A" }}</td>
               <td>{{ provider.address || "N/A" }}</td>
-              <td>{{ provider.coverage_areas || "N/A" }}</td>
+              <td>{{ provider.description || "N/A" }}</td>
               <td>{{ provider.insurance_accepted || "N/A" }}</td>
-              <td class="actions">
-                <button @click="editProvider(provider)" class="btn btn-sm btn-warning">
-                  <i class="fas fa-edit"></i>
+              <td>
+                <button
+                  class="btn btn-sm btn-outline-primary me-1"
+                  @click="editProvider(provider)"
+                >
+                  Edit
                 </button>
                 <button
+                  class="btn btn-sm btn-outline-danger"
                   @click="deleteProvider(provider.id)"
-                  class="btn btn-sm btn-danger"
                 >
-                  <i class="fas fa-trash"></i>
+                  Delete
                 </button>
               </td>
             </tr>
@@ -77,13 +80,36 @@
                 placeholder="Enter provider name"
               />
             </div>
-            <div class="form-group">
+            <div class="mb-3">
               <label for="phone">Phone</label>
               <input
+                type="tel"
+                class="form-control"
                 id="phone"
                 v-model="formData.phone"
-                type="tel"
-                placeholder="Enter phone number"
+                placeholder="Phone number"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                v-model="formData.email"
+                placeholder="Email address"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="website">Website</label>
+              <input
+                type="url"
+                class="form-control"
+                id="website"
+                v-model="formData.website"
+                placeholder="Website URL"
               />
             </div>
           </div>
@@ -202,14 +228,26 @@
             ></textarea>
           </div>
 
-          <div class="form-group">
-            <label for="insurance_accepted">Insurance Accepted</label>
+          <div class="mb-3">
+            <label for="description">Description</label>
             <textarea
+              class="form-control"
+              id="description"
+              v-model="formData.description"
+              rows="3"
+              placeholder="Service description and areas served"
+            ></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="insurance_accepted">Insurance Accepted</label>
+            <input
+              type="text"
+              class="form-control"
               id="insurance_accepted"
               v-model="formData.insurance_accepted"
-              placeholder="e.g., Medi-Cal, Blue Cross, Aetna"
-              rows="2"
-            ></textarea>
+              placeholder="e.g., Medi-Cal, Aetna, Blue Cross"
+            />
           </div>
 
           <div class="form-group">
@@ -230,6 +268,17 @@
               placeholder="e.g., Los Angeles, Orange County, Ventura County"
               rows="2"
             ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="languages_spoken">Languages Spoken</label>
+            <input
+              type="text"
+              class="form-control"
+              id="languages_spoken"
+              v-model="formData.languages_spoken"
+              placeholder="e.g., English, Spanish, Mandarin"
+            />
           </div>
 
           <div class="form-actions">
@@ -284,16 +333,14 @@ export default {
       formData: {
         name: "",
         phone: "",
+        email: "",
+        website: "",
+        description: "",
         address: "",
-        website_domain: "",
         latitude: "",
         longitude: "",
-        center_based_services: "",
-        areas: "",
-        specializations: "",
         insurance_accepted: "",
-        services: "",
-        coverage_areas: "",
+        languages_spoken: "",
       },
       previewLat: null,
       previewLng: null,
@@ -379,7 +426,7 @@ export default {
       this.error = null;
 
       try {
-        const response = await fetch(`${API_ROOT}/providers/`);
+        const response = await fetch(`${API_ROOT}/providers-v2/`);
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(
@@ -408,8 +455,7 @@ export default {
         (provider) =>
           provider.name.toLowerCase().includes(query) ||
           (provider.address && provider.address.toLowerCase().includes(query)) ||
-          (provider.coverage_areas &&
-            provider.coverage_areas.toLowerCase().includes(query)) ||
+          (provider.description && provider.description.toLowerCase().includes(query)) ||
           (provider.phone && provider.phone.includes(query))
       );
     },
@@ -419,9 +465,21 @@ export default {
     },
 
     editProvider(provider) {
-      this.editingProvider = provider;
-      this.formData = { ...provider };
+      this.editingProvider = { ...provider };
+      this.formData = {
+        name: provider.name || "",
+        phone: provider.phone || "",
+        email: provider.email || "",
+        website: provider.website || "",
+        description: provider.description || "",
+        address: provider.address || "",
+        latitude: provider.latitude || "",
+        longitude: provider.longitude || "",
+        insurance_accepted: provider.insurance_accepted || "",
+        languages_spoken: provider.languages_spoken || "",
+      };
       this.showEditForm = true;
+      this.error = null;
     },
 
     async deleteProvider(providerId) {
@@ -434,7 +492,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${API_ROOT}/providers/${providerId}/`, {
+        const response = await fetch(`${API_ROOT}/providers-v2/${providerId}/`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -490,8 +548,8 @@ export default {
 
       try {
         const url = this.showEditForm
-          ? `${API_ROOT}/providers/${this.editingProvider.id}/`
-          : `${API_ROOT}/providers/`;
+          ? `${API_ROOT}/providers-v2/${this.editingProvider.id}/`
+          : `${API_ROOT}/providers-v2/`;
 
         const method = this.showEditForm ? "PUT" : "POST";
 
@@ -559,16 +617,14 @@ export default {
       this.formData = {
         name: "",
         phone: "",
+        email: "",
+        website: "",
+        description: "",
         address: "",
-        website_domain: "",
         latitude: "",
         longitude: "",
-        center_based_services: "",
-        areas: "",
-        specializations: "",
         insurance_accepted: "",
-        services: "",
-        coverage_areas: "",
+        languages_spoken: "",
       };
       this.error = null;
       this.successMessage = null;
@@ -581,16 +637,14 @@ export default {
       this.formData = {
         name: "",
         phone: "",
+        email: "",
+        website: "",
+        description: "",
         address: "",
-        website_domain: "",
         latitude: "",
         longitude: "",
-        center_based_services: "",
-        areas: "",
-        specializations: "",
         insurance_accepted: "",
-        services: "",
-        coverage_areas: "",
+        languages_spoken: "",
       };
       this.error = null;
       this.successMessage = null;

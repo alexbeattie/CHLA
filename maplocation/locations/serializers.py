@@ -16,6 +16,7 @@ from .models import (
     ProviderInsuranceCarrier,
     ProviderServiceModel,
     ProviderRegionalCenter,
+    ProviderV2,
 )
 
 
@@ -297,6 +298,132 @@ class ProviderSerializer(serializers.ModelSerializer):
     def get_serving_regional_centers(self, obj):
         """Get regional centers serving this provider"""
         return []  # Temporarily simplified
+
+
+# ProviderV2 serializer with enum array support
+class ProviderV2Serializer(serializers.ModelSerializer):
+    # Read-only computed fields for compatibility
+    city = serializers.ReadOnlyField()
+    state = serializers.ReadOnlyField()
+    zip_code = serializers.ReadOnlyField()
+    age_groups_served = serializers.ReadOnlyField()
+    diagnoses_served = serializers.ReadOnlyField()
+    accepts_insurance = serializers.ReadOnlyField()
+    accepts_private_pay = serializers.ReadOnlyField()
+    accepts_regional_center = serializers.ReadOnlyField()
+    website_domain = serializers.ReadOnlyField()
+    center_based_services = serializers.ReadOnlyField()
+    areas = serializers.ReadOnlyField()
+    specializations = serializers.ReadOnlyField()
+    services = serializers.ReadOnlyField()
+    coverage_areas = serializers.ReadOnlyField()
+
+    # Optional: Include related regional centers
+    serving_regional_centers = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProviderV2
+        fields = [
+            "id",
+            "name",
+            "type",
+            "phone",
+            "email",
+            "website",
+            "description",
+            "verified",
+            "latitude",
+            "longitude",
+            "address",
+            "hours",
+            "insurance_accepted",
+            "languages_spoken",
+            "created_at",
+            "updated_at",
+            # Computed fields for frontend compatibility
+            "city",
+            "state",
+            "zip_code",
+            "age_groups_served",
+            "diagnoses_served",
+            "accepts_insurance",
+            "accepts_private_pay",
+            "accepts_regional_center",
+            "website_domain",
+            "center_based_services",
+            "areas",
+            "specializations",
+            "services",
+            "coverage_areas",
+            "serving_regional_centers",
+        ]
+
+    def get_serving_regional_centers(self, obj):
+        """Get regional centers serving this provider"""
+        return []  # Temporarily simplified
+
+
+# ProviderV2 write serializer
+class ProviderV2WriteSerializer(serializers.ModelSerializer):
+    def validate_latitude(self, value):
+        if value in (None, ""):
+            return None
+        try:
+            dec = Decimal(str(value)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
+            return dec
+        except (InvalidOperation, ValueError, TypeError):
+            return value
+
+    def validate_longitude(self, value):
+        if value in (None, ""):
+            return None
+        try:
+            dec = Decimal(str(value)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
+            return dec
+        except (InvalidOperation, ValueError, TypeError):
+            return value
+
+    def validate(self, attrs):
+        # If address is provided but no coordinates, try to geocode
+        address = attrs.get("address")
+        lat = attrs.get("latitude")
+        lng = attrs.get("longitude")
+        if address and (lat is None or lng is None):
+            coords = geocode_address(address)
+            if coords:
+                attrs["latitude"], attrs["longitude"] = coords
+
+        # Normalize coordinate precision to fit model constraints
+        def normalize(value):
+            if value is None or value == "":
+                return None
+            try:
+                dec = Decimal(str(value)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
+                return dec
+            except (InvalidOperation, ValueError, TypeError):
+                return value
+
+        attrs["latitude"] = normalize(attrs.get("latitude"))
+        attrs["longitude"] = normalize(attrs.get("longitude"))
+        return attrs
+
+    class Meta:
+        model = ProviderV2
+        fields = [
+            "name",
+            "type",
+            "phone", 
+            "email",
+            "website",
+            "description",
+            "verified",
+            "address",
+            "latitude",
+            "longitude",
+            "hours",
+            "insurance_accepted",
+            "languages_spoken",
+        ]
 
 
 # Provider serializer for write operations (create, update, delete)

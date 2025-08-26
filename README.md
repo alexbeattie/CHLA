@@ -1,23 +1,3 @@
-# 🚨 CRITICAL: READ BEFORE STARTING! 🚨
-
-## ⚠️ **ALWAYS START FROM THE RIGHT DIRECTORY!**
-
-### **🚫 WRONG Directory (where you keep ending up):**
-```
-/Users/alexbeattie/Documents/Cline/CHLAProj/
-```
-**This is the ROOT directory - NO `manage.py` file here!**
-
-### **✅ CORRECT Directory (where Django server must run):**
-```
-/Users/alexbeattie/Documents/Cline/CHLAProj/maplocation/
-```
-**This is where `manage.py` is located!**
-
-### **🐍 Use `python3`, not `python` on macOS!**
-
----
-
 # CHLA Provider Map Project
 
 A comprehensive healthcare provider mapping application for Children's Hospital Los Angeles, helping families find autism and developmental disability services in California.

@@ -1,0 +1,9 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":null,"properties":{"REGIONALCENTER":"Harbor Regional Center"}},
+{"type":"Feature","geometry":null,"properties":{"REGIONALCENTER":"Frank D. Lanterman Regional Center"}},
+{"type":"Feature","geometry":null,"properties":{"REGIONALCENTER":"San Gabriel/Pomona Regional Center"}},
+{"type":"Feature","geometry":null,"properties":{"REGIONALCENTER":"Westside Regional Center"}},
+{"type":"Feature","geometry":null,"properties":{"REGIONALCENTER":"South Central Los Angeles Regional Center"}},
+{"type":"Feature","geometry":null,"properties":{"REGIONALCENTER":"Eastern Los Angeles Regional Center"}},
+{"type":"Feature","geometry":null,"properties":{"REGIONALCENTER":"North Los Angeles County Regional Center"}}
+]}
