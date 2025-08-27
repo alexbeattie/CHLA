@@ -8,8 +8,8 @@ router.register(r"locations", views.LocationViewSet)
 router.register(r"images", views.LocationImageViewSet)
 router.register(r"reviews", views.LocationReviewViewSet)
 router.register(r"regional-centers", views.RegionalCenterViewSet)
-router.register(r"providers", views.ProviderViewSet)
-router.register(r"providers-v2", views.ProviderV2ViewSet)
+router.register(r"providers", views.ProviderV2ViewSet)
+router.register(r"providers-legacy", views.ProviderViewSet)
 
 # Register new reference data viewsets
 router.register(r"funding-sources", views.FundingSourceViewSet)
