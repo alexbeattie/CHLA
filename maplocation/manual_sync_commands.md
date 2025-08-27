@@ -15,7 +15,7 @@ python3 manage.py shell
 >>> exit()
 
 # Create the dump (replace with your actual values)
-pg_dump -h localhost -U your_username -d your_db_name -p 5432 \
+pg_dump -h localhost -U alexbeattie -d shafali -p 5432 \
   --clean --if-exists --no-owner --no-privileges \
   -f chla_local_dump.sql
 ```
@@ -58,12 +58,12 @@ python manage.py loaddata users_data.json
 ### **Option B: Direct Database Copy**
 ```bash
 # 1. Create schema-only dump
-pg_dump -h localhost -U your_username -d your_db_name \
+pg_dump -h localhost -U alexbeattie -d shafali \
   --schema-only --no-owner --no-privileges \
   -f schema_only.sql
 
 # 2. Create data-only dump
-pg_dump -h localhost -U your_username -d your_db_name \
+pg_dump -h localhost -U alexbeattie -d shafali \
   --data-only --no-owner --no-privileges \
   -f data_only.sql
 
@@ -78,8 +78,8 @@ psql -h chla-postgres-db.xxx.rds.amazonaws.com -U chla_admin -d postgres -f data
 
 ### **Local Database Details**
 - Host: `localhost` (usually)
-- User: Your PostgreSQL username
-- Database: Your local database name
+- User: `alexbeattie`
+- Database: `shafali`
 - Port: `5432` (usually)
 
 ### **RDS Database Details**

@@ -93,11 +93,12 @@ def create_pg_dump_command(connection_info, output_file):
     from django.conf import settings
     local_db = settings.DATABASES['default']
     
+    # Use the actual database name from settings (shafali)
     cmd = [
         'pg_dump',
         '-h', local_db['HOST'] or 'localhost',
-        '-U', local_db['USER'],
-        '-d', local_db['NAME'],
+        '-U', local_db['USER'],  # This will be 'alexbeattie'
+        '-d', local_db['NAME'],  # This will be 'shafali'
         '-p', str(local_db['PORT'] or 5432),
         '-f', output_file,
         '--clean',  # Drop tables before creating
