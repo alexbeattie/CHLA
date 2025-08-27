@@ -115,15 +115,11 @@ jobs:
           DB_HOST="${{ secrets.DB_HOST }}" \
           DB_PORT="5432" \
           DB_SSL_REQUIRE="true"
-      env:
-        AWS_PROFILE: default
     
     - name: Deploy to Elastic Beanstalk
       run: |
         cd maplocation
-        eb deploy ${{ secrets.EB_ENVIRONMENT_NAME }} --staged
-      env:
-        AWS_PROFILE: default
+        eb deploy chla-api-env --staged
     
     - name: Verify deployment
       run: |
