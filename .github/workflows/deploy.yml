@@ -106,27 +106,27 @@ jobs:
         echo "chla-api" | eb init chla-api --region us-west-2 --platform python-3.12
         echo "chla-api-env" | eb use chla-api-env || echo "Environment not found, will create bundle anyway"
     
-    - name: Set EB environment variables via AWS CLI
-      run: |
-        aws elasticbeanstalk update-environment \
-          --environment-name chla-api-env \
-          --option-settings \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DJANGO_SECRET_KEY,Value="${{ secrets.DJANGO_SECRET_KEY }}"' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DJANGO_DEBUG,Value=false' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=ALLOWED_HOSTS,Value="api.kinddhelp.com,.elasticbeanstalk.com,localhost"' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=CORS_ALLOWED_ORIGINS,Value="https://kinddhelp.com,https://www.kinddhelp.com"' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=CSRF_TRUSTED_ORIGINS,Value="https://api.kinddhelp.com,https://kinddhelp.com,https://www.kinddhelp.com"' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_NAME,Value=postgres' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_USER,Value=chla_admin' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_PASSWORD,Value="${{ secrets.DB_PASSWORD }}"' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_HOST,Value="${{ secrets.DB_HOST }}"' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_PORT,Value=5432' \
-          'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_SSL_REQUIRE,Value=true'
-    
     - name: Deploy to Elastic Beanstalk
       run: |
         cd maplocation
         eb deploy chla-api-env --staged || eb deploy chla-api-env
+    
+    - name: Set environment variables after deployment
+      run: |
+        cd maplocation
+        sleep 30  # Wait for deployment to complete
+        eb setenv \
+          DJANGO_SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
+          DJANGO_DEBUG="false" \
+          ALLOWED_HOSTS="api.kinddhelp.com,.elasticbeanstalk.com,localhost" \
+          CORS_ALLOWED_ORIGINS="https://kinddhelp.com,https://www.kinddhelp.com" \
+          CSRF_TRUSTED_ORIGINS="https://api.kinddhelp.com,https://kinddhelp.com,https://www.kinddhelp.com" \
+          DB_NAME="postgres" \
+          DB_USER="chla_admin" \
+          DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+          DB_HOST="${{ secrets.DB_HOST }}" \
+          DB_PORT="5432" \
+          DB_SSL_REQUIRE="true" || echo "Environment variables set via .ebextensions instead"
     
     - name: Verify deployment
       run: |
