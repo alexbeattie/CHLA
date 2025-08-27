@@ -2,7 +2,7 @@ branch-defaults:
   feature/la-zip-centers-and-ui:
     environment: chla-api-env-v2
   main:
-    environment: chla-api-env-v2
+    environment: chla-api-env
     group_suffix: null
 global:
   application_name: chla-api

@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-west-2
@@ -77,7 +78,7 @@ jobs:
   deploy-backend:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     
     steps:
     - name: Checkout code
@@ -99,27 +100,28 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: Deploy to Elastic Beanstalk
-      run: |
-        cd maplocation
-        eb deploy ${{ secrets.EB_ENVIRONMENT_NAME }} --staged
-      env:
-        AWS_PROFILE: default
-    
-    - name: Update environment variables
+    - name: Set EB environment variables
       run: |
         cd maplocation
         eb setenv \
           DJANGO_SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
           DJANGO_DEBUG="false" \
-          ALLOWED_HOSTS="api.kinddhelp.com,localhost" \
+          ALLOWED_HOSTS="api.kinddhelp.com,.elasticbeanstalk.com,localhost" \
           CORS_ALLOWED_ORIGINS="https://kinddhelp.com,https://www.kinddhelp.com" \
-          CSRF_TRUSTED_ORIGINS="https://kinddhelp.com,https://www.kinddhelp.com" \
+          CSRF_TRUSTED_ORIGINS="https://api.kinddhelp.com,https://kinddhelp.com,https://www.kinddhelp.com" \
           DB_NAME="postgres" \
           DB_USER="chla_admin" \
           DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
           DB_HOST="${{ secrets.DB_HOST }}" \
-          DB_PORT="5432"
+          DB_PORT="5432" \
+          DB_SSL_REQUIRE="true"
+      env:
+        AWS_PROFILE: default
+    
+    - name: Deploy to Elastic Beanstalk
+      run: |
+        cd maplocation
+        eb deploy ${{ secrets.EB_ENVIRONMENT_NAME }} --staged
       env:
         AWS_PROFILE: default
     
@@ -132,7 +134,7 @@ jobs:
   deploy-frontend:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     
     steps:
     - name: Checkout code
@@ -189,7 +191,7 @@ jobs:
   notify:
     needs: [deploy-backend, deploy-frontend]
     runs-on: ubuntu-latest
-    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     
     steps:
     - name: Deployment Status
