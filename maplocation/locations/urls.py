@@ -9,6 +9,7 @@ router.register(r"images", views.LocationImageViewSet)
 router.register(r"reviews", views.LocationReviewViewSet)
 router.register(r"regional-centers", views.RegionalCenterViewSet)
 router.register(r"providers", views.ProviderV2ViewSet)
+router.register(r"providers-v2", views.ProviderV2ViewSet)  # compatibility alias
 router.register(r"providers-legacy", views.ProviderViewSet)
 
 # Register new reference data viewsets
