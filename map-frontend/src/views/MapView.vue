@@ -3822,32 +3822,30 @@ export default {
         : null;
 
       const quickLink = website
-        ? `<a href="${website}" target="_blank" rel="noopener" style="color:#0d6efd;text-decoration:none;">Website</a>`
+        ? `<a href="${website}" target="_blank" rel="noopener" class="rc-link">Website</a>`
         : "";
 
+      // Build using classes instead of heavy inline styles
+      const telLink =
+        phone && phone !== "Contact for info"
+          ? `<a href="tel:${phone.replace(/[^\d+]/g, "")}" class="rc-link">${phone}</a>`
+          : phone;
+
       return `
-        <div style="
-          width: 300px;
-          max-width: 90vw;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        ">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-            <div style="
-              width:40px;height:40px;border-radius:8px;background:#0d6efd10;
-              display:flex;align-items:center;justify-content:center;color:#0d6efd;font-weight:700;">
-              RC
-            </div>
-            <div>
-              <div style="font-size:16px;font-weight:700;color:#2c3e50;">${name}</div>
-              <div style="font-size:12px;color:#6c757d;">${officeType}</div>
+        <div class="rc-popup">
+          <div class="rc-header">
+            <div class="rc-badge">RC</div>
+            <div class="rc-headings">
+              <div class="rc-title">${name}</div>
+              <div class="rc-sub">${officeType}</div>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#34495e;">
-            ${address ? `<div>🏢 ${address}</div>` : ""}
-            <div>📞 ${phone}</div>
-            ${website ? `<div>🌐 ${quickLink}</div>` : ""}
+          <div class="rc-body">
+            ${address ? `<div class="rc-row">🏢 <span>${address}</span></div>` : ""}
+            <div class="rc-row">📞 ${telLink}</div>
+            ${website ? `<div class="rc-row">🌐 ${quickLink}</div>` : ""}
           </div>
-          <div style="margin-top:10px;display:flex;gap:8px;">
+          <div class="rc-actions">
             ${
               website
                 ? `<a href="${website}" target="_blank" rel="noopener" class="btn-link">Open site</a>`
@@ -4606,6 +4604,69 @@ export default {
 }
 .btn-link:hover {
   background: #0b5ed7;
+}
+
+/* Regional center popup classes */
+.rc-popup {
+  width: 300px;
+  max-width: 90vw;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+.rc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.rc-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #0d6efd10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0d6efd;
+  font-weight: 700;
+}
+.rc-headings {
+  display: flex;
+  flex-direction: column;
+}
+.rc-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+.rc-sub {
+  font-size: 12px;
+  color: #6c757d;
+}
+.rc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #34495e;
+}
+.rc-row span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 240px;
+}
+.rc-link {
+  color: #0d6efd;
+  text-decoration: none;
+}
+.rc-link:hover {
+  text-decoration: underline;
+}
+.rc-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
 }
 
 /* Enhanced popup tip styling */
