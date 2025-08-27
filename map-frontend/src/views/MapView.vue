@@ -2932,26 +2932,37 @@ export default {
           const feature = e.features && e.features[0];
           const centerName = feature?.properties?.REGIONALCENTER || "Regional Center";
 
-          // Build an item-like object compatible with createSimplePopup
+          // Prefer rich details from API-loaded regionalCenters
+          const rc = (this.regionalCenters || []).find(
+            (r) => r.regional_center === centerName
+          );
+
+          // Fallback to serviceAreas properties
           const props =
             this.serviceAreas?.features?.find(
               (f) => f?.properties?.regional_center === centerName
             )?.properties || {};
 
+          const address = rc
+            ? [rc.address, rc.city, rc.state, rc.zip_code].filter(Boolean).join(", ")
+            : props.address || "";
           const item = {
             name: centerName,
-            address: props.address,
-            city: props.city,
-            state: props.state,
-            zip_code: props.zip_code,
-            phone: props.telephone,
-            latitude: feature?.geometry?.coordinates?.[0]?.[1] || null,
-            longitude: feature?.geometry?.coordinates?.[0]?.[0] || null,
-            type: props.office_type || "Main",
+            address,
+            city: rc?.city || props.city || "",
+            state: rc?.state || props.state || "",
+            zip_code: rc?.zip_code || props.zip_code || "",
+            phone: rc?.telephone || props.telephone || "",
+            latitude: e.lngLat?.lat ?? null,
+            longitude: e.lngLat?.lng ?? null,
+            type:
+              (rc?.office_type || props.office_type || "")?.toLowerCase() === "main"
+                ? ""
+                : rc?.office_type || props.office_type || "",
             description: "",
-            website: props.website,
-            hours: props.hours || props.open_hours || props.office_hours || "",
-            notes: props.notes || props.comments || "",
+            website: rc?.website || props.website || "",
+            hours: rc?.hours || props.hours || props.open_hours || props.office_hours || "",
+            notes: rc?.notes || props.notes || props.comments || "",
           };
 
           const html = this.createSimplePopup(item);
