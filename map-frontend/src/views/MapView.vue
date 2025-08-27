@@ -3831,40 +3831,39 @@ export default {
           ? `<a href="tel:${phone.replace(/[^\d+]/g, "")}" class="rc-link">${phone}</a>`
           : phone;
 
+      // Build compact subline: office • phone • website hostname
+      let websiteLabel = "";
+      if (website) {
+        try {
+          const u = new URL(website);
+          websiteLabel = u.hostname.replace(/^www\./, "");
+        } catch (_) {
+          websiteLabel = website.replace(/^https?:\/\//, "");
+        }
+      }
+      const websiteInline = website
+        ? `<a href=\"${website}\" target=\"_blank\" rel=\"noopener\" class=\"rc-link\">${websiteLabel}</a>`
+        : "";
+      const subParts = [officeType]
+        .concat([telLink && telLink !== "Contact for info" ? telLink : "", websiteInline].filter(Boolean));
+      const subLine = subParts.join(" • ");
+
       return `
-        <div class="rc-popup">
-          <div class="rc-header">
-            <div class="rc-badge">RC</div>
-            <div class="rc-headings">
-              <div class="rc-title">${name}</div>
-              <div class="rc-sub">${officeType}</div>
-            </div>
-          </div>
-          <div class="rc-body">
-            ${
-              address
-                ? `<div class=\"rc-row\"><span class=\"rc-ico\">🏢</span><span class=\"rc-text\">${address}</span></div>`
-                : ""
-            }
-            <div class=\"rc-row\"><span class=\"rc-ico\">📞</span><span class=\"rc-text\">${telLink}</span></div>
-            ${
-              website
-                ? `<div class=\"rc-row\"><span class=\"rc-ico\">🌐</span><span class=\"rc-text\">${quickLink}</span></div>`
-                : ""
-            }
-          </div>
-          <div class="rc-actions">
-            ${
-              website
-                ? `<a href="${website}" target="_blank" rel="noopener" class="btn-link">Open site</a>`
-                : ""
-            }
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              address || name
-            )}" target="_blank" rel="noopener" class="btn-link">Directions</a>
-          </div>
-        </div>
-      `;
+        <div class=\"rc-popup\">\n\
+          <div class=\"rc-header\">\n\
+            <div class=\"rc-headings\">\n\
+              <div class=\"rc-title\">${name}</div>\n\
+              <div class=\"rc-sub\">${subLine}</div>\n\
+            </div>\n\
+          </div>\n\
+          <div class=\"rc-body\">\n\
+            ${address ? `<div class=\"rc-row\"><span class=\"rc-ico\">🏢</span><span class=\"rc-text\">${address}</span></div>` : ""}\n\
+          </div>\n\
+          <div class=\"rc-actions\">\n\
+            ${website ? `<a href=\"${website}\" target=\"_blank\" rel=\"noopener\" class=\"btn-link\">Open site</a>` : ""}\n\
+            <a href=\"https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || name)}\" target=\"_blank\" rel=\"noopener\" class=\"btn-link\">Directions</a>\n\
+          </div>\n\
+        </div>`;
     },
 
     // Center map on location when clicked in list
