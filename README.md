@@ -75,9 +75,7 @@ A comprehensive healthcare provider mapping application for Children's Hospital 
 
 ## 📚 Documentation
 
-- **[Deployment Guide](DEPLOYMENT_GUIDE.md)**: Complete AWS setup and deployment instructions
-- **[GitHub Setup](GITHUB_SETUP.md)**: CI/CD pipeline configuration
-- **[Startup Guide](STARTUP_GUIDE.md)**: Original project setup notes
+- **[Deployment Guide](DEPLOYMENT_GUIDE.md)**: Canonical deployment + CI/CD + DB sync. Use this only.
 
 ## 🔧 Development
 

@@ -64,11 +64,50 @@ def check_local_database():
     return True
 
 def get_rds_connection_info():
-    """Get RDS connection info from environment or user input"""
+    """Get RDS connection info from EB environment or user input"""
     print("\n🔌 RDS Connection Setup")
     print("=" * 40)
     
-    # Try to get from environment variables
+    # Try to get from EB environment first (attempt multiple known env names)
+    try:
+        import subprocess
+        candidate_envs = [
+            'chla-api-env-lb',
+            'chla-api-env-v2',
+            'chla-api-env',
+        ]
+        for env_name in candidate_envs:
+            try:
+                result = subprocess.run(
+                    ['eb', 'printenv', env_name],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
+            except Exception:
+                continue
+            # Parse the output to extract environment variables
+            env_vars = {}
+            for raw_line in result.stdout.split('\n'):
+                line = raw_line.strip()
+                if not line or line.startswith('Environment Variables:'):
+                    continue
+                if ' = ' in line:
+                    key, value = line.split(' = ', 1)
+                    env_vars[key.strip()] = value.strip()
+            if 'DB_HOST' in env_vars:
+                print(f"✅ Found RDS connection info from EB environment ({env_name})")
+                return {
+                    'host': env_vars.get('DB_HOST'),
+                    'user': env_vars.get('DB_USER', 'chla_admin'),
+                    'password': env_vars.get('DB_PASSWORD', ''),
+                    'name': env_vars.get('DB_NAME', 'postgres'),
+                    'port': env_vars.get('DB_PORT', '5432'),
+                }
+    except Exception as e:
+        print(f"⚠️ Could not read from EB environment: {e}")
+    
+    # Fallback to environment variables
     db_host = os.getenv('DB_HOST')
     db_user = os.getenv('DB_USER', 'chla_admin')
     db_name = os.getenv('DB_NAME', 'postgres')
@@ -185,13 +224,38 @@ def sync_data_to_rds():
         
         test_env = os.environ.copy()
         test_env['PGPASSWORD'] = rds_info['password']
+        # Enforce SSL for RDS connections
+        test_env['PGSSLMODE'] = 'require'
         
         result = subprocess.run(test_cmd, env=test_env, capture_output=True, text=True)
         if result.returncode == 0:
             print("✅ RDS connection successful")
         else:
-            print(f"❌ RDS connection failed: {result.stderr}")
-            return False
+            stderr_lower = (result.stderr or "").lower()
+            if "password authentication failed" in stderr_lower:
+                try:
+                    import getpass
+                    print("⚠️ RDS password appears incorrect. Please enter the correct password to continue.")
+                    new_pwd = getpass.getpass("RDS Password: ")
+                    if new_pwd:
+                        rds_info['password'] = new_pwd
+                        test_env['PGPASSWORD'] = new_pwd
+                        # Retry once
+                        retry = subprocess.run(test_cmd, env=test_env, capture_output=True, text=True)
+                        if retry.returncode == 0:
+                            print("✅ RDS connection successful (after password retry)")
+                        else:
+                            print(f"❌ RDS connection failed after retry: {retry.stderr}")
+                            return False
+                    else:
+                        print("❌ No password provided. Aborting.")
+                        return False
+                except Exception as prompt_err:
+                    print(f"❌ Could not prompt for password: {prompt_err}")
+                    return False
+            else:
+                print(f"❌ RDS connection failed: {result.stderr}")
+                return False
             
     except Exception as e:
         print(f"❌ Error testing RDS connection: {e}")
@@ -203,6 +267,8 @@ def sync_data_to_rds():
         restore_cmd, restore_env = create_pg_restore_command(rds_info, dump_file)
         print(f"Running: {' '.join(restore_cmd)}")
         
+        # Enforce SSL for RDS connections
+        restore_env['PGSSLMODE'] = 'require'
         result = subprocess.run(restore_cmd, env=restore_env, capture_output=True, text=True)
         if result.returncode == 0:
             print("✅ Data restored to RDS successfully!")

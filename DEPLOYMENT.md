@@ -48,7 +48,7 @@ VITE_MAPBOX_TOKEN=pk.eyJ1IjoiYmVhdHR5LWFkbWluIiwiYSI6ImNsejFjNGt0YzFqMGMyanF3YW5
 ```
 
 ## AWS Resources
-- **Backend**: chla-api-env-v2 (Elastic Beanstalk)
+- **Backend**: chla-api-env-lb (Elastic Beanstalk)
 - **Database**: chla-postgres-db (RDS PostgreSQL)
 - **Frontend**: kinddhelp-frontend-1755148345 (S3)
 - **CDN**: E2W6EECHUV4LMM (CloudFront)
