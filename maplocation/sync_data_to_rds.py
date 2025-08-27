@@ -27,27 +27,36 @@ def check_local_database():
             version = cursor.fetchone()
             print(f"✅ Local DB connected: {version[0]}")
             
-            # Check if we have data
-            cursor.execute("SELECT COUNT(*) FROM locations_provider;")
-            provider_count = cursor.fetchone()[0]
-            print(f"📊 Local providers: {provider_count}")
-            
-            cursor.execute("SELECT COUNT(*) FROM locations_regionalcenter;")
-            regional_count = cursor.fetchone()[0]
-            print(f"📊 Local regional centers: {regional_count}")
-            
-            # Check schema
+            # Check what tables actually exist
             cursor.execute("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'locations_regionalcenter' 
-                AND column_name = 'zip_codes';
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                ORDER BY table_name;
             """)
-            result = cursor.fetchone()
-            if result:
-                print("✅ Local schema has zip_codes column")
+            tables = cursor.fetchall()
+            table_names = [table[0] for table in tables]
+            print(f"📊 Available tables: {table_names}")
+            
+            # Check if Django migrations have been run
+            django_tables = [name for name in table_names if name.startswith('django_')]
+            if django_tables:
+                print(f"✅ Django tables found: {django_tables}")
             else:
-                print("❌ Local schema missing zip_codes column")
+                print("⚠️ No Django tables found - migrations may not have been run")
+            
+            # Check if we have the app tables
+            app_tables = [name for name in table_names if name.startswith('locations_') or name.startswith('users_')]
+            if app_tables:
+                print(f"✅ App tables found: {app_tables}")
+                # Try to get row count from first app table
+                if app_tables:
+                    first_table = app_tables[0]
+                    cursor.execute(f"SELECT COUNT(*) FROM {first_table};")
+                    count = cursor.fetchone()[0]
+                    print(f"📊 Rows in {first_table}: {count}")
+            else:
+                print("⚠️ No app tables found - need to run migrations first")
                 
     except Exception as e:
         print(f"❌ Local database check failed: {e}")
