@@ -3841,9 +3841,17 @@ export default {
             </div>
           </div>
           <div class="rc-body">
-            ${address ? `<div class=\"rc-row\"><span class=\"rc-ico\">🏢</span><span class=\"rc-text\">${address}</span></div>` : ""}
+            ${
+              address
+                ? `<div class=\"rc-row\"><span class=\"rc-ico\">🏢</span><span class=\"rc-text\">${address}</span></div>`
+                : ""
+            }
             <div class=\"rc-row\"><span class=\"rc-ico\">📞</span><span class=\"rc-text\">${telLink}</span></div>
-            ${website ? `<div class=\"rc-row\"><span class=\"rc-ico\">🌐</span><span class=\"rc-text\">${quickLink}</span></div>` : ""}
+            ${
+              website
+                ? `<div class=\"rc-row\"><span class=\"rc-ico\">🌐</span><span class=\"rc-text\">${quickLink}</span></div>`
+                : ""
+            }
           </div>
           <div class="rc-actions">
             ${
@@ -4611,6 +4619,7 @@ export default {
   width: 300px;
   max-width: 90vw;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 14px 16px;
 }
 .rc-header {
   display: grid;
@@ -4650,10 +4659,20 @@ export default {
   column-gap: 8px;
   font-size: 13px;
   color: #34495e;
+  align-items: center;
+  margin-top: 6px;
 }
-.rc-row { display: contents; }
-.rc-ico { text-align: center; }
-.rc-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rc-row {
+  display: contents;
+}
+.rc-ico {
+  text-align: center;
+}
+.rc-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .rc-link {
   color: #0d6efd;
   text-decoration: none;
@@ -4662,9 +4681,10 @@ export default {
   text-decoration: underline;
 }
 .rc-actions {
-  margin-top: 10px;
+  margin-top: 12px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  justify-content: center;
 }
 
 /* Enhanced popup tip styling */
