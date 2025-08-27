@@ -225,6 +225,33 @@ def verify_rds_data():
     print("3. Test your API endpoints")
     print("4. If issues persist, check the deployment guide")
 
+def ensure_local_migrations():
+    """Ensure local migrations have been run"""
+    print("\n📝 Checking local migrations...")
+    try:
+        from django.db import connection
+        with connection.cursor() as cursor:
+            # Check if Django tables exist
+            cursor.execute("""
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'django_migrations';
+            """)
+            result = cursor.fetchone()
+            
+            if not result:
+                print("⚠️ Django migrations table not found. Running migrations...")
+                execute_from_command_line(['manage.py', 'migrate'])
+                print("✅ Local migrations completed")
+            else:
+                print("✅ Django migrations table exists")
+                
+    except Exception as e:
+        print(f"❌ Migration check failed: {e}")
+        return False
+    return True
+
 def main():
     """Main function"""
     print("🔄 CHLA Data Sync to RDS")
@@ -238,6 +265,11 @@ def main():
     
     try:
         setup_django()
+        
+        # Ensure local migrations are run first
+        if not ensure_local_migrations():
+            print("❌ Cannot proceed without local migrations")
+            sys.exit(1)
         
         # Perform the sync
         if sync_data_to_rds():
