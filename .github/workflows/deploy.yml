@@ -100,6 +100,12 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
+    - name: Initialize EB CLI
+      run: |
+        cd maplocation
+        eb init chla-api --region us-west-2 --platform python-3.12
+        eb use chla-api-env
+    
     - name: Set EB environment variables
       run: |
         cd maplocation
