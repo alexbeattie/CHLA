@@ -2453,6 +2453,10 @@ export default {
 
         // Add click event to show California county info with regional center data
         this.map.on("click", "california-counties-fill", (e) => {
+          // In regional centers mode, suppress county popup
+          if (this.displayType === "regionalCenters") {
+            return;
+          }
           const feature = e.features[0];
           const countyName = feature.properties.name || "Unknown";
 
@@ -2926,12 +2930,40 @@ export default {
         });
         this.map.on("click", "rc-static-fill", (e) => {
           const feature = e.features && e.features[0];
-          const center = feature?.properties?.REGIONALCENTER || "Regional Center";
-          new mapboxgl.Popup({ closeOnClick: true })
+          const centerName = feature?.properties?.REGIONALCENTER || "Regional Center";
+
+          // Build an item-like object compatible with createSimplePopup
+          const props =
+            this.serviceAreas?.features?.find(
+              (f) => f?.properties?.regional_center === centerName
+            )?.properties || {};
+
+          const item = {
+            name: centerName,
+            address: props.address,
+            city: props.city,
+            state: props.state,
+            zip_code: props.zip_code,
+            phone: props.telephone,
+            latitude: feature?.geometry?.coordinates?.[0]?.[1] || null,
+            longitude: feature?.geometry?.coordinates?.[0]?.[0] || null,
+            type: props.office_type || "Main",
+            description: "",
+            website: props.website,
+            hours: props.hours || props.open_hours || props.office_hours || "",
+            notes: props.notes || props.comments || "",
+          };
+
+          const html = this.createSimplePopup(item);
+
+          new mapboxgl.Popup({
+            closeOnClick: true,
+            offset: 30,
+            maxWidth: "320px",
+            className: "simple-popup",
+          })
             .setLngLat(e.lngLat)
-            .setHTML(
-              `<div style="font-size:13px"><strong>Regional Center:</strong> ${center}</div>`
-            )
+            .setHTML(html)
             .addTo(this.map);
         });
 
@@ -3558,7 +3590,7 @@ export default {
             ">${title}</h5>
 
             ${
-              item.type
+              item.type && String(item.type).toLowerCase() !== "main"
                 ? `
               <span style="
                 background: #e3f2fd;
@@ -3594,6 +3626,121 @@ export default {
                   margin-bottom: 2px;
                 ">📍 Address</div>
                 <div style="color: #6c757d; font-size: 14px;">${fullAddress}</div>
+              </div>
+            `
+              : ""
+          }
+
+          ${
+            phone
+              ? `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border-left: 3px solid #28a745;
+              ">
+                <div style="
+                  color: #495057;
+                  font-size: 13px;
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                ">📞 Phone</div>
+                <div style="color: #6c757d; font-size: 14px;">
+                  <a href="tel:${String(phone).replace(
+                    /[^\\d+]/g,
+                    ""
+                  )}" style="color:#0d6efd; text-decoration:none;">${phone}</a>
+                </div>
+              </div>
+            `
+              : ""
+          }
+
+          ${
+            item.website
+              ? (() => {
+                  const w = item.website.startsWith("http")
+                    ? item.website
+                    : "https://" + item.website;
+                  return `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border-left: 3px solid #0d6efd;
+              ">
+                <div style="
+                  color: #495057;
+                  font-size: 13px;
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                ">🌐 Website</div>
+                <div style="color: #6c757d; font-size: 14px;"><a href="${w}" target="_blank" rel="noopener" style="color:#0d6efd; text-decoration:none;">${w
+                    .replace(/^https?:\/\//, "")
+                    .replace(/^www\./, "")}</a></div>
+              </div>`;
+                })()
+              : ""
+          }
+
+          ${
+            item.hours
+              ? `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border-left: 3px solid #28a745;
+              ">
+                <div style="
+                  color: #495057;
+                  font-size: 13px;
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                ">⏰ Hours</div>
+                <div style="color: #6c757d; font-size: 14px; white-space: pre-wrap;">${item.hours}</div>
+              </div>
+            `
+              : ""
+          }
+
+          ${
+            item.type
+              ? `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #eef7ff;
+                border-radius: 8px;
+                border-left: 3px solid #0d6efd;
+              ">
+                <div style="color: #0d6efd; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;">${item.type}</div>
+              </div>
+            `
+              : ""
+          }
+
+          ${
+            item.notes
+              ? `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #fff8e1;
+                border-radius: 8px;
+                border-left: 3px solid #ffc107;
+              ">
+                <div style="
+                  color: #856404;
+                  font-size: 13px;
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                ">📝 Notes</div>
+                <div style="color: #856404; font-size: 14px; white-space: pre-wrap;">${item.notes}</div>
               </div>
             `
               : ""
@@ -3787,6 +3934,86 @@ export default {
           </div>
         </div>
       `;
+    },
+
+    // Create Regional Center popup with professional styling and richer data
+    createRegionalCenterPopup(name) {
+      // Attempt to find matching regional center from serviceAreas for richer metadata
+      let rc = null;
+      try {
+        const features = this.serviceAreas?.features || [];
+        rc = features.find(
+          (f) => f?.properties?.regional_center?.toLowerCase() === name?.toLowerCase()
+        )?.properties;
+      } catch {}
+
+      const phone = rc?.telephone || "Contact for info";
+      const officeType = rc?.office_type || "Main Office";
+      const address = [rc?.address, rc?.city, rc?.state, rc?.zip_code]
+        .filter(Boolean)
+        .join(", ");
+      const website = rc?.website
+        ? rc.website.startsWith("http")
+          ? rc.website
+          : `https://${rc.website}`
+        : null;
+
+      const quickLink = website
+        ? `<a href="${website}" target="_blank" rel="noopener" class="rc-link">Website</a>`
+        : "";
+
+      // Build using classes instead of heavy inline styles
+      const telLink =
+        phone && phone !== "Contact for info"
+          ? `<a href="tel:${phone.replace(/[^\d+]/g, "")}" class="rc-link">${phone}</a>`
+          : phone;
+
+      // Build compact subline: office • phone • website hostname
+      let websiteLabel = "";
+      if (website) {
+        try {
+          const u = new URL(website);
+          websiteLabel = u.hostname.replace(/^www\./, "");
+        } catch (_) {
+          websiteLabel = website.replace(/^https?:\/\//, "");
+        }
+      }
+      const websiteInline = website
+        ? `<a href=\"${website}\" target=\"_blank\" rel=\"noopener\" class=\"rc-link\">${websiteLabel}</a>`
+        : "";
+      const subParts = [officeType].concat(
+        [telLink && telLink !== "Contact for info" ? telLink : "", websiteInline].filter(
+          Boolean
+        )
+      );
+      const subLine = subParts.join(" • ");
+
+      return `
+        <div class=\"rc-popup\">\n\
+          <div class=\"rc-header\">\n\
+            <div class=\"rc-headings\">\n\
+              <div class=\"rc-title\">${name}</div>\n\
+              <div class=\"rc-sub\">${subLine}</div>\n\
+            </div>\n\
+          </div>\n\
+          <div class=\"rc-body\">\n\
+            ${
+              address
+                ? `<div class=\"rc-row\"><span class=\"rc-ico\">🏢</span><span class=\"rc-text\">${address}</span></div>`
+                : ""
+            }\n\
+          </div>\n\
+          <div class=\"rc-actions\">\n\
+            ${
+              website
+                ? `<a href=\"${website}\" target=\"_blank\" rel=\"noopener\" class=\"btn-link\">Open site</a>`
+                : ""
+            }\n\
+            <a href=\"https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              address || name
+            )}\" target=\"_blank\" rel=\"noopener\" class=\"btn-link\">Directions</a>\n\
+          </div>\n\
+        </div>`;
     },
 
     // Center map on location when clicked in list
@@ -4521,6 +4748,92 @@ export default {
   color: #333;
   border-color: #999;
   transform: scale(1.1);
+}
+
+.btn-link {
+  display: inline-block;
+  padding: 6px 10px;
+  background: #0d6efd;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 12px;
+}
+.btn-link:hover {
+  background: #0b5ed7;
+}
+
+/* Regional center popup classes */
+.rc-popup {
+  width: 300px;
+  max-width: 90vw;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 14px 16px;
+}
+.rc-header {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.rc-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #0d6efd10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0d6efd;
+  font-weight: 700;
+}
+.rc-headings {
+  display: flex;
+  flex-direction: column;
+}
+.rc-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+.rc-sub {
+  font-size: 12px;
+  color: #6c757d;
+}
+.rc-body {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  row-gap: 6px;
+  column-gap: 8px;
+  font-size: 13px;
+  color: #34495e;
+  align-items: center;
+  margin-top: 6px;
+}
+.rc-row {
+  display: contents;
+}
+.rc-ico {
+  text-align: center;
+}
+.rc-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rc-link {
+  color: #0d6efd;
+  text-decoration: none;
+}
+.rc-link:hover {
+  text-decoration: underline;
+}
+.rc-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
 /* Enhanced popup tip styling */

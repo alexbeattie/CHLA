@@ -26,20 +26,62 @@
           <thead>
             <tr>
               <th>Name</th>
+              <th>Type</th>
               <th>Phone</th>
+              <th>Email</th>
               <th>Address</th>
+              <th>City</th>
+              <th>State</th>
+              <th>ZIP</th>
               <th>Description</th>
               <th>Insurance Accepted</th>
+              <th>Languages</th>
+              <th>Website</th>
+              <th>Latitude</th>
+              <th>Longitude</th>
+              <th>Verified</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="provider in filteredProviders" :key="provider.id">
               <td>{{ provider.name }}</td>
+              <td>{{ provider.type || "N/A" }}</td>
               <td>{{ provider.phone || "N/A" }}</td>
-              <td>{{ provider.address || "N/A" }}</td>
+              <td>{{ provider.email || "N/A" }}</td>
+              <td>{{ formatAddress(provider.address) }}</td>
+              <td>{{ addressPart(provider.address, "city") || provider.city || "" }}</td>
+              <td>
+                {{ addressPart(provider.address, "state") || provider.state || "" }}
+              </td>
+              <td>
+                {{
+                  addressPart(provider.address, "zip") ||
+                  addressPart(provider.address, "zip_code") ||
+                  provider.zip_code ||
+                  ""
+                }}
+              </td>
               <td>{{ provider.description || "N/A" }}</td>
-              <td>{{ provider.insurance_accepted || "N/A" }}</td>
+              <td>{{ formatDelimited(provider.insurance_accepted) }}</td>
+              <td>{{ formatDelimited(provider.languages_spoken) }}</td>
+              <td>
+                <a
+                  v-if="provider.website"
+                  :href="provider.website"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {{ shortUrl(provider.website) }}
+                </a>
+                <span v-else>N/A</span>
+              </td>
+              <td>{{ formatCoord(provider.latitude) }}</td>
+              <td>{{ formatCoord(provider.longitude) }}</td>
+              <td>
+                <span v-if="provider.verified" title="Verified">✓</span>
+                <span v-else title="Not verified">—</span>
+              </td>
               <td>
                 <button
                   class="btn btn-sm btn-outline-primary me-1"
@@ -388,6 +430,70 @@ export default {
   },
 
   methods: {
+    formatAddress(value) {
+      if (!value) return "N/A";
+      try {
+        // Accept JSON string like {"street":..., "city":..., "state":..., "zip":...}
+        if (typeof value === "string" && value.trim().startsWith("{")) {
+          const obj = JSON.parse(value);
+          const street = obj.street || obj.address || "";
+          const city = obj.city || "";
+          const state = obj.state || "";
+          const zip = obj.zip || obj.zip_code || "";
+          const parts = [street, [city, state].filter(Boolean).join(", "), zip]
+            .filter((p) => (typeof p === "string" ? p.trim() : p))
+            .map((p) => (typeof p === "string" ? p.trim() : p));
+          const result = parts.filter(Boolean).join(", ");
+          return result || value;
+        }
+      } catch (e) {
+        // fall through to raw value
+      }
+      return value;
+    },
+    formatDelimited(value) {
+      if (!value) return "N/A";
+      try {
+        if (typeof value === "string" && value.trim().startsWith("[")) {
+          const arr = JSON.parse(value);
+          if (Array.isArray(arr)) {
+            return arr
+              .map((v) => String(v).trim())
+              .filter((v) => v.length > 0)
+              .join(", ");
+          }
+        }
+      } catch (e) {}
+      // Fallback: treat as comma- or semicolon-separated string
+      return String(value)
+        .split(/[;,]/)
+        .map((v) => v.trim())
+        .filter((v) => v.length > 0)
+        .join(", ");
+    },
+    addressPart(value, key) {
+      try {
+        if (typeof value === "string" && value.trim().startsWith("{")) {
+          const obj = JSON.parse(value);
+          return obj[key] || "";
+        }
+      } catch {}
+      return "";
+    },
+    shortUrl(url) {
+      try {
+        const u = new URL(url);
+        return u.hostname.replace(/^www\./, "") + (u.pathname !== "/" ? u.pathname : "");
+      } catch {
+        return url;
+      }
+    },
+    formatCoord(v) {
+      if (v === null || v === undefined || v === "") return "";
+      const n = Number(v);
+      if (Number.isNaN(n)) return String(v);
+      return n.toFixed(6);
+    },
     async geocodePreview() {
       this.previewError = null;
       this.previewLoading = true;

@@ -913,7 +913,8 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
         filters.SearchFilter,
         filters.OrderingFilter,
     ]
-    search_fields = ["name", "coverage_areas", "center_based_services"]
+    # Use real ProviderV2 fields
+    search_fields = ["name", "type", "description", "address", "insurance_accepted", "languages_spoken"]
     ordering_fields = ["name"]
     
     def get_serializer_class(self):
