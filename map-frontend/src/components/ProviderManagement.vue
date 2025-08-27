@@ -48,10 +48,11 @@
               <td>{{ provider.name }}</td>
               <td>{{ provider.type || "N/A" }}</td>
               <td>{{ provider.phone || "N/A" }}</td>
+              <td>{{ provider.email || "N/A" }}</td>
               <td>{{ formatAddress(provider.address) }}</td>
-              <td>{{ provider.city || "" }}</td>
-              <td>{{ provider.state || "" }}</td>
-              <td>{{ provider.zip_code || "" }}</td>
+              <td>{{ addressPart(provider.address, 'city') || provider.city || "" }}</td>
+              <td>{{ addressPart(provider.address, 'state') || provider.state || "" }}</td>
+              <td>{{ addressPart(provider.address, 'zip') || addressPart(provider.address, 'zip_code') || provider.zip_code || "" }}</td>
               <td>{{ provider.description || "N/A" }}</td>
               <td>{{ formatDelimited(provider.insurance_accepted) }}</td>
               <td>{{ formatDelimited(provider.languages_spoken) }}</td>
@@ -455,6 +456,15 @@ export default {
         .map((v) => v.trim())
         .filter((v) => v.length > 0)
         .join(", ");
+    },
+    addressPart(value, key) {
+      try {
+        if (typeof value === "string" && value.trim().startsWith("{")) {
+          const obj = JSON.parse(value);
+          return obj[key] || "";
+        }
+      } catch {}
+      return "";
     },
     shortUrl(url) {
       try {
