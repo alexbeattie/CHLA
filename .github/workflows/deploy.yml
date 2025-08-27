@@ -103,8 +103,8 @@ jobs:
     - name: Create EB application bundle
       run: |
         cd maplocation
-        eb init chla-api --region us-west-2 --platform python-3.12 --noinput
-        eb use chla-api-env --noinput || echo "Environment not found, will create bundle anyway"
+        echo "chla-api" | eb init chla-api --region us-west-2 --platform python-3.12
+        echo "chla-api-env" | eb use chla-api-env || echo "Environment not found, will create bundle anyway"
     
     - name: Set EB environment variables via AWS CLI
       run: |
