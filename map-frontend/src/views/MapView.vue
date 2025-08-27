@@ -261,37 +261,7 @@
             </template>
           </div>
 
-          <!-- LA Regional Centers Legend -->
-          <div v-if="showLARegionalCenters" class="mt-3 p-3 bg-light rounded">
-            <h6 class="mb-2 text-muted">Regional Center Service Areas</h6>
-            <div class="d-flex flex-column gap-1">
-              <div
-                v-for="center in laRegionalCentersForLegend"
-                :key="center.properties.name"
-                class="d-flex align-items-center gap-2"
-                style="cursor: pointer"
-                @click="toggleCenterSelection(center.properties.name)"
-              >
-                <input
-                  type="checkbox"
-                  :id="`rc-${center.properties.name}`"
-                  v-model="selectedRegionalCenters[center.properties.name]"
-                  @change.stop="updateLAZipCenterVisibility"
-                  style="display: none"
-                />
-                <div
-                  class="legend-color"
-                  :style="{
-                    backgroundColor: center.properties.fillColor,
-                    opacity: selectedRegionalCenters[center.properties.name] ? 1 : 0.25,
-                  }"
-                ></div>
-                <label class="small text-muted" :for="`rc-${center.properties.name}`">
-                  {{ center.properties.name }}
-                </label>
-              </div>
-            </div>
-          </div>
+          <!-- LA Regional Centers Legend removed per request -->
         </div>
 
         <!-- Filter Section -->
