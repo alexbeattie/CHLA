@@ -11,7 +11,8 @@ from .models import (
     LocationCategory, Location, LocationImage, LocationReview, 
     RegionalCenter, Provider, ProviderRegionalCenter,
     FundingSource, InsuranceCarrier, ServiceDeliveryModel,
-    ProviderFundingSource, ProviderInsuranceCarrier, ProviderServiceModel
+    ProviderFundingSource, ProviderInsuranceCarrier, ProviderServiceModel,
+    ProviderV2,
 )
 from .utils.csv_utils import CSVExporter, CSVImporter, generate_csv_template
 
@@ -80,6 +81,57 @@ class LocationReviewAdmin(admin.ModelAdmin):
     list_filter = ['rating', 'created_at']
     search_fields = ['location__name', 'name', 'comment']
     readonly_fields = ['created_at']
+
+@admin.register(ProviderV2)
+class ProviderV2Admin(admin.ModelAdmin):
+    list_display = ['name', 'type', 'phone', 'city', 'state', 'verified', 'coordinates_status']
+    list_filter = ['verified']
+    search_fields = ['name', 'address', 'type', 'insurance_accepted', 'languages_spoken']
+    readonly_fields = ['coordinates_display', 'created_at', 'updated_at']
+
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'type', 'description', 'verified')
+        }),
+        ('Contact', {
+            'fields': ('phone', 'email', 'website')
+        }),
+        ('Address & Location', {
+            'fields': ('address', 'latitude', 'longitude', 'coordinates_display')
+        }),
+        ('Details', {
+            'fields': ('hours', 'insurance_accepted', 'languages_spoken'),
+            'classes': ('collapse',),
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': '80'})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 80})},
+    }
+
+    def coordinates_status(self, obj):
+        if obj.latitude and obj.longitude:
+            return format_html(
+                '<span style="color: green;">✓ Valid ({:.4f}, {:.4f})</span>',
+                float(obj.latitude), float(obj.longitude)
+            )
+        return format_html('<span style="color: red;">✗ Missing</span>')
+    coordinates_status.short_description = 'Coordinates'
+
+    def coordinates_display(self, obj):
+        if obj.latitude and obj.longitude:
+            maps_url = f"https://www.google.com/maps/search/?api=1&query={obj.latitude},{obj.longitude}"
+            return format_html(
+                '<a href="{}" target="_blank">View on Map: {:.4f}, {:.4f}</a>',
+                maps_url, float(obj.latitude), float(obj.longitude)
+            )
+        return "No coordinates available"
+    coordinates_display.short_description = 'Map Location'
 
 @admin.register(Provider)
 class ProviderAdmin(admin.ModelAdmin):
