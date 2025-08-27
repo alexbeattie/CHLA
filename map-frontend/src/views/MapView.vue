@@ -200,31 +200,57 @@
 
         <!-- Simple Action Buttons -->
         <div class="action-buttons mb-3">
-          <div class="d-flex gap-2">
+          <style>
+            .sidebar-action-btn {
+              display: flex;
+              align-items: center;
+              text-align: left;
+              white-space: nowrap;
+            }
+            .sidebar-action-btn i {
+              display: inline-flex;
+              width: 1.25rem;
+              justify-content: center;
+              flex-shrink: 0;
+            }
+            @media (max-width: 1200px) {
+              .action-buttons .btn-group-flex {
+                flex-direction: column !important;
+              }
+              .action-buttons .sidebar-action-btn {
+                width: 100%;
+              }
+            }
+          </style>
+          <div class="d-flex btn-group-flex gap-2">
             <template v-if="!zipViewOnly">
               <button
-                class="btn btn-chla-outline flex-grow-1"
+                class="btn btn-chla-outline sidebar-action-btn flex-fill"
                 @click="toggleServiceAreas"
                 :class="{ 'btn-chla-primary': showServiceAreas }"
               >
                 <i class="bi bi-map"></i>
-                {{ showServiceAreas ? "Hide" : "Show" }} Service Areas
+                <span class="ms-2"
+                  >{{ showServiceAreas ? "Hide" : "Show" }} Service Areas</span
+                >
               </button>
               <button
-                class="btn btn-chla-outline flex-grow-1"
+                class="btn btn-chla-outline sidebar-action-btn flex-fill"
                 @click="applyLACountyFocus"
                 :class="{ 'btn-chla-primary': focusLACounty }"
               >
                 <i class="bi bi-geo"></i>
-                Focus on LA County
+                <span class="ms-2">Focus on LA County</span>
               </button>
               <button
-                class="btn btn-chla-outline flex-grow-1"
+                class="btn btn-chla-outline sidebar-action-btn flex-fill"
                 @click="toggleLARegionalCenters"
                 :class="{ 'btn-chla-primary': showLARegionalCenters }"
               >
-                <i class="bi bi-building me-1"></i>
-                {{ showLARegionalCenters ? "Hide" : "Show" }} LA Regional Centers
+                <i class="bi bi-building"></i>
+                <span class="ms-2"
+                  >{{ showLARegionalCenters ? "Hide" : "Show" }} LA Regional Centers</span
+                >
               </button>
             </template>
             <template v-else>
@@ -2961,7 +2987,8 @@ export default {
                 : rc?.office_type || props.office_type || "",
             description: "",
             website: rc?.website || props.website || "",
-            hours: rc?.hours || props.hours || props.open_hours || props.office_hours || "",
+            hours:
+              rc?.hours || props.hours || props.open_hours || props.office_hours || "",
             notes: rc?.notes || props.notes || props.comments || "",
           };
 
