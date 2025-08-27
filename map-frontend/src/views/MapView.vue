@@ -2950,6 +2950,8 @@ export default {
             type: props.office_type || "Main",
             description: "",
             website: props.website,
+            hours: props.hours || props.open_hours || props.office_hours || "",
+            notes: props.notes || props.comments || "",
           };
 
           const html = this.createSimplePopup(item);
@@ -3624,6 +3626,66 @@ export default {
                   margin-bottom: 2px;
                 ">📍 Address</div>
                 <div style="color: #6c757d; font-size: 14px;">${fullAddress}</div>
+              </div>
+            `
+              : ""
+          }
+
+          ${
+            item.hours
+              ? `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border-left: 3px solid #28a745;
+              ">
+                <div style="
+                  color: #495057;
+                  font-size: 13px;
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                ">⏰ Hours</div>
+                <div style="color: #6c757d; font-size: 14px; white-space: pre-wrap;">${item.hours}</div>
+              </div>
+            `
+              : ""
+          }
+
+          ${
+            item.type
+              ? `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #eef7ff;
+                border-radius: 8px;
+                border-left: 3px solid #0d6efd;
+              ">
+                <div style="color: #0d6efd; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;">${item.type}</div>
+              </div>
+            `
+              : ""
+          }
+
+          ${
+            item.notes
+              ? `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #fff8e1;
+                border-radius: 8px;
+                border-left: 3px solid #ffc107;
+              ">
+                <div style="
+                  color: #856404;
+                  font-size: 13px;
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                ">📝 Notes</div>
+                <div style="color: #856404; font-size: 14px; white-space: pre-wrap;">${item.notes}</div>
               </div>
             `
               : ""
