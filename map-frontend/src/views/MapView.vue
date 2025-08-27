@@ -2930,9 +2930,29 @@ export default {
         });
         this.map.on("click", "rc-static-fill", (e) => {
           const feature = e.features && e.features[0];
-          const center = feature?.properties?.REGIONALCENTER || "Regional Center";
+          const centerName = feature?.properties?.REGIONALCENTER || "Regional Center";
 
-          const html = this.createRegionalCenterPopup(center);
+          // Build an item-like object compatible with createSimplePopup
+          const props =
+            this.serviceAreas?.features?.find(
+              (f) => f?.properties?.regional_center === centerName
+            )?.properties || {};
+
+          const item = {
+            name: centerName,
+            address: props.address,
+            city: props.city,
+            state: props.state,
+            zip_code: props.zip_code,
+            phone: props.telephone,
+            latitude: feature?.geometry?.coordinates?.[0]?.[1] || null,
+            longitude: feature?.geometry?.coordinates?.[0]?.[0] || null,
+            type: props.office_type || "Main",
+            description: "",
+            website: props.website,
+          };
+
+          const html = this.createSimplePopup(item);
 
           new mapboxgl.Popup({
             closeOnClick: true,
@@ -3844,8 +3864,11 @@ export default {
       const websiteInline = website
         ? `<a href=\"${website}\" target=\"_blank\" rel=\"noopener\" class=\"rc-link\">${websiteLabel}</a>`
         : "";
-      const subParts = [officeType]
-        .concat([telLink && telLink !== "Contact for info" ? telLink : "", websiteInline].filter(Boolean));
+      const subParts = [officeType].concat(
+        [telLink && telLink !== "Contact for info" ? telLink : "", websiteInline].filter(
+          Boolean
+        )
+      );
       const subLine = subParts.join(" • ");
 
       return `
@@ -3857,11 +3880,21 @@ export default {
             </div>\n\
           </div>\n\
           <div class=\"rc-body\">\n\
-            ${address ? `<div class=\"rc-row\"><span class=\"rc-ico\">🏢</span><span class=\"rc-text\">${address}</span></div>` : ""}\n\
+            ${
+              address
+                ? `<div class=\"rc-row\"><span class=\"rc-ico\">🏢</span><span class=\"rc-text\">${address}</span></div>`
+                : ""
+            }\n\
           </div>\n\
           <div class=\"rc-actions\">\n\
-            ${website ? `<a href=\"${website}\" target=\"_blank\" rel=\"noopener\" class=\"btn-link\">Open site</a>` : ""}\n\
-            <a href=\"https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || name)}\" target=\"_blank\" rel=\"noopener\" class=\"btn-link\">Directions</a>\n\
+            ${
+              website
+                ? `<a href=\"${website}\" target=\"_blank\" rel=\"noopener\" class=\"btn-link\">Open site</a>`
+                : ""
+            }\n\
+            <a href=\"https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              address || name
+            )}\" target=\"_blank\" rel=\"noopener\" class=\"btn-link\">Directions</a>\n\
           </div>\n\
         </div>`;
     },
