@@ -2931,11 +2931,17 @@ export default {
         this.map.on("click", "rc-static-fill", (e) => {
           const feature = e.features && e.features[0];
           const center = feature?.properties?.REGIONALCENTER || "Regional Center";
-          new mapboxgl.Popup({ closeOnClick: true })
+
+          const html = this.createRegionalCenterPopup(center);
+
+          new mapboxgl.Popup({
+            closeOnClick: true,
+            offset: 30,
+            maxWidth: "320px",
+            className: "simple-popup",
+          })
             .setLngLat(e.lngLat)
-            .setHTML(
-              `<div style="font-size:13px"><strong>Regional Center:</strong> ${center}</div>`
-            )
+            .setHTML(html)
             .addTo(this.map);
         });
 
@@ -3793,6 +3799,68 @@ export default {
       `;
     },
 
+    // Create Regional Center popup with professional styling and richer data
+    createRegionalCenterPopup(name) {
+      // Attempt to find matching regional center from serviceAreas for richer metadata
+      let rc = null;
+      try {
+        const features = this.serviceAreas?.features || [];
+        rc = features.find(
+          (f) => f?.properties?.regional_center?.toLowerCase() === name?.toLowerCase()
+        )?.properties;
+      } catch {}
+
+      const phone = rc?.telephone || "Contact for info";
+      const officeType = rc?.office_type || "Main Office";
+      const address = [rc?.address, rc?.city, rc?.state, rc?.zip_code]
+        .filter(Boolean)
+        .join(", ");
+      const website = rc?.website
+        ? rc.website.startsWith("http")
+          ? rc.website
+          : `https://${rc.website}`
+        : null;
+
+      const quickLink = website
+        ? `<a href="${website}" target="_blank" rel="noopener" style="color:#0d6efd;text-decoration:none;">Website</a>`
+        : "";
+
+      return `
+        <div style="
+          width: 300px;
+          max-width: 90vw;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        ">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <div style="
+              width:40px;height:40px;border-radius:8px;background:#0d6efd10;
+              display:flex;align-items:center;justify-content:center;color:#0d6efd;font-weight:700;">
+              RC
+            </div>
+            <div>
+              <div style="font-size:16px;font-weight:700;color:#2c3e50;">${name}</div>
+              <div style="font-size:12px;color:#6c757d;">${officeType}</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#34495e;">
+            ${address ? `<div>🏢 ${address}</div>` : ""}
+            <div>📞 ${phone}</div>
+            ${website ? `<div>🌐 ${quickLink}</div>` : ""}
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            ${
+              website
+                ? `<a href="${website}" target="_blank" rel="noopener" class="btn-link">Open site</a>`
+                : ""
+            }
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              address || name
+            )}" target="_blank" rel="noopener" class="btn-link">Directions</a>
+          </div>
+        </div>
+      `;
+    },
+
     // Center map on location when clicked in list
     centerMapOnLocation(location) {
       const lat = parseFloat(location.latitude);
@@ -4525,6 +4593,19 @@ export default {
   color: #333;
   border-color: #999;
   transform: scale(1.1);
+}
+
+.btn-link {
+  display: inline-block;
+  padding: 6px 10px;
+  background: #0d6efd;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 12px;
+}
+.btn-link:hover {
+  background: #0b5ed7;
 }
 
 /* Enhanced popup tip styling */
