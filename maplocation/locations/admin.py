@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from django.urls import reverse, path
 from django.utils.safestring import mark_safe
 from django.db import models
-from django.forms import TextInput, Textarea
+from django.forms import TextInput, Textarea, ModelForm
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
@@ -15,6 +15,9 @@ from .models import (
     ProviderV2,
 )
 from .utils.csv_utils import CSVExporter, CSVImporter, generate_csv_template
+from .utils.geocode import geocode_address
+from decimal import Decimal, ROUND_HALF_UP
+import json
 
 class LocationImageInline(admin.TabularInline):
     model = LocationImage
@@ -82,12 +85,61 @@ class LocationReviewAdmin(admin.ModelAdmin):
     search_fields = ['location__name', 'name', 'comment']
     readonly_fields = ['created_at']
 
+class ProviderV2Form(ModelForm):
+    class Meta:
+        model = ProviderV2
+        fields = [
+            'name', 'type', 'description', 'verified',
+            'phone', 'email', 'website',
+            'address', 'latitude', 'longitude', 'hours',
+            'insurance_accepted', 'languages_spoken',
+        ]
+
+    def clean(self):
+        cleaned = super().clean()
+
+        # Normalize insurance_accepted and languages_spoken to a concise string
+        def normalize_text_or_json(value):
+            if value is None:
+                return value
+            text = str(value).strip()
+            if not text:
+                return ''
+            # If JSON array provided, convert to comma-separated string
+            if text.startswith('[') and text.endswith(']'):
+                try:
+                    arr = json.loads(text)
+                    if isinstance(arr, list):
+                        return ', '.join([str(x).strip() for x in arr if str(x).strip()])
+                except Exception:
+                    pass
+            return text
+
+        cleaned['insurance_accepted'] = normalize_text_or_json(cleaned.get('insurance_accepted'))
+        cleaned['languages_spoken'] = normalize_text_or_json(cleaned.get('languages_spoken'))
+
+        # Geocode if address provided and coordinates missing
+        address = cleaned.get('address')
+        lat = cleaned.get('latitude')
+        lng = cleaned.get('longitude')
+        if address and (lat in (None, '') or lng in (None, '')):
+            coords = geocode_address(address)
+            if coords:
+                def quant(x):
+                    return Decimal(str(x)).quantize(Decimal('0.000001'), rounding=ROUND_HALF_UP)
+                cleaned['latitude'] = quant(coords[0])
+                cleaned['longitude'] = quant(coords[1])
+
+        return cleaned
+
+
 @admin.register(ProviderV2)
 class ProviderV2Admin(admin.ModelAdmin):
+    form = ProviderV2Form
     list_display = ['name', 'type', 'phone', 'city', 'state', 'verified', 'coordinates_status']
     list_filter = ['verified']
     search_fields = ['name', 'address', 'type', 'insurance_accepted', 'languages_spoken']
-    readonly_fields = ['coordinates_display', 'created_at', 'updated_at']
+    readonly_fields = ['id', 'coordinates_display', 'created_at', 'updated_at']
 
     fieldsets = (
         ('Basic Information', {
@@ -103,8 +155,8 @@ class ProviderV2Admin(admin.ModelAdmin):
             'fields': ('hours', 'insurance_accepted', 'languages_spoken'),
             'classes': ('collapse',),
         }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
+        ('Timestamps & IDs', {
+            'fields': ('id', 'created_at', 'updated_at'),
             'classes': ('collapse',),
         }),
     )

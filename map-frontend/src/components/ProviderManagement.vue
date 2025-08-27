@@ -50,14 +50,28 @@
               <td>{{ provider.phone || "N/A" }}</td>
               <td>{{ provider.email || "N/A" }}</td>
               <td>{{ formatAddress(provider.address) }}</td>
-              <td>{{ addressPart(provider.address, 'city') || provider.city || "" }}</td>
-              <td>{{ addressPart(provider.address, 'state') || provider.state || "" }}</td>
-              <td>{{ addressPart(provider.address, 'zip') || addressPart(provider.address, 'zip_code') || provider.zip_code || "" }}</td>
+              <td>{{ addressPart(provider.address, "city") || provider.city || "" }}</td>
+              <td>
+                {{ addressPart(provider.address, "state") || provider.state || "" }}
+              </td>
+              <td>
+                {{
+                  addressPart(provider.address, "zip") ||
+                  addressPart(provider.address, "zip_code") ||
+                  provider.zip_code ||
+                  ""
+                }}
+              </td>
               <td>{{ provider.description || "N/A" }}</td>
               <td>{{ formatDelimited(provider.insurance_accepted) }}</td>
               <td>{{ formatDelimited(provider.languages_spoken) }}</td>
               <td>
-                <a v-if="provider.website" :href="provider.website" target="_blank" rel="noopener">
+                <a
+                  v-if="provider.website"
+                  :href="provider.website"
+                  target="_blank"
+                  rel="noopener"
+                >
                   {{ shortUrl(provider.website) }}
                 </a>
                 <span v-else>N/A</span>
