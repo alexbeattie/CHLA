@@ -3841,9 +3841,9 @@ export default {
             </div>
           </div>
           <div class="rc-body">
-            ${address ? `<div class="rc-row">🏢 <span>${address}</span></div>` : ""}
-            <div class="rc-row">📞 ${telLink}</div>
-            ${website ? `<div class="rc-row">🌐 ${quickLink}</div>` : ""}
+            ${address ? `<div class=\"rc-row\"><span class=\"rc-ico\">🏢</span><span class=\"rc-text\">${address}</span></div>` : ""}
+            <div class=\"rc-row\"><span class=\"rc-ico\">📞</span><span class=\"rc-text\">${telLink}</span></div>
+            ${website ? `<div class=\"rc-row\"><span class=\"rc-ico\">🌐</span><span class=\"rc-text\">${quickLink}</span></div>` : ""}
           </div>
           <div class="rc-actions">
             ${
@@ -4613,10 +4613,11 @@ export default {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 .rc-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px 1fr;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .rc-badge {
   width: 40px;
@@ -4643,19 +4644,16 @@ export default {
   color: #6c757d;
 }
 .rc-body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  row-gap: 6px;
+  column-gap: 8px;
   font-size: 13px;
   color: #34495e;
 }
-.rc-row span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: inline-block;
-  max-width: 240px;
-}
+.rc-row { display: contents; }
+.rc-ico { text-align: center; }
+.rc-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rc-link {
   color: #0d6efd;
   text-decoration: none;
