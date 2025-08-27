@@ -3590,7 +3590,7 @@ export default {
             ">${title}</h5>
 
             ${
-              item.type
+              item.type && String(item.type).toLowerCase() !== 'main'
                 ? `
               <span style="
                 background: #e3f2fd;
@@ -3628,6 +3628,51 @@ export default {
                 <div style="color: #6c757d; font-size: 14px;">${fullAddress}</div>
               </div>
             `
+              : ""
+          }
+
+          ${
+            phone
+              ? `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border-left: 3px solid #28a745;
+              ">
+                <div style="
+                  color: #495057;
+                  font-size: 13px;
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                ">📞 Phone</div>
+                <div style="color: #6c757d; font-size: 14px;">
+                  <a href="tel:${String(phone).replace(/[^\\d+]/g,'')}" style="color:#0d6efd; text-decoration:none;">${phone}</a>
+                </div>
+              </div>
+            `
+              : ""
+          }
+
+          ${
+            item.website
+              ? (() => { const w = item.website.startsWith('http') ? item.website : 'https://' + item.website; return `
+              <div style="
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border-left: 3px solid #0d6efd;
+              ">
+                <div style="
+                  color: #495057;
+                  font-size: 13px;
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                ">🌐 Website</div>
+                <div style="color: #6c757d; font-size: 14px;"><a href="${w}" target="_blank" rel="noopener" style="color:#0d6efd; text-decoration:none;">${w.replace(/^https?:\/\//,'').replace(/^www\./,'')}</a></div>
+              </div>`; })()
               : ""
           }
 
