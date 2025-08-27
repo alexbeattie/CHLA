@@ -2453,6 +2453,10 @@ export default {
 
         // Add click event to show California county info with regional center data
         this.map.on("click", "california-counties-fill", (e) => {
+          // In regional centers mode, suppress county popup
+          if (this.displayType === "regionalCenters") {
+            return;
+          }
           const feature = e.features[0];
           const countyName = feature.properties.name || "Unknown";
 
