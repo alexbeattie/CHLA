@@ -1,0 +1,106 @@
+/* Custom Admin Styles for Wide Forms */
+
+/* Enable horizontal scroll for wide forms */
+.form-row {
+    overflow-x: auto;
+    max-width: 100%;
+    padding: 10px 0;
+}
+
+/* Make the change form wider on large screens */
+@media (min-width: 1200px) {
+    #content-main {
+        width: 95% !important;
+        max-width: none !important;
+    }
+    
+    .change-form #content {
+        max-width: none !important;
+    }
+}
+
+/* Wide input fields */
+.vLargeTextField,
+.vTextField {
+    width: 100% !important;
+    max-width: 800px;
+}
+
+/* Extra wide for specific fields */
+input[name="address"],
+input[name="insurance_accepted"],
+textarea[name="services"],
+textarea[name="specializations"],
+textarea[name="coverage_areas"],
+textarea[name="languages_spoken"] {
+    width: 100% !important;
+    min-width: 600px;
+}
+
+/* Horizontal scroll for fieldsets */
+fieldset {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+/* Inline formsets - make them scrollable */
+.inline-group {
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.inline-group .tabular table {
+    min-width: 800px;
+}
+
+/* Fix for tabular inlines */
+.tabular td {
+    white-space: nowrap;
+    padding: 8px !important;
+}
+
+.tabular input[type="text"],
+.tabular textarea {
+    min-width: 200px;
+}
+
+/* Provider admin specific styles */
+.model-provider #content-main,
+.model-providerv2 #content-main {
+    overflow-x: auto;
+}
+
+/* Better spacing for wide forms */
+.form-row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Responsive table for list view */
+#changelist .results {
+    overflow-x: auto;
+}
+
+#changelist table {
+    min-width: 1200px;
+}
+
+/* Improve readability */
+.help {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 12px;
+}
+
+/* Action buttons always visible */
+.submit-row {
+    position: sticky;
+    bottom: 0;
+    background: #f8f8f8;
+    border-top: 1px solid #ddd;
+    padding: 10px;
+    margin: 0 -20px -20px -20px;
+    z-index: 10;
+}

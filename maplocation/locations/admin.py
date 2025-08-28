@@ -140,6 +140,11 @@ class ProviderV2Admin(admin.ModelAdmin):
     list_filter = ['verified']
     search_fields = ['name', 'address', 'type', 'insurance_accepted', 'languages_spoken']
     readonly_fields = ['id', 'coordinates_display', 'created_at', 'updated_at']
+    
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
 
     fieldsets = (
         ('Basic Information', {
@@ -192,6 +197,11 @@ class ProviderAdmin(admin.ModelAdmin):
     search_fields = ['name', 'address', 'specializations', 'services', 'insurance_accepted']
     readonly_fields = ['created_display', 'coordinates_display', 'regional_centers_display']
     inlines = [ProviderRegionalCenterInline, ProviderFundingSourceInline, ProviderInsuranceCarrierInline, ProviderServiceModelInline]
+    
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
     
     fieldsets = (
         ('Basic Information', {

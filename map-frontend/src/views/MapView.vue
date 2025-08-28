@@ -474,7 +474,7 @@
     </div>
 
     <!-- Map Container -->
-    <div class="map-container-wrapper">
+    <div class="map-container-wrapper" :class="{ 'with-search': showMobileSearch }">
       <div id="map" class="map-container"></div>
     </div>
   </div>
@@ -2710,60 +2710,17 @@ export default {
 
         // No service area overlays - data will be integrated into counties
 
-        // Add click event to show California county info with regional center data
+        // County click handler disabled - no county popups needed
         this.map.on("click", "california-counties-fill", (e) => {
-          // In regional centers mode, suppress county popup
-          if (this.displayType === "regionalCenters") {
-            return;
-          }
-          const feature = e.features[0];
-          const countyName = feature.properties.name || "Unknown";
-
-          // Regional center info section removed as requested
-
-          const popup = new mapboxgl.Popup({
-            maxWidth: "90vw",
-            closeOnClick: true,
-            closeButton: true,
-          })
-            .setLngLat(e.lngLat)
-            .setHTML(
-              `
-              <div style="
-                width: 320px;
-                max-width: 90vw;
-                padding: 12px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                line-height: 1.4;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-              ">
-                <h5 style="
-                  color: #2c3e50;
-                  margin: 0 0 12px 0;
-                  padding-bottom: 8px;
-                  border-bottom: 2px solid #3498db;
-                  font-size: 17px;
-                  font-weight: 600;
-                  word-wrap: break-word;
-                ">
-                  📍 ${countyName} County
-                </h5>
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
-                  <div style="font-size: 13px;"><strong>🏛️ State:</strong> <span style="color: #555;">California</span></div>
-                  <div style="font-size: 13px;"><strong>📐 Area:</strong> <span style="color: #555;">Real county boundaries</span></div>
-                </div>
-              </div>
-            `
-            )
-            .addTo(this.map);
+          // County popups disabled per user request
+          return;
         });
 
         // Hover effects for California counties
         let hoveredCountyId = null;
 
         this.map.on("mouseenter", "california-counties-fill", (e) => {
-          this.map.getCanvas().style.cursor = "pointer";
+          // No cursor change - counties are not clickable
 
           if (e.features.length > 0 && e.features[0].id) {
             if (hoveredCountyId !== null) {
@@ -2795,7 +2752,7 @@ export default {
         });
 
         this.map.on("mouseleave", "california-counties-fill", () => {
-          this.map.getCanvas().style.cursor = "";
+          // No cursor change needed
 
           if (hoveredCountyId !== null) {
             try {
@@ -4873,6 +4830,10 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 999;
   border-bottom: 1px solid #e0e0e0;
+  height: 140px; /* Fixed height for consistent layout */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .search-container {
@@ -5006,11 +4967,14 @@ export default {
   width: 100%;
   position: relative;
   background: #f8f9fa;
-  padding-top: 60px; /* Account for navbar height */
 }
 
 .sidebar-container {
-  flex: 0 0 380px;
+  position: fixed;
+  left: 0;
+  top: 60px; /* Below navbar */
+  bottom: 0;
+  width: 380px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 5;
   background: #ffffff;
@@ -5022,23 +4986,20 @@ export default {
   transition: transform 0.3s ease;
 }
 
+/* Desktop sidebar positioning */
+@media (min-width: 768px) {
+  .sidebar-container {
+    transform: translateX(0) !important; /* Always visible on desktop */
+  }
+}
+
 /* Mobile responsive sidebar - HIDDEN BY DEFAULT */
 @media (max-width: 767.98px) {
-  .app-container {
-    flex-direction: row; /* Keep normal layout */
-  }
-
   .sidebar-container {
-    position: fixed;
-    top: 60px; /* Account for navbar */
-    left: 0;
-    bottom: 0;
-    z-index: 950; /* Below navbar */
     transform: translateX(-100%); /* Hidden off-screen */
-    flex: none;
     width: 320px;
     max-width: 85vw;
-    transition: transform 0.3s ease;
+    z-index: 950; /* Below navbar */
   }
 
   .sidebar-container.mobile-open {
@@ -5051,18 +5012,18 @@ export default {
     width: 100%;
   }
 
-  /* Adjust mobile search bar height when shown */
-  .mobile-search-bar + .sidebar-container {
-    top: 160px; /* Navbar + search bar height */
-  }
-
-  .mobile-search-bar + .mobile-backdrop {
-    top: 160px; /* Navbar + search bar height */
-  }
-
   /* Mobile map container fills screen */
   .map-container-wrapper {
-    height: calc(100vh - 60px); /* Full height minus navbar */
+    position: fixed;
+    left: 0 !important; /* Full width on mobile */
+    top: 60px;
+    right: 0;
+    bottom: 0;
+  }
+
+  /* Adjust map position when search bar is visible */
+  .map-container-wrapper.with-search {
+    top: 200px !important; /* Navbar (60px) + search bar (140px) */
   }
 }
 
@@ -5602,14 +5563,16 @@ h6 {
 }
 
 .map-container-wrapper {
-  flex: 1;
-  position: relative;
+  position: fixed;
+  left: 380px; /* Width of sidebar */
+  top: 60px; /* Below navbar */
+  right: 0;
+  bottom: 0;
 }
 
 .map-container {
   width: 100%;
   height: 100%;
-  border-radius: 12px 0 0 12px;
   overflow: hidden;
 }
 
