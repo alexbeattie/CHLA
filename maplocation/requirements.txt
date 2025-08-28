@@ -8,5 +8,5 @@ djangorestframework-gis==1.1
 gunicorn==22.0.0
 psycopg2-binary==2.9.9; python_version < "3.13"
 psycopg[binary]==3.2.9; python_version >= "3.13"
-whitenoise==6.7.0
+whitenoise>=6,<7
 requests==2.32.3
