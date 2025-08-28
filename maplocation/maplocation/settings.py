@@ -54,6 +54,7 @@ GRAPHENE = {"SCHEMA": "maplocation.schema.schema"}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "maplocation.middleware.BasicAuthMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -191,3 +192,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 100,
 }
+
+# Basic Auth for Admin Portal
+BASIC_AUTH_USERNAME = os.environ.get('BASIC_AUTH_USERNAME', 'clientaccess')
+BASIC_AUTH_PASSWORD = os.environ.get('BASIC_AUTH_PASSWORD', 'changeme123!')

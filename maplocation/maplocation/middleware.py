@@ -10,8 +10,8 @@ class BasicAuthMiddleware:
         self.get_response = get_response
         
     def __call__(self, request):
-        # Only protect admin URLs
-        if request.path.startswith('/admin/'):
+        # Only protect client-portal URLs
+        if request.path.startswith('/client-portal/'):
             # Check if basic auth is provided
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if auth_header.startswith('Basic '):
@@ -28,7 +28,7 @@ class BasicAuthMiddleware:
             
             # Return 401 Unauthorized
             response = HttpResponse('Unauthorized', status=401)
-            response['WWW-Authenticate'] = 'Basic realm="Admin Area"'
+            response['WWW-Authenticate'] = 'Basic realm="Client Portal"'
             return response
             
         return self.get_response(request)

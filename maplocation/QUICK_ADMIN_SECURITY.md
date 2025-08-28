@@ -11,7 +11,7 @@ Edit `/maplocation/maplocation/urls.py`:
 path('admin/', admin.site.urls),
 
 # To something secret:
-path('client-portal-2024/', admin.site.urls),
+path('client-portal/', admin.site.urls),
 ```
 
 ### 2. Add Basic HTTP Authentication
@@ -88,7 +88,7 @@ client_user.groups.add(client_group)
 
 After implementing the above:
 
-1. **Admin URL**: `https://yourdomain.com/client-portal-2024/`
+1. **Admin URL**: `https://yourdomain.com/client-portal/`
 2. **First Login Prompt** (Basic Auth):
    - Username: `yourclient` (from BASIC_AUTH_USERNAME)
    - Password: `secure-password-here` (from BASIC_AUTH_PASSWORD)

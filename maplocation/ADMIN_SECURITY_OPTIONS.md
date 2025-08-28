@@ -59,7 +59,7 @@ In `urls.py`:
 import os
 
 # Use environment variable for admin URL
-ADMIN_URL = os.environ.get('DJANGO_ADMIN_URL', 'secret-admin-url-2024/')
+ADMIN_URL = os.environ.get('DJANGO_ADMIN_URL', 'client-portal/')
 
 urlpatterns = [
     path(ADMIN_URL, admin.site.urls),  # Instead of 'admin/'
@@ -214,7 +214,7 @@ Example implementation:
 
 ```python
 # settings.py
-ADMIN_URL = os.environ.get('DJANGO_ADMIN_URL', 'client-portal-2024/')
+ADMIN_URL = os.environ.get('DJANGO_ADMIN_URL', 'client-portal/')
 
 # Create client group with limited permissions
 from django.contrib.auth.models import Group, Permission
