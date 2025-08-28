@@ -1,5 +1,74 @@
 <template>
   <div class="map-app">
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar" v-show="!showOnboarding">
+      <div class="navbar-content">
+        <button
+          class="mobile-menu-btn d-md-none"
+          @click="toggleMobileSidebar"
+          :class="{ active: showMobileSidebar }"
+        >
+          <i class="bi bi-list"></i>
+        </button>
+
+        <div class="navbar-brand">
+          <span class="kindd-text-logo">KINDD</span>
+          <span class="brand-separator d-none d-md-inline">|</span>
+          <span class="brand-subtitle d-none d-md-inline">ABA Provider Map</span>
+        </div>
+
+        <div class="navbar-actions">
+          <button class="btn-icon d-md-none" @click="toggleSearch">
+            <i class="bi bi-search"></i>
+          </button>
+          <button class="btn-icon" @click="toggleUserMenu">
+            <i class="bi bi-person-circle"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile Search Bar -->
+    <div class="mobile-search-bar d-md-none" v-if="showMobileSearch && !showOnboarding">
+      <div class="search-container">
+        <input
+          type="text"
+          v-model="searchText"
+          @input="debounceSearch"
+          class="form-control search-input"
+          placeholder="Enter city or zip code"
+        />
+        <button class="search-btn" @click="performSearch">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+
+      <!-- Mobile Filter Pills -->
+      <div class="mobile-filters">
+        <button
+          class="filter-pill"
+          :class="{ active: showServiceAreas }"
+          @click="toggleServiceAreas"
+        >
+          <i class="bi bi-map"></i> Service Areas
+        </button>
+        <button
+          class="filter-pill"
+          :class="{ active: focusLACounty }"
+          @click="applyLACountyFocus"
+        >
+          <i class="bi bi-geo"></i> LA County
+        </button>
+        <button
+          class="filter-pill"
+          :class="{ active: showLARegionalCenters }"
+          @click="toggleLARegionalCenters"
+        >
+          <i class="bi bi-building"></i> Regional Centers
+        </button>
+      </div>
+    </div>
+
     <!-- Onboarding Flow -->
     <onboarding-flow
       :showOnboarding="showOnboarding"
@@ -12,16 +81,6 @@
 
     <!-- Funding Info Modal -->
     <funding-info-panel :showModal="showFundingInfo" @close="toggleFundingInfo" />
-
-    <!-- Mobile Toggle Button - ALWAYS VISIBLE -->
-    <button
-      v-show="!showOnboarding"
-      class="mobile-toggle d-md-none"
-      @click="toggleMobileSidebar"
-      :class="{ active: showMobileSidebar }"
-    >
-      <i class="bi bi-list"></i>
-    </button>
 
     <!-- Mobile Backdrop -->
     <div
@@ -470,6 +529,8 @@ export default {
       showFundingInfo: false,
       showOnboarding: false,
       showMobileSidebar: false,
+      showMobileSearch: false,
+      showUserMenu: false,
 
       // Display type
       displayType: "providers", // 'regionalCenters' or 'providers'
@@ -1188,6 +1249,31 @@ export default {
     // Toggle mobile sidebar
     toggleMobileSidebar() {
       this.showMobileSidebar = !this.showMobileSidebar;
+      // Close other mobile menus
+      this.showMobileSearch = false;
+      this.showUserMenu = false;
+    },
+
+    // Toggle mobile search
+    toggleSearch() {
+      this.showMobileSearch = !this.showMobileSearch;
+      // Close other mobile menus
+      this.showMobileSidebar = false;
+      this.showUserMenu = false;
+    },
+
+    // Toggle user menu
+    toggleUserMenu() {
+      this.showUserMenu = !this.showUserMenu;
+      // Close other mobile menus
+      this.showMobileSidebar = false;
+      this.showMobileSearch = false;
+    },
+
+    // Perform search
+    performSearch() {
+      // Trigger the search functionality
+      this.debounceSearch();
     },
 
     // Toggle funding info modal
@@ -4686,12 +4772,241 @@ export default {
   font-family: "Arial", "Helvetica", sans-serif !important;
 }
 
+/* Top Navigation Bar */
+.top-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.mobile-menu-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #333;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu-btn:hover {
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kindd-text-logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #0066cc 0%, #ff3366 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-separator {
+  color: #e0e0e0;
+  font-size: 20px;
+}
+
+.brand-subtitle {
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #333;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  background: #f5f5f5;
+}
+
+/* Mobile Search Bar */
+.mobile-search-bar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.search-input {
+  flex: 1;
+  height: 44px;
+  border: 1px solid #e0e0e0;
+  border-radius: 22px;
+  padding: 0 20px;
+  font-size: 16px;
+  background: #f8f9fa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #004877;
+  background: #ffffff;
+}
+
+.search-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #004877;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.search-btn:hover {
+  background: #003861;
+}
+
+/* Mobile Filter Pills */
+.mobile-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-filters::-webkit-scrollbar {
+  height: 0;
+}
+
+.filter-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #666;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-pill:hover {
+  border-color: #004877;
+  color: #004877;
+}
+
+.filter-pill.active {
+  background: #004877;
+  color: white;
+  border-color: #004877;
+}
+
+.filter-pill i {
+  font-size: 16px;
+}
+
+/* Mobile-specific navbar adjustments */
+@media (max-width: 767.98px) {
+  .navbar-brand {
+    margin-left: 8px;
+  }
+
+  .kindd-text-logo {
+    font-size: 20px;
+  }
+
+  .navbar-actions {
+    gap: 4px;
+  }
+
+  .btn-icon {
+    padding: 8px;
+    font-size: 18px;
+  }
+
+  /* Mobile popup styling */
+  .mapboxgl-popup-content {
+    padding: 12px !important;
+    max-width: 280px !important;
+  }
+
+  .provider-popup {
+    padding: 12px !important;
+  }
+
+  /* Mobile map controls */
+  .mapboxgl-ctrl-bottom-left,
+  .mapboxgl-ctrl-bottom-right {
+    bottom: 20px !important;
+  }
+
+  .mapboxgl-ctrl-top-right {
+    top: 80px !important;
+    right: 10px !important;
+  }
+}
+
 .map-app {
   display: flex;
   height: 100vh;
   width: 100%;
   position: relative;
   background: #f8f9fa;
+  padding-top: 60px; /* Account for navbar height */
 }
 
 .sidebar-container {
@@ -4715,10 +5030,10 @@ export default {
 
   .sidebar-container {
     position: fixed;
-    top: 0;
+    top: 60px; /* Account for navbar */
     left: 0;
     bottom: 0;
-    z-index: 1050;
+    z-index: 950; /* Below navbar */
     transform: translateX(-100%); /* Hidden off-screen */
     flex: none;
     width: 320px;
@@ -4735,47 +5050,33 @@ export default {
     flex: 1;
     width: 100%;
   }
+
+  /* Adjust mobile search bar height when shown */
+  .mobile-search-bar + .sidebar-container {
+    top: 160px; /* Navbar + search bar height */
+  }
+
+  .mobile-search-bar + .mobile-backdrop {
+    top: 160px; /* Navbar + search bar height */
+  }
+
+  /* Mobile map container fills screen */
+  .map-container-wrapper {
+    height: calc(100vh - 60px); /* Full height minus navbar */
+  }
 }
 
-/* Mobile toggle button */
-.mobile-toggle {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 1060;
-  background: #004877;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 72, 119, 0.3);
-  font-size: 20px;
-  transition: all 0.3s ease;
-}
-
-.mobile-toggle:hover {
-  background: #003d66;
-  transform: scale(1.05);
-}
-
-.mobile-toggle.active {
-  background: #ffc923;
-  color: #004877;
-}
+/* Old mobile toggle button styles removed - now using navbar button */
 
 /* Mobile backdrop */
 .mobile-backdrop {
   position: fixed;
-  top: 0;
+  top: 60px; /* Below navbar */
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 1040;
+  z-index: 940; /* Below sidebar */
   animation: fadeIn 0.3s ease;
 }
 

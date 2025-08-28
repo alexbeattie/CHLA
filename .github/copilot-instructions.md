@@ -55,7 +55,7 @@ CHLA Provider Map is a full-stack web application that helps families find autis
   - `python3 manage.py migrate && python3 manage.py runserver`
 - Frontend (local)
   - `cd map-frontend && npm install && npm run dev`
-- Data sync to RDS (when local data must be pushed to prod)
+- Data sync to RDS (when local data must be pushed to prod) for  change
   - `cd maplocation && export DB_PASSWORD='<current RDS password>' && python3 sync_data_to_rds.py`
 
 ## Deployment Flow
