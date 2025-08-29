@@ -803,7 +803,7 @@ export default {
     },
   },
 
-  created() {
+  async created() {
     console.log("Vue app created");
 
     // Initialize with empty arrays to prevent null reference errors
@@ -815,8 +815,8 @@ export default {
     // Check if onboarding should be shown
     this.checkOnboardingStatus();
 
-    // Load saved user data if available
-    this.loadUserData();
+    // Load saved user data if available (including regional center)
+    await this.loadUserData();
 
     // Detect user location first, then fetch providers (only if not showing onboarding)
     if (!this.showOnboarding) {
@@ -1424,13 +1424,22 @@ export default {
 
     // Find regional center for user's ZIP code
     async findUserRegionalCenter() {
-      if (!this.userData?.address) return null;
+      console.log("Finding regional center for user address:", this.userData?.address);
+      
+      if (!this.userData?.address) {
+        console.log("No user address found");
+        return null;
+      }
 
       // Extract ZIP code from address
       const zipMatch = this.userData.address.match(/\b\d{5}\b/);
-      if (!zipMatch) return null;
+      if (!zipMatch) {
+        console.log("No ZIP code found in address:", this.userData.address);
+        return null;
+      }
 
       const zipCode = zipMatch[0];
+      console.log("Found ZIP code:", zipCode);
 
       try {
         // Call the API to find regional center by ZIP code
@@ -1440,9 +1449,17 @@ export default {
 
         if (response.ok) {
           const regionalCenter = await response.json();
-          this.userRegionalCenter = regionalCenter;
-          console.log("User regional center found via API:", regionalCenter);
-          return regionalCenter;
+          // Map API fields to expected format
+          this.userRegionalCenter = {
+            name: regionalCenter.regional_center,
+            address: regionalCenter.address,
+            phone: regionalCenter.telephone,
+            website: regionalCenter.website,
+            // Keep original data too
+            ...regionalCenter
+          };
+          console.log("User regional center found via API:", this.userRegionalCenter);
+          return this.userRegionalCenter;
         } else {
           console.log("No regional center found for ZIP code:", zipCode);
           this.userRegionalCenter = null;
@@ -1810,14 +1827,36 @@ export default {
       this.updateFilteredLocations();
     },
 
-    loadUserData() {
-      // Use sample data for testing
-      this.userData = {
-        age: "5",
-        address: "Los Angeles, CA",
-        diagnosis: "Autism",
-        otherDiagnosis: "",
-      };
+    async loadUserData() {
+      // Load saved user data from localStorage
+      const savedProfile = localStorage.getItem("chla-user-profile");
+      
+      if (savedProfile) {
+        try {
+          this.userData = JSON.parse(savedProfile);
+          console.log("Loaded saved user profile:", this.userData);
+        } catch (e) {
+          console.error("Error parsing saved profile:", e);
+          // Use default data as fallback
+          this.userData = {
+            age: "5",
+            address: "Los Angeles, CA 90001",
+            diagnosis: "Autism",
+            otherDiagnosis: "",
+          };
+        }
+      } else {
+        // Use sample data for testing with ZIP code
+        this.userData = {
+          age: "5",
+          address: "Los Angeles, CA 90001",
+          diagnosis: "Autism",
+          otherDiagnosis: "",
+        };
+      }
+      
+      // Find regional center for user's ZIP code
+      await this.findUserRegionalCenter();
     },
 
     // Detect user location using browser geolocation API
