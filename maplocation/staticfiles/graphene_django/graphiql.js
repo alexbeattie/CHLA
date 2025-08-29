@@ -122,7 +122,6 @@
       onEditOperationName: onEditOperationName,
       isHeadersEditorEnabled: GRAPHENE_SETTINGS.graphiqlHeaderEditorEnabled,
       shouldPersistHeaders: GRAPHENE_SETTINGS.graphiqlShouldPersistHeaders,
-      inputValueDeprecation: GRAPHENE_SETTINGS.graphiqlInputValueDeprecation,
       query: query,
     };
     if (parameters.variables) {

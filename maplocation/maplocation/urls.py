@@ -22,6 +22,11 @@ from django.views.generic import TemplateView
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
 
+# Customize admin site
+admin.site.site_header = "CHLA Provider Portal"
+admin.site.site_title = "Provider Portal"
+admin.site.index_title = "Welcome to the Provider Management Portal"
+
 urlpatterns = [
     path('client-portal/', admin.site.urls),
     path('api/', include('locations.urls')),

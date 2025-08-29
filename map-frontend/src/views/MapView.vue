@@ -158,26 +158,38 @@
         </div>
 
         <!-- Regional Center Info -->
-        <div class="regional-center-info mb-3" v-if="userRegionalCenter">
-          <h6 class="rc-title"><i class="bi bi-building"></i> Your Regional Center</h6>
-          <div class="rc-details">
-            <div class="rc-name">{{ userRegionalCenter.name }}</div>
-            <div class="rc-address">{{ userRegionalCenter.address }}</div>
-            <div class="rc-phone" v-if="userRegionalCenter.phone">
-              📞 {{ userRegionalCenter.phone }}
-            </div>
-            <div class="rc-website" v-if="userRegionalCenter.website">
-              🌐
-              <a
-                :href="
-                  userRegionalCenter.website.startsWith('http')
-                    ? userRegionalCenter.website
-                    : 'https://' + userRegionalCenter.website
-                "
-                target="_blank"
-                class="text-decoration-none"
-                >Website</a
-              >
+        <div class="regional-center-info-card mb-3" v-if="userRegionalCenter">
+          <div class="rc-info-header">
+            <i class="bi bi-building-fill rc-header-icon"></i>
+            <h6 class="rc-info-title">Your Regional Center</h6>
+          </div>
+          <div class="rc-info-body">
+            <div class="rc-info-name">{{ userRegionalCenter.name }}</div>
+            <div class="rc-info-details">
+              <div class="rc-info-item">
+                <i class="bi bi-geo-alt-fill text-primary"></i>
+                <span>{{ userRegionalCenter.address }}</span>
+              </div>
+              <div class="rc-info-item" v-if="userRegionalCenter.phone">
+                <i class="bi bi-telephone-fill text-success"></i>
+                <a :href="'tel:' + userRegionalCenter.phone" class="rc-info-link">
+                  {{ userRegionalCenter.phone }}
+                </a>
+              </div>
+              <div class="rc-info-item" v-if="userRegionalCenter.website">
+                <i class="bi bi-globe text-info"></i>
+                <a
+                  :href="
+                    userRegionalCenter.website.startsWith('http')
+                      ? userRegionalCenter.website
+                      : 'https://' + userRegionalCenter.website
+                  "
+                  target="_blank"
+                  class="rc-info-link"
+                >
+                  Visit Website
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -1444,9 +1456,23 @@ export default {
         this.updateMarkers();
       });
 
-      // When switching to regional centers, highlight Los Angeles County without zooming
-      if (type === "regionalCenters") {
-        // If user is in LA County, use the same bounds as the LA focus toggle
+      // When switching to regional centers, center on LA Regional Centers
+      if (type === "regionalCenters" && this.map) {
+        // Center on Los Angeles County with appropriate zoom
+        const laCenter = [-118.2437, 34.0522]; // LA County center
+        this.map.flyTo({
+          center: laCenter,
+          zoom: 9.5, // Good zoom level to see all LA Regional Centers
+          duration: 1000,
+          essential: true,
+        });
+
+        // Also ensure LA Regional Centers are shown
+        if (!this.showLARegionalCenters) {
+          this.toggleLARegionalCenters();
+        }
+      } else if (type === "providers") {
+        // When switching back to providers, check if we should refocus
         if (this.map && this.userLocation?.latitude && this.userLocation?.longitude) {
           const laBounds = this.getLACountyBounds();
           const inLA = this.isPointInBounds(
@@ -5744,5 +5770,93 @@ h6 {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* Regional Center Info Card */
+.regional-center-info-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #0ea5e9;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.regional-center-info-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0ea5e9 0%, #0284c7 100%);
+}
+
+.rc-info-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.rc-header-icon {
+  font-size: 24px;
+  color: #0284c7;
+}
+
+.rc-info-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0c4a6e;
+}
+
+.rc-info-body {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.rc-info-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0c4a6e;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0f2fe;
+}
+
+.rc-info-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rc-info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.rc-info-item i {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.rc-info-link {
+  color: #0284c7;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.rc-info-link:hover {
+  color: #0ea5e9;
+  text-decoration: underline;
 }
 </style>
