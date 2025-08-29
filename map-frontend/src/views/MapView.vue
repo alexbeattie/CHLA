@@ -182,15 +182,15 @@
               </div>
               <div class="info-card-item" v-if="userRegionalCenter.website">
                 <i class="bi bi-globe text-info me-2"></i>
-              <a
-                :href="
-                  userRegionalCenter.website.startsWith('http')
-                    ? userRegionalCenter.website
-                    : 'https://' + userRegionalCenter.website
-                "
-                target="_blank"
-                class="text-decoration-none"
-              >
+                <a
+                  :href="
+                    userRegionalCenter.website.startsWith('http')
+                      ? userRegionalCenter.website
+                      : 'https://' + userRegionalCenter.website
+                  "
+                  target="_blank"
+                  class="text-decoration-none"
+                >
                   Visit Website
                 </a>
               </div>
@@ -211,40 +211,40 @@
               >
             </div>
             <div class="info-card-content">
-          <div class="input-group">
-            <input
-              type="text"
-              class="form-control"
-              v-model.trim="searchText"
-              :placeholder="
-                displayType === 'providers'
-                  ? 'Search providers, services, areas...'
-                  : 'Search locations...'
-              "
-              @keyup.enter="updateFilteredLocations"
-              @input="debounceSearch"
-            />
-            <button
-              v-if="searchText && searchText.trim()"
-              class="btn btn-outline-secondary"
-              type="button"
-              @click="clearSearch"
-              title="Clear search"
-            >
-              <i class="bi bi-x"></i>
-            </button>
-            <button
-              class="btn btn-chla-primary"
-              type="button"
-              @click="updateFilteredLocations"
-              :disabled="loading"
-            >
-              <i class="bi bi-search" v-if="!loading"></i>
-              <div class="spinner-border spinner-border-sm" role="status" v-else>
-                <span class="visually-hidden">Searching...</span>
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model.trim="searchText"
+                  :placeholder="
+                    displayType === 'providers'
+                      ? 'Search providers, services, areas...'
+                      : 'Search locations...'
+                  "
+                  @keyup.enter="updateFilteredLocations"
+                  @input="debounceSearch"
+                />
+                <button
+                  v-if="searchText && searchText.trim()"
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  @click="clearSearch"
+                  title="Clear search"
+                >
+                  <i class="bi bi-x"></i>
+                </button>
+                <button
+                  class="btn btn-chla-primary"
+                  type="button"
+                  @click="updateFilteredLocations"
+                  :disabled="loading"
+                >
+                  <i class="bi bi-search" v-if="!loading"></i>
+                  <div class="spinner-border spinner-border-sm" role="status" v-else>
+                    <span class="visually-hidden">Searching...</span>
+                  </div>
+                </button>
               </div>
-            </button>
-          </div>
               <div class="small text-muted mt-2" v-if="displayType === 'providers'">
                 <em
                   >Try: "ABA", "speech therapy", "Los Angeles", "autism", or provider
@@ -295,9 +295,9 @@
             </div>
             <div class="info-card-content">
               <div class="btn-group-vertical w-100" v-if="!zipViewOnly">
-              <button
+                <button
                   class="btn sidebar-action-btn"
-                @click="applyLACountyFocus"
+                  @click="applyLACountyFocus"
                   :class="focusLACounty ? 'btn-chla-primary' : 'btn-chla-outline'"
                 >
                   <i
@@ -307,28 +307,28 @@
                   <span class="ms-2">{{
                     focusLACounty ? "LA County Focused" : "Focus on LA County"
                   }}</span>
-              </button>
-              <button
+                </button>
+                <button
                   class="btn sidebar-action-btn"
-                @click="toggleLARegionalCenters"
+                  @click="toggleLARegionalCenters"
                   :class="showLARegionalCenters ? 'btn-chla-primary' : 'btn-chla-outline'"
-              >
+                >
                   <i
                     class="bi"
                     :class="showLARegionalCenters ? 'bi-building-fill' : 'bi-building'"
                   ></i>
-                <span class="ms-2"
+                  <span class="ms-2"
                     >{{ showLARegionalCenters ? "Hide" : "Show" }} LA Regional
                     Centers</span
-                >
-              </button>
+                  >
+                </button>
               </div>
               <div v-else class="btn-group-vertical w-100">
                 <button class="btn btn-chla-primary" disabled>
-                <i class="bi bi-grid-3x3-gap me-1"></i>
+                  <i class="bi bi-grid-3x3-gap me-1"></i>
                   ZIP View Active
-              </button>
-          </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -341,72 +341,72 @@
               <strong>Filters</strong>
             </div>
             <div class="info-card-content">
-          <!-- Radius Filter (when geolocation is available) -->
+              <!-- Radius Filter (when geolocation is available) -->
               <div class="mb-3" v-if="userLocation.latitude && userLocation.longitude">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                   <label class="form-label mb-0 small">
-                <span v-if="searchText && searchText.trim()">
-                  Search: "<strong>{{ searchText }}</strong
-                  >"
-                </span>
-                <span v-else>
-                  Distance Radius: <strong>{{ radius }} miles</strong>
-                </span>
-              </label>
+                    <span v-if="searchText && searchText.trim()">
+                      Search: "<strong>{{ searchText }}</strong
+                      >"
+                    </span>
+                    <span v-else>
+                      Distance Radius: <strong>{{ radius }} miles</strong>
+                    </span>
+                  </label>
                   <span class="badge bg-info small"
                     >{{ countLocationsInRadius }} found</span
                   >
-            </div>
-            <input
-              type="range"
-              v-model.number="radius"
-              class="form-range"
-              min="5"
-              max="75"
-              step="5"
-              @change="updateFilteredLocations"
-            />
+                </div>
+                <input
+                  type="range"
+                  v-model.number="radius"
+                  class="form-range"
+                  min="5"
+                  max="75"
+                  step="5"
+                  @change="updateFilteredLocations"
+                />
                 <div class="d-flex justify-content-between small text-muted">
                   <span>5 miles</span>
                   <span>75 miles</span>
-            </div>
-          </div>
+                </div>
+              </div>
 
-          <!-- Filter Options for Providers -->
+              <!-- Filter Options for Providers -->
               <div v-if="displayType === 'providers'">
                 <h6 class="text-muted mb-2 small">Payment & Funding</h6>
                 <div class="form-check mb-2">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                v-model="filterOptions.acceptsInsurance"
-                id="acceptsInsurance"
-                @change="updateFilteredLocations"
-              />
-              <label class="form-check-label" for="acceptsInsurance">
-                <i class="bi bi-credit-card me-1"></i>
-                Accepts Insurance
-              </label>
-            </div>
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    v-model="filterOptions.acceptsInsurance"
+                    id="acceptsInsurance"
+                    @change="updateFilteredLocations"
+                  />
+                  <label class="form-check-label" for="acceptsInsurance">
+                    <i class="bi bi-credit-card me-1"></i>
+                    Accepts Insurance
+                  </label>
+                </div>
                 <div class="form-check mb-2">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                v-model="filterOptions.acceptsRegionalCenter"
-                id="acceptsRegionalCenter"
-                @change="updateFilteredLocations"
-              />
-              <label class="form-check-label" for="acceptsRegionalCenter">
-                <i class="bi bi-building me-1"></i>
-                Accepts Regional Center
-              </label>
-            </div>
-          </div>
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    v-model="filterOptions.acceptsRegionalCenter"
+                    id="acceptsRegionalCenter"
+                    @change="updateFilteredLocations"
+                  />
+                  <label class="form-check-label" for="acceptsRegionalCenter">
+                    <i class="bi bi-building me-1"></i>
+                    Accepts Regional Center
+                  </label>
+                </div>
+              </div>
 
-          <!-- Reset Button -->
-          <button @click="resetFilters" class="btn btn-secondary btn-sm w-100 mt-2">
-            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
-          </button>
+              <!-- Reset Button -->
+              <button @click="resetFilters" class="btn btn-secondary btn-sm w-100 mt-2">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+              </button>
             </div>
           </div>
         </div>
@@ -418,21 +418,21 @@
               <div class="info-card-header">
                 <i class="bi bi-list-ul text-success me-2"></i>
                 <strong>
-            {{
-              displayType === "locations"
-                ? "Locations"
-                : displayType === "regionalCenters"
-                ? "Regional Centers"
-                : "Providers"
-            }}
+                  {{
+                    displayType === "locations"
+                      ? "Locations"
+                      : displayType === "regionalCenters"
+                      ? "Regional Centers"
+                      : "Providers"
+                  }}
                 </strong>
                 <span class="badge bg-success ms-2">
                   {{
-              displayType === "locations"
-                ? filteredLocations.length
-                : displayType === "regionalCenters"
-                ? filteredRegionalCenters.length
-                : filteredProviders.length
+                    displayType === "locations"
+                      ? filteredLocations.length
+                      : displayType === "regionalCenters"
+                      ? filteredRegionalCenters.length
+                      : filteredProviders.length
                   }}
                 </span>
               </div>
@@ -2783,7 +2783,7 @@ export default {
         // County click handler disabled - no county popups needed
         this.map.on("click", "california-counties-fill", (e) => {
           // County popups disabled per user request
-            return;
+          return;
         });
 
         // Hover effects for California counties
@@ -3740,16 +3740,16 @@ export default {
             typeof item.address === "string" &&
             item.address.startsWith("{")
           ) {
-          const addressData = JSON.parse(item.address);
-          if (typeof addressData === "object") {
-            fullAddress = [
-              addressData.street,
-              addressData.city,
-              addressData.state,
-              addressData.zip,
-            ]
-              .filter(Boolean)
-              .join(", ");
+            const addressData = JSON.parse(item.address);
+            if (typeof addressData === "object") {
+              fullAddress = [
+                addressData.street,
+                addressData.city,
+                addressData.state,
+                addressData.zip,
+              ]
+                .filter(Boolean)
+                .join(", ");
             }
           } else {
             // Use individual fields - this is the most common case for providers
@@ -4749,12 +4749,14 @@ export default {
       // Clean up insurance text
       let cleanInsurance = insurance;
 
-      // Remove array brackets and quotes
+      // Remove array brackets, curly braces and quotes
       cleanInsurance = cleanInsurance
         .replace(/^\[|\]$/g, "") // Remove outer brackets
+        .replace(/^\{|\}$/g, "") // Remove outer curly braces
         .replace(/'/g, "") // Remove single quotes
         .replace(/"/g, "") // Remove double quotes
         .replace(/,/g, ", ") // Add space after commas
+        .replace(/\s+/g, " ") // Normalize whitespace
         .trim();
 
       return cleanInsurance;
@@ -4779,12 +4781,14 @@ export default {
       // Clean up languages text
       let cleanLanguages = languages;
 
-      // Remove array brackets and quotes
+      // Remove array brackets, curly braces and quotes
       cleanLanguages = cleanLanguages
         .replace(/^\[|\]$/g, "") // Remove outer brackets
+        .replace(/^\{|\}$/g, "") // Remove outer curly braces
         .replace(/'/g, "") // Remove single quotes
         .replace(/"/g, "") // Remove double quotes
         .replace(/,/g, ", ") // Add space after commas
+        .replace(/\s+/g, " ") // Normalize whitespace
         .trim();
 
       return cleanLanguages;
@@ -5080,11 +5084,11 @@ export default {
   .map-container {
     flex: 1;
     width: 100%;
-}
+  }
 
   /* Mobile map container fills screen */
   .map-container-wrapper {
-  position: fixed;
+    position: fixed;
     left: 0 !important; /* Full width on mobile */
     top: 60px;
     right: 0;
@@ -5438,7 +5442,7 @@ export default {
   }
   .action-buttons .sidebar-action-btn i {
     width: 18px;
-}
+  }
 }
 /* Professional action button styling */
 .sidebar .action-buttons {
