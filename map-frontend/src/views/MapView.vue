@@ -136,48 +136,52 @@
 
         <!-- User Profile Summary -->
         <div
-          class="profile-summary mb-2 d-flex align-items-center justify-content-between"
+          class="info-card-section mb-3"
           v-if="userData.age || userData.diagnosis || userData.therapies?.length"
         >
-          <h6 class="profile-title mb-0 me-3">
-            <i class="bi bi-person-circle me-1"></i> Your Profile
-          </h6>
-          <div
-            class="profile-details small text-muted d-flex align-items-center flex-grow-1 justify-content-evenly"
-          >
-            <span v-if="userData.age" class="d-flex align-items-center"
-              ><i class="bi bi-calendar me-1"></i>{{ userData.age }}</span
-            >
-            <span v-if="userData.diagnosis" class="d-flex align-items-center"
-              ><i class="bi bi-heart-pulse me-1"></i>{{ userData.diagnosis }}</span
-            >
-            <span v-if="userData.therapies?.length" class="d-flex align-items-center"
-              ><i class="bi bi-tools me-1"></i>{{ userData.therapies.join(", ") }}</span
-            >
+          <div class="form-control info-card border-primary bg-primary bg-opacity-10">
+            <div class="info-card-header">
+              <i class="bi bi-person-circle text-primary me-2"></i>
+              <strong>Your Profile</strong>
+            </div>
+            <div class="info-card-content mt-2">
+              <div class="info-card-item" v-if="userData.age">
+                <i class="bi bi-calendar text-muted me-2"></i>
+                <span>{{ userData.age }}</span>
+              </div>
+              <div class="info-card-item" v-if="userData.diagnosis">
+                <i class="bi bi-heart-pulse text-danger me-2"></i>
+                <span>{{ userData.diagnosis }}</span>
+              </div>
+              <div class="info-card-item" v-if="userData.therapies?.length">
+                <i class="bi bi-tools text-info me-2"></i>
+                <span>{{ userData.therapies.join(", ") }}</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Regional Center Info -->
-        <div class="regional-center-info-card mb-3" v-if="userRegionalCenter">
-          <div class="rc-info-header">
-            <i class="bi bi-building-fill rc-header-icon"></i>
-            <h6 class="rc-info-title">Your Regional Center</h6>
-          </div>
-          <div class="rc-info-body">
-            <div class="rc-info-name">{{ userRegionalCenter.name }}</div>
-            <div class="rc-info-details">
-              <div class="rc-info-item">
-                <i class="bi bi-geo-alt-fill text-primary"></i>
+        <div class="info-card-section mb-3" v-if="userRegionalCenter">
+          <div class="form-control info-card border-info bg-info bg-opacity-10">
+            <div class="info-card-header">
+              <i class="bi bi-building-fill text-info me-2"></i>
+              <strong>Your Regional Center</strong>
+            </div>
+            <div class="info-card-content mt-2">
+              <div class="info-card-title">{{ userRegionalCenter.name }}</div>
+              <div class="info-card-item">
+                <i class="bi bi-geo-alt-fill text-primary me-2"></i>
                 <span>{{ userRegionalCenter.address }}</span>
               </div>
-              <div class="rc-info-item" v-if="userRegionalCenter.phone">
-                <i class="bi bi-telephone-fill text-success"></i>
-                <a :href="'tel:' + userRegionalCenter.phone" class="rc-info-link">
+              <div class="info-card-item" v-if="userRegionalCenter.phone">
+                <i class="bi bi-telephone-fill text-success me-2"></i>
+                <a :href="'tel:' + userRegionalCenter.phone" class="text-decoration-none">
                   {{ userRegionalCenter.phone }}
                 </a>
               </div>
-              <div class="rc-info-item" v-if="userRegionalCenter.website">
-                <i class="bi bi-globe text-info"></i>
+              <div class="info-card-item" v-if="userRegionalCenter.website">
+                <i class="bi bi-globe text-info me-2"></i>
                 <a
                   :href="
                     userRegionalCenter.website.startsWith('http')
@@ -185,7 +189,7 @@
                       : 'https://' + userRegionalCenter.website
                   "
                   target="_blank"
-                  class="rc-info-link"
+                  class="text-decoration-none"
                 >
                   Visit Website
                 </a>
@@ -195,46 +199,59 @@
         </div>
 
         <!-- Simple Search -->
-        <div class="search-section mb-3">
-          <div class="input-group">
-            <input
-              type="text"
-              class="form-control"
-              v-model.trim="searchText"
-              :placeholder="
-                displayType === 'providers'
-                  ? 'Search providers, services, areas...'
-                  : 'Search locations...'
-              "
-              @keyup.enter="updateFilteredLocations"
-              @input="debounceSearch"
-            />
-            <button
-              v-if="searchText && searchText.trim()"
-              class="btn btn-outline-secondary"
-              type="button"
-              @click="clearSearch"
-              title="Clear search"
-            >
-              <i class="bi bi-x"></i>
-            </button>
-            <button
-              class="btn btn-chla-primary"
-              type="button"
-              @click="updateFilteredLocations"
-              :disabled="loading"
-            >
-              <i class="bi bi-search" v-if="!loading"></i>
-              <div class="spinner-border spinner-border-sm" role="status" v-else>
-                <span class="visually-hidden">Searching...</span>
+        <div class="info-card-section mb-3">
+          <div class="form-control info-card border-secondary bg-secondary bg-opacity-5">
+            <div class="info-card-header mb-2">
+              <i class="bi bi-search text-secondary me-2"></i>
+              <strong
+                >Search
+                {{
+                  displayType === "providers" ? "Providers" : "Regional Centers"
+                }}</strong
+              >
+            </div>
+            <div class="info-card-content">
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model.trim="searchText"
+                  :placeholder="
+                    displayType === 'providers'
+                      ? 'Search providers, services, areas...'
+                      : 'Search locations...'
+                  "
+                  @keyup.enter="updateFilteredLocations"
+                  @input="debounceSearch"
+                />
+                <button
+                  v-if="searchText && searchText.trim()"
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  @click="clearSearch"
+                  title="Clear search"
+                >
+                  <i class="bi bi-x"></i>
+                </button>
+                <button
+                  class="btn btn-chla-primary"
+                  type="button"
+                  @click="updateFilteredLocations"
+                  :disabled="loading"
+                >
+                  <i class="bi bi-search" v-if="!loading"></i>
+                  <div class="spinner-border spinner-border-sm" role="status" v-else>
+                    <span class="visually-hidden">Searching...</span>
+                  </div>
+                </button>
               </div>
-            </button>
-          </div>
-          <div
-            class="search-help small text-muted mt-1"
-            v-if="displayType === 'providers'"
-          >
-            Try: "ABA", "speech therapy", "Los Angeles", "autism", or provider name
+              <div class="small text-muted mt-2" v-if="displayType === 'providers'">
+                <em
+                  >Try: "ABA", "speech therapy", "Los Angeles", "autism", or provider
+                  name</em
+                >
+              </div>
+            </div>
           </div>
         </div>
 
@@ -5772,91 +5789,99 @@ h6 {
   }
 }
 
-/* Regional Center Info Card */
-.regional-center-info-card {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border: 1px solid #0ea5e9;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
-  position: relative;
-  overflow: hidden;
+/* Unified Info Card Styling */
+.info-card-section {
+  width: 100%;
 }
 
-.regional-center-info-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #0ea5e9 0%, #0284c7 100%);
-}
-
-.rc-info-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.rc-header-icon {
-  font-size: 24px;
-  color: #0284c7;
-}
-
-.rc-info-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: #0c4a6e;
-}
-
-.rc-info-body {
-  background: white;
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.rc-info-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #0c4a6e;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e0f2fe;
-}
-
-.rc-info-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.rc-info-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: #475569;
-}
-
-.rc-info-item i {
-  font-size: 14px;
-  width: 20px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.rc-info-link {
-  color: #0284c7;
-  text-decoration: none;
-  font-weight: 500;
+.info-card {
+  padding: 12px 16px !important;
+  border-width: 1px;
+  border-style: solid;
   transition: all 0.2s ease;
 }
 
-.rc-info-link:hover {
-  color: #0ea5e9;
-  text-decoration: underline;
+.info-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.info-card-header i {
+  font-size: 16px;
+}
+
+.info-card-content {
+  font-size: 13px;
+  color: #495057;
+}
+
+.info-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.info-card-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 2px;
+}
+
+.info-card-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-card-item i {
+  font-size: 14px;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.info-card-item a {
+  color: #0066cc;
+  font-weight: 500;
+}
+
+.info-card-item a:hover {
+  color: #0052a3;
+  text-decoration: underline !important;
+}
+
+/* Specific color adjustments */
+.border-primary.bg-primary.bg-opacity-10 {
+  background-color: rgba(13, 110, 253, 0.08) !important;
+}
+
+.border-info.bg-info.bg-opacity-10 {
+  background-color: rgba(13, 202, 240, 0.08) !important;
+}
+
+.border-secondary.bg-secondary.bg-opacity-5 {
+  background-color: rgba(108, 117, 125, 0.03) !important;
+  border-color: #dee2e6 !important;
+}
+
+/* Search input adjustments */
+.info-card-content .input-group {
+  margin-top: 8px;
+}
+
+.info-card-content .input-group .form-control {
+  font-size: 13px;
+}
+
+.info-card-content .input-group .btn {
+  font-size: 13px;
 }
 </style>
