@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # "django.contrib.gis",  # Temporarily disabled due to GDAL issues
     "rest_framework",
+    "rest_framework.authtoken",  # For token authentication
     # "rest_framework_gis",  # Temporarily disabled due to GDAL issues
     "corsheaders",
     "django_filters",
@@ -181,6 +182,10 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # REST Framework settings
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],

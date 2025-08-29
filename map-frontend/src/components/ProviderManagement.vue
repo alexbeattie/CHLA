@@ -1,10 +1,22 @@
 <template>
   <div class="provider-management">
     <div class="header">
-      <h2>Provider Management</h2>
-      <button @click="showCreateForm = true" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Add New Provider
-      </button>
+      <div class="header-left">
+        <h2>Provider Management</h2>
+        <div class="user-info" v-if="currentUser">
+          <i class="bi bi-person-circle"></i>
+          <span>{{ currentUser.username }}</span>
+          <span v-if="currentUser.is_staff" class="badge bg-info ms-1">Staff</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button @click="showCreateForm = true" class="btn btn-primary me-2">
+          <i class="bi bi-plus-circle"></i> Add New Provider
+        </button>
+        <button @click="handleLogout" class="btn btn-outline-danger">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+      </div>
     </div>
 
     <!-- Provider List -->
@@ -354,6 +366,8 @@
 </template>
 
 <script>
+import { authService } from "../services/auth";
+
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(
   /\/+$/,
   ""
@@ -363,6 +377,7 @@ export default {
   name: "ProviderManagement",
   data() {
     return {
+      currentUser: null,
       providers: [],
       filteredProviders: [],
       searchQuery: "",
@@ -426,10 +441,18 @@ export default {
   },
 
   async mounted() {
+    // Get current user
+    this.currentUser = authService.getUser();
+
+    // Load providers
     await this.loadProviders();
   },
 
   methods: {
+    async handleLogout() {
+      authService.logout();
+      this.$router.push("/login");
+    },
     formatAddress(value) {
       if (!value) return "N/A";
       try {
@@ -774,11 +797,68 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .header h2 {
   margin: 0;
   color: #333;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-size: 14px;
+}
+
+.user-info i {
+  font-size: 20px;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.bg-info {
+  background-color: #0dcaf0;
+  color: white;
+}
+
+.ms-1 {
+  margin-left: 0.25rem;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.btn-outline-danger {
+  background-color: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: white;
 }
 
 .search-bar {

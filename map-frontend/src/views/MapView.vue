@@ -1425,7 +1425,7 @@ export default {
     // Find regional center for user's ZIP code
     async findUserRegionalCenter() {
       console.log("Finding regional center for user address:", this.userData?.address);
-      
+
       if (!this.userData?.address) {
         console.log("No user address found");
         return null;
@@ -1456,7 +1456,7 @@ export default {
             phone: regionalCenter.telephone,
             website: regionalCenter.website,
             // Keep original data too
-            ...regionalCenter
+            ...regionalCenter,
           };
           console.log("User regional center found via API:", this.userRegionalCenter);
           return this.userRegionalCenter;
@@ -1830,7 +1830,7 @@ export default {
     async loadUserData() {
       // Load saved user data from localStorage
       const savedProfile = localStorage.getItem("chla-user-profile");
-      
+
       if (savedProfile) {
         try {
           this.userData = JSON.parse(savedProfile);
@@ -1854,7 +1854,7 @@ export default {
           otherDiagnosis: "",
         };
       }
-      
+
       // Find regional center for user's ZIP code
       await this.findUserRegionalCenter();
     },
