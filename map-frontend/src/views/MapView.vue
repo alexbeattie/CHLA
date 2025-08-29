@@ -4749,13 +4749,11 @@ export default {
       // Clean up insurance text
       let cleanInsurance = insurance;
 
-      // Remove array brackets, curly braces and quotes
+      // Remove all brackets, braces and quotes
       cleanInsurance = cleanInsurance
-        .replace(/^\[|\]$/g, "") // Remove outer brackets
-        .replace(/^\{|\}$/g, "") // Remove outer curly braces
-        .replace(/'/g, "") // Remove single quotes
-        .replace(/"/g, "") // Remove double quotes
-        .replace(/,/g, ", ") // Add space after commas
+        .replace(/[\[\]{}]/g, "") // Remove all brackets and braces
+        .replace(/['"]/g, "") // Remove all quotes
+        .replace(/\s*,\s*/g, ", ") // Normalize comma spacing
         .replace(/\s+/g, " ") // Normalize whitespace
         .trim();
 
@@ -4781,13 +4779,11 @@ export default {
       // Clean up languages text
       let cleanLanguages = languages;
 
-      // Remove array brackets, curly braces and quotes
+      // Remove all brackets, braces and quotes
       cleanLanguages = cleanLanguages
-        .replace(/^\[|\]$/g, "") // Remove outer brackets
-        .replace(/^\{|\}$/g, "") // Remove outer curly braces
-        .replace(/'/g, "") // Remove single quotes
-        .replace(/"/g, "") // Remove double quotes
-        .replace(/,/g, ", ") // Add space after commas
+        .replace(/[\[\]{}]/g, "") // Remove all brackets and braces
+        .replace(/['"]/g, "") // Remove all quotes
+        .replace(/\s*,\s*/g, ", ") // Normalize comma spacing
         .replace(/\s+/g, " ") // Normalize whitespace
         .trim();
 
