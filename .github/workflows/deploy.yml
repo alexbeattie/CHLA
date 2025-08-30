@@ -116,7 +116,7 @@ jobs:
         
         # Deploy to environment
         aws elasticbeanstalk update-environment \
-          --environment-name chla-api-env-v2 \
+          --environment-name chla-api-env \
           --version-label "deploy-$(date +%s)" || echo "Deployment in progress"
     
     - name: Wait for deployment
@@ -128,7 +128,7 @@ jobs:
       run: |
         # Set environment variables via AWS CLI
         aws elasticbeanstalk update-environment \
-          --environment-name chla-api-env-v2 \
+          --environment-name chla-api-env \
           --option-settings \
           'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DJANGO_SECRET_KEY,Value="${{ secrets.DJANGO_SECRET_KEY }}"' \
           'Namespace=aws:elasticbeanstalk:application:environment,OptionName=DJANGO_DEBUG,Value=false' \
