@@ -165,38 +165,50 @@
         </div>
 
         <!-- Regional Center Info -->
-        <div class="info-card-section mb-3" v-if="userRegionalCenter">
+        <div class="info-card-section mb-3">
           <div class="form-control info-card border-info bg-info bg-opacity-10">
             <div class="info-card-header">
               <i class="bi bi-building-fill text-info me-2"></i>
               <strong>Your Regional Center</strong>
             </div>
             <div class="info-card-content mt-2">
-              <div class="info-card-title">{{ userRegionalCenter.name }}</div>
               <div class="info-card-item">
-                <i class="bi bi-geo-alt-fill text-primary me-2"></i>
-                <span>{{ userRegionalCenter.address }}</span>
+                <strong>Your regional center is:</strong>
+                <span class="ms-1">{{
+                  userRegionalCenter && userRegionalCenter.name
+                    ? userRegionalCenter.name
+                    : "Unknown"
+                }}</span>
               </div>
-              <div class="info-card-item" v-if="userRegionalCenter.phone">
-                <i class="bi bi-telephone-fill text-success me-2"></i>
-                <a :href="'tel:' + userRegionalCenter.phone" class="text-decoration-none">
-                  {{ userRegionalCenter.phone }}
-                </a>
-              </div>
-              <div class="info-card-item" v-if="userRegionalCenter.website">
-                <i class="bi bi-globe text-info me-2"></i>
-                <a
-                  :href="
-                    userRegionalCenter.website.startsWith('http')
-                      ? userRegionalCenter.website
-                      : 'https://' + userRegionalCenter.website
-                  "
-                  target="_blank"
-                  class="text-decoration-none"
-                >
-                  Visit Website
-                </a>
-              </div>
+              <template v-if="userRegionalCenter">
+                <div class="info-card-item">
+                  <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                  <span>{{ userRegionalCenter.address }}</span>
+                </div>
+                <div class="info-card-item" v-if="userRegionalCenter.phone">
+                  <i class="bi bi-telephone-fill text-success me-2"></i>
+                  <a
+                    :href="'tel:' + userRegionalCenter.phone"
+                    class="text-decoration-none"
+                  >
+                    {{ userRegionalCenter.phone }}
+                  </a>
+                </div>
+                <div class="info-card-item" v-if="userRegionalCenter.website">
+                  <i class="bi bi-globe text-info me-2"></i>
+                  <a
+                    :href="
+                      userRegionalCenter.website.startsWith('http')
+                        ? userRegionalCenter.website
+                        : 'https://' + userRegionalCenter.website
+                    "
+                    target="_blank"
+                    class="text-decoration-none"
+                  >
+                    Visit Website
+                  </a>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -389,19 +401,6 @@
                   <label class="form-check-label" for="acceptsInsurance">
                     <i class="bi bi-credit-card me-1"></i>
                     Accepts Insurance
-                  </label>
-                </div>
-                <div class="form-check mb-2">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    v-model="filterOptions.acceptsRegionalCenter"
-                    id="acceptsRegionalCenter"
-                    @change="updateFilteredLocations"
-                  />
-                  <label class="form-check-label" for="acceptsRegionalCenter">
-                    <i class="bi bi-building me-1"></i>
-                    Accepts Regional Center
                   </label>
                 </div>
               </div>
@@ -2608,6 +2607,19 @@ export default {
       if (this.showLARegionalCenters) {
         console.log("Showing LA Regional Centers overlay...");
 
+        // Ensure UI shows the toggles section without requiring a second click and pre-load centers
+        if (this.displayType !== "regionalCenters") {
+          this.displayType = "regionalCenters";
+        }
+        // Make sure we have regional center data so the list and markers appear immediately
+        try {
+          if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
+            await this.fetchRegionalCenters();
+          }
+        } catch (e) {
+          console.warn("Failed to pre-load regional centers:", e);
+        }
+
         // Initialize all regional centers as visible
         this.laRegionalCentersList.forEach((center) => {
           if (!(center.name in this.selectedRegionalCenters)) {
@@ -2640,6 +2652,10 @@ export default {
           console.log("Using cached service area data:", this.laRegionalCentersData);
         }
         await this.addLARegionalCentersToMap();
+        // Ensure markers/list reflect current state without needing a second click
+        try {
+          this.updateMarkers();
+        } catch (_) {}
         // While showing ZIP-section overlay, fade county choropleth to avoid confusion
         try {
           if (this.map.getLayer("california-counties-fill")) {
