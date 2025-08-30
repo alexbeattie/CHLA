@@ -178,7 +178,7 @@ jobs:
     - name: Build frontend
       run: |
         cd map-frontend
-        VITE_API_BASE_URL="https://api.kinddhelp.com" npm run build
+        VITE_API_BASE_URL="https://api.kinddhelp.com/api" npm run build
     
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
