@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from django.http import HttpResponse
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
 
@@ -39,8 +40,8 @@ urlpatterns = [
     path('leaflet/', TemplateView.as_view(template_name='vue_app/leaflet.html'), name='leaflet'),
     path('vue/', TemplateView.as_view(template_name='vue_app/vue_mapbox_raw.html'), name='vue_mapbox'),
     path('simple/', TemplateView.as_view(template_name='vue_app/simple.html'), name='simple'),
-    # Remove the root path that was causing template errors
-    # path('', TemplateView.as_view(template_name='vue_app/vue_mapbox_raw.html'), name='home'),
+    # Simple health check endpoint for load balancer
+    path('', lambda request: HttpResponse('OK'), name='health'),
 ]
 
 # Serve media files in development
