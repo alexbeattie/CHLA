@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(
-  /\/+$/,
-  ""
-);
+// Use relative URLs to take advantage of Vite's proxy configuration
+const API_BASE = "";
 
 class AuthService {
   constructor() {
@@ -72,7 +70,7 @@ class AuthService {
   async login(username, password, rememberMe = false) {
     try {
       // Call Django REST Framework token endpoint
-      const response = await axios.post(`${API_BASE}/api/users/auth/login/`, {
+      const response = await axios.post(`/api/users/auth/login/`, {
         username,
         password
       });

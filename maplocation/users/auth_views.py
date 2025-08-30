@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -51,6 +53,7 @@ def login_view(request):
         )
 
 
+@csrf_exempt
 @api_view(['POST'])
 def logout_view(request):
     """

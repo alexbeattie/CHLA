@@ -161,6 +161,8 @@ CORS_ALLOW_CREDENTIALS = True
 default_cors = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
 ]
 
 cors_from_env = [o.strip() for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()]
@@ -174,8 +176,21 @@ else:
 
 # CSRF trusted origins (comma-separated list of https://domain)
 csrf_from_env = [o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+
+# Default CSRF trusted origins for development
+default_csrf_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001", 
+    "http://127.0.0.1:3001",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 if csrf_from_env:
     CSRF_TRUSTED_ORIGINS = csrf_from_env
+elif DEBUG:
+    CSRF_TRUSTED_ORIGINS = default_csrf_origins
 
 # Honor X-Forwarded-Proto when behind a proxy/ALB
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -184,7 +199,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+        # Remove SessionAuthentication to avoid CSRF issues
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",

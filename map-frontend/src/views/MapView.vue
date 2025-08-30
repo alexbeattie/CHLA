@@ -1,7 +1,7 @@
 <template>
-  <div class="map-app">
+  <div class="map-app" :class="{ authenticated: isAuthenticated }">
     <!-- Top Navigation Bar -->
-    <nav class="top-navbar" v-show="!showOnboarding">
+    <nav class="top-navbar" v-show="!showOnboarding && isAuthenticated">
       <div class="navbar-content">
         <button
           class="mobile-menu-btn d-md-none"
@@ -29,7 +29,10 @@
     </nav>
 
     <!-- Mobile Search Bar -->
-    <div class="mobile-search-bar d-md-none" v-if="showMobileSearch && !showOnboarding">
+    <div
+      class="mobile-search-bar d-md-none"
+      v-if="showMobileSearch && !showOnboarding && isAuthenticated"
+    >
       <div class="search-container">
         <input
           type="text"
@@ -549,18 +552,13 @@ import {
   sampleLocations,
   sampleUserProfile,
 } from "@/assets/sampleData";
+import { authService } from "@/services/auth.js";
 
 // Flag to use actual API data instead of sample data - set to false to query the database
 // Import LA Regional Centers GeoJSON overlay
 // Removed hardcoded GeoJSON import - now using API endpoint
 
 const USE_LOCAL_DATA_ONLY = false;
-
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(
-  /\/+$/,
-  ""
-);
-const API_ROOT = API_BASE.endsWith("/api") ? API_BASE : `${API_BASE}/api`;
 
 // Static asset URL for LA ZIP codes GeoJSON
 const LA_ZIP_CODES_URL = new URL(
@@ -689,6 +687,9 @@ export default {
   },
 
   computed: {
+    isAuthenticated() {
+      return authService.isAuthenticated();
+    },
     laRegionalCentersForLegend() {
       const feats = this.laRegionalCentersData?.features || [];
       return feats.filter(
@@ -1415,11 +1416,8 @@ export default {
     },
 
     getApiRoot() {
-      let base = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-      base = (base || "").replace(/\/+$/, "");
-      // Strip trailing /api to prevent double /api
-      base = base.replace(/\/api$/, "");
-      return base || "http://127.0.0.1:8000";
+      // Return empty string to use relative URLs with Vite proxy
+      return "";
     },
 
     // Find regional center for user's ZIP code
@@ -2217,7 +2215,7 @@ export default {
           }
 
           // Always use comprehensive search endpoint (it handles both filtered and unfiltered)
-          const url = `${API_ROOT}/providers-v2/comprehensive_search/?${queryParams.toString()}`;
+          const url = `/api/providers-v2/comprehensive_search/?${queryParams.toString()}`;
 
           if (hasSpecificFilters) {
             console.log(`🔍 Fetching FILTERED providers from API: ${url}`);
@@ -5095,6 +5093,15 @@ export default {
   transition: transform 0.3s ease;
 }
 
+/* Adjust layout when not authenticated (no navbar) */
+.map-app:not(.authenticated) .sidebar-container {
+  top: 0;
+}
+
+.map-app:not(.authenticated) .map-container-wrapper {
+  top: 0;
+}
+
 /* Desktop sidebar positioning */
 @media (min-width: 768px) {
   .sidebar-container {
@@ -5128,6 +5135,11 @@ export default {
     top: 60px;
     right: 0;
     bottom: 0;
+  }
+
+  /* Adjust mobile view when not authenticated */
+  .map-app:not(.authenticated) .map-container-wrapper {
+    top: 0 !important;
   }
 
   /* Adjust map position when search bar is visible */
