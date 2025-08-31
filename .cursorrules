@@ -1,0 +1,62 @@
+# CHLA Provider Map Project Rules
+
+## Project Overview
+This is a healthcare provider mapping application with:
+- Frontend: Vue 3 + Vite hosted on AWS S3/CloudFront (https://kinddhelp.com)
+- Backend: Django REST API on AWS Elastic Beanstalk (https://api.kinddhelp.com)
+- Database: PostgreSQL on AWS RDS
+
+## Key Commands
+
+### Local Development
+```bash
+# Backend (Django)
+cd maplocation && source ../.venv/bin/activate && python3 manage.py runserver
+
+# Frontend (Vue)
+cd map-frontend && ./switch-env.sh dev && npm run dev
+```
+
+### Deployment
+```bash
+# Backend
+cd maplocation && eb deploy --profile personal --region us-west-2
+
+# Frontend
+cd map-frontend && ./switch-env.sh prod && npm run build
+aws s3 sync dist/ s3://kinddhelp-frontend-1755148345 --delete --profile personal --region us-west-2
+aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*" --profile personal
+```
+
+## Critical Information
+1. ALWAYS use `python3` not `python` for Django commands
+2. Frontend environment switching: Use `./switch-env.sh dev` or `./switch-env.sh prod`
+3. API Base URLs:
+   - Development: http://127.0.0.1:8000
+   - Production: https://api.kinddhelp.com
+4. AWS Profile: `personal`
+5. AWS Region: `us-west-2`
+
+## Common Issues
+- 502 errors: Check Elastic Beanstalk health (`eb health`)
+- CORS errors: Update CORS_ALLOWED_ORIGINS in EB environment variables
+- Frontend not updating: CloudFront cache invalidation takes 5-15 minutes
+
+## Project Structure
+```
+/CHLAProj/
+├── map-frontend/     # Vue.js frontend
+├── maplocation/      # Django backend
+└── .venv/           # Python virtual environment
+```
+
+## API Endpoints
+- `/api/providers-v2/comprehensive_search/` - Main provider search
+- `/api/regional-centers/` - Regional center data
+- `/api/regional-centers/service_area_boundaries/` - Service area polygons
+
+## Never Do
+- Don't create unnecessary files without user request
+- Don't use relative API URLs in production builds
+- Don't forget to activate the virtual environment for Django
+- Don't use `python` command - always use `python3`

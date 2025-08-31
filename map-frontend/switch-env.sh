@@ -17,7 +17,7 @@ case "${1:-dev}" in
     ;;
   "prod"|"production")
     echo "🔄 Switching to PRODUCTION environment..."
-    echo "VITE_API_BASE_URL=http://api.kinddhelp.com/api" > "$SCRIPT_DIR/.env"
+    echo "VITE_API_BASE_URL=https://api.kinddhelp.com" > "$SCRIPT_DIR/.env"
     echo "VITE_MAPBOX_TOKEN=pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg" >> "$SCRIPT_DIR/.env"
     echo "✅ Switched to PRODUCTION (api.kinddhelp.com)"
     echo "   Run: npm run build"

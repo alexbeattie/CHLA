@@ -1415,8 +1415,8 @@ export default {
     },
 
     getApiRoot() {
-      // Return empty string to use relative URLs with Vite proxy
-      return "";
+      // Use the API base URL from environment variable
+      return import.meta.env.VITE_API_BASE_URL || "";
     },
 
     // Find regional center for user's ZIP code
@@ -2214,7 +2214,7 @@ export default {
           }
 
           // Always use comprehensive search endpoint (it handles both filtered and unfiltered)
-          const url = `/api/providers-v2/comprehensive_search/?${queryParams.toString()}`;
+          const url = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?${queryParams.toString()}`;
 
           if (hasSpecificFilters) {
             console.log(`🔍 Fetching FILTERED providers from API: ${url}`);
