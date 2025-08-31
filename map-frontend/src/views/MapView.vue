@@ -1,7 +1,7 @@
 <template>
   <div class="map-app" :class="{ authenticated: isAuthenticated }">
     <!-- Top Navigation Bar -->
-    <nav class="top-navbar" v-show="!showOnboarding && isAuthenticated">
+    <nav class="top-navbar" v-show="!showOnboarding">
       <div class="navbar-content">
         <button
           class="mobile-menu-btn d-md-none"
@@ -21,7 +21,7 @@
           <button class="btn-icon d-md-none" @click="toggleSearch">
             <i class="bi bi-search"></i>
           </button>
-          <button class="btn-icon" @click="toggleUserMenu">
+          <button class="btn-icon" @click="toggleUserMenu" v-if="isAuthenticated">
             <i class="bi bi-person-circle"></i>
           </button>
         </div>
@@ -29,10 +29,7 @@
     </nav>
 
     <!-- Mobile Search Bar -->
-    <div
-      class="mobile-search-bar d-md-none"
-      v-if="showMobileSearch && !showOnboarding && isAuthenticated"
-    >
+    <div class="mobile-search-bar d-md-none" v-if="showMobileSearch && !showOnboarding">
       <div class="search-container">
         <input
           type="text"
@@ -5109,14 +5106,7 @@ export default {
   transition: transform 0.3s ease;
 }
 
-/* Adjust layout when not authenticated (no navbar) */
-.map-app:not(.authenticated) .sidebar-container {
-  top: 0;
-}
-
-.map-app:not(.authenticated) .map-container-wrapper {
-  top: 0;
-}
+/* Layout is now consistent regardless of authentication */
 
 /* Desktop sidebar positioning */
 @media (min-width: 768px) {
@@ -5153,10 +5143,7 @@ export default {
     bottom: 0;
   }
 
-  /* Adjust mobile view when not authenticated */
-  .map-app:not(.authenticated) .map-container-wrapper {
-    top: 0 !important;
-  }
+
 
   /* Adjust map position when search bar is visible */
   .map-container-wrapper.with-search {
