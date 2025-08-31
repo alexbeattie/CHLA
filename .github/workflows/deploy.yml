@@ -283,7 +283,8 @@ jobs:
     
     # Option 2: Email notification (requires EMAIL secret)
     - name: Send email notification
-      if: always() && secrets.EMAIL != ''
+      if: always()
+      continue-on-error: true
       uses: dawidd6/action-send-mail@v3
       with:
         server_address: smtp.gmail.com
@@ -307,7 +308,8 @@ jobs:
     
     # Option 3: Slack notification (requires SLACK_WEBHOOK secret)
     - name: Slack Notification
-      if: always() && secrets.SLACK_WEBHOOK != ''
+      if: always()
+      continue-on-error: true
       uses: 8398a7/action-slack@v3
       with:
         webhook_url: ${{ secrets.SLACK_WEBHOOK }}
