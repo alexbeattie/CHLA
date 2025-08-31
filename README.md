@@ -83,7 +83,7 @@ A comprehensive healthcare provider mapping application for Children's Hospital 
 
 ```
 CHLAProj/
-├── maplocation/           # Django backend
+├── maplocation/           # Django backends
 │   ├── manage.py
 │   ├── requirements.txt
 │   ├── Procfile
