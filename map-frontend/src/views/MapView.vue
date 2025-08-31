@@ -174,7 +174,7 @@
                 <span class="ms-1">{{
                   userRegionalCenter && userRegionalCenter.name
                     ? userRegionalCenter.name
-                    : "Unknown"
+                    : "Detecting location..."
                 }}</span>
               </div>
               <template v-if="userRegionalCenter">
@@ -679,6 +679,9 @@ export default {
 
       // Layout handling
       resizeTimeout: null,
+
+      // Map movement tracking
+      isMapMoving: false,
     };
   },
 
@@ -878,13 +881,17 @@ export default {
       };
 
       const coords = centerCoordinates[name];
-      if (coords && this.map) {
+      if (coords && this.map && !this.isMapMoving) {
+        this.isMapMoving = true;
         this.map.flyTo({
           center: coords,
           zoom: 12,
           essential: true,
           duration: 1500,
         });
+        setTimeout(() => {
+          this.isMapMoving = false;
+        }, 1600);
       }
     },
 
@@ -1512,15 +1519,19 @@ export default {
       });
 
       // When switching to regional centers, center on LA Regional Centers
-      if (type === "regionalCenters" && this.map) {
+      if (type === "regionalCenters" && this.map && !this.isMapMoving) {
         // Center on Los Angeles County with appropriate zoom
         const laCenter = [-118.2437, 34.0522]; // LA County center
+        this.isMapMoving = true;
         this.map.flyTo({
           center: laCenter,
           zoom: 9.5, // Good zoom level to see all LA Regional Centers
           duration: 1000,
           essential: true,
         });
+        setTimeout(() => {
+          this.isMapMoving = false;
+        }, 1100);
 
         // Also ensure LA Regional Centers are shown
         if (!this.showLARegionalCenters) {
@@ -1596,8 +1607,18 @@ export default {
     handleRegionalCenterMatched(center) {
       this.matchedRegionalCenter = center;
       // Center map softly on the matched center
-      if (center && this.map && center.latitude && center.longitude) {
+      if (
+        center &&
+        this.map &&
+        center.latitude &&
+        center.longitude &&
+        !this.isMapMoving
+      ) {
+        this.isMapMoving = true;
         this.map.flyTo({ center: [center.longitude, center.latitude], zoom: 10 });
+        setTimeout(() => {
+          this.isMapMoving = false;
+        }, 1100);
       }
     },
 
@@ -1894,10 +1915,10 @@ export default {
         // Initialize map with detected location
         this.initMap();
 
-        // Fetch providers for the detected location
+        // Fetch providers for the detected location (wait for map to settle)
         setTimeout(() => {
           this.fetchProviders();
-        }, 500);
+        }, 1500);
       } catch (error) {
         console.warn("⚠️ Geolocation failed:", error.message);
         let errorMessage = "Location detection failed";
@@ -1968,6 +1989,9 @@ export default {
 
           console.log(`🏠 Detected address: ${address}`);
           this.userData.address = address;
+
+          // Find regional center for the detected location
+          this.findUserRegionalCenter();
         }
       } catch (error) {
         console.warn("⚠️ Reverse geocoding failed:", error);
@@ -2010,7 +2034,8 @@ export default {
           container: "map",
           style: "mapbox://styles/mapbox/streets-v12",
           center: [this.userLocation.longitude, this.userLocation.latitude],
-          zoom: this.userLocation.detected ? 12 : 6, // Zoom in more if we detected exact location
+          zoom: this.userLocation.detected ? 10 : 6, // Start with a moderate zoom
+          duration: 0, // Immediate initial positioning
         });
 
         console.log("✅ Mapbox map instance created successfully");
@@ -5142,8 +5167,6 @@ export default {
     right: 0;
     bottom: 0;
   }
-
-
 
   /* Adjust map position when search bar is visible */
   .map-container-wrapper.with-search {
