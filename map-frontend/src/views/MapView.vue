@@ -247,6 +247,8 @@
                   "
                   @keyup.enter="updateFilteredLocations"
                   @input="debounceSearch"
+                  @focus="console.log('Search input focused')"
+                  @blur="console.log('Search input blurred')"
                 />
                 <button
                   v-if="searchText && searchText.trim()"
@@ -388,7 +390,7 @@
                   min="5"
                   max="75"
                   step="5"
-                  @change="updateFilteredLocations"
+                  @change="onRadiusChange"
                 />
                 <div class="d-flex justify-content-between small text-muted">
                   <span>5 miles</span>
@@ -675,6 +677,8 @@ export default {
         error: null,
       },
       radius: 15, // miles (increased from 5 to find more results)
+      isAdjustingRadius: false, // flag to track radius slider adjustments
+      isMapMoving: false, // flag to prevent conflicting map movements
 
       // User information
       userData: {
@@ -839,25 +843,31 @@ export default {
   mounted() {
     console.log("Vue app mounted");
 
-    // Load regional centers early for coordinate-based lookup
+    // Initialize everything in proper sequence to avoid jankiness
     this.$nextTick(async () => {
       try {
-        // Load regional centers in background
+        // Step 1: Initialize map first (no data loading yet)
+        console.log("🚀 Step 1: Initializing map...");
+        this.initMap();
+        
+        // Step 2: Wait for map to be ready
+        await this.waitForMapReady();
+        
+        // Step 3: Load regional centers in background (no map changes)
+        console.log("🚀 Step 2: Loading regional centers...");
         if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
-          console.log("Loading regional centers for coordinate lookup...");
           await this.fetchRegionalCenters();
         }
+        
+        // Step 4: Load initial providers with smooth map setup
+        console.log("🚀 Step 3: Loading initial providers...");
+        if (!Array.isArray(this.providers) || this.providers.length === 0) {
+          await this.loadInitialProviders();
+        }
+        
+        console.log("🚀 Initialization complete!");
       } catch (e) {
-        console.warn("Failed to pre-load regional centers:", e);
-      }
-    });
-
-    // Initialize the map
-    this.$nextTick(() => {
-      try {
-        this.initMap();
-      } catch (e) {
-        console.error("Error initializing map:", e);
+        console.error("Error during initialization:", e);
       }
     });
   },
@@ -1392,7 +1402,26 @@ export default {
 
       // If we're showing providers, refetch from API with filters
       if (this.displayType === "providers") {
-        this.fetchProviders();
+        // Store current map state to preserve zoom level only when adjusting radius
+        const currentMapState = (this.isAdjustingRadius && this.map) ? {
+          center: this.map.getCenter(),
+          zoom: this.map.getZoom()
+        } : null;
+        
+        if (currentMapState) {
+          console.log("🔍 Preserving map state for radius adjustment:", currentMapState);
+        }
+        
+        this.fetchProviders().then(() => {
+          // Restore map state after providers are loaded (only for radius adjustments)
+          if (currentMapState && this.map) {
+            console.log("🔍 Restoring map state after radius change:", currentMapState);
+            this.map.setCenter(currentMapState.center);
+            this.map.setZoom(currentMapState.zoom);
+          }
+          // Reset the flag
+          this.isAdjustingRadius = false;
+        });
       } else {
         // For other types, just update markers
         this.$nextTick(() => {
@@ -1403,13 +1432,56 @@ export default {
 
     // Debounce search to prevent too many updates
     debounceSearch() {
+      console.log('🔍 debounceSearch called, searchText:', this.searchText);
       if (this.searchDebounce) {
         clearTimeout(this.searchDebounce);
       }
 
       this.searchDebounce = setTimeout(() => {
+        console.log('🔍 Executing search with text:', this.searchText);
+        // Clear any pending map movements to prevent conflicts
+        if (this.map) {
+          this.map.stop();
+        }
         this.updateFilteredLocations();
-      }, 300);
+      }, 500); // Increased delay to reduce jankiness
+    },
+
+    // Handle radius slider changes while preserving zoom level
+    onRadiusChange() {
+      console.log('🔍 Radius changed to:', this.radius, 'miles');
+      this.isAdjustingRadius = true;
+      this.updateFilteredLocations();
+    },
+
+    // Wait for map to be fully ready
+    async waitForMapReady() {
+      return new Promise((resolve) => {
+        if (this.map && this.map.isStyleLoaded()) {
+          resolve();
+          return;
+        }
+        
+        const checkMap = () => {
+          if (this.map && this.map.isStyleLoaded()) {
+            resolve();
+          } else {
+            setTimeout(checkMap, 100);
+          }
+        };
+        checkMap();
+      });
+    },
+
+    // Load initial providers with smooth map setup
+    async loadInitialProviders() {
+      // Load providers without any map movements
+      console.log("📊 Loading initial providers...");
+      this.isMapMoving = true; // Prevent any map bounds changes
+      await this.fetchProviders();
+      this.isMapMoving = false;
+      
+      console.log("✅ Initial load complete - LA County view with providers");
     },
     clearSearch() {
       this.searchText = "";
@@ -2179,12 +2251,12 @@ export default {
       }
 
       try {
-        // Create Mapbox map
+        // Create Mapbox map with LA County focus
         this.map = new mapboxgl.Map({
           container: "map",
           style: "mapbox://styles/mapbox/streets-v12",
-          center: [this.userLocation.longitude, this.userLocation.latitude],
-          zoom: this.userLocation.detected ? 10 : 6, // Start with a moderate zoom
+          center: [-118.2437, 34.0522], // Los Angeles center
+          zoom: 10, // Good zoom level for LA County overview
           duration: 0, // Immediate initial positioning
         });
 
@@ -2328,17 +2400,27 @@ export default {
           if (this.searchText && this.searchText.trim() !== "") {
             // 1) Try our quick local table
             let searchLocation = this.getLocationFromSearch(this.searchText.trim());
-            // 2) If that fails, try Nominatim
-            if (!searchLocation) {
+            
+            // 2) If it's a ZIP code that needs geocoding, try Nominatim
+            if (searchLocation && searchLocation.needsGeocoding) {
+              console.log(`🔍 Geocoding ZIP code: ${searchLocation.zipCode}`);
+              const nom = await this.geocodeTextToCoords(searchLocation.zipCode);
+              if (nom) searchLocation = nom;
+            }
+            // 3) If that fails, try Nominatim for any other text
+            else if (!searchLocation) {
               const nom = await this.geocodeTextToCoords(this.searchText.trim());
               if (nom) searchLocation = nom;
             }
-            if (searchLocation) {
+            
+            if (searchLocation && searchLocation.lat && searchLocation.lng) {
               searchLat = searchLocation.lat;
               searchLng = searchLocation.lng;
               console.log(
-                `🔍 Using frontend geocode for "${this.searchText}": ${searchLat}, ${searchLng}`
+                `🔍 Using geocoded location for "${this.searchText}": ${searchLat}, ${searchLng}`
               );
+            } else {
+              console.log(`⚠️ Could not geocode "${this.searchText}", using user location`);
             }
           }
 
@@ -2351,7 +2433,10 @@ export default {
           if (searchLat && searchLng) {
             queryParams.append("lat", searchLat);
             queryParams.append("lng", searchLng);
-            queryParams.append("radius", this.radius);
+            // Increase radius for search to find more providers
+            const searchRadius = this.radius || 25; // Increased from 15 to 25 miles
+            queryParams.append("radius", searchRadius);
+            console.log(`🔍 Using search radius: ${searchRadius} miles`);
           }
 
           // Only add user profile filters if specific filters are enabled
@@ -2409,6 +2494,8 @@ export default {
 
           const response = await axios.get(url);
           console.log("API Response:", response);
+          console.log("API URL:", url);
+          console.log("Response data:", response.data);
 
           // Handle regular JSON array response
           if (response.data && Array.isArray(response.data)) {
@@ -2416,12 +2503,160 @@ export default {
             console.log(
               `✅ Loaded ${this.providers.length} providers from API (direct array)`
             );
+            
+            // If no providers found, try fallback strategies
+            if (this.providers.length === 0) {
+              console.log("🔍 No providers found, trying fallback strategies...");
+              
+              if (this.searchText && this.searchText.trim() !== "") {
+                // Try broader search with just the search term
+                console.log("🔍 Trying broader search with search term...");
+                const broadUrl = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?q=${this.searchText}`;
+                console.log("🔍 Trying broader search URL:", broadUrl);
+                try {
+                  const broadResponse = await axios.get(broadUrl);
+                  console.log("🔍 Broader search response:", broadResponse.data);
+                  if (broadResponse.data && Array.isArray(broadResponse.data) && broadResponse.data.length > 0) {
+                    console.log(`🔍 Found ${broadResponse.data.length} providers in broader search`);
+                    this.providers = broadResponse.data;
+                  }
+                } catch (broadError) {
+                  console.log("🔍 Broader search failed:", broadError);
+                }
+              }
+              
+              // If still no results, try getting providers within a reasonable radius
+              if (this.providers.length === 0) {
+                console.log("🔍 No results in broader search, trying to get nearby providers...");
+                
+                // Try to get providers within a larger radius (50 miles) of the search location
+                if (searchLat && searchLng) {
+                  const nearbyUrl = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${searchLat}&lng=${searchLng}&radius=50`;
+                  console.log("🔍 Trying nearby providers URL:", nearbyUrl);
+                  try {
+                    const nearbyResponse = await axios.get(nearbyUrl);
+                    console.log("🔍 Nearby providers response:", nearbyResponse.data);
+                    if (nearbyResponse.data && Array.isArray(nearbyResponse.data) && nearbyResponse.data.length > 0) {
+                      console.log(`🔍 Found ${nearbyResponse.data.length} nearby providers`);
+                      this.providers = nearbyResponse.data;
+                    }
+                  } catch (nearbyError) {
+                    console.log("🔍 Nearby providers search failed:", nearbyError);
+                  }
+                }
+                
+                // If still no results, try getting LA County providers only as last resort
+                if (this.providers.length === 0) {
+                  console.log("🔍 No nearby providers found, trying to get LA County providers only...");
+                  const laCountyUrl = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?lat=34.0522&lng=-118.2437&radius=50`;
+                  try {
+                    const laResponse = await axios.get(laCountyUrl);
+                    console.log("🔍 LA County providers response:", laResponse.data);
+                    if (laResponse.data && Array.isArray(laResponse.data) && laResponse.data.length > 0) {
+                      console.log(`🔍 Found ${laResponse.data.length} LA County providers`);
+                      this.providers = laResponse.data;
+                    } else {
+                      console.log("⚠️ No providers found in LA County area!");
+                    }
+                  } catch (laError) {
+                    console.log("🔍 LA County providers search failed:", laError);
+                  }
+                }
+              }
+            }
 
             // Add search result logging
             if (this.searchText && this.searchText.trim() !== "") {
               console.log(
                 `🔍 Search results for "${this.searchText}": ${this.providers.length} matches`
               );
+              
+              // Debug: Check if providers are in LA County area
+              if (this.providers.length > 0) {
+                const laCountyBounds = {
+                  west: -118.7,
+                  east: -118.0,
+                  south: 33.7,
+                  north: 34.4
+                };
+                
+                const providersInLA = this.providers.filter(provider => {
+                  const lng = parseFloat(provider.longitude);
+                  const lat = parseFloat(provider.latitude);
+                  return lng >= laCountyBounds.west && lng <= laCountyBounds.east &&
+                         lat >= laCountyBounds.south && lat <= laCountyBounds.north;
+                });
+                
+                console.log(`🔍 Providers in LA County: ${providersInLA.length}/${this.providers.length}`);
+                if (providersInLA.length === 0) {
+                  console.log("⚠️ No providers found in LA County area - search may be too broad");
+                }
+              }
+            }
+
+            // If we're showing providers (especially after fallback), set reasonable map bounds
+            // Skip map bounds changes during initial load to prevent jankiness
+            if (this.providers.length > 0 && !this.isMapMoving) {
+              console.log("🔍 Setting reasonable map bounds for providers...");
+              
+              // Set flag to prevent conflicting movements
+              this.isMapMoving = true;
+              
+              // Stop any existing map movements to prevent conflicts
+              if (this.map) {
+                this.map.stop();
+              }
+              
+              // If we have a search location, try to center on that first
+              if (this.searchText && this.searchText.trim() !== "") {
+                const searchLocation = this.getLocationFromSearch(this.searchText.trim());
+                if (searchLocation && searchLocation.lat && searchLocation.lng) {
+                  console.log("🔍 Centering on search location first");
+                  
+                  // Use a single smooth movement to search location
+                  this.map.flyTo({
+                    center: [searchLocation.lng, searchLocation.lat],
+                    zoom: 11,
+                    duration: 1500, // Slightly longer for smoother movement
+                    essential: true // This movement is considered essential
+                  });
+                  
+                  // Reset flag after movement completes
+                  setTimeout(() => {
+                    this.isMapMoving = false;
+                  }, 1600);
+                  return; // Don't do bounds calculation if we have a search location
+                }
+              }
+              
+              // Calculate bounds from actual provider locations
+              const bounds = this.calculateProviderBounds();
+              if (bounds) {
+                console.log("🔍 Flying to calculated provider bounds:", bounds);
+                this.map.fitBounds(bounds, {
+                  padding: 50, // Add some padding around the bounds
+                  maxZoom: 12, // Don't zoom in too much
+                  duration: 1500, // Slightly longer for smoother movement
+                  essential: true // This movement is considered essential
+                });
+              } else {
+                // Fallback to LA County area if no valid coordinates
+                console.log("🔍 No valid coordinates, using LA County fallback");
+                this.map.fitBounds([
+                  [-118.7, 33.7], // Southwest corner of LA County
+                  [-118.0, 34.4]  // Northeast corner of LA County
+                ], {
+                  padding: 50,
+                  maxZoom: 10,
+                  duration: 1500, // Slightly longer for smoother movement
+                  essential: true // This movement is considered essential
+                });
+              }
+              
+              // Reset flag after movement completes
+              setTimeout(() => {
+                this.isMapMoving = false;
+              }, 1600);
             }
             console.log("Filter status:", {
               acceptsInsurance: this.filterOptions.acceptsInsurance,
@@ -4764,9 +4999,13 @@ export default {
       const zipMatch = address.match(/\b\d{5}\b/);
       if (zipMatch) {
         const zipCode = zipMatch[0];
+        console.log(`🔍 Looking up ZIP code: ${zipCode}`);
+        console.log(`🔍 Available ZIP codes:`, Object.keys(zipCodes).slice(0, 10));
         if (zipCodes[zipCode]) {
-          console.log(`Found ZIP code ${zipCode} coordinates:`, zipCodes[zipCode]);
+          console.log(`✅ Found ZIP code ${zipCode} coordinates:`, zipCodes[zipCode]);
           return zipCodes[zipCode];
+        } else {
+          console.log(`❌ ZIP code ${zipCode} not found in hardcoded list`);
         }
 
         // If ZIP code not found, try to infer from first digits
@@ -4799,8 +5038,17 @@ export default {
 
     // Get coordinates for a search location (simpler version of basicGeocode for search)
     getLocationFromSearch(searchText) {
-      // Use the same logic as basicGeocode but just for the search functionality
-      return this.basicGeocode(searchText);
+      // First try the basic geocode
+      let result = this.basicGeocode(searchText);
+      
+      // If that fails and it looks like a ZIP code, try to geocode it
+      if (!result && /^\d{5}(-\d{4})?$/.test(searchText.trim())) {
+        console.log(`🔍 ZIP code detected: ${searchText}, attempting geocoding...`);
+        // Return a promise-like object that will be handled by the caller
+        return { needsGeocoding: true, zipCode: searchText.trim() };
+      }
+      
+      return result;
     },
 
     initializeAfterOnboarding() {
@@ -4835,6 +5083,57 @@ export default {
           }
         });
       }
+    },
+
+    // Calculate bounds from provider locations
+    calculateProviderBounds() {
+      if (!this.providers || this.providers.length === 0) {
+        return null;
+      }
+
+      const validCoords = this.providers
+        .filter(provider => provider.latitude && provider.longitude)
+        .map(provider => [parseFloat(provider.longitude), parseFloat(provider.latitude)]);
+
+      if (validCoords.length === 0) {
+        return null;
+      }
+
+      // Calculate bounding box
+      const lngs = validCoords.map(coord => coord[0]);
+      const lats = validCoords.map(coord => coord[1]);
+      
+      let bounds = [
+        [Math.min(...lngs), Math.min(...lats)], // Southwest corner
+        [Math.max(...lngs), Math.max(...lats)]  // Northeast corner
+      ];
+
+      // Always constrain to LA County area as the baseline
+      // This ensures the map never zooms out beyond the relevant service area
+      const laCountyBounds = [
+        [-118.7, 33.7], // Southwest corner of LA County
+        [-118.0, 34.4]  // Northeast corner of LA County
+      ];
+
+      // If calculated bounds are within LA County, use them
+      // Otherwise, use LA County bounds as the maximum extent
+      const lngSpan = bounds[1][0] - bounds[0][0];
+      const latSpan = bounds[1][1] - bounds[0][1];
+      
+      if (lngSpan > 1.5 || latSpan > 1.5) {
+        console.log("🔍 Using LA County bounds as baseline (calculated bounds too large)");
+        bounds = laCountyBounds;
+      } else {
+        // Ensure bounds don't exceed LA County limits
+        bounds[0][0] = Math.max(bounds[0][0], laCountyBounds[0][0]); // West limit
+        bounds[0][1] = Math.max(bounds[0][1], laCountyBounds[0][1]); // South limit
+        bounds[1][0] = Math.min(bounds[1][0], laCountyBounds[1][0]); // East limit
+        bounds[1][1] = Math.min(bounds[1][1], laCountyBounds[1][1]); // North limit
+        console.log("🔍 Constrained calculated bounds to LA County limits");
+      }
+
+      console.log(`🔍 Final bounds from ${validCoords.length} providers:`, bounds);
+      return bounds;
     },
 
     // Format description text for better readability
