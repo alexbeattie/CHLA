@@ -417,14 +417,15 @@ export default {
     },
 
     async generateResults() {
-      // Get actual counts from the API
+      // Get counts based on user's location within 10-mile radius
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
         
-        // Get provider count based on user preferences
+        // Get provider count within 5-mile radius of user's location
         const providerParams = new URLSearchParams();
         if (this.userLocation) {
           providerParams.append('location', this.userLocation);
+          providerParams.append('radius', '5'); // 5-mile radius
         }
         if (this.userProfile.age) {
           providerParams.append('age_group', this.userProfile.age);
@@ -445,27 +446,47 @@ export default {
         
         if (providerResponse.ok) {
           const providerData = await providerResponse.json();
-          this.resultsCount = providerData.count || 0;
+          // Provider API returns an array directly, not an object with count
+          if (Array.isArray(providerData)) {
+            this.resultsCount = providerData.length;
+          } else {
+            this.resultsCount = providerData.count || 0;
+          }
         } else {
           console.error('Provider API error:', providerResponse.status);
           this.resultsCount = 0;
         }
         
-        // Get regional center count
-        const regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/`;
+        // Get regional center count within 5-mile radius
+        const regionalCenterParams = new URLSearchParams();
+        if (this.userLocation) {
+          regionalCenterParams.append('location', this.userLocation);
+          regionalCenterParams.append('radius', '5'); // 5-mile radius
+        }
+        
+        const regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/by_location/?${regionalCenterParams.toString()}`;
         const regionalCenterResponse = await fetch(regionalCenterUrl, { 
           headers: { Accept: "application/json" } 
         });
         
         if (regionalCenterResponse.ok) {
           const regionalCenterData = await regionalCenterResponse.json();
-          this.regionalCentersCount = regionalCenterData.count || 0;
+          // Count unique regional centers (in case there are multiple offices)
+          const uniqueCenters = new Set();
+          if (Array.isArray(regionalCenterData)) {
+            regionalCenterData.forEach(center => {
+              uniqueCenters.add(center.regional_center);
+            });
+            this.regionalCentersCount = uniqueCenters.size;
+          } else {
+            this.regionalCentersCount = 0;
+          }
         } else {
           console.error('Regional center API error:', regionalCenterResponse.status);
           this.regionalCentersCount = 0;
         }
         
-        console.log(`Generated results: ${this.resultsCount} providers, ${this.regionalCentersCount} regional centers`);
+        console.log(`Generated results within 5-mile radius: ${this.resultsCount} providers, ${this.regionalCentersCount} regional centers`);
         
       } catch (error) {
         console.error('Error generating results:', error);
