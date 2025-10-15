@@ -417,7 +417,7 @@ export default {
     },
 
     async generateResults() {
-      // Get counts based on user's location within 10-mile radius
+      // Get counts based on user's location within 5-mile radius
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
         
@@ -435,8 +435,16 @@ export default {
         }
         if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
           this.userProfile.therapies.forEach(therapy => {
-            providerParams.append('therapy_type', therapy);
+            providerParams.append('therapy', therapy);
           });
+        }
+        
+        // Add funding source preferences
+        if (this.userProfile.hasInsurance) {
+          providerParams.append('insurance', 'Health Insurance');
+        }
+        if (this.userProfile.hasRegionalCenter) {
+          providerParams.append('insurance', 'Regional Center');
         }
         
         const providerUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${providerParams.toString()}`;
