@@ -294,11 +294,11 @@ export default {
   },
 
   methods: {
-    nextStep() {
+    async nextStep() {
       if (this.currentStep < this.totalSteps) {
         this.currentStep++;
         if (this.currentStep === 5) {
-          this.generateResults();
+          await this.generateResults();
         }
       }
     },
@@ -416,11 +416,63 @@ export default {
       }
     },
 
-    generateResults() {
-      // This would query your API for actual results
-      // For now, generate sample counts
-      this.resultsCount = Math.floor(Math.random() * 20) + 10;
-      this.regionalCentersCount = Math.floor(Math.random() * 5) + 2;
+    async generateResults() {
+      // Get actual counts from the API
+      try {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+        
+        // Get provider count based on user preferences
+        const providerParams = new URLSearchParams();
+        if (this.userLocation) {
+          providerParams.append('location', this.userLocation);
+        }
+        if (this.userProfile.age) {
+          providerParams.append('age_group', this.userProfile.age);
+        }
+        if (this.userProfile.diagnosis) {
+          providerParams.append('diagnosis', this.userProfile.diagnosis);
+        }
+        if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
+          this.userProfile.therapies.forEach(therapy => {
+            providerParams.append('therapy_type', therapy);
+          });
+        }
+        
+        const providerUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${providerParams.toString()}`;
+        const providerResponse = await fetch(providerUrl, { 
+          headers: { Accept: "application/json" } 
+        });
+        
+        if (providerResponse.ok) {
+          const providerData = await providerResponse.json();
+          this.resultsCount = providerData.count || 0;
+        } else {
+          console.error('Provider API error:', providerResponse.status);
+          this.resultsCount = 0;
+        }
+        
+        // Get regional center count
+        const regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/`;
+        const regionalCenterResponse = await fetch(regionalCenterUrl, { 
+          headers: { Accept: "application/json" } 
+        });
+        
+        if (regionalCenterResponse.ok) {
+          const regionalCenterData = await regionalCenterResponse.json();
+          this.regionalCentersCount = regionalCenterData.count || 0;
+        } else {
+          console.error('Regional center API error:', regionalCenterResponse.status);
+          this.regionalCentersCount = 0;
+        }
+        
+        console.log(`Generated results: ${this.resultsCount} providers, ${this.regionalCentersCount} regional centers`);
+        
+      } catch (error) {
+        console.error('Error generating results:', error);
+        // Fallback to reasonable defaults
+        this.resultsCount = 0;
+        this.regionalCentersCount = 0;
+      }
     },
 
     completeOnboarding() {
