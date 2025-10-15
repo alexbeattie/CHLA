@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import MapView from '../views/MapView.vue'
 import ProviderManagement from '../components/ProviderManagement.vue'
 import Login from '../components/Login.vue'
+import OnboardingFlowTest from '../components/OnboardingFlowTest.vue'
 import { authService } from '../services/auth'
 
 // Define routes
@@ -24,6 +25,11 @@ const routes = [
     name: 'providers',
     component: ProviderManagement,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/test-onboarding',
+    name: 'test-onboarding',
+    component: OnboardingFlowTest
   },
   // Add more routes here as needed
 ]

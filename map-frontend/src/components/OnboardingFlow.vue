@@ -6,17 +6,17 @@
         <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
       </div>
 
-      <!-- Step Counter -->
-      <div class="step-counter">Step {{ currentStep }} of {{ totalSteps }}</div>
-
       <!-- Step Content -->
       <div class="step-content">
+        <!-- Step Counter -->
+        <div class="step-counter">Step {{ currentStep }} of {{ totalSteps }}</div>
+        
         <!-- Welcome Step -->
         <div v-if="currentStep === 1" class="step welcome-step">
           <div class="chla-logo-large">
             <img src="@/assets/chla-logo.svg" alt="CHLA" class="logo" />
           </div>
-          <h2>Welcome to CHLA Provider Network</h2>
+          <h2>Neurodevelopmental Resource Navigator</h2>
           <p class="welcome-text">
             Find specialized healthcare providers and regional centers serving your area.
             We'll help you discover the best care options based on your specific needs.
@@ -24,26 +24,23 @@
           <div class="welcome-features">
             <div class="feature">
               <i class="bi bi-geo-alt-fill"></i>
-              <span>Location-based provider search</span>
+              <span>Location Search</span>
             </div>
             <div class="feature">
               <i class="bi bi-person-check"></i>
-              <span>Personalized recommendations</span>
+              <span>Personalized</span>
             </div>
             <div class="feature">
               <i class="bi bi-heart"></i>
-              <span>Comprehensive care network</span>
+              <span>Care Network</span>
             </div>
           </div>
-          <button class="btn btn-chla-primary btn-lg" @click="nextStep">
-            Get Started
-          </button>
         </div>
 
         <!-- Location Step -->
         <div v-if="currentStep === 2" class="step location-step">
-          <h3>Let's find services near you</h3>
-          <p>We'll use your location to show the most relevant providers in your area.</p>
+          <h3>Your Location</h3>
+          <p>Help us find your Regional Center and Services</p>
 
           <div class="location-options">
             <button
@@ -52,19 +49,19 @@
               :disabled="locationDetecting"
             >
               <i class="bi bi-geo-alt-fill"></i>
-              <span v-if="locationDetecting">Detecting Location...</span>
-              <span v-else>Use My Current Location</span>
+              <span v-if="locationDetecting">Detecting...</span>
+              <span v-else>Use Current Location</span>
             </button>
 
             <div class="location-divider">
-              <span>OR</span>
+              <span>or</span>
             </div>
 
             <div class="manual-location">
               <input
                 type="text"
                 class="form-control location-input"
-                placeholder="Enter your ZIP code or city"
+                placeholder="ZIP code or city"
                 v-model="userLocation"
                 @keyup.enter="validateLocation"
               />
@@ -87,13 +84,9 @@
           <div v-if="matchedRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
-              <strong>Regional Center Found!</strong>
+              <strong>{{ matchedRegionalCenter.name }}</strong>
               <div class="rc-details">
-                <div class="rc-name">{{ matchedRegionalCenter.name }}</div>
-                <div class="rc-address">{{ matchedRegionalCenter.address }}</div>
-                <div class="rc-phone" v-if="matchedRegionalCenter.phone">
-                  📞 {{ matchedRegionalCenter.phone }}
-                </div>
+                <div class="rc-service-area">{{ matchedRegionalCenter.service_area }}</div>
               </div>
             </div>
           </div>
@@ -101,76 +94,60 @@
 
         <!-- Profile Step -->
         <div v-if="currentStep === 3" class="step profile-step">
-          <h3>Tell us about your needs</h3>
-          <p>This helps us show you the most relevant providers and services.</p>
+          <h3>Quick Setup</h3>
+          <p>Just a few details to personalize your experience</p>
 
-          <form @submit.prevent="nextStep" class="profile-form">
-            <div class="form-group">
-              <label for="ageGroup">Age Group</label>
-              <select id="ageGroup" v-model="userProfile.age" class="form-control">
-                <option value="">Select age group</option>
-                <option value="0-5">Early Childhood (0-5)</option>
-                <option value="6-12">School Age (6-12)</option>
-                <option value="13-18">Teen (13-18)</option>
-                <option value="19+">Adult (19+)</option>
+          <div class="profile-form">
+            <div class="form-row">
+              <label>Age Group</label>
+              <select v-model="userProfile.age" class="form-control">
+                <option value="">Select age</option>
+                <option value="0-5">0-5 years</option>
+                <option value="6-12">6-12 years</option>
+                <option value="13-18">13-18 years</option>
+                <option value="19+">19+ years</option>
               </select>
             </div>
 
-            <div class="form-group">
-              <label for="diagnosis">Diagnosis (Optional)</label>
-              <select id="diagnosis" v-model="userProfile.diagnosis" class="form-control">
+            <div class="form-row">
+              <label>Diagnosis (Optional)</label>
+              <select v-model="userProfile.diagnosis" class="form-control">
                 <option value="">Select diagnosis</option>
-                <option value="Global Development Delay">Global Development Delay</option>
-                <option value="Autism Spectrum Disorder">Autism Spectrum Disorder</option>
+                <option value="Autism Spectrum Disorder">Autism</option>
+                <option value="Global Development Delay">Development Delay</option>
                 <option value="Intellectual Disability">Intellectual Disability</option>
-                <option value="Speech and Language Disorder">
-                  Speech and Language Disorder
-                </option>
+                <option value="Speech and Language Disorder">Speech/Language</option>
                 <option value="ADHD">ADHD</option>
               </select>
             </div>
 
-            <div class="insurance-section">
-              <h4>Insurance & Funding</h4>
-              <p class="insurance-help">
-                Select all that apply to see relevant providers:
-              </p>
-
-              <div class="insurance-options">
-                <label class="insurance-option">
+            <div class="funding-row">
+              <label>Funding Sources</label>
+              <div class="funding-options">
+                <label class="funding-option">
                   <input type="checkbox" v-model="userProfile.hasInsurance" />
-                  <span class="checkmark"></span>
-                  <div class="option-content">
-                    <strong>I have health insurance</strong>
-                    <small>Most major insurers accepted</small>
-                  </div>
+                  <span>Health Insurance</span>
                 </label>
-
-                <label class="insurance-option">
+                <label class="funding-option">
                   <input type="checkbox" v-model="userProfile.hasRegionalCenter" />
-                  <span class="checkmark"></span>
-                  <div class="option-content">
-                    <strong>I work with a regional center</strong>
-                    <small>Regional center funded services</small>
-                  </div>
+                  <span>Regional Center</span>
                 </label>
               </div>
             </div>
-          </form>
+          </div>
         </div>
 
         <!-- Services Step -->
         <div v-if="currentStep === 4" class="step services-step">
           <h3>Which therapies are you seeking?</h3>
-          <p>Select all that apply.</p>
+          <p>Select all that apply. You can always change these later.</p>
           <div class="service-types">
             <label class="service-option" v-for="t in therapyOptions" :key="t">
               <input type="checkbox" v-model="userProfile.therapies" :value="t" />
               <span class="checkmark"></span>
               <div class="service-content">
-                <i class="bi bi-check2-circle"></i>
                 <div>
-                  <strong>{{ t }}</strong>
+                  {{ t }}
                 </div>
               </div>
             </label>
@@ -179,54 +156,27 @@
 
         <!-- Results Step -->
         <div v-if="currentStep === 5" class="step results-step">
-          <h3>Perfect! Here's what we found for you</h3>
-          <p>
-            Based on your preferences, we've found
-            <strong>{{ resultsCount }}</strong> relevant providers in your area.
-          </p>
+          <h3>You're all set!</h3>
+          <p>We've found {{ resultsCount }} providers in your area based on your preferences.</p>
 
-          <div class="results-preview">
-            <div class="result-stats">
-              <div class="stat">
-                <i class="bi bi-hospital"></i>
-                <span>{{ resultsCount }} Providers</span>
-              </div>
-              <div class="stat">
-                <i class="bi bi-building"></i>
-                <span>{{ regionalCentersCount }} Regional Centers</span>
-              </div>
-              <div class="stat">
-                <i class="bi bi-geo-alt"></i>
-                <span>{{ userLocationDisplay }}</span>
-              </div>
+          <div class="results-summary">
+            <div class="summary-item">
+              <i class="bi bi-hospital"></i>
+              <span>{{ resultsCount }} Providers</span>
             </div>
-
-            <div class="quick-tutorial">
-              <h4>Quick Tutorial</h4>
-              <div class="tutorial-steps">
-                <div class="tutorial-step">
-                  <i class="bi bi-1-circle"></i>
-                  <span>Use the map to see providers in your area</span>
-                </div>
-                <div class="tutorial-step">
-                  <i class="bi bi-2-circle"></i>
-                  <span>Click on markers for provider details</span>
-                </div>
-                <div class="tutorial-step">
-                  <i class="bi bi-3-circle"></i>
-                  <span>Use filters to narrow your search</span>
-                </div>
-              </div>
+            <div class="summary-item">
+              <i class="bi bi-building"></i>
+              <span>{{ regionalCentersCount }} Regional Centers</span>
             </div>
           </div>
 
-          <div class="results-actions">
-            <button class="btn btn-chla-primary btn-lg" @click="completeOnboarding">
-              Explore Providers
-            </button>
-            <button class="btn btn-chla-outline" @click="saveProfile">
-              Save My Profile
-            </button>
+          <div class="next-steps">
+            <h4>What's next?</h4>
+            <ul class="steps-list">
+              <li>Explore providers on the map</li>
+              <li>View detailed provider information</li>
+              <li>Use filters to refine your search</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -246,8 +196,18 @@
           @click="nextStep"
           :disabled="!canProceed"
         >
-          Continue
+          <span v-if="currentStep === 1">Get Started</span>
+          <span v-else>Continue</span>
           <i class="bi bi-arrow-right"></i>
+        </button>
+
+        <button
+          v-if="currentStep === totalSteps"
+          class="btn btn-chla-primary"
+          @click="completeOnboarding"
+        >
+          Complete Setup
+          <i class="bi bi-check"></i>
         </button>
 
         <button
@@ -479,6 +439,9 @@ export default {
   max-height: 90vh;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .progress-bar {
@@ -494,17 +457,42 @@ export default {
 }
 
 .step-counter {
-  padding: 16px 24px;
-  font-size: 14px;
+  font-size: 12px;
   color: #6c757d;
-  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 500;
 }
 
 .step-content {
-  padding: 32px 24px;
-  min-height: 400px;
-  max-height: 60vh;
+  padding: 24px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  flex: 1;
+  max-height: 70vh;
   overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar styling */
+.step-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.step-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.step-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.step-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .step {
@@ -513,68 +501,75 @@ export default {
 
 /* Welcome Step */
 .welcome-step .chla-logo-large {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .welcome-step .logo {
-  height: 80px;
+  height: 56px;
 }
 
 .welcome-step h2 {
   color: #004877;
-  margin-bottom: 16px;
-  font-size: 28px;
+  margin-bottom: 10px;
+  font-size: 24px;
   font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .welcome-text {
-  font-size: 16px;
-  color: #6c757d;
-  margin-bottom: 32px;
-  line-height: 1.6;
+  font-size: 15px;
+  color: #495057;
+  margin-bottom: 24px;
+  line-height: 1.5;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .welcome-features {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 32px;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .feature {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  color: #004877;
+  gap: 6px;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .feature i {
-  font-size: 24px;
-  color: #0d9ddb;
+  font-size: 16px;
+  color: #004877;
 }
 
 /* Location Step */
 .location-step h3 {
   color: #004877;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 600;
 }
 
 .location-options {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-top: 32px;
+  gap: 16px;
+  margin-top: 20px;
 }
 
 .location-btn {
-  padding: 16px 24px;
-  font-size: 16px;
+  padding: 12px 20px;
+  font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   justify-content: center;
 }
 
@@ -614,132 +609,168 @@ export default {
 }
 
 /* Profile Step */
-.profile-form {
+.profile-step {
   text-align: left;
 }
 
-.form-group {
-  margin-bottom: 24px;
+.profile-form {
+  margin-top: 20px;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: #004877;
-  font-weight: 500;
-}
-
-.form-control {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #004877;
-}
-
-.insurance-section {
-  margin-top: 32px;
-}
-
-.insurance-section h4 {
-  color: #004877;
-  margin-bottom: 8px;
-}
-
-.insurance-help {
-  color: #6c757d;
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-
-.insurance-options {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.insurance-option {
+.form-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  margin-bottom: 16px;
 }
 
-.insurance-option:hover {
-  border-color: #004877;
-  background: #f8f9fa;
-}
-
-.insurance-option input {
-  display: none;
-}
-
-.checkmark {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #dee2e6;
-  border-radius: 4px;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.insurance-option input:checked + .checkmark {
-  background: #004877;
-  border-color: #004877;
-}
-
-.insurance-option input:checked + .checkmark::after {
-  content: "✓";
-  color: white;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.form-row label {
+  min-width: 120px;
   font-size: 14px;
+  font-weight: 500;
+  color: #495057;
 }
 
-.option-content {
-  text-align: left;
+.form-row .form-control {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
 }
 
-.option-content strong {
-  display: block;
+.form-row .form-control:focus {
+  outline: none;
+  border-color: #004877;
+  box-shadow: 0 0 0 2px rgba(0, 72, 119, 0.1);
+}
+
+.funding-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.funding-row label {
+  min-width: 120px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.funding-options {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.funding-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #495057;
+}
+
+.funding-option input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #004877;
+}
+
+/* Results Step */
+.results-step h3 {
   color: #004877;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 600;
 }
 
-.option-content small {
-  color: #6c757d;
-  font-size: 12px;
+.results-summary {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin: 24px 0;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-item i {
+  font-size: 18px;
+  color: #004877;
+}
+
+.next-steps {
+  margin-top: 32px;
+  text-align: left;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.next-steps h4 {
+  color: #004877;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.steps-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.steps-list li {
+  color: #495057;
+  font-size: 14px;
+  margin-bottom: 8px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.steps-list li::before {
+  content: "•";
+  color: #004877;
+  position: absolute;
+  left: 0;
 }
 
 /* Services Step */
+.services-step h3 {
+  color: #004877;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 600;
+}
 .service-types {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-  margin-top: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .service-option {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 14px;
 }
 
 .service-option:hover {
@@ -749,6 +780,16 @@ export default {
 
 .service-option input {
   display: none;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #dee2e6;
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .service-option input:checked + .checkmark {
@@ -866,28 +907,28 @@ export default {
 }
 
 .skip-btn {
-  color: #6c757d;
+  color: #ffffff;
   font-size: 14px;
   text-decoration: none;
   margin-left: 16px;
 }
 
 .skip-btn:hover {
-  color: #495057;
-  text-decoration: underline;
+  color: #e9ecef;
 }
 
 /* Button Styles */
 .btn {
-  padding: 12px 24px;
+  padding: 8px 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 500;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .btn-chla-primary {
@@ -917,11 +958,6 @@ export default {
 
 .btn-secondary:hover {
   background: #5a6268;
-}
-
-.btn-lg {
-  padding: 16px 32px;
-  font-size: 18px;
 }
 
 .btn:disabled {
@@ -987,7 +1023,30 @@ export default {
   }
 
   .step-content {
-    padding: 24px 16px;
+    padding: 20px 16px;
+    max-height: 75vh;
+  }
+
+  .welcome-step .logo {
+    height: 56px;
+  }
+
+  .welcome-step h2 {
+    font-size: 24px;
+  }
+
+  .welcome-text {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+
+  .welcome-features {
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+
+  .feature {
+    font-size: 13px;
   }
 
   .service-types {

@@ -129,7 +129,7 @@
               @click="setDisplayType('providers')"
             >
               <i class="bi bi-hospital me-1"></i>
-              <span>Providers</span>
+              <span>Services</span>
             </button>
           </div>
         </div>
@@ -206,6 +206,18 @@
                   </a>
                 </div>
               </template>
+              
+              <!-- Adjust Profile Button -->
+              <div class="info-card-item mt-3 pt-3 border-top">
+                <button 
+                  @click="showOnboarding = true" 
+                  class="btn btn-outline-primary btn-sm w-100"
+                  title="Adjust your location and preferences"
+                >
+                  <i class="bi bi-gear me-2"></i>
+                  Adjust Profile
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -827,6 +839,19 @@ export default {
   mounted() {
     console.log("Vue app mounted");
 
+    // Load regional centers early for coordinate-based lookup
+    this.$nextTick(async () => {
+      try {
+        // Load regional centers in background
+        if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
+          console.log("Loading regional centers for coordinate lookup...");
+          await this.fetchRegionalCenters();
+        }
+      } catch (e) {
+        console.warn("Failed to pre-load regional centers:", e);
+      }
+    });
+
     // Initialize the map
     this.$nextTick(() => {
       try {
@@ -1429,17 +1454,63 @@ export default {
 
       if (!this.userData?.address) {
         console.log("No user address found");
-        return null;
+        this.userRegionalCenter = {
+          name: "Regional Center (No Address)",
+          address: "Unable to determine regional center",
+          phone: null,
+          website: null,
+        };
+        return this.userRegionalCenter;
       }
 
-      // Extract ZIP code from address
-      const zipMatch = this.userData.address.match(/\b\d{5}\b/);
-      if (!zipMatch) {
+      // Extract ZIP code from address - handle various formats
+      let zipCode = null;
+      
+      // Try different ZIP code patterns
+      const patterns = [
+        /\b\d{5}-\d{4}\b/,  // 12345-6789 format
+        /\b\d{5}\b/,        // 12345 format
+        /\d{5}/,            // Any 5 digits
+        /\d{4}/,            // 4 digits (some areas)
+        /\d{6}/,            // 6 digits (some international)
+      ];
+      
+      for (const pattern of patterns) {
+        const match = this.userData.address.match(pattern);
+        if (match) {
+          // Extract just the first 5 digits for API call
+          zipCode = match[0].substring(0, 5);
+          console.log(`Found ZIP code using pattern ${pattern}: ${zipCode}`);
+          break;
+        }
+      }
+      
+      // If still no ZIP code found, try to extract any sequence of digits
+      if (!zipCode) {
+        const allNumbers = this.userData.address.match(/\d+/g);
+        if (allNumbers && allNumbers.length > 0) {
+          // Try the longest number sequence (likely to be ZIP code)
+          const longestNumber = allNumbers.reduce((a, b) => a.length > b.length ? a : b);
+          if (longestNumber.length >= 4) {
+            zipCode = longestNumber.substring(0, 5);
+            console.log(`Found ZIP code from longest number sequence: ${zipCode}`);
+          }
+        }
+      }
+      
+      if (!zipCode) {
         console.log("No ZIP code found in address:", this.userData.address);
-        return null;
+        console.log("Address breakdown:", {
+          fullAddress: this.userData.address,
+          length: this.userData.address.length,
+          hasNumbers: /\d/.test(this.userData.address),
+          allNumbers: this.userData.address.match(/\d+/g)
+        });
+        
+        // Try to find regional center using coordinates instead
+        console.log("Attempting coordinate-based regional center lookup...");
+        return await this.findRegionalCenterByCoordinates();
       }
-
-      const zipCode = zipMatch[0];
       console.log("Found ZIP code:", zipCode);
 
       try {
@@ -1463,13 +1534,84 @@ export default {
           return this.userRegionalCenter;
         } else {
           console.log("No regional center found for ZIP code:", zipCode);
-          this.userRegionalCenter = null;
-          return null;
+          this.userRegionalCenter = {
+            name: "Regional Center (Not Found)",
+            address: `No regional center found for ZIP code ${zipCode}`,
+            phone: null,
+            website: null,
+          };
+          return this.userRegionalCenter;
         }
       } catch (error) {
         console.error("Error finding regional center:", error);
-        this.userRegionalCenter = null;
-        return null;
+        this.userRegionalCenter = {
+          name: "Regional Center (Error)",
+          address: "Error retrieving regional center information",
+          phone: null,
+          website: null,
+        };
+        return this.userRegionalCenter;
+      }
+    },
+
+    // Find regional center using coordinates when ZIP code lookup fails
+    async findRegionalCenterByCoordinates() {
+      console.log("Finding regional center by coordinates...");
+      
+      if (!this.userLocation?.latitude || !this.userLocation?.longitude) {
+        console.log("No coordinates available for regional center lookup");
+        this.userRegionalCenter = {
+          name: "Regional Center (No Coordinates)",
+          address: "Unable to determine regional center - no location data",
+          phone: null,
+          website: null,
+        };
+        return this.userRegionalCenter;
+      }
+
+      try {
+        // Ensure regional centers are loaded
+        if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
+          console.log("Regional centers not loaded, fetching now...");
+          await this.fetchRegionalCenters();
+        }
+
+        // Use the existing method to find nearest regional center
+        const nearestCenter = this.findNearestRegionalCenterFromList(
+          this.userLocation.latitude, 
+          this.userLocation.longitude
+        );
+        
+        if (nearestCenter) {
+          this.userRegionalCenter = {
+            name: nearestCenter.regional_center || nearestCenter.name,
+            address: nearestCenter.address,
+            phone: nearestCenter.telephone || nearestCenter.phone,
+            website: nearestCenter.website,
+            ...nearestCenter,
+          };
+          console.log("Found regional center by coordinates:", this.userRegionalCenter);
+          return this.userRegionalCenter;
+        } else {
+          console.log("No regional center found for coordinates");
+          console.log("Available regional centers:", this.regionalCenters.length);
+          this.userRegionalCenter = {
+            name: "Regional Center (Not Found)",
+            address: "No regional center found for this location",
+            phone: null,
+            website: null,
+          };
+          return this.userRegionalCenter;
+        }
+      } catch (error) {
+        console.error("Error finding regional center by coordinates:", error);
+        this.userRegionalCenter = {
+          name: "Regional Center (Error)",
+          address: "Error retrieving regional center information",
+          phone: null,
+          website: null,
+        };
+        return this.userRegionalCenter;
       }
     },
 
@@ -1953,6 +2095,14 @@ export default {
 
       // Update user address to reflect fallback
       this.userData.address = "Los Angeles Area (location detection failed)";
+
+      // Set a fallback regional center when location detection fails
+      this.userRegionalCenter = {
+        name: "Regional Center (Location Detection Failed)",
+        address: "Unable to determine specific regional center",
+        phone: null,
+        website: null,
+      };
 
       // Initialize map with fallback location
       this.initMap();
@@ -2629,10 +2779,8 @@ export default {
       if (this.showLARegionalCenters) {
         console.log("Showing LA Regional Centers overlay...");
 
-        // Ensure UI shows the toggles section without requiring a second click and pre-load centers
-        if (this.displayType !== "regionalCenters") {
-          this.displayType = "regionalCenters";
-        }
+        // Don't automatically switch to regional centers tab
+        // Users can manually switch if they want to see regional centers
         // Make sure we have regional center data so the list and markers appear immediately
         try {
           if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
@@ -3203,6 +3351,13 @@ export default {
           this.map.getCanvas().style.cursor = "";
         });
         this.map.on("click", "rc-static-fill", (e) => {
+          // Check if the click was on a marker (not on the polygon)
+          const target = e.originalEvent.target;
+          if (target.closest('.mapboxgl-marker')) {
+            // Click was on a marker, don't show regional center popup
+            return;
+          }
+
           // Always show polygon popups when clicked on colored regions
           const feature = e.features && e.features[0];
           const centerName = feature?.properties?.REGIONALCENTER || "Regional Center";
@@ -3790,424 +3945,308 @@ export default {
     // Create simple popup content
     createSimplePopup(item) {
       console.log("Creating simple popup for item:", item);
-      console.log("Item fields:", {
-        name: item.name,
-        address: item.address,
-        city: item.city,
-        state: item.state,
-        zip_code: item.zip_code,
-        phone: item.phone,
-        telephone: item.telephone,
-        website: item.website,
-        description: item.description,
-        type: item.type,
-        regional_center: item.regional_center,
-      });
+      
       const title = item.name || item.regional_center || "Location";
+      const phone = item.phone || item.telephone;
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;
 
-      // Handle address formatting for the new data structure
+      // Handle address formatting
       let fullAddress = "";
       if (item.address || item.city || item.state || item.zip_code) {
         try {
-          // If address is a JSON string, try to parse it
-          if (
-            item.address &&
-            typeof item.address === "string" &&
-            item.address.startsWith("{")
-          ) {
+          if (item.address && typeof item.address === "string" && item.address.startsWith("{")) {
             const addressData = JSON.parse(item.address);
             if (typeof addressData === "object") {
-              fullAddress = [
-                addressData.street,
-                addressData.city,
-                addressData.state,
-                addressData.zip,
-              ]
+              fullAddress = [addressData.street, addressData.city, addressData.state, addressData.zip]
                 .filter(Boolean)
                 .join(", ");
             }
           } else {
-            // Use individual fields - this is the most common case for providers
             fullAddress = [item.address, item.city, item.state, item.zip_code]
               .filter(Boolean)
               .join(", ");
           }
         } catch (e) {
-          // Fallback to individual fields
           fullAddress = [item.address, item.city, item.state, item.zip_code]
             .filter(Boolean)
             .join(", ");
         }
       }
 
-      const phone = item.phone || item.telephone;
-      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;
+      // Helper function to check if data exists and is not empty/null
+      const hasData = (value) => {
+        return value && value !== "[]" && value !== "null" && value !== "" && value !== "{}";
+      };
 
       return `
         <div class="provider-popup" style="
-          padding: 16px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          max-width: 320px;
+          padding: 24px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          max-width: 360px;
           background: white;
-          border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+          border-radius: 8px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+          overflow: visible;
         ">
           <!-- Header -->
           <div style="
-            border-bottom: 2px solid #f8f9fa;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
           ">
             <h5 style="
-              margin: 0 0 4px 0;
-              color: #2c3e50;
+              margin: 0 0 8px 0;
+              color: #212529;
               font-size: 18px;
-              font-weight: 700;
+              font-weight: 600;
               line-height: 1.3;
             ">${title}</h5>
-
-            ${
-              item.type && String(item.type).toLowerCase() !== "main"
-                ? `
+            ${item.type && String(item.type).toLowerCase() !== "main" ? `
               <span style="
-                background: #e3f2fd;
-                color: #1976d2;
-                padding: 4px 8px;
-                border-radius: 12px;
+                background: #f8f9fa;
+                color: #6c757d;
+                padding: 3px 8px;
+                border-radius: 4px;
                 font-size: 11px;
-                font-weight: 600;
+                font-weight: 500;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
+                letter-spacing: 0.3px;
               ">${item.type}</span>
-            `
-                : ""
-            }
+            ` : ""}
           </div>
 
           <!-- Content -->
-          <div style="margin-bottom: 16px;">
-          ${
-            fullAddress
-              ? `
+          <div style="margin-bottom: 20px;">
+            ${fullAddress ? `
               <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                border-left: 3px solid #007bff;
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 16px;
+                padding: 0;
               ">
-                <div style="
-                  color: #495057;
+                <span style="
+                  color: #6c757d;
                   font-size: 13px;
                   font-weight: 500;
-                  margin-bottom: 2px;
-                ">📍 Address</div>
-                <div style="color: #6c757d; font-size: 14px;">${fullAddress}</div>
+                  min-width: 70px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.3px;
+                ">Address</span>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${fullAddress}</div>
               </div>
-            `
-              : ""
-          }
+            ` : ""}
 
-          ${
-            phone
-              ? `
+            ${phone ? `
               <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                border-left: 3px solid #28a745;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 16px;
+                padding: 0;
               ">
-                <div style="
-                  color: #495057;
+                <span style="
+                  color: #6c757d;
                   font-size: 13px;
                   font-weight: 500;
-                  margin-bottom: 2px;
-                ">📞 Phone</div>
-                <div style="color: #6c757d; font-size: 14px;">
-                  <a href="tel:${String(phone).replace(
-                    /[^\\d+]/g,
-                    ""
-                  )}" style="color:#0d6efd; text-decoration:none;">${phone}</a>
-                </div>
+                  min-width: 70px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.3px;
+                ">Phone</span>
+                <a href="tel:${String(phone).replace(/[^\d+]/g, "")}" style="
+                  color: #004877;
+                  text-decoration: none;
+                  font-size: 14px;
+                  font-weight: 500;
+                ">${phone}</a>
               </div>
-            `
-              : ""
-          }
+            ` : ""}
 
-          ${
-            item.website
-              ? (() => {
-                  const w = item.website.startsWith("http")
-                    ? item.website
-                    : "https://" + item.website;
-                  return `
+            ${hasData(item.website) ? `
               <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                border-left: 3px solid #0d6efd;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 16px;
+                padding: 0;
               ">
-                <div style="
-                  color: #495057;
+                <span style="
+                  color: #6c757d;
                   font-size: 13px;
                   font-weight: 500;
-                  margin-bottom: 2px;
-                ">🌐 Website</div>
-                <div style="color: #6c757d; font-size: 14px;"><a href="${w}" target="_blank" rel="noopener" style="color:#0d6efd; text-decoration:none;">${w
-                    .replace(/^https?:\/\//, "")
-                    .replace(/^www\./, "")}</a></div>
-              </div>`;
-                })()
-              : ""
-          }
+                  min-width: 70px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.3px;
+                ">Website</span>
+                <a href="${item.website.startsWith("http") ? item.website : "https://" + item.website}" 
+                   target="_blank" 
+                   rel="noopener" 
+                   style="
+                     color: #004877;
+                     text-decoration: none;
+                     font-size: 14px;
+                     font-weight: 500;
+                   ">${item.website.replace(/^https?:\/\//, "").replace(/^www\./, "")}</a>
+              </div>
+            ` : ""}
 
-          ${
-            item.hours
-              ? `
+            ${hasData(item.hours) ? `
               <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                border-left: 3px solid #28a745;
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 16px;
+                padding: 0;
               ">
-                <div style="
-                  color: #495057;
+                <span style="
+                  color: #6c757d;
                   font-size: 13px;
                   font-weight: 500;
-                  margin-bottom: 2px;
-                ">⏰ Hours</div>
-                <div style="color: #6c757d; font-size: 14px; white-space: pre-wrap;">${item.hours}</div>
+                  min-width: 70px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.3px;
+                ">Hours</span>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4; white-space: pre-wrap;">${item.hours}</div>
               </div>
-            `
-              : ""
-          }
+            ` : ""}
 
-          ${
-            item.type
-              ? `
+            ${hasData(item.description) ? `
               <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #eef7ff;
-                border-radius: 8px;
-                border-left: 3px solid #0d6efd;
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 16px;
+                padding: 0;
               ">
-                <div style="color: #0d6efd; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;">${item.type}</div>
-              </div>
-            `
-              : ""
-          }
-
-          ${
-            item.notes
-              ? `
-              <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #fff8e1;
-                border-radius: 8px;
-                border-left: 3px solid #ffc107;
-              ">
-                <div style="
-                  color: #856404;
+                <span style="
+                  color: #6c757d;
                   font-size: 13px;
                   font-weight: 500;
-                  margin-bottom: 2px;
-                ">📝 Notes</div>
-                <div style="color: #856404; font-size: 14px; white-space: pre-wrap;">${item.notes}</div>
+                  min-width: 70px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.3px;
+                ">Services</span>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${this.formatDescription(item.description)}</div>
               </div>
-            `
-              : ""
-          }
+            ` : ""}
 
-            ${
-              item.description
-                ? `
+            ${hasData(item.insurance_accepted) ? `
               <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #fff3cd;
-                border-radius: 8px;
-                border-left: 3px solid #ffc107;
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 16px;
+                padding: 0;
               ">
-                <div style="
-                  color: #856404;
+                <span style="
+                  color: #6c757d;
                   font-size: 13px;
                   font-weight: 500;
-                  margin-bottom: 2px;
-                ">📍 Service Areas</div>
-                <div style="color: #856404; font-size: 14px;">${this.formatDescription(
-                  item.description
-                )}</div>
+                  min-width: 70px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.3px;
+                ">Insurance</span>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${this.formatInsurance(item.insurance_accepted)}</div>
               </div>
-            `
-                : ""
-            }
+            ` : ""}
 
-            ${
-              item.insurance_accepted && item.insurance_accepted !== "[]"
-                ? `
+            ${hasData(item.languages_spoken) ? `
               <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #d4edda;
-                border-radius: 8px;
-                border-left: 3px solid #28a745;
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 16px;
+                padding: 0;
               ">
-                <div style="
-                  color: #155724;
+                <span style="
+                  color: #6c757d;
                   font-size: 13px;
                   font-weight: 500;
-                  margin-bottom: 2px;
-                ">🏥 Insurance Accepted</div>
-                <div style="color: #155724; font-size: 14px;">${this.formatInsurance(
-                  item.insurance_accepted
-                )}</div>
+                  min-width: 70px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.3px;
+                ">Languages</span>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${this.formatLanguages(item.languages_spoken)}</div>
               </div>
-            `
-                : ""
-            }
+            ` : ""}
 
-            ${
-              item.languages_spoken && item.languages_spoken !== "[]"
-                ? `
+            ${item.distance ? `
               <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #e2e3e5;
-                border-radius: 8px;
-                border-left: 3px solid #6c757d;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 16px;
+                padding: 0;
               ">
-                <div style="
-                  color: #383d41;
+                <span style="
+                  color: #6c757d;
                   font-size: 13px;
                   font-weight: 500;
-                  margin-bottom: 2px;
-                ">🗣️ Languages</div>
-                <div style="color: #383d41; font-size: 14px;">${this.formatLanguages(
-                  item.languages_spoken
-                )}</div>
+                  min-width: 70px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.3px;
+                ">Distance</span>
+                <div style="color: #212529; font-size: 14px; font-weight: 500;">${item.distance.toFixed(1)} miles</div>
               </div>
-            `
-                : ""
-            }
-
-          ${
-            item.distance
-              ? `
-              <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #d1ecf1;
-                border-radius: 8px;
-                border-left: 3px solid #17a2b8;
-              ">
-                <div style="
-                  color: #0c5460;
-                  font-size: 13px;
-                  font-weight: 500;
-                  margin-bottom: 2px;
-                ">📏 Distance</div>
-                <div style="color: #0c5460; font-size: 14px; font-weight: 600;">${item.distance.toFixed(
-                  1
-                )} miles away</div>
-              </div>
-            `
-              : ""
-          }
-
-          ${
-            phone
-              ? `
-              <div style="
-                margin-bottom: 12px;
-                padding: 8px 12px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                border-left: 3px solid #6c757d;
-              ">
-                <div style="
-                  color: #495057;
-                  font-size: 13px;
-                  font-weight: 500;
-                  margin-bottom: 2px;
-                ">📞 Phone</div>
-                <div style="color: #6c757d; font-size: 14px;">${phone}</div>
-              </div>
-            `
-              : ""
-          }
+            ` : ""}
           </div>
 
           <!-- Actions -->
           <div style="
             display: flex;
             gap: 8px;
-            margin-top: 16px;
-            border-top: 1px solid #f8f9fa;
+            margin-top: 20px;
+            border-top: 1px solid #dee2e6;
             padding-top: 16px;
           ">
             <a href="${mapsUrl}" target="_blank" style="
-              background: #007bff;
+              background: #004877;
               color: white;
-              padding: 10px 16px;
-              border-radius: 8px;
+              padding: 8px 16px;
+              border-radius: 4px;
               text-decoration: none;
               font-size: 13px;
-              font-weight: 600;
+              font-weight: 500;
               flex: 1;
               text-align: center;
               transition: background-color 0.2s;
-            " onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">
-              🗺️ Directions
+            " onmouseover="this.style.background='#003861'" onmouseout="this.style.background='#004877'">
+              Directions
             </a>
 
-            ${
-              phone
-                ? `
+            ${phone ? `
               <a href="tel:${phone}" style="
-                background: #28a745;
+                background: #6c757d;
                 color: white;
-                padding: 10px 16px;
-                border-radius: 8px;
+                padding: 8px 16px;
+                border-radius: 4px;
                 text-decoration: none;
                 font-size: 13px;
-                font-weight: 600;
+                font-weight: 500;
                 flex: 1;
                 text-align: center;
                 transition: background-color 0.2s;
-              " onmouseover="this.style.background='#1e7e34'" onmouseout="this.style.background='#28a745'">
-                📞 Call
+              " onmouseover="this.style.background='#5a6268'" onmouseout="this.style.background='#6c757d'">
+                Call
               </a>
-            `
-                : ""
-            }
+            ` : ""}
 
-            ${
-              item.website
-                ? `
-              <a href="${
-                item.website.startsWith("http") ? item.website : "https://" + item.website
-              }" target="_blank" style="
-                background: #6f42c1;
+            ${hasData(item.website) ? `
+              <a href="${item.website.startsWith("http") ? item.website : "https://" + item.website}" target="_blank" style="
+                background: #6c757d;
                 color: white;
-                padding: 10px 16px;
-                border-radius: 8px;
+                padding: 8px 16px;
+                border-radius: 4px;
                 text-decoration: none;
                 font-size: 13px;
-                font-weight: 600;
+                font-weight: 500;
                 flex: 1;
                 text-align: center;
                 transition: background-color 0.2s;
-              " onmouseover="this.style.background='#5a2d91'" onmouseout="this.style.background='#6f42c1'">
-                🌐 Website
+              " onmouseover="this.style.background='#5a6268'" onmouseout="this.style.background='#6c757d'">
+                Website
               </a>
-            `
-                : ""
-            }
+            ` : ""}
           </div>
         </div>
       `;
@@ -4768,20 +4807,34 @@ export default {
       // Initialize map if not already done
       if (!this.map) {
         this.initMap();
-      } else {
-        // Update map center to user location if available
-        if (this.userLocation.latitude && this.userLocation.longitude) {
-          console.log("Updating map center to user location:", this.userLocation);
-          this.map.flyTo({
-            center: [this.userLocation.longitude, this.userLocation.latitude],
-            zoom: 12,
-            duration: 1000,
-          });
-        }
       }
+      // Note: We don't automatically fly to user location to avoid jarring map movement
+      // Users can manually navigate to their location if needed
+
+      // Ensure we're showing providers (not regional centers) by default
+      this.displayType = "providers";
 
       // Start fetching data
       this.fetchProviders();
+    },
+
+    // Close all popups on the map
+    closeAllPopups() {
+      if (this.map) {
+        // Close all popups
+        this.map.getStyle().layers.forEach(layer => {
+          if (layer.type === 'fill' || layer.type === 'line') {
+            // This will close any popups associated with polygon layers
+            const popups = document.querySelectorAll('.mapboxgl-popup');
+            popups.forEach(popup => {
+              if (popup.querySelector('.provider-popup-container')) {
+                // This is a regional center popup, close it
+                popup.remove();
+              }
+            });
+          }
+        });
+      }
     },
 
     // Format description text for better readability
@@ -5677,6 +5730,42 @@ export default {
 .mapboxgl-popup.simple-popup .mapboxgl-popup-tip {
   border-top-color: white;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Simple popup container styling */
+.mapboxgl-popup.simple-popup .mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: none;
+  overflow: visible;
+  background: white;
+  max-height: none;
+  overflow-y: visible;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-close-button {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  right: 10px;
+  top: 10px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-close-button:hover {
+  background: #f8f9fa;
+  color: #333;
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .bg-primary {
