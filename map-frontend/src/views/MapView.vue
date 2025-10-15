@@ -1538,13 +1538,10 @@ export default {
       // Extract ZIP code from address - handle various formats
       let zipCode = null;
       
-      // Try different ZIP code patterns
+      // Try different ZIP code patterns - be more strict about US ZIP codes
       const patterns = [
         /\b\d{5}-\d{4}\b/,  // 12345-6789 format
-        /\b\d{5}\b/,        // 12345 format
-        /\d{5}/,            // Any 5 digits
-        /\d{4}/,            // 4 digits (some areas)
-        /\d{6}/,            // 6 digits (some international)
+        /\b\d{5}\b/,        // 12345 format (strict word boundaries)
       ];
       
       for (const pattern of patterns) {
@@ -1558,14 +1555,15 @@ export default {
       }
       
       // If still no ZIP code found, try to extract any sequence of digits
+      // But be more strict - only accept 5-digit numbers
       if (!zipCode) {
         const allNumbers = this.userData.address.match(/\d+/g);
         if (allNumbers && allNumbers.length > 0) {
-          // Try the longest number sequence (likely to be ZIP code)
-          const longestNumber = allNumbers.reduce((a, b) => a.length > b.length ? a : b);
-          if (longestNumber.length >= 4) {
-            zipCode = longestNumber.substring(0, 5);
-            console.log(`Found ZIP code from longest number sequence: ${zipCode}`);
+          // Look for exactly 5-digit numbers (US ZIP code format)
+          const fiveDigitNumbers = allNumbers.filter(num => num.length === 5);
+          if (fiveDigitNumbers.length > 0) {
+            zipCode = fiveDigitNumbers[0];
+            console.log(`Found ZIP code from 5-digit number sequence: ${zipCode}`);
           }
         }
       }

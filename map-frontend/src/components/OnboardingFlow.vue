@@ -61,9 +61,10 @@
               <input
                 type="text"
                 class="form-control location-input"
-                placeholder="ZIP code or city"
+                placeholder="ZIP code (5 digits) or city"
                 v-model="userLocation"
                 @keyup.enter="validateLocation"
+                @input="validateZipFormat"
               />
               <button
                 class="btn btn-chla-outline"
@@ -362,12 +363,32 @@ export default {
       }
     },
 
-    validateLocation() {
-      if (this.userLocation.trim()) {
-        this.$emit("location-manual", this.userLocation);
-        this.matchRegionalCenterByLocation(this.userLocation).catch(() => {});
-        this.nextStep();
+    validateZipFormat() {
+      // Clear any existing ZIP format errors
+      if (this.locationError && this.locationError.includes("ZIP code")) {
+        this.locationError = "";
       }
+    },
+
+    validateLocation() {
+      if (!this.userLocation.trim()) {
+        this.locationError = "Please enter a location";
+        return;
+      }
+
+      // Validate ZIP code format if it looks like a ZIP code
+      const trimmedLocation = this.userLocation.trim();
+      if (/^\d+$/.test(trimmedLocation)) {
+        if (trimmedLocation.length !== 5) {
+          this.locationError = "ZIP code must be exactly 5 digits";
+          return;
+        }
+      }
+
+      this.locationError = "";
+      this.$emit("location-manual", this.userLocation);
+      this.matchRegionalCenterByLocation(this.userLocation).catch(() => {});
+      this.nextStep();
     },
 
     async matchRegionalCenterByLocation(locationText) {
@@ -377,11 +398,18 @@ export default {
           locationText
         )}&radius=40&limit=5`;
         const res = await fetch(url, { headers: { Accept: "application/json" } });
-        if (!res.ok) return;
+        if (!res.ok) {
+          console.error("Regional center API error:", res.status, res.statusText);
+          return;
+        }
         const centers = await res.json();
         if (Array.isArray(centers) && centers.length > 0) {
           this.matchedRegionalCenter = centers[0];
           this.$emit("regional-center-matched", centers[0]);
+        } else {
+          console.log("No regional centers found for location:", locationText);
+          // Don't set an error here as the user might have entered a city name
+          // The main validation happens in validateLocation()
         }
       } catch (e) {
         console.error("Regional center lookup failed:", e);
