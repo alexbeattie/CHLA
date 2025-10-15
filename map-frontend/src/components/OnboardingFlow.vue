@@ -162,7 +162,7 @@
           <div class="results-summary">
             <div class="summary-item">
               <i class="bi bi-hospital"></i>
-              <span>{{ resultsCount }} Providers</span>
+              <span>{{ resultsCount }} Services</span>
             </div>
             <div class="summary-item">
               <i class="bi bi-building"></i>
@@ -173,8 +173,8 @@
           <div class="next-steps">
             <h4>What's next?</h4>
             <ul class="steps-list">
-              <li>Explore providers on the map</li>
-              <li>View detailed provider information</li>
+              <li>Explore services on the map</li>
+              <li>View detailed service information</li>
               <li>Use filters to refine your search</li>
             </ul>
           </div>

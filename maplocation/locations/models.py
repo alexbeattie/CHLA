@@ -459,6 +459,71 @@ class Provider(models.Model):
 class ProviderV2(models.Model):
     """New provider model with actual database structure"""
     
+    # Insurance choices based on actual data
+    INSURANCE_CHOICES = [
+        ('None', 'None - Call for information'),
+        ('Regional Center', 'Regional Center'),
+        ('Private Pay', 'Private Pay'),
+        ('Medi-Cal', 'Medi-Cal'),
+        ('Medicaid', 'Medicaid'),
+        ('Medicare', 'Medicare'),
+        ('Blue Cross', 'Blue Cross'),
+        ('Blue Shield', 'Blue Shield'),
+        ('Anthem', 'Anthem'),
+        ('Aetna', 'Aetna'),
+        ('Cigna', 'Cigna'),
+        ('Kaiser Permanente', 'Kaiser Permanente'),
+        ('United Healthcare', 'United Healthcare'),
+        ('Health Net', 'Health Net'),
+        ('Molina', 'Molina'),
+        ('Magellan', 'Magellan'),
+        ('Beacon', 'Beacon'),
+        ('MHN', 'MHN'),
+        ('Optum', 'Optum'),
+        ('Humana', 'Humana'),
+        ('Tricare', 'Tricare'),
+        ('CalOptima', 'CalOptima'),
+        ('L.A. Care', 'L.A. Care'),
+        ('Inland Empire Health Plan', 'Inland Empire Health Plan'),
+        ('The Holman Group', 'The Holman Group'),
+        ('United Behavioral Health', 'United Behavioral Health'),
+        ('Covered California', 'Covered California'),
+        ('Self-determination programs', 'Self-determination programs'),
+        ('Kaiser/Easterseal', 'Kaiser/Easterseal'),
+    ]
+    
+    # Age group choices (from onboarding flow)
+    AGE_GROUP_CHOICES = [
+        ('0-5', '0-5 years'),
+        ('6-12', '6-12 years'),
+        ('13-18', '13-18 years'),
+        ('19+', '19+ years'),
+        ('All Ages', 'All Ages'),
+    ]
+    
+    # Diagnosis choices (from onboarding flow)
+    DIAGNOSIS_CHOICES = [
+        ('Autism Spectrum Disorder', 'Autism Spectrum Disorder'),
+        ('Global Development Delay', 'Global Development Delay'),
+        ('Intellectual Disability', 'Intellectual Disability'),
+        ('Speech and Language Disorder', 'Speech and Language Disorder'),
+        ('ADHD', 'ADHD'),
+        ('Sensory Processing Disorder', 'Sensory Processing Disorder'),
+        ('Down Syndrome', 'Down Syndrome'),
+        ('Cerebral Palsy', 'Cerebral Palsy'),
+        ('Other', 'Other'),
+    ]
+    
+    # Therapy type choices (from onboarding flow)
+    THERAPY_TYPE_CHOICES = [
+        ('ABA therapy', 'ABA therapy'),
+        ('Speech therapy', 'Speech therapy'),
+        ('Occupational therapy', 'Occupational therapy'),
+        ('Physical therapy', 'Physical therapy'),
+        ('Feeding therapy', 'Feeding therapy'),
+        ('Parent child interaction therapy/parent training behavior management', 'Parent child interaction therapy/parent training behavior management'),
+    ]
+    
     # Primary key and basic info
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -470,14 +535,51 @@ class ProviderV2(models.Model):
     verified = models.BooleanField(default=False)
     
     # Geographic coordinates
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-    hours = models.TextField(blank=True, null=True)
+    latitude = models.DecimalField(max_digits=11, decimal_places=8, default=0.0)
+    longitude = models.DecimalField(max_digits=11, decimal_places=8, default=0.0)
+    address = models.TextField(default="")
+    hours = models.JSONField(blank=True, null=True)
     
     # Service details
-    insurance_accepted = models.TextField(blank=True, null=True)  # PostgreSQL array stored as text
+    insurance_accepted = models.TextField(default="")  # PostgreSQL array stored as text
     languages_spoken = models.TextField(blank=True, null=True)  # PostgreSQL array stored as text
+    
+    # Age groups served (from onboarding flow)
+    age_groups = models.JSONField(blank=True, null=True, help_text="Age groups this provider serves (e.g., ['0-5', '6-12', '13-18', '19+'])")
+    
+    # Diagnoses/conditions treated (from onboarding flow)
+    diagnoses_treated = models.JSONField(blank=True, null=True, help_text="Diagnoses/conditions this provider treats (e.g., ['Autism Spectrum Disorder', 'ADHD'])")
+    
+    # Therapy types offered (from onboarding flow)
+    therapy_types = models.JSONField(blank=True, null=True, help_text="Types of therapy offered (e.g., ['ABA therapy', 'Speech therapy', 'Occupational therapy'])")
+    
+    # Funding sources accepted
+    funding_sources = models.JSONField(blank=True, null=True, help_text="Funding sources accepted (e.g., ['Health Insurance', 'Regional Center', 'Private Pay'])")
+    
+    # Additional service details
+    accepts_private_pay = models.BooleanField(default=False, help_text="Accepts private pay clients")
+    accepts_regional_center = models.BooleanField(default=False, help_text="Accepts Regional Center funding")
+    accepts_insurance = models.BooleanField(default=False, help_text="Accepts health insurance")
+    
+    # Service delivery options
+    in_person_services = models.BooleanField(default=True, help_text="Offers in-person services")
+    virtual_services = models.BooleanField(default=False, help_text="Offers virtual/telehealth services")
+    home_based_services = models.BooleanField(default=False, help_text="Offers home-based services")
+    center_based_services = models.BooleanField(default=True, help_text="Offers center-based services")
+    
+    # Provider qualifications
+    license_number = models.CharField(max_length=100, blank=True, null=True, help_text="Professional license number")
+    license_type = models.CharField(max_length=100, blank=True, null=True, help_text="Type of professional license")
+    years_experience = models.IntegerField(blank=True, null=True, help_text="Years of experience")
+    
+    # Additional contact info
+    fax = models.CharField(max_length=20, blank=True, null=True)
+    emergency_phone = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Service area details
+    service_radius_miles = models.IntegerField(blank=True, null=True, help_text="Service radius in miles")
+    serves_la_county = models.BooleanField(default=True, help_text="Serves Los Angeles County")
+    specific_areas_served = models.JSONField(blank=True, null=True, help_text="Specific areas/cities served within LA County")
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -529,21 +631,11 @@ class ProviderV2(models.Model):
     def diagnoses_served(self):
         return self.type or ""
     
-    @property
-    def accepts_insurance(self):
-        return bool(self.insurance_accepted and self.insurance_accepted.strip())
-    
-    @property
-    def accepts_regional_center(self):
-        return self.insurance_accepted and "regional center" in self.insurance_accepted.lower()
     
     @property
     def website_domain(self):
         return self.website
     
-    @property
-    def center_based_services(self):
-        return ""
     
     @property
     def areas(self):

@@ -230,7 +230,7 @@
               <strong
                 >Search
                 {{
-                  displayType === "providers" ? "Providers" : "Regional Centers"
+                  displayType === "providers" ? "Services" : "Regional Centers"
                 }}</strong
               >
             </div>
@@ -242,7 +242,7 @@
                   v-model.trim="searchText"
                   :placeholder="
                     displayType === 'providers'
-                      ? 'Search providers, services, areas...'
+                      ? 'Search services, areas...'
                       : 'Search locations...'
                   "
                   @keyup.enter="updateFilteredLocations"

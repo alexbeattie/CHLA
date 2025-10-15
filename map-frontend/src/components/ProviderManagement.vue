@@ -25,7 +25,7 @@
         <input
           v-model="searchQuery"
           @input="filterProviders"
-          placeholder="Search providers..."
+          placeholder="Search services..."
           class="search-input"
         />
         <button @click="refreshProviders" class="btn btn-secondary">

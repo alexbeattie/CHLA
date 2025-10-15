@@ -92,7 +92,7 @@
 
         <div class="funding-note mt-4">
           <p><strong>Note:</strong> Working with the insurance companies to access behavioral services is a rapidly changing process. 
-            We recommend that you check with providers regularly as processes involved in accessing therapy through insurance 
+            We recommend that you check with services regularly as processes involved in accessing therapy through insurance 
             may change.</p>
         </div>
       </div>
