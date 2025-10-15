@@ -421,10 +421,17 @@ export default {
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
         
+        console.log('=== GENERATE RESULTS DEBUG ===');
+        console.log('User location:', this.userLocation);
+        console.log('User profile:', this.userProfile);
+        console.log('API base URL:', apiBaseUrl);
+        
         // Get provider count within 5-mile radius of user's location
         const providerParams = new URLSearchParams();
         if (this.userLocation) {
-          providerParams.append('location', this.userLocation);
+          // Clean up the location string - remove extra spaces and fix encoding
+          const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, ' ');
+          providerParams.append('location', cleanLocation);
           providerParams.append('radius', '5'); // 5-mile radius
         }
         if (this.userProfile.age) {
@@ -448,17 +455,25 @@ export default {
         }
         
         const providerUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${providerParams.toString()}`;
+        console.log('Provider API URL:', providerUrl);
+        console.log('Provider params:', providerParams.toString());
+        
         const providerResponse = await fetch(providerUrl, { 
           headers: { Accept: "application/json" } 
         });
         
+        console.log('Provider response status:', providerResponse.status);
+        
         if (providerResponse.ok) {
           const providerData = await providerResponse.json();
+          console.log('Provider data received:', providerData);
           // Provider API returns an array directly, not an object with count
           if (Array.isArray(providerData)) {
             this.resultsCount = providerData.length;
+            console.log('Provider count (array):', this.resultsCount);
           } else {
             this.resultsCount = providerData.count || 0;
+            console.log('Provider count (object):', this.resultsCount);
           }
         } else {
           console.error('Provider API error:', providerResponse.status);
@@ -468,17 +483,25 @@ export default {
         // Get regional center count within 5-mile radius
         const regionalCenterParams = new URLSearchParams();
         if (this.userLocation) {
-          regionalCenterParams.append('location', this.userLocation);
+          // Clean up the location string - remove extra spaces and fix encoding
+          const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, ' ');
+          regionalCenterParams.append('location', cleanLocation);
           regionalCenterParams.append('radius', '5'); // 5-mile radius
         }
         
         const regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/by_location/?${regionalCenterParams.toString()}`;
+        console.log('Regional center API URL:', regionalCenterUrl);
+        console.log('Regional center params:', regionalCenterParams.toString());
+        
         const regionalCenterResponse = await fetch(regionalCenterUrl, { 
           headers: { Accept: "application/json" } 
         });
         
+        console.log('Regional center response status:', regionalCenterResponse.status);
+        
         if (regionalCenterResponse.ok) {
           const regionalCenterData = await regionalCenterResponse.json();
+          console.log('Regional center data received:', regionalCenterData);
           // Count unique regional centers (in case there are multiple offices)
           const uniqueCenters = new Set();
           if (Array.isArray(regionalCenterData)) {
@@ -486,8 +509,10 @@ export default {
               uniqueCenters.add(center.regional_center);
             });
             this.regionalCentersCount = uniqueCenters.size;
+            console.log('Regional center count:', this.regionalCentersCount);
           } else {
             this.regionalCentersCount = 0;
+            console.log('Regional center count (not array):', this.regionalCentersCount);
           }
         } else {
           console.error('Regional center API error:', regionalCenterResponse.status);
