@@ -733,13 +733,19 @@ export default {
 
     // Filtered providers - since we use API-level filtering, just return the providers
     filteredProviders() {
-      if (!this.providers.length) return [];
+      console.log(`🔍 filteredProviders computed: providers.length = ${this.providers.length}`);
+      console.log(`🔍 filteredProviders computed: providers =`, this.providers);
+      
+      if (!this.providers.length) {
+        console.log(`⚠️ No providers available for filtering`);
+        return [];
+      }
 
       // Since we're using API-level filtering in fetchProviders(),
       // the this.providers array already contains the correctly filtered results
       // No need for additional client-side filtering
       console.log(
-        `Returning ${this.providers.length} providers from API (already filtered)`
+        `✅ Returning ${this.providers.length} providers from API (already filtered)`
       );
       return this.providers;
     },
@@ -853,19 +859,24 @@ export default {
         // Step 2: Wait for map to be ready
         await this.waitForMapReady();
         
-        // Step 3: Load regional centers in background (no map changes)
-        console.log("🚀 Step 2: Loading regional centers...");
-        if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
-          await this.fetchRegionalCenters();
+        // Only load data if not showing onboarding
+        if (!this.showOnboarding) {
+          // Step 3: Load regional centers in background (no map changes)
+          console.log("🚀 Step 2: Loading regional centers...");
+          if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
+            await this.fetchRegionalCenters();
+          }
+          
+          // Step 4: Load initial providers with smooth map setup
+          console.log("🚀 Step 3: Loading initial providers...");
+          if (!Array.isArray(this.providers) || this.providers.length === 0) {
+            await this.loadInitialProviders();
+          }
+          
+          console.log("🚀 Initialization complete!");
+        } else {
+          console.log("🚀 Onboarding is showing, skipping data loading until onboarding complete");
         }
-        
-        // Step 4: Load initial providers with smooth map setup
-        console.log("🚀 Step 3: Loading initial providers...");
-        if (!Array.isArray(this.providers) || this.providers.length === 0) {
-          await this.loadInitialProviders();
-        }
-        
-        console.log("🚀 Initialization complete!");
       } catch (e) {
         console.error("Error during initialization:", e);
       }
@@ -2311,11 +2322,19 @@ export default {
 
     // Fetch provider data
     async fetchProviders() {
+      console.log("🚀 fetchProviders() called");
+      console.log("🚀 Current state:", {
+        displayType: this.displayType,
+        providersLength: this.providers.length,
+        showOnboarding: this.showOnboarding,
+        filterOptions: this.filterOptions
+      });
+      
       this.loading = true;
       this.error = null;
 
       try {
-        console.log("Fetching providers from API");
+        console.log("📡 Fetching providers from API");
 
         // If using local data, use sample data
         if (USE_LOCAL_DATA_ONLY) {
@@ -2801,7 +2820,14 @@ export default {
         this.loading = false;
 
         // Force marker update after data change with proper timing
+        console.log(`🎯 fetchProviders() completed with ${this.providers.length} providers`);
         console.log(`🎯 About to update markers with ${this.providers.length} providers`);
+        console.log(`🎯 Provider details:`, this.providers.slice(0, 2).map(p => ({
+          name: p.name,
+          lat: p.latitude,
+          lng: p.longitude
+        })));
+        
         this.$nextTick(() => {
           this.updateMarkers();
           console.log(`🗺️ Markers updated for ${this.providers.length} providers`);
@@ -3874,15 +3900,23 @@ export default {
       let items = [];
       if (this.displayType === "providers") {
         items = this.filteredProviders;
+        console.log(`🔍 updateMarkers: displayType = "providers"`);
+        console.log(`🔍 updateMarkers: this.providers.length = ${this.providers.length}`);
+        console.log(`🔍 updateMarkers: this.filteredProviders.length = ${this.filteredProviders.length}`);
+        console.log(`🔍 updateMarkers: items.length = ${items.length}`);
         console.log(
           `Showing ${items.length} provider markers (always visible regardless of service areas)`
         );
-        console.log(
-          "First few providers:",
-          items
-            .slice(0, 2)
-            .map((p) => ({ name: p.name, lat: p.latitude, lng: p.longitude }))
-        );
+        if (items.length > 0) {
+          console.log(
+            "First few providers:",
+            items
+              .slice(0, 2)
+              .map((p) => ({ name: p.name, lat: p.latitude, lng: p.longitude }))
+          );
+        } else {
+          console.log(`⚠️ No providers to show markers for!`);
+        }
       } else if (this.displayType === "regionalCenters") {
         items = this.filteredRegionalCenters;
         console.log(`Showing ${items.length} regional center markers`);
@@ -4175,6 +4209,58 @@ export default {
       }
     },
 
+    // Format hours data for display
+    formatHours(hours) {
+      if (!hours) return "Hours not available";
+      
+      // If it's already a string, return it
+      if (typeof hours === 'string') {
+        return hours;
+      }
+      
+      // If it's an object, try to format it nicely
+      if (typeof hours === 'object') {
+        try {
+          // Try to parse as JSON if it's a stringified object
+          if (typeof hours === 'string') {
+            const parsed = JSON.parse(hours);
+            return this.formatHoursObject(parsed);
+          }
+          
+          // If it's already an object, format it
+          return this.formatHoursObject(hours);
+        } catch (e) {
+          console.warn("Could not parse hours object:", hours);
+          return "Hours not available";
+        }
+      }
+      
+      return "Hours not available";
+    },
+
+    // Format hours object into readable text
+    formatHoursObject(hoursObj) {
+      if (!hoursObj || typeof hoursObj !== 'object') {
+        return "Hours not available";
+      }
+      
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const formattedHours = [];
+      
+      days.forEach(day => {
+        const dayHours = hoursObj[day.toLowerCase()] || hoursObj[day];
+        if (dayHours && dayHours !== 'Closed' && dayHours !== '') {
+          formattedHours.push(`${day}: ${dayHours}`);
+        }
+      });
+      
+      if (formattedHours.length === 0) {
+        return "Hours not available";
+      }
+      
+      return formattedHours.join('\n');
+    },
+
     // Create simple popup content
     createSimplePopup(item) {
       console.log("Creating simple popup for item:", item);
@@ -4339,7 +4425,7 @@ export default {
                   text-transform: uppercase;
                   letter-spacing: 0.3px;
                 ">Hours</span>
-                <div style="color: #212529; font-size: 14px; line-height: 1.4; white-space: pre-wrap;">${item.hours}</div>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4; white-space: pre-wrap;">${this.formatHours(item.hours)}</div>
               </div>
             ` : ""}
 
@@ -4795,14 +4881,17 @@ export default {
     },
 
     async handleOnboardingComplete(data) {
-      console.log("Onboarding completed:", data);
+      console.log("🎉 ONBOARDING COMPLETED! Data:", data);
+      console.log("🎉 Current userData before update:", this.userData);
 
       // Update user data with onboarding results
       this.userData = { ...this.userData, ...data.userProfile };
+      console.log("🎉 Updated userData:", this.userData);
 
       // Set location if provided
       if (data.userLocation) {
         this.userData.address = data.userLocation;
+        console.log("🎉 Set address to:", data.userLocation);
       }
 
       // Find regional center for user's ZIP code
@@ -4810,8 +4899,10 @@ export default {
 
       // Hide onboarding
       this.showOnboarding = false;
+      console.log("🎉 Onboarding hidden, showOnboarding =", this.showOnboarding);
 
       // Initialize map and start fetching data
+      console.log("🎉 Calling initializeAfterOnboarding...");
       this.initializeAfterOnboarding();
     },
 
@@ -5049,19 +5140,51 @@ export default {
       return result;
     },
 
-    initializeAfterOnboarding() {
+    async initializeAfterOnboarding() {
+      console.log("🚀 Initializing after onboarding...");
+      
       // Initialize map if not already done
       if (!this.map) {
+        console.log("🗺️ Initializing map...");
         this.initMap();
+        await this.waitForMapReady();
       }
+      
       // Note: We don't automatically fly to user location to avoid jarring map movement
       // Users can manually navigate to their location if needed
 
       // Ensure we're showing providers (not regional centers) by default
       this.displayType = "providers";
 
-      // Start fetching data
-      this.fetchProviders();
+      // Clear any restrictive filters to show all providers initially
+      console.log("🔧 Clearing filters to show all providers initially...");
+      this.filterOptions = {
+        acceptsInsurance: false,
+        acceptsRegionalCenter: false,
+        acceptsPrivatePay: false,
+        matchesDiagnosis: false,
+        matchesAge: false,
+        diagnoses: [],
+        therapies: [],
+      };
+      this.searchText = ""; // Clear search text
+
+      // Load regional centers if not already loaded
+      if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
+        console.log("🏢 Loading regional centers...");
+        await this.fetchRegionalCenters();
+      }
+
+      // Start fetching providers and ensure markers are updated
+      console.log("📊 Loading providers without filters...");
+      await this.fetchProviders();
+      
+      // Force marker update after data is loaded
+      console.log("🎯 Updating markers after onboarding...");
+      this.$nextTick(() => {
+        this.updateMarkers();
+        console.log("✅ Markers updated after onboarding");
+      });
     },
 
     // Close all popups on the map

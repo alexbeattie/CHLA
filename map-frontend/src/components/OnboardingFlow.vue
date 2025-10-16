@@ -8,9 +8,9 @@
 
       <!-- Step Content -->
       <div class="step-content">
-        <!-- Step Counter -->
-        <div class="step-counter">Step {{ currentStep }} of {{ totalSteps }}</div>
-        
+      <!-- Step Counter -->
+      <div class="step-counter">Step {{ currentStep }} of {{ totalSteps }}</div>
+
         <!-- Welcome Step -->
         <div v-if="currentStep === 1" class="step welcome-step">
           <div class="chla-logo-large">
@@ -34,14 +34,11 @@
               <i class="bi bi-heart"></i>
               <span>Care Network</span>
             </div>
-          </div>
         </div>
 
-        <!-- Location Step -->
-        <div v-if="currentStep === 2" class="step location-step">
-          <h3>Your Location</h3>
-          <p>Help us find your Regional Center and Services</p>
-
+          <!-- Location Input -->
+          <div class="location-section">
+            <h4>Enter your location to get started</h4>
           <div class="location-options">
             <button
               class="btn btn-chla-primary location-btn"
@@ -49,22 +46,22 @@
               :disabled="locationDetecting"
             >
               <i class="bi bi-geo-alt-fill"></i>
-              <span v-if="locationDetecting">Detecting...</span>
-              <span v-else>Use Current Location</span>
+                <span v-if="locationDetecting">Detecting...</span>
+                <span v-else>Use Current Location</span>
             </button>
 
             <div class="location-divider">
-              <span>or</span>
+                <span>or</span>
             </div>
 
             <div class="manual-location">
               <input
                 type="text"
                 class="form-control location-input"
-                placeholder="ZIP code (5 digits) or city"
+                  placeholder="ZIP code (5 digits) or city"
                 v-model="userLocation"
                 @keyup.enter="validateLocation"
-                @input="validateZipFormat"
+                  @input="validateZipFormat"
               />
               <button
                 class="btn btn-chla-outline"
@@ -79,13 +76,14 @@
           <div v-if="locationError" class="alert alert-warning">
             <i class="bi bi-exclamation-triangle"></i>
             {{ locationError }}
+            </div>
           </div>
 
           <!-- Regional Center Display -->
           <div v-if="matchedRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
-              <strong>{{ matchedRegionalCenter.name }}</strong>
+              <strong>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</strong>
               <div class="rc-details">
                 <div class="rc-service-area">{{ matchedRegionalCenter.service_area }}</div>
               </div>
@@ -94,14 +92,14 @@
         </div>
 
         <!-- Profile Step -->
-        <div v-if="currentStep === 3" class="step profile-step">
+        <div v-if="currentStep === 2" class="step profile-step">
           <h3>Quick Setup</h3>
           <p>Just a few details to personalize your experience</p>
 
           <div class="profile-form">
             <div class="form-row">
               <label>Age Group</label>
-              <select v-model="userProfile.age" class="form-control">
+              <select v-model="userProfile.age" class="form-control" @change="console.log('Age selected:', userProfile.age)">
                 <option value="">Select age</option>
                 <option value="0-5">0-5 years</option>
                 <option value="6-12">6-12 years</option>
@@ -136,10 +134,21 @@
               </div>
             </div>
           </div>
+
+          <!-- Regional Center Display -->
+          <div v-if="matchedRegionalCenter" class="regional-center-info">
+            <div class="alert alert-success">
+              <i class="bi bi-building"></i>
+              <strong>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</strong>
+              <div class="rc-details">
+                <div class="rc-service-area">{{ matchedRegionalCenter.service_area }}</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Services Step -->
-        <div v-if="currentStep === 4" class="step services-step">
+        <div v-if="currentStep === 3" class="step services-step">
           <h3>Which therapies are you seeking?</h3>
           <p>Select all that apply. You can always change these later.</p>
           <div class="service-types">
@@ -153,31 +162,86 @@
               </div>
             </label>
           </div>
+
+          <!-- Regional Center Display -->
+          <div v-if="matchedRegionalCenter" class="regional-center-info">
+            <div class="alert alert-success">
+              <i class="bi bi-building"></i>
+              <strong>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</strong>
+              <div class="rc-details">
+                <div class="rc-service-area">{{ matchedRegionalCenter.service_area }}</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Results Step -->
-        <div v-if="currentStep === 5" class="step results-step">
-          <h3>You're all set!</h3>
-          <p>We've found {{ resultsCount }} providers in your area based on your preferences.</p>
-
-          <div class="results-summary">
-            <div class="summary-item">
-              <i class="bi bi-hospital"></i>
-              <span>{{ resultsCount }} Services</span>
+        <div v-if="currentStep === 4" class="step results-step">
+          <div class="success-header">
+            <div class="success-icon">
+              <i class="bi bi-check-circle-fill"></i>
             </div>
-            <div class="summary-item">
-              <i class="bi bi-building"></i>
-              <span>{{ regionalCentersCount }} Regional Centers</span>
+            <h2>You're all set!</h2>
+            <p class="success-subtitle">We found {{ resultsCount }} providers in your area</p>
+          </div>
+
+          <div class="results-grid">
+            <div class="result-card">
+              <div class="card-icon services-icon">
+                <i class="bi bi-hospital"></i>
+              </div>
+              <div class="card-content">
+                <div class="card-number">{{ resultsCount }}</div>
+                <div class="card-title">Services</div>
+              </div>
+            </div>
+
+            <div class="result-card">
+              <div class="card-icon center-icon">
+                <i class="bi bi-building"></i>
+              </div>
+              <div class="card-content">
+                <div class="card-title">Regional Center</div>
+                <div class="card-text" v-if="matchedRegionalCenter && matchedRegionalCenter.regional_center">
+                  {{ matchedRegionalCenter.regional_center }}
+              </div>
+                <div class="card-text" v-else-if="regionalCentersCount > 0">
+                  {{ regionalCentersCount }} Centers Found
+            </div>
+                <div class="card-text error" v-else>
+                  Not Found
+                </div>
+                </div>
+                </div>
+              </div>
+
+          <div class="next-actions">
+            <h3>What's next?</h3>
+            <div class="action-list">
+              <div class="action-item">
+                <i class="bi bi-geo-alt"></i>
+                <span>Explore services on the map</span>
+          </div>
+              <div class="action-item">
+                <i class="bi bi-info-circle"></i>
+                <span>View detailed service information</span>
+              </div>
+              <div class="action-item">
+                <i class="bi bi-funnel"></i>
+                <span>Use filters to refine your search</span>
+              </div>
             </div>
           </div>
 
-          <div class="next-steps">
-            <h4>What's next?</h4>
-            <ul class="steps-list">
-              <li>Explore services on the map</li>
-              <li>View detailed service information</li>
-              <li>Use filters to refine your search</li>
-            </ul>
+          <!-- Regional Center Display -->
+          <div v-if="matchedRegionalCenter" class="regional-center-info">
+            <div class="alert alert-success">
+              <i class="bi bi-building"></i>
+              <strong>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</strong>
+              <div class="rc-details">
+                <div class="rc-service-area">{{ matchedRegionalCenter.service_area }}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -192,7 +256,7 @@
         <div class="nav-spacer"></div>
 
         <button
-          v-if="currentStep < totalSteps && currentStep !== 2"
+          v-if="currentStep < totalSteps"
           class="btn btn-chla-primary"
           @click="nextStep"
           :disabled="!canProceed"
@@ -232,12 +296,16 @@ export default {
       type: Boolean,
       default: false,
     },
+    matchedRegionalCenter: {
+      type: Object,
+      default: null,
+    },
   },
 
   data() {
     return {
       currentStep: 1,
-      totalSteps: 5,
+      totalSteps: 4,
       locationDetecting: false,
       locationError: null,
       userLocation: "",
@@ -268,20 +336,30 @@ export default {
     },
 
     canProceed() {
-      switch (this.currentStep) {
-        case 1:
-          return true;
-        case 2:
-          return this.userLocation || this.locationDetected;
-        case 3:
-          return this.userProfile.age; // Age is required
-        case 4:
-          return this.userProfile.therapies.length > 0;
-        case 5:
-          return true;
-        default:
-          return false;
-      }
+      const result = (() => {
+        switch (this.currentStep) {
+          case 1:
+            return this.userLocation && this.userLocation.length > 0; // Require location on step 1
+          case 2:
+            return this.userProfile.age && this.userProfile.age.length > 0; // Age is required on profile step
+          case 3:
+            return this.userProfile.therapies.length > 0; // Therapies required on services step
+          case 4:
+            return true; // Results step - always can proceed
+          default:
+            return false;
+        }
+      })();
+      
+      console.log(`canProceed check - Step ${this.currentStep}:`, {
+        userLocation: this.userLocation,
+        age: this.userProfile.age,
+        ageLength: this.userProfile.age ? this.userProfile.age.length : 0,
+        therapies: this.userProfile.therapies,
+        result: result
+      });
+      
+      return result;
     },
 
     locationDetected() {
@@ -297,7 +375,7 @@ export default {
     async nextStep() {
       if (this.currentStep < this.totalSteps) {
         this.currentStep++;
-        if (this.currentStep === 5) {
+        if (this.currentStep === 4) {
           await this.generateResults();
         }
       }
@@ -328,7 +406,10 @@ export default {
           address,
         });
 
-        this.nextStep();
+        // Detect regional center immediately
+        this.matchRegionalCenterByLocation(address).catch((error) => {
+          console.error('Regional center detection failed:', error);
+        });
       } catch (error) {
         this.locationError = "Unable to detect location. Please enter manually.";
         console.error("Location detection failed:", error);
@@ -368,6 +449,8 @@ export default {
       if (this.locationError && this.locationError.includes("ZIP code")) {
         this.locationError = "";
       }
+      
+        // Regional center will be detected by parent MapView component
     },
 
     validateLocation() {
@@ -394,25 +477,33 @@ export default {
     async matchRegionalCenterByLocation(locationText) {
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-        const url = `${apiBaseUrl}/api/regional-centers/by_location/?location=${encodeURIComponent(
-          locationText
-        )}&radius=40&limit=5`;
-        const res = await fetch(url, { headers: { Accept: "application/json" } });
-        if (!res.ok) {
-          console.error("Regional center API error:", res.status, res.statusText);
-          return;
-        }
-        const centers = await res.json();
-        if (Array.isArray(centers) && centers.length > 0) {
-          this.matchedRegionalCenter = centers[0];
-          this.$emit("regional-center-matched", centers[0]);
+        
+        // Check if location is a ZIP code (5 digits)
+        const zipMatch = locationText.match(/\b\d{5}\b/);
+        let url;
+        
+        if (zipMatch) {
+          url = `${apiBaseUrl}/api/regional-centers/by_zip_code/?zip_code=${zipMatch[0]}`;
         } else {
-          console.log("No regional centers found for location:", locationText);
-          // Don't set an error here as the user might have entered a city name
-          // The main validation happens in validateLocation()
+          url = `${apiBaseUrl}/api/regional-centers/by_location/?location=${encodeURIComponent(locationText)}&radius=40&limit=5`;
         }
-      } catch (e) {
-        console.error("Regional center lookup failed:", e);
+        
+        const res = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!res.ok) return;
+        
+        const data = await res.json();
+        
+        if (zipMatch) {
+          if (data.regional_center) {
+            this.matchedRegionalCenter = data;
+          }
+        } else {
+          if (Array.isArray(data) && data.length > 0) {
+            this.matchedRegionalCenter = data[0];
+          }
+        }
+      } catch (error) {
+        console.error("Error matching regional center:", error);
       }
     },
 
@@ -431,66 +522,142 @@ export default {
         const providerParams = new URLSearchParams();
         if (this.userLocation) {
           // Clean up the location string - remove extra spaces and fix encoding
-          const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, ' ');
+          const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, '');
           providerParams.append('location', cleanLocation);
-          providerParams.append('radius', '5'); // 5-mile radius
+          providerParams.append('radius', '5'); // 5-mile radius for focused results
         }
+        
+        // Apply user's filters to make their selections meaningful
         if (this.userProfile.age) {
-          providerParams.append('age_group', this.userProfile.age);
+          providerParams.append('age', this.userProfile.age);
         }
+        
         if (this.userProfile.diagnosis) {
           providerParams.append('diagnosis', this.userProfile.diagnosis);
         }
+        
         if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
           this.userProfile.therapies.forEach(therapy => {
             providerParams.append('therapy', therapy);
           });
         }
         
-        // Add funding source preferences
         if (this.userProfile.hasInsurance) {
-          providerParams.append('insurance', 'Health Insurance');
-        }
-        if (this.userProfile.hasRegionalCenter) {
-          providerParams.append('insurance', 'Regional Center');
+          providerParams.append('insurance', 'insurance'); // Backend expects lowercase "insurance"
         }
         
-        const providerUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${providerParams.toString()}`;
-        console.log('Provider API URL:', providerUrl);
-        console.log('Provider params:', providerParams.toString());
-        
-        const providerResponse = await fetch(providerUrl, { 
-          headers: { Accept: "application/json" } 
+        const filteredUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${providerParams.toString()}`;
+        console.log('Filtered provider API URL:', filteredUrl);
+        console.log('Applied filters:', {
+          age: this.userProfile.age,
+          diagnosis: this.userProfile.diagnosis,
+          therapies: this.userProfile.therapies,
+          hasInsurance: this.userProfile.hasInsurance
         });
         
-        console.log('Provider response status:', providerResponse.status);
-        
-        if (providerResponse.ok) {
-          const providerData = await providerResponse.json();
-          console.log('Provider data received:', providerData);
-          // Provider API returns an array directly, not an object with count
-          if (Array.isArray(providerData)) {
-            this.resultsCount = providerData.length;
-            console.log('Provider count (array):', this.resultsCount);
-          } else {
-            this.resultsCount = providerData.count || 0;
-            console.log('Provider count (object):', this.resultsCount);
+        let providerData = [];
+        try {
+          const filteredResponse = await fetch(filteredUrl);
+          if (filteredResponse.ok) {
+            providerData = await filteredResponse.json();
+            console.log('Filtered provider data received:', providerData);
           }
+        } catch (error) {
+          console.error('Filtered search failed:', error);
+        }
+        
+        // Set the results count
+        if (Array.isArray(providerData)) {
+          this.resultsCount = providerData.length;
+          console.log('Final provider count:', this.resultsCount);
         } else {
-          console.error('Provider API error:', providerResponse.status);
           this.resultsCount = 0;
+          console.log('No provider data received');
         }
         
         // Get regional center count within 5-mile radius
         const regionalCenterParams = new URLSearchParams();
         if (this.userLocation) {
           // Clean up the location string - remove extra spaces and fix encoding
-          const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, ' ');
-          regionalCenterParams.append('location', cleanLocation);
-          regionalCenterParams.append('radius', '5'); // 5-mile radius
+          const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, '');
+          
+          // Check if location is a ZIP code (5 digits)
+          const zipMatch = cleanLocation.match(/\b\d{5}\b/);
+          if (zipMatch) {
+            // Use ZIP code API for better accuracy
+            regionalCenterParams.append('zip_code', zipMatch[0]);
+            console.log('Using ZIP code API for:', zipMatch[0]);
+          } else {
+            // Check if location is GPS coordinates (lat,lng format)
+            console.log('About to test regex on:', JSON.stringify(cleanLocation));
+            const coordMatch = cleanLocation.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
+            console.log('Original location:', this.userLocation);
+            console.log('Cleaned location:', cleanLocation);
+            console.log('coordMatch result:', coordMatch);
+            if (coordMatch) {
+              const lat = parseFloat(coordMatch[1]);
+              const lng = parseFloat(coordMatch[2]);
+              console.log('GPS coordinates detected:', lat, lng);
+              console.log('Checking if coordinates are in LA County bounds...');
+              
+              // For LA County coordinates, try to determine ZIP code
+              // This is a rough approximation - in a real app you'd use reverse geocoding
+              if (lat >= 33.7 && lat <= 34.8 && lng >= -118.9 && lng <= -117.6) {
+                console.log('✅ Coordinates are in LA County bounds');
+                // This is LA County - try to find ZIP code from coordinates
+                // For now, let's use a simple approximation based on common LA ZIP codes
+                let estimatedZip = null;
+                
+                // Northridge area (91403) - expanded bounds
+                if (lat >= 34.1 && lat <= 34.4 && lng >= -118.7 && lng <= -118.3) {
+                  estimatedZip = '91403';
+                  console.log('✅ Estimated ZIP code: 91403 (Northridge area)');
+                }
+                // Beverly Hills area (90210) - approximate bounds  
+                else if (lat >= 34.0 && lat <= 34.1 && lng >= -118.5 && lng <= -118.3) {
+                  estimatedZip = '90210';
+                }
+                // Downtown LA area (90001) - approximate bounds
+                else if (lat >= 34.0 && lat <= 34.1 && lng >= -118.3 && lng <= -118.2) {
+                  estimatedZip = '90001';
+                }
+                // West LA area (90025) - approximate bounds
+                else if (lat >= 34.0 && lat <= 34.1 && lng >= -118.5 && lng <= -118.4) {
+                  estimatedZip = '90025';
+                }
+                
+                if (estimatedZip) {
+                  regionalCenterParams.append('zip_code', estimatedZip);
+                  console.log('Estimated ZIP code from GPS:', estimatedZip);
+                } else {
+                  // Fall back to location API
+                  regionalCenterParams.append('location', cleanLocation);
+                  regionalCenterParams.append('radius', '5');
+                  console.log('Using location API for GPS coordinates:', cleanLocation);
+                }
+              } else {
+                // Outside LA County - use location API
+                regionalCenterParams.append('location', cleanLocation);
+                regionalCenterParams.append('radius', '5');
+                console.log('Outside LA County, using location API:', cleanLocation);
+              }
+            } else {
+              // Use location API for addresses/other formats
+              regionalCenterParams.append('location', cleanLocation);
+              regionalCenterParams.append('radius', '5');
+              console.log('Using location API for:', cleanLocation);
+            }
+          }
         }
         
-        const regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/by_location/?${regionalCenterParams.toString()}`;
+        // Determine which API endpoint to use
+        let regionalCenterUrl;
+        if (regionalCenterParams.has('zip_code')) {
+          regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/by_zip_code/?${regionalCenterParams.toString()}`;
+        } else {
+          regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/by_location/?${regionalCenterParams.toString()}`;
+        }
+        
         console.log('Regional center API URL:', regionalCenterUrl);
         console.log('Regional center params:', regionalCenterParams.toString());
         
@@ -503,17 +670,34 @@ export default {
         if (regionalCenterResponse.ok) {
           const regionalCenterData = await regionalCenterResponse.json();
           console.log('Regional center data received:', regionalCenterData);
-          // Count unique regional centers (in case there are multiple offices)
-          const uniqueCenters = new Set();
-          if (Array.isArray(regionalCenterData)) {
-            regionalCenterData.forEach(center => {
-              uniqueCenters.add(center.regional_center);
-            });
-            this.regionalCentersCount = uniqueCenters.size;
-            console.log('Regional center count:', this.regionalCentersCount);
+          
+          // Handle different response formats
+          if (regionalCenterParams.has('zip_code')) {
+            // ZIP code API returns a single object or error
+            if (regionalCenterData.regional_center) {
+              this.regionalCentersCount = 1;
+              this.matchedRegionalCenter = regionalCenterData; // Store the regional center data
+              console.log('Regional center count (ZIP code):', this.regionalCentersCount);
+              console.log('Regional center name:', regionalCenterData.regional_center);
+            } else {
+              this.regionalCentersCount = 0;
+              this.matchedRegionalCenter = null;
+              console.log('Regional center count (ZIP code, not found):', this.regionalCentersCount);
+            }
           } else {
-            this.regionalCentersCount = 0;
-            console.log('Regional center count (not array):', this.regionalCentersCount);
+            // Location API returns an array
+            if (Array.isArray(regionalCenterData)) {
+              this.regionalCentersCount = regionalCenterData.length;
+              if (regionalCenterData.length > 0) {
+                this.matchedRegionalCenter = regionalCenterData[0]; // Store the first regional center
+                console.log('Regional center name:', regionalCenterData[0].regional_center);
+              }
+              console.log('Regional center count (location array):', this.regionalCentersCount);
+            } else {
+              this.regionalCentersCount = 0;
+              this.matchedRegionalCenter = null;
+              console.log('Regional center count (location, not array):', this.regionalCentersCount);
+            }
           }
         } else {
           console.error('Regional center API error:', regionalCenterResponse.status);
@@ -635,29 +819,35 @@ export default {
   text-align: center;
 }
 
-/* Welcome Step */
+/* Welcome Step - Small & Subtle Design */
+.welcome-step {
+  max-width: 350px;
+  margin: 0 auto;
+  padding: 0;
+}
+
 .welcome-step .chla-logo-large {
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
 }
 
 .welcome-step .logo {
-  height: 56px;
+  height: 2rem;
 }
 
 .welcome-step h2 {
   color: #004877;
-  margin-bottom: 10px;
-  font-size: 24px;
-  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 500;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .welcome-text {
-  font-size: 15px;
+  font-size: 0.875rem;
   color: #495057;
-  margin-bottom: 24px;
-  line-height: 1.5;
-  max-width: 480px;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+  max-width: 320px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -666,46 +856,53 @@ export default {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 24px;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
 .feature {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   color: #495057;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 400;
 }
 
 .feature i {
-  font-size: 16px;
+  font-size: 0.875rem;
   color: #004877;
 }
 
-/* Location Step */
+/* Location Step - Small & Subtle Design */
+.location-step {
+  max-width: 350px;
+  margin: 0 auto;
+  padding: 0;
+}
+
 .location-step h3 {
   color: #004877;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 1.25rem;
 }
 
 .location-options {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 20px;
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
 .location-btn {
-  padding: 12px 20px;
-  font-size: 14px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   justify-content: center;
 }
 
@@ -713,6 +910,7 @@ export default {
   text-align: center;
   position: relative;
   color: #6c757d;
+  font-size: 0.75rem;
 }
 
 .location-divider::before {
@@ -728,92 +926,104 @@ export default {
 
 .location-divider span {
   background: white;
-  padding: 0 16px;
+  padding: 0 0.75rem;
   position: relative;
   z-index: 2;
 }
 
 .manual-location {
   display: flex;
-  gap: 12px;
+  gap: 0.5rem;
 }
 
 .location-input {
   flex: 1;
-  padding: 12px 16px;
-  font-size: 16px;
+  padding: 0.75rem;
+  font-size: 0.875rem;
 }
 
-/* Profile Step */
+/* Profile Step - Small & Subtle Design */
 .profile-step {
   text-align: left;
+  max-width: 350px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.profile-step h3 {
+  color: #004877;
+  margin-bottom: 0.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 500;
+  font-size: 1.25rem;
+  text-align: center;
 }
 
 .profile-form {
-  margin-top: 20px;
+  margin-top: 1rem;
 }
 
 .form-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .form-row label {
-  min-width: 120px;
-  font-size: 14px;
-  font-weight: 500;
+  min-width: 80px;
+  font-size: 0.75rem;
+  font-weight: 400;
   color: #495057;
 }
 
 .form-row .form-control {
   flex: 1;
-  padding: 8px 12px;
+  padding: 0.5rem;
   border: 1px solid #dee2e6;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 4px;
+  font-size: 0.75rem;
   background: white;
 }
 
 .form-row .form-control:focus {
   outline: none;
   border-color: #004877;
-  box-shadow: 0 0 0 2px rgba(0, 72, 119, 0.1);
+  box-shadow: 0 0 0 1px rgba(0, 72, 119, 0.1);
 }
 
 .funding-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .funding-row label {
-  min-width: 120px;
-  font-size: 14px;
-  font-weight: 500;
+  min-width: 80px;
+  font-size: 0.75rem;
+  font-weight: 400;
   color: #495057;
 }
 
 .funding-options {
   display: flex;
-  gap: 16px;
+  gap: 0.75rem;
   flex: 1;
 }
 
 .funding-option {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.25rem;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.7rem;
   color: #495057;
 }
 
 .funding-option input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   accent-color: #004877;
 }
 
@@ -825,88 +1035,247 @@ export default {
   font-weight: 600;
 }
 
-.results-summary {
-  display: flex;
-  justify-content: center;
-  gap: 32px;
-  margin: 24px 0;
+/* Results Step - Small & Subtle Design */
+.results-step {
+  max-width: 350px;
+  margin: 0 auto;
+  padding: 0;
 }
 
-.summary-item {
+.success-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.success-icon {
+  width: 2rem;
+  height: 2rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #495057;
-  font-size: 14px;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.2);
+}
+
+.success-icon i {
+  font-size: 1rem;
+  color: white;
+}
+
+.success-header h2 {
+  font-size: 1.25rem;
   font-weight: 500;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.2;
 }
 
-.summary-item i {
-  font-size: 18px;
-  color: #004877;
-}
-
-.next-steps {
-  margin-top: 32px;
-  text-align: left;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.next-steps h4 {
-  color: #004877;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-.steps-list {
-  list-style: none;
-  padding: 0;
+.success-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
   margin: 0;
+  font-weight: 400;
 }
 
-.steps-list li {
-  color: #495057;
-  font-size: 14px;
-  margin-bottom: 8px;
-  padding-left: 16px;
-  position: relative;
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.steps-list li::before {
-  content: "•";
-  color: #004877;
-  position: absolute;
-  left: 0;
+.result-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.75rem;
+  text-align: center;
+  transition: all 0.2s ease;
 }
 
-/* Services Step */
-.services-step h3 {
-  color: #004877;
-  margin-bottom: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+.result-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.5rem;
+  font-size: 0.75rem;
+}
+
+.services-icon {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+}
+
+.center-icon {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+}
+
+.card-number {
+  font-size: 1.25rem;
   font-weight: 600;
+  color: #111827;
+  line-height: 1;
+  margin-bottom: 0.125rem;
 }
+
+.card-title {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.card-text {
+  font-size: 0.7rem;
+  color: #374151;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.card-text.error {
+  color: #dc2626;
+  font-style: italic;
+}
+
+.next-actions {
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.next-actions h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 0.75rem 0;
+  text-align: center;
+}
+
+.action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.action-item:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.action-item i {
+  width: 1rem;
+  height: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.action-item span {
+  font-size: 0.75rem;
+  color: #374151;
+  font-weight: 400;
+}
+
+@media (max-width: 640px) {
+  .results-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .success-header h2 {
+    font-size: 1.125rem;
+  }
+  
+  .success-subtitle {
+    font-size: 0.8rem;
+  }
+}
+
+
+/* Results Step */
+.results-step {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.results-step .step-navigation {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.results-step .btn-primary {
+  background: #10b981;
+  border-color: #10b981;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+}
+
+.results-step .btn-primary:hover {
+  background: #059669;
+  border-color: #059669;
+}
+/* Preferences Step - Small & Subtle Design */
+.preferences-step {
+  max-width: 350px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.preferences-step h3 {
+  color: #004877;
+  margin-bottom: 0.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 500;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
 .service-types {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-top: 20px;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
 .service-option {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px;
+  gap: 0.5rem;
+  padding: 0.75rem;
   border: 1px solid #dee2e6;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
 }
 
 .service-option:hover {
@@ -919,12 +1288,12 @@ export default {
 }
 
 .checkmark {
-  width: 18px;
-  height: 18px;
-  border: 2px solid #dee2e6;
-  border-radius: 4px;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #dee2e6;
+  border-radius: 3px;
   position: relative;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
@@ -940,28 +1309,31 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 14px;
+  font-size: 0.7rem;
 }
 
 .service-content {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.5rem;
 }
 
 .service-content i {
-  font-size: 24px;
+  font-size: 1rem;
   color: #0d9ddb;
 }
 
 .service-content strong {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 0.125rem;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .service-content small {
   display: block;
   color: #6c757d;
+  font-size: 0.7rem;
 }
 
 /* Results Step */
@@ -1029,13 +1401,17 @@ export default {
   margin-top: 32px;
 }
 
-/* Navigation */
+/* Navigation - Small & Subtle Design */
 .step-navigation {
   display: flex;
   align-items: center;
-  padding: 16px 24px;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
   border-top: 1px solid #e9ecef;
   background: #f8f9fa;
+  max-width: 350px;
+  margin: 0 auto;
+  gap: 1rem;
 }
 
 .nav-spacer {
@@ -1053,18 +1429,18 @@ export default {
   color: #e9ecef;
 }
 
-/* Button Styles */
+/* Button Styles - Small & Subtle Design */
 .btn {
-  padding: 8px 16px;
+  padding: 0.5rem 0.75rem;
   border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 14px;
+  border-radius: 4px;
+  font-weight: 400;
+  font-size: 0.75rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .btn-chla-primary {
@@ -1149,6 +1525,57 @@ export default {
   font-size: 14px;
   color: #155724;
   font-weight: 500;
+}
+
+/* Location Section on Step 1 */
+.location-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.location-section h4 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+/* Regional Center Info - Small & Subtle Design */
+.regional-center-info {
+  margin-top: 1rem;
+}
+
+.alert {
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.alert-success {
+  background: #d1edff;
+  border: 1px solid #b3d9ff;
+  color: #004877;
+}
+
+.alert i {
+  font-size: 0.875rem;
+  margin-top: 0.125rem;
+}
+
+.rc-details {
+  margin-top: 0.25rem;
+  text-align: left;
+}
+
+.rc-service-area {
+  font-size: 0.7rem;
+  color: #6c757d;
+  font-style: italic;
 }
 
 /* Responsive */
