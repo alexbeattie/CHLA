@@ -569,10 +569,16 @@ export default {
         
         // Set the results count and store the actual provider data
         if (Array.isArray(providerData)) {
-          this.resultsCount = providerData.length;
-          this.filteredProviders = providerData; // Store the actual provider data
+          // Remove duplicates based on provider ID
+          const uniqueProviders = providerData.filter((provider, index, self) => 
+            index === self.findIndex(p => p.id === provider.id)
+          );
+          
+          this.resultsCount = uniqueProviders.length;
+          this.filteredProviders = uniqueProviders; // Store the deduplicated provider data
           console.log('Final provider count:', this.resultsCount);
-          console.log('Stored filtered providers:', this.filteredProviders);
+          console.log('Stored filtered providers (deduplicated):', this.filteredProviders);
+          console.log('Removed duplicates:', providerData.length - uniqueProviders.length);
         } else {
           this.resultsCount = 0;
           this.filteredProviders = [];
