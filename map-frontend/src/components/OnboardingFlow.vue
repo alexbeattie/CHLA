@@ -327,6 +327,7 @@ export default {
       ],
       resultsCount: 0,
       regionalCentersCount: 0,
+      filteredProviders: [], // Store the actual filtered provider data
     };
   },
 
@@ -566,12 +567,15 @@ export default {
           console.error('Filtered search failed:', error);
         }
         
-        // Set the results count
+        // Set the results count and store the actual provider data
         if (Array.isArray(providerData)) {
           this.resultsCount = providerData.length;
+          this.filteredProviders = providerData; // Store the actual provider data
           console.log('Final provider count:', this.resultsCount);
+          console.log('Stored filtered providers:', this.filteredProviders);
         } else {
           this.resultsCount = 0;
+          this.filteredProviders = [];
           console.log('No provider data received');
         }
         
@@ -720,6 +724,8 @@ export default {
       this.$emit("onboarding-complete", {
         userProfile: this.userProfile,
         userLocation: this.userLocation,
+        filteredProviders: this.filteredProviders, // Pass the filtered providers to the map
+        matchedRegionalCenter: this.matchedRegionalCenter,
       });
     },
 

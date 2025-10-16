@@ -4894,14 +4894,27 @@ export default {
         console.log("🎉 Set address to:", data.userLocation);
       }
 
-      // Find regional center for user's ZIP code
-      await this.findUserRegionalCenter();
+      // Use filtered providers from onboarding instead of fetching all providers
+      if (data.filteredProviders && data.filteredProviders.length > 0) {
+        console.log("🎉 Using filtered providers from onboarding:", data.filteredProviders.length);
+        this.providers = data.filteredProviders;
+        this.updateMarkers(); // Update markers with filtered providers
+      }
+
+      // Set regional center if provided
+      if (data.matchedRegionalCenter) {
+        this.matchedRegionalCenter = data.matchedRegionalCenter;
+        console.log("🎉 Set regional center:", data.matchedRegionalCenter);
+      } else {
+        // Find regional center for user's ZIP code
+        await this.findUserRegionalCenter();
+      }
 
       // Hide onboarding
       this.showOnboarding = false;
       console.log("🎉 Onboarding hidden, showOnboarding =", this.showOnboarding);
 
-      // Initialize map and start fetching data
+      // Initialize map (but don't fetch providers since we already have them)
       console.log("🎉 Calling initializeAfterOnboarding...");
       this.initializeAfterOnboarding();
     },
@@ -5175,9 +5188,13 @@ export default {
         await this.fetchRegionalCenters();
       }
 
-      // Start fetching providers and ensure markers are updated
-      console.log("📊 Loading providers without filters...");
-      await this.fetchProviders();
+      // Only fetch providers if we don't already have them from onboarding
+      if (!this.providers || this.providers.length === 0) {
+        console.log("📊 Loading providers without filters...");
+        await this.fetchProviders();
+      } else {
+        console.log("📊 Using providers from onboarding:", this.providers.length);
+      }
       
       // Force marker update after data is loaded
       console.log("🎯 Updating markers after onboarding...");
