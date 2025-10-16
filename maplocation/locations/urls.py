@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
+from .update_orange_county_view import update_orange_county_zips
 
 router = DefaultRouter()
 router.register(r"categories", views.LocationCategoryViewSet)
@@ -20,4 +21,5 @@ router.register(r"service-models", views.ServiceDeliveryModelViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("california-counties/", views.california_counties, name="california-counties"),
+    path("update-orange-county-zips/", update_orange_county_zips, name="update_orange_county_zips"),
 ]

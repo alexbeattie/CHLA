@@ -83,9 +83,21 @@
           <div v-if="matchedRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
-              <strong>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</strong>
-              <div class="rc-details">
-                <div class="rc-service-area">{{ matchedRegionalCenter.service_area }}</div>
+              <div class="rc-content">
+                <div class="rc-name">
+                  <a 
+                    v-if="matchedRegionalCenter.website" 
+                    :href="matchedRegionalCenter.website.startsWith('http') ? matchedRegionalCenter.website : 'https://' + matchedRegionalCenter.website"
+                    target="_blank"
+                    class="rc-link"
+                  >
+                    {{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}
+                  </a>
+                  <span v-else>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</span>
+                </div>
+                <div class="rc-details" v-if="matchedRegionalCenter.phone">
+                  <div class="rc-phone">{{ matchedRegionalCenter.phone }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -139,9 +151,21 @@
           <div v-if="matchedRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
-              <strong>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</strong>
-              <div class="rc-details">
-                <div class="rc-service-area">{{ matchedRegionalCenter.service_area }}</div>
+              <div class="rc-content">
+                <div class="rc-name">
+                  <a 
+                    v-if="matchedRegionalCenter.website" 
+                    :href="matchedRegionalCenter.website.startsWith('http') ? matchedRegionalCenter.website : 'https://' + matchedRegionalCenter.website"
+                    target="_blank"
+                    class="rc-link"
+                  >
+                    {{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}
+                  </a>
+                  <span v-else>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</span>
+                </div>
+                <div class="rc-details" v-if="matchedRegionalCenter.phone">
+                  <div class="rc-phone">{{ matchedRegionalCenter.phone }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -167,9 +191,21 @@
           <div v-if="matchedRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
-              <strong>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</strong>
-              <div class="rc-details">
-                <div class="rc-service-area">{{ matchedRegionalCenter.service_area }}</div>
+              <div class="rc-content">
+                <div class="rc-name">
+                  <a 
+                    v-if="matchedRegionalCenter.website" 
+                    :href="matchedRegionalCenter.website.startsWith('http') ? matchedRegionalCenter.website : 'https://' + matchedRegionalCenter.website"
+                    target="_blank"
+                    class="rc-link"
+                  >
+                    {{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}
+                  </a>
+                  <span v-else>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</span>
+                </div>
+                <div class="rc-details" v-if="matchedRegionalCenter.phone">
+                  <div class="rc-phone">{{ matchedRegionalCenter.phone }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -237,9 +273,21 @@
           <div v-if="matchedRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
-              <strong>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</strong>
-              <div class="rc-details">
-                <div class="rc-service-area">{{ matchedRegionalCenter.service_area }}</div>
+              <div class="rc-content">
+                <div class="rc-name">
+                  <a 
+                    v-if="matchedRegionalCenter.website" 
+                    :href="matchedRegionalCenter.website.startsWith('http') ? matchedRegionalCenter.website : 'https://' + matchedRegionalCenter.website"
+                    target="_blank"
+                    class="rc-link"
+                  >
+                    {{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}
+                  </a>
+                  <span v-else>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</span>
+                </div>
+                <div class="rc-details" v-if="matchedRegionalCenter.phone">
+                  <div class="rc-phone">{{ matchedRegionalCenter.phone }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -436,8 +484,42 @@ export default {
 
     async reverseGeocode(latitude, longitude) {
       try {
-        // This would use your geocoding service
-        // For now, return a placeholder
+        // Try to get ZIP code from coordinates using a simple approximation
+        // This is a basic approach - in production you'd use a proper geocoding service
+        
+        // LA County bounds check
+        if (latitude >= 33.7 && latitude <= 34.8 && longitude >= -118.9 && longitude <= -117.6) {
+          // Try to estimate ZIP code based on coordinates
+          let estimatedZip = null;
+          
+          // Northridge area (91403) - expanded bounds
+          if (latitude >= 34.1 && latitude <= 34.4 && longitude >= -118.7 && longitude <= -118.3) {
+            estimatedZip = '91403';
+          }
+          // Beverly Hills area (90210) - approximate bounds  
+          else if (latitude >= 34.0 && latitude <= 34.1 && longitude >= -118.5 && longitude <= -118.3) {
+            estimatedZip = '90210';
+          }
+          // Downtown LA area (90001) - approximate bounds
+          else if (latitude >= 34.0 && latitude <= 34.1 && longitude >= -118.3 && longitude <= -118.2) {
+            estimatedZip = '90001';
+          }
+          // West LA area (90025) - approximate bounds
+          else if (latitude >= 34.0 && latitude <= 34.1 && longitude >= -118.5 && longitude <= -118.4) {
+            estimatedZip = '90025';
+          }
+          // Long Beach area (90802) - approximate bounds
+          else if (latitude >= 33.7 && latitude <= 33.8 && longitude >= -118.2 && longitude <= -118.1) {
+            estimatedZip = '90802';
+          }
+          
+          if (estimatedZip) {
+            console.log(`📍 Estimated ZIP code from coordinates: ${estimatedZip}`);
+            return estimatedZip;
+          }
+        }
+        
+        // Fallback to coordinates
         return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
       } catch (error) {
         console.error("Reverse geocoding failed:", error);
@@ -451,7 +533,20 @@ export default {
         this.locationError = "";
       }
       
-        // Regional center will be detected by parent MapView component
+      // Check if user entered a valid ZIP code and immediately match regional center
+      const trimmedLocation = this.userLocation.trim();
+      const zipMatch = trimmedLocation.match(/^\d{5}$/);
+      
+      if (zipMatch) {
+        console.log('✅ Valid ZIP code detected:', zipMatch[0]);
+        // Immediately match regional center for valid ZIP codes
+        this.matchRegionalCenterByLocation(zipMatch[0]).catch((error) => {
+          console.error('Immediate regional center detection failed:', error);
+        });
+      } else {
+        // Clear regional center if not a valid ZIP
+        this.matchedRegionalCenter = null;
+      }
     },
 
     validateLocation() {
@@ -479,28 +574,72 @@ export default {
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
         
-        // Check if location is a ZIP code (5 digits)
-        const zipMatch = locationText.match(/\b\d{5}\b/);
-        let url;
-        
-        if (zipMatch) {
-          url = `${apiBaseUrl}/api/regional-centers/by_zip_code/?zip_code=${zipMatch[0]}`;
-        } else {
-          url = `${apiBaseUrl}/api/regional-centers/by_location/?location=${encodeURIComponent(locationText)}&radius=40&limit=5`;
-        }
+        // Use the comprehensive service area boundaries endpoint
+        const url = `${apiBaseUrl}/api/regional-centers/service_area_boundaries/`;
         
         const res = await fetch(url, { headers: { Accept: "application/json" } });
         if (!res.ok) return;
         
         const data = await res.json();
         
-        if (zipMatch) {
-          if (data.regional_center) {
-            this.matchedRegionalCenter = data;
-          }
-        } else {
-          if (Array.isArray(data) && data.length > 0) {
-            this.matchedRegionalCenter = data[0];
+        if (data && data.features && Array.isArray(data.features)) {
+          // Check if location is a ZIP code (5 digits)
+          const zipMatch = locationText.match(/\b\d{5}\b/);
+          
+          if (zipMatch) {
+            // Find regional center by ZIP code
+            const matchingCenter = data.features.find(feature => 
+              feature.properties.zip_codes && 
+              feature.properties.zip_codes.includes(zipMatch[0])
+            );
+            
+            if (matchingCenter) {
+              this.matchedRegionalCenter = {
+                regional_center: matchingCenter.properties.name,
+                name: matchingCenter.properties.name,
+                phone: matchingCenter.properties.phone,
+                address: matchingCenter.properties.address,
+                website: matchingCenter.properties.website,
+                service_area: matchingCenter.properties.service_areas,
+                zip_codes: matchingCenter.properties.zip_codes,
+                center_id: matchingCenter.properties.center_id
+              };
+              console.log(`✅ Found regional center for ZIP ${zipMatch[0]}:`, this.matchedRegionalCenter.regional_center);
+            }
+          } else {
+            // For non-ZIP locations, try to find by coordinates or location name
+            // This is a simplified approach - in production you'd use reverse geocoding
+            const locationLower = locationText.toLowerCase();
+            
+            // Try to match by city/area name in the regional center data
+            const matchingCenter = data.features.find(feature => {
+              const name = feature.properties.name.toLowerCase();
+              const serviceAreas = feature.properties.service_areas;
+              
+              // Check if location text contains any service area names
+              if (Array.isArray(serviceAreas)) {
+                return serviceAreas.some(area => 
+                  locationLower.includes(area.toLowerCase())
+                );
+              }
+              
+              // Fallback: check if location contains regional center name
+              return locationLower.includes(name.toLowerCase());
+            });
+            
+            if (matchingCenter) {
+              this.matchedRegionalCenter = {
+                regional_center: matchingCenter.properties.name,
+                name: matchingCenter.properties.name,
+                phone: matchingCenter.properties.phone,
+                address: matchingCenter.properties.address,
+                website: matchingCenter.properties.website,
+                service_area: matchingCenter.properties.service_areas,
+                zip_codes: matchingCenter.properties.zip_codes,
+                center_id: matchingCenter.properties.center_id
+              };
+              console.log(`✅ Found regional center for location "${locationText}":`, this.matchedRegionalCenter.regional_center);
+            }
           }
         }
       } catch (error) {
@@ -585,133 +724,103 @@ export default {
           console.log('No provider data received');
         }
         
-        // Get regional center count within 5-mile radius
-        const regionalCenterParams = new URLSearchParams();
-        if (this.userLocation) {
-          // Clean up the location string - remove extra spaces and fix encoding
-          const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, '');
+        // Get regional center count using service area boundaries
+        try {
+          const regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/service_area_boundaries/`;
+          console.log('Regional center API URL:', regionalCenterUrl);
           
-          // Check if location is a ZIP code (5 digits)
-          const zipMatch = cleanLocation.match(/\b\d{5}\b/);
-          if (zipMatch) {
-            // Use ZIP code API for better accuracy
-            regionalCenterParams.append('zip_code', zipMatch[0]);
-            console.log('Using ZIP code API for:', zipMatch[0]);
-          } else {
-            // Check if location is GPS coordinates (lat,lng format)
-            console.log('About to test regex on:', JSON.stringify(cleanLocation));
-            const coordMatch = cleanLocation.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
-            console.log('Original location:', this.userLocation);
-            console.log('Cleaned location:', cleanLocation);
-            console.log('coordMatch result:', coordMatch);
-            if (coordMatch) {
-              const lat = parseFloat(coordMatch[1]);
-              const lng = parseFloat(coordMatch[2]);
-              console.log('GPS coordinates detected:', lat, lng);
-              console.log('Checking if coordinates are in LA County bounds...');
+          const regionalCenterResponse = await fetch(regionalCenterUrl, { 
+            headers: { Accept: "application/json" } 
+          });
+          
+          console.log('Regional center response status:', regionalCenterResponse.status);
+          
+          if (regionalCenterResponse.ok) {
+            const regionalCenterData = await regionalCenterResponse.json();
+            console.log('Regional center data received:', regionalCenterData);
+            
+            if (regionalCenterData && regionalCenterData.features && Array.isArray(regionalCenterData.features)) {
+              // Clean up the location string
+              const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, '');
               
-              // For LA County coordinates, try to determine ZIP code
-              // This is a rough approximation - in a real app you'd use reverse geocoding
-              if (lat >= 33.7 && lat <= 34.8 && lng >= -118.9 && lng <= -117.6) {
-                console.log('✅ Coordinates are in LA County bounds');
-                // This is LA County - try to find ZIP code from coordinates
-                // For now, let's use a simple approximation based on common LA ZIP codes
-                let estimatedZip = null;
+              // Check if location is a ZIP code (5 digits)
+              const zipMatch = cleanLocation.match(/\b\d{5}\b/);
+              
+              if (zipMatch) {
+                // Find regional center by ZIP code
+                const matchingCenter = regionalCenterData.features.find(feature => 
+                  feature.properties.zip_codes && 
+                  feature.properties.zip_codes.includes(zipMatch[0])
+                );
                 
-                // Northridge area (91403) - expanded bounds
-                if (lat >= 34.1 && lat <= 34.4 && lng >= -118.7 && lng <= -118.3) {
-                  estimatedZip = '91403';
-                  console.log('✅ Estimated ZIP code: 91403 (Northridge area)');
-                }
-                // Beverly Hills area (90210) - approximate bounds  
-                else if (lat >= 34.0 && lat <= 34.1 && lng >= -118.5 && lng <= -118.3) {
-                  estimatedZip = '90210';
-                }
-                // Downtown LA area (90001) - approximate bounds
-                else if (lat >= 34.0 && lat <= 34.1 && lng >= -118.3 && lng <= -118.2) {
-                  estimatedZip = '90001';
-                }
-                // West LA area (90025) - approximate bounds
-                else if (lat >= 34.0 && lat <= 34.1 && lng >= -118.5 && lng <= -118.4) {
-                  estimatedZip = '90025';
-                }
-                
-                if (estimatedZip) {
-                  regionalCenterParams.append('zip_code', estimatedZip);
-                  console.log('Estimated ZIP code from GPS:', estimatedZip);
+                if (matchingCenter) {
+                  this.regionalCentersCount = 1;
+                  this.matchedRegionalCenter = {
+                    regional_center: matchingCenter.properties.name,
+                    name: matchingCenter.properties.name,
+                    phone: matchingCenter.properties.phone,
+                    address: matchingCenter.properties.address,
+                    website: matchingCenter.properties.website,
+                    service_area: matchingCenter.properties.service_areas,
+                    zip_codes: matchingCenter.properties.zip_codes,
+                    center_id: matchingCenter.properties.center_id
+                  };
+                  console.log('Regional center count (ZIP code):', this.regionalCentersCount);
+                  console.log('Regional center name:', matchingCenter.properties.name);
                 } else {
-                  // Fall back to location API
-                  regionalCenterParams.append('location', cleanLocation);
-                  regionalCenterParams.append('radius', '5');
-                  console.log('Using location API for GPS coordinates:', cleanLocation);
+                  this.regionalCentersCount = 0;
+                  this.matchedRegionalCenter = null;
+                  console.log('Regional center count (ZIP code, not found):', this.regionalCentersCount);
                 }
               } else {
-                // Outside LA County - use location API
-                regionalCenterParams.append('location', cleanLocation);
-                regionalCenterParams.append('radius', '5');
-                console.log('Outside LA County, using location API:', cleanLocation);
+                // For non-ZIP locations, try to find by location name
+                const locationLower = cleanLocation.toLowerCase();
+                
+                const matchingCenters = regionalCenterData.features.filter(feature => {
+                  const name = feature.properties.name.toLowerCase();
+                  const serviceAreas = feature.properties.service_areas;
+                  
+                  // Check if location text contains any service area names
+                  if (Array.isArray(serviceAreas)) {
+                    return serviceAreas.some(area => 
+                      locationLower.includes(area.toLowerCase())
+                    );
+                  }
+                  
+                  // Fallback: check if location contains regional center name
+                  return locationLower.includes(name.toLowerCase());
+                });
+                
+                this.regionalCentersCount = matchingCenters.length;
+                if (matchingCenters.length > 0) {
+                  this.matchedRegionalCenter = {
+                    regional_center: matchingCenters[0].properties.name,
+                    name: matchingCenters[0].properties.name,
+                    phone: matchingCenters[0].properties.phone,
+                    address: matchingCenters[0].properties.address,
+                    website: matchingCenters[0].properties.website,
+                    service_area: matchingCenters[0].properties.service_areas,
+                    zip_codes: matchingCenters[0].properties.zip_codes,
+                    center_id: matchingCenters[0].properties.center_id
+                  };
+                  console.log('Regional center name:', matchingCenters[0].properties.name);
+                }
+                console.log('Regional center count (location):', this.regionalCentersCount);
               }
-            } else {
-              // Use location API for addresses/other formats
-              regionalCenterParams.append('location', cleanLocation);
-              regionalCenterParams.append('radius', '5');
-              console.log('Using location API for:', cleanLocation);
-            }
-          }
-        }
-        
-        // Determine which API endpoint to use
-        let regionalCenterUrl;
-        if (regionalCenterParams.has('zip_code')) {
-          regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/by_zip_code/?${regionalCenterParams.toString()}`;
-        } else {
-          regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/by_location/?${regionalCenterParams.toString()}`;
-        }
-        
-        console.log('Regional center API URL:', regionalCenterUrl);
-        console.log('Regional center params:', regionalCenterParams.toString());
-        
-        const regionalCenterResponse = await fetch(regionalCenterUrl, { 
-          headers: { Accept: "application/json" } 
-        });
-        
-        console.log('Regional center response status:', regionalCenterResponse.status);
-        
-        if (regionalCenterResponse.ok) {
-          const regionalCenterData = await regionalCenterResponse.json();
-          console.log('Regional center data received:', regionalCenterData);
-          
-          // Handle different response formats
-          if (regionalCenterParams.has('zip_code')) {
-            // ZIP code API returns a single object or error
-            if (regionalCenterData.regional_center) {
-              this.regionalCentersCount = 1;
-              this.matchedRegionalCenter = regionalCenterData; // Store the regional center data
-              console.log('Regional center count (ZIP code):', this.regionalCentersCount);
-              console.log('Regional center name:', regionalCenterData.regional_center);
             } else {
               this.regionalCentersCount = 0;
               this.matchedRegionalCenter = null;
-              console.log('Regional center count (ZIP code, not found):', this.regionalCentersCount);
+              console.log('Regional center count (no features):', this.regionalCentersCount);
             }
           } else {
-            // Location API returns an array
-            if (Array.isArray(regionalCenterData)) {
-              this.regionalCentersCount = regionalCenterData.length;
-              if (regionalCenterData.length > 0) {
-                this.matchedRegionalCenter = regionalCenterData[0]; // Store the first regional center
-                console.log('Regional center name:', regionalCenterData[0].regional_center);
-              }
-              console.log('Regional center count (location array):', this.regionalCentersCount);
-            } else {
-              this.regionalCentersCount = 0;
-              this.matchedRegionalCenter = null;
-              console.log('Regional center count (location, not array):', this.regionalCentersCount);
-            }
+            console.error('Regional center API error:', regionalCenterResponse.status);
+            this.regionalCentersCount = 0;
+            this.matchedRegionalCenter = null;
           }
-        } else {
-          console.error('Regional center API error:', regionalCenterResponse.status);
+        } catch (error) {
+          console.error('Regional center fetch error:', error);
           this.regionalCentersCount = 0;
+          this.matchedRegionalCenter = null;
         }
         
         console.log(`Generated results within 5-mile radius: ${this.resultsCount} providers, ${this.regionalCentersCount} regional centers`);
@@ -1511,33 +1620,6 @@ export default {
   border: 1px solid #c3e6cb;
 }
 
-.regional-center-info {
-  margin-top: 20px;
-}
-
-.rc-details {
-  margin-top: 12px;
-  text-align: left;
-}
-
-.rc-name {
-  font-weight: 600;
-  font-size: 16px;
-  color: #155724;
-  margin-bottom: 4px;
-}
-
-.rc-address {
-  font-size: 14px;
-  color: #155724;
-  margin-bottom: 4px;
-}
-
-.rc-phone {
-  font-size: 14px;
-  color: #155724;
-  font-weight: 500;
-}
 
 /* Location Section on Step 1 */
 .location-section {
@@ -1554,40 +1636,61 @@ export default {
   text-align: center;
 }
 
-/* Regional Center Info - Small & Subtle Design */
+/* Regional Center Info - Clean Simple Design */
 .regional-center-info {
-  margin-top: 1rem;
+  margin-top: 1rem !important;
 }
 
-.alert {
-  padding: 0.75rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
+.regional-center-info .alert {
+  padding: 0.75rem !important;
+  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  background: #d1edff !important;
+  border: 1px solid #b3d9ff !important;
+  color: #004877 !important;
+  font-size: 0.85rem !important;
+  line-height: 1.2 !important;
 }
 
-.alert-success {
-  background: #d1edff;
-  border: 1px solid #b3d9ff;
-  color: #004877;
+.regional-center-info .alert i {
+  font-size: 1rem !important;
+  color: #004877 !important;
+  flex-shrink: 0 !important;
 }
 
-.alert i {
-  font-size: 0.875rem;
-  margin-top: 0.125rem;
+.regional-center-info .rc-content {
+  flex: 1 !important;
 }
 
-.rc-details {
-  margin-top: 0.25rem;
-  text-align: left;
+.regional-center-info .rc-name {
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  color: #004877 !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
 }
 
-.rc-service-area {
-  font-size: 0.7rem;
-  color: #6c757d;
-  font-style: italic;
+.regional-center-info .rc-link {
+  color: #004877 !important;
+  text-decoration: none !important;
+}
+
+.regional-center-info .rc-link:hover {
+  color: #003d5c !important;
+  text-decoration: underline !important;
+}
+
+.regional-center-info .rc-details {
+  margin: 0 !important;
+}
+
+.regional-center-info .rc-phone {
+  font-size: 0.75rem !important;
+  color: #004877 !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
 }
 
 /* Responsive */

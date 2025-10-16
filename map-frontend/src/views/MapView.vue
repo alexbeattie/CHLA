@@ -2009,7 +2009,7 @@ export default {
           } catch (_) {}
           let coords = null;
           try {
-            coords = this.basicGeocode(Number(zip));
+            coords = await this.basicGeocode(Number(zip));
           } catch (_) {}
           if (!coords) {
             try {
@@ -2923,6 +2923,81 @@ export default {
       } finally {
         this.loading = false;
         this.updateMarkers();
+      }
+    },
+
+    // Enhanced regional center matching using service area boundaries
+    async matchRegionalCenterByLocation(locationText) {
+      try {
+        const apiRoot = this.getApiRoot();
+        const url = `${apiRoot}/api/regional-centers/service_area_boundaries/`;
+        
+        const response = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!response.ok) return null;
+        
+        const data = await response.json();
+        
+        if (data && data.features && Array.isArray(data.features)) {
+          // Check if location is a ZIP code (5 digits)
+          const zipMatch = locationText.match(/\b\d{5}\b/);
+          
+          if (zipMatch) {
+            // Find regional center by ZIP code
+            const matchingCenter = data.features.find(feature => 
+              feature.properties.zip_codes && 
+              feature.properties.zip_codes.includes(zipMatch[0])
+            );
+            
+            if (matchingCenter) {
+              return {
+                regional_center: matchingCenter.properties.name,
+                name: matchingCenter.properties.name,
+                phone: matchingCenter.properties.phone,
+                address: matchingCenter.properties.address,
+                website: matchingCenter.properties.website,
+                service_area: matchingCenter.properties.service_areas,
+                zip_codes: matchingCenter.properties.zip_codes,
+                center_id: matchingCenter.properties.center_id
+              };
+            }
+          } else {
+            // For non-ZIP locations, try to find by location name
+            const locationLower = locationText.toLowerCase();
+            
+            const matchingCenter = data.features.find(feature => {
+              const name = feature.properties.name.toLowerCase();
+              const serviceAreas = feature.properties.service_areas;
+              
+              // Check if location text contains any service area names
+              if (Array.isArray(serviceAreas)) {
+                return serviceAreas.some(area => 
+                  locationLower.includes(area.toLowerCase())
+                );
+              }
+              
+              // Fallback: check if location contains regional center name
+              return locationLower.includes(name.toLowerCase());
+            });
+            
+            if (matchingCenter) {
+              return {
+                regional_center: matchingCenter.properties.name,
+                name: matchingCenter.properties.name,
+                phone: matchingCenter.properties.phone,
+                address: matchingCenter.properties.address,
+                website: matchingCenter.properties.website,
+                service_area: matchingCenter.properties.service_areas,
+                zip_codes: matchingCenter.properties.zip_codes,
+                center_id: matchingCenter.properties.center_id
+              };
+            }
+          }
+        }
+        
+        return null;
+      } catch (error) {
+        console.error("Error matching regional center:", error);
+        return null;
       }
     },
 
@@ -4968,7 +5043,7 @@ export default {
       try {
         // This would use your geocoding service
         // For now, we'll use a basic implementation
-        const coordinates = this.basicGeocode(address);
+        const coordinates = await this.basicGeocode(address);
         if (coordinates) {
           this.userLocation = {
             latitude: coordinates.lat,
@@ -4983,7 +5058,7 @@ export default {
       }
     },
 
-    basicGeocode(address) {
+    async basicGeocode(address) {
       // Enhanced ZIP code geocoding for LA area
       const zipCodes = {
         91361: { lat: 34.1678, lng: -118.5946 }, // Westlake Village
@@ -5097,20 +5172,76 @@ export default {
 
       const addressLower = address.toLowerCase();
 
-      // Check for exact ZIP code match first
+      // Check for exact ZIP code match first - use service area boundaries endpoint
       const zipMatch = address.match(/\b\d{5}\b/);
       if (zipMatch) {
         const zipCode = zipMatch[0];
         console.log(`🔍 Looking up ZIP code: ${zipCode}`);
-        console.log(`🔍 Available ZIP codes:`, Object.keys(zipCodes).slice(0, 10));
-        if (zipCodes[zipCode]) {
-          console.log(`✅ Found ZIP code ${zipCode} coordinates:`, zipCodes[zipCode]);
-          return zipCodes[zipCode];
-        } else {
-          console.log(`❌ ZIP code ${zipCode} not found in hardcoded list`);
+        
+        try {
+          // Use the service area boundaries endpoint to find regional center and get coordinates
+          const apiRoot = this.getApiRoot();
+          const url = `${apiRoot}/api/regional-centers/service_area_boundaries/`;
+          
+          const response = await fetch(url, { headers: { Accept: "application/json" } });
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (data && data.features && Array.isArray(data.features)) {
+              // Find regional center by ZIP code
+              const matchingCenter = data.features.find(feature => 
+                feature.properties.zip_codes && 
+                feature.properties.zip_codes.includes(zipCode)
+              );
+              
+              if (matchingCenter) {
+                console.log(`✅ Found ZIP code ${zipCode} in: ${matchingCenter.properties.name}`);
+                
+                // Extract coordinates from the geometry or use center coordinates
+                const geometry = matchingCenter.geometry;
+                if (geometry && geometry.coordinates) {
+                  // For polygon geometry, calculate centroid
+                  if (geometry.type === 'Polygon' && geometry.coordinates[0]) {
+                    const coords = geometry.coordinates[0];
+                    let sumLat = 0, sumLng = 0;
+                    for (const coord of coords) {
+                      sumLng += coord[0];
+                      sumLat += coord[1];
+                    }
+                    const avgLat = sumLat / coords.length;
+                    const avgLng = sumLng / coords.length;
+                    console.log(`✅ Calculated coordinates for ZIP ${zipCode}:`, { lat: avgLat, lng: avgLng });
+                    return { lat: avgLat, lng: avgLng };
+                  }
+                }
+                
+                // Fallback: use approximate coordinates based on regional center
+                const centerName = matchingCenter.properties.name.toLowerCase();
+                if (centerName.includes('lanterman')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // Central LA
+                } else if (centerName.includes('north')) {
+                  return { lat: 34.2386, lng: -118.5645 }; // Northridge area
+                } else if (centerName.includes('eastern')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // Eastern LA
+                } else if (centerName.includes('harbor')) {
+                  return { lat: 33.7701, lng: -118.1937 }; // Harbor area
+                } else if (centerName.includes('westside')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // Westside LA
+                } else if (centerName.includes('south central')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // South Central LA
+                } else if (centerName.includes('san gabriel')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // San Gabriel area
+                }
+              } else {
+                console.log(`❌ ZIP code ${zipCode} not found in service area boundaries`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error looking up ZIP code in service area boundaries:', error);
         }
 
-        // If ZIP code not found, try to infer from first digits
+        // If ZIP code not found in service areas, try to infer from first digits
         const firstTwo = zipCode.substring(0, 2);
         if (firstTwo === "91" || firstTwo === "90") {
           // LA area ZIP codes
@@ -5139,9 +5270,9 @@ export default {
     },
 
     // Get coordinates for a search location (simpler version of basicGeocode for search)
-    getLocationFromSearch(searchText) {
+    async getLocationFromSearch(searchText) {
       // First try the basic geocode
-      let result = this.basicGeocode(searchText);
+      let result = await this.basicGeocode(searchText);
       
       // If that fails and it looks like a ZIP code, try to geocode it
       if (!result && /^\d{5}(-\d{4})?$/.test(searchText.trim())) {
