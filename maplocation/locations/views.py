@@ -731,11 +731,8 @@ class ProviderViewSet(viewsets.ModelViewSet):
                 providers = providers.filter(
                     Q(name__icontains=query)
                     | Q(address__icontains=query)
-                    | Q(specializations__icontains=query)
-                    | Q(services__icontains=query)
-                    | Q(center_based_services__icontains=query)
-                    | Q(areas__icontains=query)
-                    | Q(coverage_areas__icontains=query)
+                    | Q(type__icontains=query)
+                    | Q(description__icontains=query)
                     | Q(insurance_accepted__icontains=query)
                 )
 
@@ -889,8 +886,11 @@ class ProviderViewSet(viewsets.ModelViewSet):
 
             # Apply age filtering
             if age:
-                # For now, we'll skip age filtering since it's not in the current model
-                pass
+                # Try to filter by age groups, but if no results, fall back to no age filter
+                age_filtered = providers.filter(age_groups__contains=[age])
+                if age_filtered.exists():
+                    providers = age_filtered
+                # If no providers match age filter, keep all providers (lenient approach)
 
             # Apply limit
             providers = providers[:100]  # Reasonable limit
@@ -1090,7 +1090,7 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     | Q(address__icontains=query)
                     | Q(type__icontains=query)
                     | Q(description__icontains=query)
-                    | Q(hours__icontains=query)
+                    | Q(insurance_accepted__icontains=query)
                 )
 
             # Apply insurance filters using text field operations
@@ -1144,14 +1144,22 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             if specialization:
                 providers = providers.filter(type__icontains=specialization)
 
-            # Apply diagnosis filter using text field operations
+            # Apply diagnosis filter using JSON field operations
             if diagnosis:
-                providers = providers.filter(type__icontains=diagnosis)
+                # Try to filter by diagnoses_treated, but if no results, fall back to no diagnosis filter
+                diagnosis_filtered = providers.filter(diagnoses_treated__contains=[diagnosis])
+                if diagnosis_filtered.exists():
+                    providers = diagnosis_filtered
+                # If no providers match diagnosis filter, keep all providers (lenient approach)
 
-            # Apply therapy filters (multiple allowed) using text field operations
+            # Apply therapy filters (multiple allowed) using JSON field operations
             therapy_values = request.query_params.getlist("therapy")
-            for therapy in therapy_values:
-                providers = providers.filter(services__icontains=therapy)
+            if therapy_values:
+                # Try to filter by therapy types, but if no results, fall back to no therapy filter
+                therapy_filtered = providers.filter(therapy_types__contains=therapy_values)
+                if therapy_filtered.exists():
+                    providers = therapy_filtered
+                # If no providers match therapy filter, keep all providers (lenient approach)
 
             # Apply location-based filtering using provided coordinates
             if lat and lng:
@@ -1227,8 +1235,11 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
 
             # Apply age filtering
             if age:
-                # For now, we'll skip age filtering since it's not in the current model
-                pass
+                # Try to filter by age groups, but if no results, fall back to no age filter
+                age_filtered = providers.filter(age_groups__contains=[age])
+                if age_filtered.exists():
+                    providers = age_filtered
+                # If no providers match age filter, keep all providers (lenient approach)
 
             # Apply limit
             providers = providers[:100]  # Reasonable limit
