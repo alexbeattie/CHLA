@@ -248,6 +248,7 @@ class ProviderV2Admin(admin.ModelAdmin):
     list_filter = ['verified', 'type']
     search_fields = ['name', 'address', 'type', 'insurance_accepted', 'languages_spoken']
     list_per_page = 50  # Paginate to avoid loading all records at once
+    actions = ['import_pasadena_providers', 'import_san_gabriel_providers']
     
     def get_age_groups(self, obj):
         """Display age groups as comma-separated string"""
@@ -331,6 +332,38 @@ class ProviderV2Admin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         # Add any select_related or prefetch_related here if needed
         return qs
+
+    def import_pasadena_providers(self, request, queryset):
+        """Import Pasadena providers from Excel file"""
+        from django.core.management import call_command
+        from io import StringIO
+        import os
+
+        output = StringIO()
+        try:
+            file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'Pasadena Provider List.xlsx')
+            call_command('import_regional_center_providers', file=file_path, area='Pasadena', stdout=output)
+            self.message_user(request, f"✅ Pasadena providers import completed!\n\n{output.getvalue()}", level='SUCCESS')
+        except Exception as e:
+            self.message_user(request, f"❌ Import failed: {str(e)}", level='ERROR')
+
+    import_pasadena_providers.short_description = "Import Pasadena providers from Excel"
+
+    def import_san_gabriel_providers(self, request, queryset):
+        """Import San Gabriel/Pomona providers from Excel file"""
+        from django.core.management import call_command
+        from io import StringIO
+        import os
+
+        output = StringIO()
+        try:
+            file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'San Gabriel Pomona Provider List.xlsx')
+            call_command('import_regional_center_providers', file=file_path, regional_center='San Gabriel', stdout=output)
+            self.message_user(request, f"✅ San Gabriel/Pomona providers import completed!\n\n{output.getvalue()}", level='SUCCESS')
+        except Exception as e:
+            self.message_user(request, f"❌ Import failed: {str(e)}", level='ERROR')
+
+    import_san_gabriel_providers.short_description = "Import San Gabriel/Pomona providers from Excel"
 
 @admin.register(RegionalCenter)
 class RegionalCenterAdmin(admin.ModelAdmin):
