@@ -533,19 +533,11 @@
 <script>
 import axios from "axios";
 import mapboxgl from "mapbox-gl";
-import UserInfoPanel from "@/components/UserInfoPanel.vue";
-import LocationList from "@/components/LocationList.vue";
 import FundingInfoPanel from "@/components/FundingInfoPanel.vue";
 import OnboardingFlow from "@/components/OnboardingFlow.vue";
-import UserProfileManager from "@/components/UserProfileManager.vue";
-import {
-  sampleCategories,
-  sampleLocations,
-  sampleUserProfile,
-} from "@/assets/sampleData";
 import { authService } from "@/services/auth.js";
 
-// Week 5: New extracted components (feature-flagged)
+// Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
 import SearchBar from "@/components/map/SearchBar.vue";
 import ProviderList from "@/components/map/ProviderList.vue";
@@ -554,10 +546,24 @@ import ProviderDetails from "@/components/map/ProviderDetails.vue";
 import FilterPanel from "@/components/map/FilterPanel.vue";
 import RegionalCenterLegend from "@/components/map/RegionalCenterLegend.vue";
 
-// Week 5: Pinia stores for new components
+// Pinia stores
 import { useProviderStore } from "@/stores/providerStore";
 import { useMapStore } from "@/stores/mapStore";
 import { useFilterStore } from "@/stores/filterStore";
+
+// Composables
+import { useGeolocation } from "@/composables/useGeolocation";
+import { useRegionalCenterData } from "@/composables/useRegionalCenterData";
+
+// Constants and utilities
+import { LA_COUNTY_CENTER, LA_COUNTY_BOUNDS } from "@/constants/regionalCenters";
+import {
+  calculateDistance,
+  extractZipCode,
+  isValidZipCode,
+  normalizeCoordinates,
+  toLngLatArray
+} from "@/utils/map/coordinates";
 
 // Flag to use actual API data instead of sample data - set to false to query the database
 // Import LA Regional Centers GeoJSON overlay
@@ -575,12 +581,8 @@ export default {
   name: "MapView",
 
   components: {
-    UserInfoPanel,
-    LocationList,
     FundingInfoPanel,
     OnboardingFlow,
-    UserProfileManager,
-    // Week 5: New extracted components
     MapCanvas,
     SearchBar,
     ProviderList,
@@ -595,10 +597,14 @@ export default {
       // Week 5B: New components now enabled by default
       useNewComponents: true,
 
-      // Week 5: Store instances (initialized in created())
+      // Store instances (initialized in created())
       providerStore: null,
       mapStore: null,
       filterStore: null,
+
+      // Composables (initialized in created())
+      geolocation: null,
+      regionalCenterData: null,
 
       // Mapbox token for MapCanvas component
       mapboxAccessToken:
@@ -860,7 +866,22 @@ export default {
   },
 
   async created() {
-    console.log("Vue app created");
+    console.log("[MapView] Component created");
+
+    // Initialize Pinia stores
+    this.providerStore = useProviderStore();
+    this.mapStore = useMapStore();
+    this.filterStore = useFilterStore();
+
+    // Initialize composables
+    const geolocation = useGeolocation();
+    const regionalCenterData = useRegionalCenterData();
+
+    // Store composables for use in methods
+    this.geolocation = geolocation;
+    this.regionalCenterData = regionalCenterData;
+
+    console.log("[MapView] Stores and composables initialized");
 
     // Initialize with empty arrays to prevent null reference errors
     this.categories = [];
@@ -869,6 +890,9 @@ export default {
     if (this.providerStore) {
       this.providerStore.providers = [];
     }
+
+    // Fetch regional centers data
+    await this.regionalCenterData.fetchRegionalCenters();
 
     // Check if onboarding should be shown
     this.checkOnboardingStatus();
@@ -880,22 +904,6 @@ export default {
     if (!this.showOnboarding) {
       this.detectUserLocation();
     }
-  },
-
-  created() {
-    console.log("[MapView] Component created");
-
-    // Week 5: Initialize Pinia stores for new components
-    this.providerStore = useProviderStore();
-    this.mapStore = useMapStore();
-    this.filterStore = useFilterStore();
-
-    console.log("[MapView] Stores initialized:", {
-      providerStore: !!this.providerStore,
-      mapStore: !!this.mapStore,
-      filterStore: !!this.filterStore,
-      useNewComponents: this.useNewComponents,
-    });
   },
 
   mounted() {
