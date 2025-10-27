@@ -564,6 +564,19 @@ import {
 } from "@/assets/sampleData";
 import { authService } from "@/services/auth.js";
 
+// Week 5: New extracted components (feature-flagged)
+import MapCanvas from "@/components/map/MapCanvas.vue";
+import SearchBar from "@/components/map/SearchBar.vue";
+import ProviderList from "@/components/map/ProviderList.vue";
+import ProviderCard from "@/components/map/ProviderCard.vue";
+import ProviderDetails from "@/components/map/ProviderDetails.vue";
+import FilterPanel from "@/components/map/FilterPanel.vue";
+
+// Week 5: Pinia stores for new components
+import { useProviderStore } from "@/stores/providerStore";
+import { useMapStore } from "@/stores/mapStore";
+import { useFilterStore } from "@/stores/filterStore";
+
 // Flag to use actual API data instead of sample data - set to false to query the database
 // Import LA Regional Centers GeoJSON overlay
 // Removed hardcoded GeoJSON import - now using API endpoint
@@ -585,10 +598,25 @@ export default {
     FundingInfoPanel,
     OnboardingFlow,
     UserProfileManager,
+    // Week 5: New extracted components
+    MapCanvas,
+    SearchBar,
+    ProviderList,
+    ProviderCard,
+    ProviderDetails,
+    FilterPanel,
   },
 
   data() {
     return {
+      // Week 5: Feature flag for new components (set to true to test)
+      useNewComponents: false,
+
+      // Week 5: Store instances (initialized in created())
+      providerStore: null,
+      mapStore: null,
+      filterStore: null,
+
       // Modal visibility
       showFundingInfo: false,
       showOnboarding: false,
@@ -846,6 +874,22 @@ export default {
     }
   },
 
+  created() {
+    console.log("[MapView] Component created");
+
+    // Week 5: Initialize Pinia stores for new components
+    this.providerStore = useProviderStore();
+    this.mapStore = useMapStore();
+    this.filterStore = useFilterStore();
+
+    console.log("[MapView] Stores initialized:", {
+      providerStore: !!this.providerStore,
+      mapStore: !!this.mapStore,
+      filterStore: !!this.filterStore,
+      useNewComponents: this.useNewComponents,
+    });
+  },
+
   mounted() {
     console.log("Vue app mounted");
 
@@ -893,6 +937,149 @@ export default {
   },
 
   methods: {
+    // ============================================
+    // WEEK 5: NEW COMPONENT ORCHESTRATION METHODS
+    // ============================================
+
+    /**
+     * Handle search from new SearchBar component
+     */
+    handleNewSearch(searchData) {
+      console.log("[MapView] New search handler", searchData);
+
+      // Delegate search to provider store
+      this.providerStore.search(searchData.query, searchData.type);
+
+      // Center map on search location if provided
+      if (searchData.location) {
+        this.mapStore.centerOn(searchData.location);
+      }
+    },
+
+    /**
+     * Handle search clear from SearchBar
+     */
+    handleSearchClear() {
+      console.log("[MapView] Search cleared");
+      this.providerStore.clearSearch();
+    },
+
+    /**
+     * Handle filter changes from FilterPanel
+     */
+    handleFilterChange(filters) {
+      console.log("[MapView] Filter change", filters);
+
+      // Apply filters to filter store
+      Object.keys(filters).forEach(key => {
+        this.filterStore.toggleFilter(key, filters[key]);
+      });
+    },
+
+    /**
+     * Handle filter reset from FilterPanel
+     */
+    handleFilterReset() {
+      console.log("[MapView] Filters reset");
+      this.filterStore.resetFilters();
+    },
+
+    /**
+     * Handle provider selection from ProviderList
+     */
+    handleProviderSelect(providerId) {
+      console.log("[MapView] Provider selected", providerId);
+
+      // Update provider store selection
+      this.providerStore.selectProvider(providerId);
+
+      // Center map on selected provider
+      const provider = this.providerStore.providers.find(p => p.id === providerId);
+      if (provider && provider.latitude && provider.longitude) {
+        this.mapStore.centerOn({
+          lat: provider.latitude,
+          lng: provider.longitude,
+        }, 14); // Zoom level 14 for provider view
+      }
+    },
+
+    /**
+     * Handle map ready event from MapCanvas
+     */
+    handleMapReady(mapInstance) {
+      console.log("[MapView] Map ready from new MapCanvas");
+      this.mapInstance = mapInstance;
+
+      // If we have providers, fit bounds to show them all
+      if (this.providerStore && this.providerStore.providers.length > 0) {
+        this.fitMapToProviders();
+      }
+    },
+
+    /**
+     * Handle marker click from MapCanvas
+     */
+    handleMarkerClick(provider) {
+      console.log("[MapView] Marker clicked", provider.id);
+      this.handleProviderSelect(provider.id);
+    },
+
+    /**
+     * Handle viewport change from MapCanvas
+     */
+    handleViewportChange(viewport) {
+      console.log("[MapView] Viewport changed", viewport);
+      // Update map store with new viewport
+      this.mapStore.updateViewport(viewport);
+    },
+
+    /**
+     * Handle details panel close from ProviderDetails
+     */
+    handleDetailsClose() {
+      console.log("[MapView] Details closed");
+      this.providerStore.clearSelection();
+    },
+
+    /**
+     * Handle get directions from ProviderDetails
+     */
+    handleGetDirections(data) {
+      console.log("[MapView] Get directions", data);
+
+      // Request directions from map store
+      this.mapStore.getDirectionsTo({
+        lat: data.coordinates.lat,
+        lng: data.coordinates.lng,
+      });
+    },
+
+    /**
+     * Fit map bounds to show all providers
+     */
+    fitMapToProviders() {
+      if (!this.mapInstance || !this.providerStore) return;
+
+      const providers = this.providerStore.providersWithCoordinates;
+      if (providers.length === 0) return;
+
+      // Create bounds from all provider coordinates
+      const bounds = new mapboxgl.LngLatBounds();
+      providers.forEach(provider => {
+        bounds.extend([provider.longitude, provider.latitude]);
+      });
+
+      // Fit map to bounds with padding
+      this.mapInstance.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 12,
+      });
+    },
+
+    // ============================================
+    // EXISTING METHODS (unchanged)
+    // ============================================
+
     toggleCenterSelection(name) {
       if (!(name in this.selectedRegionalCenters)) {
         this.$set
