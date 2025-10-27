@@ -8,7 +8,9 @@
       "Bash(npm test:*)",
       "Bash(git add:*)",
       "Read(//private/tmp/**)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

@@ -146,3 +146,89 @@ export function calculateDistance(
 function toRadians(degrees: number): number {
   return degrees * (Math.PI / 180);
 }
+
+/**
+ * Normalize coordinates to standard {lat, lng} format
+ * Handles various input formats
+ */
+export function normalizeCoordinates(
+  input: Coordinates | { latitude: number; longitude: number } | [number, number]
+): Coordinates | null {
+  // Handle {lat, lng} format
+  if ('lat' in input && 'lng' in input) {
+    return validateCoordinates(input.lat, input.lng);
+  }
+
+  // Handle {latitude, longitude} format
+  if ('latitude' in input && 'longitude' in input) {
+    return validateCoordinates(input.latitude, input.longitude);
+  }
+
+  // Handle [lng, lat] array format (Mapbox order)
+  if (Array.isArray(input) && input.length === 2) {
+    return validateCoordinates(input[1], input[0]);
+  }
+
+  return null;
+}
+
+/**
+ * Convert coordinates to [lng, lat] array for Mapbox
+ */
+export function toLngLatArray(coords: Coordinates): [number, number] {
+  return [coords.lng, coords.lat];
+}
+
+/**
+ * Convert coordinates to {latitude, longitude} format
+ */
+export function toLatitudeLongitude(coords: Coordinates): { latitude: number; longitude: number } {
+  return {
+    latitude: coords.lat,
+    longitude: coords.lng,
+  };
+}
+
+/**
+ * Find the nearest point from a list of points
+ * @param origin Origin coordinates
+ * @param points Array of points with coordinates
+ * @returns Nearest point with distance, or null if none found
+ */
+export function findNearestPoint<T extends { lat: number; lng: number }>(
+  origin: Coordinates,
+  points: T[]
+): { point: T; distance: number } | null {
+  if (!points || points.length === 0) return null;
+
+  let nearest: T | null = null;
+  let minDistance = Infinity;
+
+  for (const point of points) {
+    const coords = validateCoordinates(point.lat, point.lng);
+    if (!coords) continue;
+
+    const distance = calculateDistance(origin.lat, origin.lng, coords.lat, coords.lng);
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearest = point;
+    }
+  }
+
+  return nearest ? { point: nearest, distance: minDistance } : null;
+}
+
+/**
+ * Check if a string is a valid 5-digit ZIP code
+ */
+export function isValidZipCode(zip: string): boolean {
+  return /^\d{5}$/.test(zip.trim());
+}
+
+/**
+ * Extract ZIP code from a text string
+ */
+export function extractZipCode(text: string): string | null {
+  const match = text.match(/\b\d{5}\b/);
+  return match ? match[0] : null;
+}

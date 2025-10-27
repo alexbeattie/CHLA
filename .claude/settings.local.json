@@ -6,7 +6,8 @@
       "Bash(pip install:*)",
       "Bash(mkdir:*)",
       "Bash(touch:*)",
-      "Bash(npm init:*)"
+      "Bash(npm init:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

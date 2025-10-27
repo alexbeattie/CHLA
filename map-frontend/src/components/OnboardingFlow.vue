@@ -80,23 +80,23 @@
           </div>
 
           <!-- Regional Center Display -->
-          <div v-if="matchedRegionalCenter" class="regional-center-info">
+          <div v-if="effectiveRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
               <div class="rc-content">
                 <div class="rc-name">
                   <a 
-                    v-if="matchedRegionalCenter.website" 
-                    :href="matchedRegionalCenter.website.startsWith('http') ? matchedRegionalCenter.website : 'https://' + matchedRegionalCenter.website"
+                    v-if="effectiveRegionalCenter.website" 
+                    :href="effectiveRegionalCenter.website.startsWith('http') ? effectiveRegionalCenter.website : 'https://' + effectiveRegionalCenter.website"
                     target="_blank"
                     class="rc-link"
                   >
-                    {{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}
+                    {{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}
                   </a>
-                  <span v-else>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</span>
+                  <span v-else>{{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}</span>
                 </div>
-                <div class="rc-details" v-if="matchedRegionalCenter.phone">
-                  <div class="rc-phone">{{ matchedRegionalCenter.phone }}</div>
+                <div class="rc-details" v-if="effectiveRegionalCenter.phone">
+                  <div class="rc-phone">{{ effectiveRegionalCenter.phone }}</div>
                 </div>
               </div>
             </div>
@@ -148,23 +148,23 @@
           </div>
 
           <!-- Regional Center Display -->
-          <div v-if="matchedRegionalCenter" class="regional-center-info">
+          <div v-if="effectiveRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
               <div class="rc-content">
                 <div class="rc-name">
                   <a 
-                    v-if="matchedRegionalCenter.website" 
-                    :href="matchedRegionalCenter.website.startsWith('http') ? matchedRegionalCenter.website : 'https://' + matchedRegionalCenter.website"
+                    v-if="effectiveRegionalCenter.website" 
+                    :href="effectiveRegionalCenter.website.startsWith('http') ? effectiveRegionalCenter.website : 'https://' + effectiveRegionalCenter.website"
                     target="_blank"
                     class="rc-link"
                   >
-                    {{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}
+                    {{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}
                   </a>
-                  <span v-else>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</span>
+                  <span v-else>{{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}</span>
                 </div>
-                <div class="rc-details" v-if="matchedRegionalCenter.phone">
-                  <div class="rc-phone">{{ matchedRegionalCenter.phone }}</div>
+                <div class="rc-details" v-if="effectiveRegionalCenter.phone">
+                  <div class="rc-phone">{{ effectiveRegionalCenter.phone }}</div>
                 </div>
               </div>
             </div>
@@ -188,23 +188,23 @@
           </div>
 
           <!-- Regional Center Display -->
-          <div v-if="matchedRegionalCenter" class="regional-center-info">
+          <div v-if="effectiveRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
               <div class="rc-content">
                 <div class="rc-name">
                   <a 
-                    v-if="matchedRegionalCenter.website" 
-                    :href="matchedRegionalCenter.website.startsWith('http') ? matchedRegionalCenter.website : 'https://' + matchedRegionalCenter.website"
+                    v-if="effectiveRegionalCenter.website" 
+                    :href="effectiveRegionalCenter.website.startsWith('http') ? effectiveRegionalCenter.website : 'https://' + effectiveRegionalCenter.website"
                     target="_blank"
                     class="rc-link"
                   >
-                    {{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}
+                    {{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}
                   </a>
-                  <span v-else>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</span>
+                  <span v-else>{{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}</span>
                 </div>
-                <div class="rc-details" v-if="matchedRegionalCenter.phone">
-                  <div class="rc-phone">{{ matchedRegionalCenter.phone }}</div>
+                <div class="rc-details" v-if="effectiveRegionalCenter.phone">
+                  <div class="rc-phone">{{ effectiveRegionalCenter.phone }}</div>
                 </div>
               </div>
             </div>
@@ -238,8 +238,8 @@
               </div>
               <div class="card-content">
                 <div class="card-title">Regional Center</div>
-                <div class="card-text" v-if="matchedRegionalCenter && matchedRegionalCenter.regional_center">
-                  {{ matchedRegionalCenter.regional_center }}
+                <div class="card-text" v-if="effectiveRegionalCenter && effectiveRegionalCenter.regional_center">
+                  {{ effectiveRegionalCenter.regional_center }}
               </div>
                 <div class="card-text" v-else-if="regionalCentersCount > 0">
                   {{ regionalCentersCount }} Centers Found
@@ -270,23 +270,23 @@
           </div>
 
           <!-- Regional Center Display -->
-          <div v-if="matchedRegionalCenter" class="regional-center-info">
+          <div v-if="effectiveRegionalCenter" class="regional-center-info">
             <div class="alert alert-success">
               <i class="bi bi-building"></i>
               <div class="rc-content">
                 <div class="rc-name">
                   <a 
-                    v-if="matchedRegionalCenter.website" 
-                    :href="matchedRegionalCenter.website.startsWith('http') ? matchedRegionalCenter.website : 'https://' + matchedRegionalCenter.website"
+                    v-if="effectiveRegionalCenter.website" 
+                    :href="effectiveRegionalCenter.website.startsWith('http') ? effectiveRegionalCenter.website : 'https://' + effectiveRegionalCenter.website"
                     target="_blank"
                     class="rc-link"
                   >
-                    {{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}
+                    {{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}
                   </a>
-                  <span v-else>{{ matchedRegionalCenter.regional_center || matchedRegionalCenter.name }}</span>
+                  <span v-else>{{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}</span>
                 </div>
-                <div class="rc-details" v-if="matchedRegionalCenter.phone">
-                  <div class="rc-phone">{{ matchedRegionalCenter.phone }}</div>
+                <div class="rc-details" v-if="effectiveRegionalCenter.phone">
+                  <div class="rc-phone">{{ effectiveRegionalCenter.phone }}</div>
                 </div>
               </div>
             </div>
@@ -364,7 +364,7 @@ export default {
         hasRegionalCenter: false,
         therapies: [],
       },
-      matchedRegionalCenter: null,
+      localRegionalCenter: null,
       therapyOptions: [
         "ABA therapy",
         "Speech therapy",
@@ -382,6 +382,11 @@ export default {
   computed: {
     progressPercentage() {
       return (this.currentStep / this.totalSteps) * 100;
+    },
+
+    // Use prop if provided, otherwise use local value
+    effectiveRegionalCenter() {
+      return this.matchedRegionalCenter || this.localRegionalCenter;
     },
 
     canProceed() {
@@ -545,7 +550,7 @@ export default {
         });
       } else {
         // Clear regional center if not a valid ZIP
-        this.matchedRegionalCenter = null;
+        this.localRegionalCenter = null;
       }
     },
 
@@ -594,7 +599,7 @@ export default {
             );
             
             if (matchingCenter) {
-              this.matchedRegionalCenter = {
+              this.localRegionalCenter = {
                 regional_center: matchingCenter.properties.name,
                 name: matchingCenter.properties.name,
                 phone: matchingCenter.properties.phone,
@@ -604,7 +609,7 @@ export default {
                 zip_codes: matchingCenter.properties.zip_codes,
                 center_id: matchingCenter.properties.center_id
               };
-              console.log(`✅ Found regional center for ZIP ${zipMatch[0]}:`, this.matchedRegionalCenter.regional_center);
+              console.log(`✅ Found regional center for ZIP ${zipMatch[0]}:`, this.localRegionalCenter.regional_center);
             }
           } else {
             // For non-ZIP locations, try to find by coordinates or location name
@@ -628,7 +633,7 @@ export default {
             });
             
             if (matchingCenter) {
-              this.matchedRegionalCenter = {
+              this.localRegionalCenter = {
                 regional_center: matchingCenter.properties.name,
                 name: matchingCenter.properties.name,
                 phone: matchingCenter.properties.phone,
@@ -638,7 +643,7 @@ export default {
                 zip_codes: matchingCenter.properties.zip_codes,
                 center_id: matchingCenter.properties.center_id
               };
-              console.log(`✅ Found regional center for location "${locationText}":`, this.matchedRegionalCenter.regional_center);
+              console.log(`✅ Found regional center for location "${locationText}":`, this.localRegionalCenter.regional_center);
             }
           }
         }
@@ -755,7 +760,7 @@ export default {
                 
                 if (matchingCenter) {
                   this.regionalCentersCount = 1;
-                  this.matchedRegionalCenter = {
+                  this.localRegionalCenter = {
                     regional_center: matchingCenter.properties.name,
                     name: matchingCenter.properties.name,
                     phone: matchingCenter.properties.phone,
@@ -769,7 +774,7 @@ export default {
                   console.log('Regional center name:', matchingCenter.properties.name);
                 } else {
                   this.regionalCentersCount = 0;
-                  this.matchedRegionalCenter = null;
+                  this.localRegionalCenter = null;
                   console.log('Regional center count (ZIP code, not found):', this.regionalCentersCount);
                 }
               } else {
@@ -793,7 +798,7 @@ export default {
                 
                 this.regionalCentersCount = matchingCenters.length;
                 if (matchingCenters.length > 0) {
-                  this.matchedRegionalCenter = {
+                  this.localRegionalCenter = {
                     regional_center: matchingCenters[0].properties.name,
                     name: matchingCenters[0].properties.name,
                     phone: matchingCenters[0].properties.phone,
@@ -809,18 +814,18 @@ export default {
               }
             } else {
               this.regionalCentersCount = 0;
-              this.matchedRegionalCenter = null;
+              this.localRegionalCenter = null;
               console.log('Regional center count (no features):', this.regionalCentersCount);
             }
           } else {
             console.error('Regional center API error:', regionalCenterResponse.status);
             this.regionalCentersCount = 0;
-            this.matchedRegionalCenter = null;
+            this.localRegionalCenter = null;
           }
         } catch (error) {
           console.error('Regional center fetch error:', error);
           this.regionalCentersCount = 0;
-          this.matchedRegionalCenter = null;
+          this.localRegionalCenter = null;
         }
         
         console.log(`Generated results within 5-mile radius: ${this.resultsCount} providers, ${this.regionalCentersCount} regional centers`);
@@ -840,7 +845,7 @@ export default {
         userProfile: this.userProfile,
         userLocation: this.userLocation,
         filteredProviders: this.filteredProviders, // Pass the filtered providers to the map
-        matchedRegionalCenter: this.matchedRegionalCenter,
+        matchedRegionalCenter: this.effectiveRegionalCenter,
       });
     },
 

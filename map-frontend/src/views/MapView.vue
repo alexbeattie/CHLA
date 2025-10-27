@@ -671,12 +671,12 @@ export default {
 
       // Map data
       map: null,
-      markers: [],
+      // REMOVED: markers: [] - MapCanvas manages all markers now
+      // REMOVED: providers: [] - use providerStore.providers instead
 
       // Locations
       locations: [],
-      regionalCenters: [], // Array to store regional centers
-      providers: [], // Array to store providers
+      regionalCenters: [], // Array to store regional centers (TODO: move to store)
 
       // Categories and filters
       categories: [],
@@ -734,6 +734,11 @@ export default {
         (this.userData.address && this.userData.address !== "") ||
         (this.userData.diagnosis && this.userData.diagnosis !== "")
       );
+    },
+
+    // Providers from store (proxy to avoid breaking existing code)
+    providers() {
+      return this.providerStore?.providers || [];
     },
 
     // User's matched Regional Center name (from providerStore or userRegionalCenter)
@@ -861,7 +866,9 @@ export default {
     this.categories = [];
     this.locations = [];
     this.markers = [];
-    this.providers = [];
+    if (this.providerStore) {
+      this.providerStore.providers = [];
+    }
 
     // Check if onboarding should be shown
     this.checkOnboardingStatus();
@@ -2719,7 +2726,9 @@ export default {
           ];
 
           // Set providers
-          this.providers = sampleProviders;
+          if (this.providerStore) {
+            this.providerStore.providers = sampleProviders;
+          }
           console.log(`Loaded ${this.providers.length} sample providers`);
         } else {
           // Use the comprehensive search endpoint for better filtering capabilities
@@ -2857,14 +2866,18 @@ export default {
           // Handle different response formats
           if (isZipSearch && response.data && response.data.results) {
             // Regional center endpoint returns {results: [...], count: N, regional_center: {...}}
-            this.providers = response.data.results;
+            if (this.providerStore) {
+              this.providerStore.providers = response.data.results;
+            }
             console.log(
               `✅ Loaded ${this.providers.length} providers from regional center: ${response.data.regional_center?.name || 'Unknown'}`
             );
             console.log(`🎯 Regional center has ${response.data.count} total providers`);
           } else if (response.data && Array.isArray(response.data)) {
             // Handle regular JSON array response
-            this.providers = response.data;
+            if (this.providerStore) {
+              this.providerStore.providers = response.data;
+            }
             console.log(
               `✅ Loaded ${this.providers.length} providers from API (direct array)`
             );
@@ -2883,7 +2896,9 @@ export default {
                   console.log("🔍 Broader search response:", broadResponse.data);
                   if (broadResponse.data && Array.isArray(broadResponse.data) && broadResponse.data.length > 0) {
                     console.log(`🔍 Found ${broadResponse.data.length} providers in broader search`);
-                    this.providers = broadResponse.data;
+                    if (this.providerStore) {
+                      this.providerStore.providers = broadResponse.data;
+                    }
                   }
                 } catch (broadError) {
                   console.log("🔍 Broader search failed:", broadError);
@@ -2903,7 +2918,9 @@ export default {
                     console.log("🔍 Nearby providers response:", nearbyResponse.data);
                     if (nearbyResponse.data && Array.isArray(nearbyResponse.data) && nearbyResponse.data.length > 0) {
                       console.log(`🔍 Found ${nearbyResponse.data.length} nearby providers`);
-                      this.providers = nearbyResponse.data;
+                      if (this.providerStore) {
+                        this.providerStore.providers = nearbyResponse.data;
+                      }
                     }
                   } catch (nearbyError) {
                     console.log("🔍 Nearby providers search failed:", nearbyError);
@@ -2919,7 +2936,9 @@ export default {
                     console.log("🔍 LA County providers response:", laResponse.data);
                     if (laResponse.data && Array.isArray(laResponse.data) && laResponse.data.length > 0) {
                       console.log(`🔍 Found ${laResponse.data.length} LA County providers`);
-                      this.providers = laResponse.data;
+                      if (this.providerStore) {
+                        this.providerStore.providers = laResponse.data;
+                      }
                     } else {
                       console.log("⚠️ No providers found in LA County area!");
                     }
@@ -3056,7 +3075,9 @@ export default {
           }
           // Handle paginated response
           else if (response.data && Array.isArray(response.data.results)) {
-            this.providers = response.data.results;
+            if (this.providerStore) {
+              this.providerStore.providers = response.data.results;
+            }
             console.log(
               `✅ Loaded ${this.providers.length} providers from API (paginated)`
             );
@@ -3147,23 +3168,25 @@ export default {
         this.error = "Failed to load providers";
 
         // Provide sample data in case of error for better user experience
-        this.providers = [
-          {
-            id: 1,
-            name: "A & H BEHAVIORAL THERAPY (Sample)",
-            phone: "909-665-7070",
-            description: "SAN FERNANDO VALLEY, HOLLYWOOD",
-            type: "Service Provider",
-            address: "123 Main St, Los Angeles, CA",
-            city: "Los Angeles",
-            state: "CA",
-            zip_code: "90001",
-            latitude: 34.052,
-            longitude: -118.243,
-            accepts_insurance: true,
-            accepts_regional_center: true,
-          },
-        ];
+        if (this.providerStore) {
+          this.providerStore.providers = [
+            {
+              id: 1,
+              name: "A & H BEHAVIORAL THERAPY (Sample)",
+              phone: "909-665-7070",
+              description: "SAN FERNANDO VALLEY, HOLLYWOOD",
+              type: "Service Provider",
+              address: "123 Main St, Los Angeles, CA",
+              city: "Los Angeles",
+              state: "CA",
+              zip_code: "90001",
+              latitude: 34.052,
+              longitude: -118.243,
+              accepts_insurance: true,
+              accepts_regional_center: true,
+            },
+          ];
+        }
       } finally {
         this.loading = false;
 
@@ -4300,126 +4323,11 @@ export default {
     },
 
     // Update map markers
+    // DEPRECATED: Marker management is now handled by MapCanvas component
+    // This method is kept as a no-op to avoid breaking existing code
     updateMarkers() {
-      // Prevent recursive calls
-      if (this._updatingMarkers) {
-        console.log("⚠️ updateMarkers already in progress, skipping");
-        return;
-      }
-      this._updatingMarkers = true;
-
-      console.log("🚀 updateMarkers() called");
-      console.log(`Current display type: ${this.displayType}`);
-      console.log(`providers.length: ${this.providers.length}`);
-      console.log(`filteredProviders.length: ${this.filteredProviders.length}`);
-
-      // Check map state
-      if (!this.map) {
-        console.error("❌ Map not initialized, skipping marker update");
-        this._updatingMarkers = false;
-        return;
-      }
-
-      console.log("🗺️ Map state:", {
-        loaded: this.map.loaded(),
-        style_loaded: this.map.isStyleLoaded && this.map.isStyleLoaded(),
-        zoom: this.map.getZoom(),
-        center: this.map.getCenter(),
-      });
-
-      // Clear existing markers more aggressively
-      console.log(`🧹 Clearing ${this.markers.length} existing markers`);
-      this.markers.forEach((marker, index) => {
-        console.log(`🗑️ Removing marker ${index + 1}`);
-        try {
-          marker.remove();
-        } catch (e) {
-          console.warn(`Error removing marker ${index + 1}:`, e);
-        }
-      });
-      this.markers = [];
-
-      // More aggressive DOM cleanup
-      const existingMarkers = document.querySelectorAll(".mapboxgl-marker");
-      console.log(`🧽 Found ${existingMarkers.length} DOM markers before cleanup`);
-      existingMarkers.forEach((marker, index) => {
-        console.log(`🧽 Removing DOM marker ${index + 1}`);
-        marker.remove();
-      });
-
-      // Double check cleanup worked
-      const remainingMarkers = document.querySelectorAll(".mapboxgl-marker");
-      if (remainingMarkers.length > 0) {
-        console.warn(
-          `⚠️ Still ${remainingMarkers.length} markers remaining after cleanup!`
-        );
-      } else {
-        console.log(`✅ All markers successfully cleaned up`);
-      }
-
-      // Service areas overlay should NOT suppress regional center markers.
-      // We keep markers visible for both providers and regional centers regardless of overlay state.
-
-      // Get the appropriate data based on display type
-      let items = [];
-      if (this.displayType === "providers") {
-        items = this.filteredProviders;
-        console.log(`🔍 updateMarkers: displayType = "providers"`);
-        console.log(`🔍 updateMarkers: this.providers.length = ${this.providers.length}`);
-        console.log(`🔍 updateMarkers: this.filteredProviders.length = ${this.filteredProviders.length}`);
-        console.log(`🔍 updateMarkers: items.length = ${items.length}`);
-        console.log(
-          `Showing ${items.length} provider markers (always visible regardless of service areas)`
-        );
-        if (items.length > 0) {
-          console.log(
-            "First few providers:",
-            items
-              .slice(0, 2)
-              .map((p) => ({ name: p.name, lat: p.latitude, lng: p.longitude }))
-          );
-        } else {
-          console.log(`⚠️ No providers to show markers for!`);
-        }
-      } else if (this.displayType === "regionalCenters") {
-        items = this.filteredRegionalCenters;
-        console.log(`Showing ${items.length} regional center markers`);
-      } else {
-        items = this.filteredLocations;
-        console.log(`Showing ${items.length} location markers`);
-      }
-
-      console.log(
-        `Display type: ${this.displayType}, Service areas enabled: ${this.showServiceAreas}`
-      );
-
-      // Ensure map is completely stable before creating ANY markers
-      const mapLoaded = this.map.loaded();
-      const styleLoaded = this.map.isStyleLoaded ? this.map.isStyleLoaded() : false;
-
-      if (!mapLoaded || !styleLoaded) {
-        console.warn(
-          `🚨 Map not ready for marker creation (loaded: ${mapLoaded}, style: ${styleLoaded}). Retrying in 100ms...`
-        );
-        // Release the lock BEFORE the recursive call
-        this._updatingMarkers = false;
-        setTimeout(() => {
-          this.updateMarkers();
-        }, 100);
-        return;
-      }
-
-      // Also wait for map to be idle to ensure it's not in the middle of an animation
-      if (!this.map.isMoving()) {
-        console.log("🗺️ Map confirmed ready and idle for marker creation");
-      } else {
-        console.warn("🚨 Map is still moving, waiting...");
-        this._updatingMarkers = false;
-        this.map.once("idle", () => {
-          this.updateMarkers();
-        });
-        return;
-      }
+      console.log("⚠️ [MapView] updateMarkers() called but disabled - MapCanvas handles markers now");
+      return;
 
       // IMPROVED APPROACH: Create markers all at once without delays to prevent animation artifacts
       console.log("🎯 Creating all markers simultaneously to avoid animation issues");
@@ -5371,8 +5279,7 @@ export default {
           console.log("🎉 Updated providerStore with", data.filteredProviders.length, "providers");
         }
 
-        // Keep old system for compatibility during transition
-        this.providers = data.filteredProviders;
+        // providerStore is now the source of truth, no need for separate assignment
         this.updateMarkers(); // Update markers with filtered providers
       }
 

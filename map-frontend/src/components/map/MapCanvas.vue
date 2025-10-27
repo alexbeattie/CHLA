@@ -53,6 +53,7 @@ export default {
     const markers = ref([]);
     const userLocationMarker = ref(null);
     const directionsLayer = ref(null);
+    const isUpdatingMarkers = ref(false);
 
     const mapStore = useMapStore();
     const providerStore = useProviderStore();
@@ -152,6 +153,14 @@ export default {
     const updateMarkers = () => {
       if (!map.value) return;
 
+      // Prevent concurrent updates
+      if (isUpdatingMarkers.value) {
+        console.log('⚠️ MapCanvas: Marker update already in progress, skipping');
+        return;
+      }
+
+      isUpdatingMarkers.value = true;
+
       console.log(`🗺️ MapCanvas: Updating markers (${providerStore.providersWithCoordinates.length} providers)`);
 
       // Remove existing markers
@@ -191,6 +200,9 @@ export default {
 
         markers.value.push(marker);
       });
+
+      // Release the lock
+      isUpdatingMarkers.value = false;
     };
 
     /**
@@ -320,14 +332,14 @@ export default {
     };
 
     // Watch for provider changes
+    // Use shallow watch and check array length to avoid excessive re-renders
     watch(
-      () => providerStore.providers,
+      () => [providerStore.providers.length, providerStore.providersWithCoordinates.length],
       () => {
         nextTick(() => {
           updateMarkers();
         });
-      },
-      { deep: true }
+      }
     );
 
     // Watch for selected provider changes
