@@ -173,10 +173,14 @@ You can now edit any provider directly in the admin:
 ### Verify in Frontend
 
 Visit https://kinddhelp.com and test:
-- Search by ZIP code (91101 for Pasadena)
-- Filter by therapy type
-- Filter by insurance
-- Check that new providers appear
+- **Pasadena ZIP codes**: 91101, 91103, 91104, 91105, 91106, 91107
+- **Pomona ZIP codes**: 91766, 91767, 91768, 91769
+- **San Gabriel ZIP codes**: 91775, 91776, 91778
+
+All 78 imported providers will have:
+- ✅ `accepts_regional_center = True` (they'll appear when filtering by RC)
+- ✅ Geocoded addresses with map markers
+- ✅ Parsed therapy types and insurance information
 
 ---
 
