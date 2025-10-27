@@ -28,50 +28,8 @@
       </div>
     </nav>
 
-    <!-- Mobile Search Bar -->
-    <!-- Week 5: OLD mobile search -->
-    <div v-if="!useNewComponents" class="mobile-search-bar d-md-none" v-show="showMobileSearch && !showOnboarding">
-      <div class="search-container">
-        <input
-          type="text"
-          v-model="searchText"
-          @input="debounceSearch"
-          class="form-control search-input"
-          placeholder="Enter city or zip code"
-        />
-        <button class="search-btn" @click="performSearch">
-          <i class="bi bi-search"></i>
-        </button>
-      </div>
-
-      <!-- Mobile Filter Pills -->
-      <div class="mobile-filters">
-        <button
-          class="filter-pill"
-          :class="{ active: showServiceAreas }"
-          @click="toggleServiceAreas"
-        >
-          <i class="bi bi-map"></i> Service Areas
-        </button>
-        <button
-          class="filter-pill"
-          :class="{ active: focusLACounty }"
-          @click="applyLACountyFocus"
-        >
-          <i class="bi bi-geo"></i> LA County
-        </button>
-        <button
-          class="filter-pill"
-          :class="{ active: showLARegionalCenters }"
-          @click="toggleLARegionalCenters"
-        >
-          <i class="bi bi-building"></i> Regional Centers
-        </button>
-      </div>
-    </div>
-
-    <!-- Week 5: NEW SearchBar component -->
-    <div v-if="useNewComponents && !showOnboarding" class="search-bar-wrapper">
+    <!-- Search Bar -->
+    <div v-if="!showOnboarding" class="search-bar-wrapper">
       <search-bar
         placeholder="Enter city or ZIP code"
         :show-results-summary="true"
@@ -410,35 +368,9 @@
                 </div>
               </div>
 
-              <!-- Week 5: OLD filter UI -->
-              <div v-if="!useNewComponents">
-                <!-- Filter Options for Providers -->
-                <div v-if="displayType === 'providers'">
-                  <h6 class="text-muted mb-2 small">Payment & Funding</h6>
-                  <div class="form-check mb-2">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      v-model="filterOptions.acceptsInsurance"
-                      id="acceptsInsurance"
-                      @change="updateFilteredLocations"
-                    />
-                    <label class="form-check-label" for="acceptsInsurance">
-                      <i class="bi bi-credit-card me-1"></i>
-                      Accepts Insurance
-                    </label>
-                  </div>
-                </div>
-
-                <!-- Reset Button -->
-                <button @click="resetFilters" class="btn btn-secondary btn-sm w-100 mt-2">
-                  <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
-                </button>
-              </div>
-
-              <!-- Week 5: NEW FilterPanel component -->
+              <!-- Filter Panel -->
               <filter-panel
-                v-if="useNewComponents && filterStore"
+                v-if="filterStore"
                 :show-favorites="false"
                 :show-summary="true"
                 :manual-apply="false"
@@ -549,25 +481,9 @@
             </div>
           </div>
 
-          <!-- Location List -->
-          <!-- Week 5: OLD LocationList component -->
-          <location-list
-            v-if="!useNewComponents && (displayType !== 'regionalCenters' || !showLARegionalCenters)"
-            :locations="
-              displayType === 'locations'
-                ? filteredLocations
-                : displayType === 'regionalCenters'
-                ? filteredRegionalCenters
-                : filteredProviders
-            "
-            :loading="loading"
-            :error="error"
-            @center-on-location="centerMapOnLocation"
-          />
-
-          <!-- Week 5: NEW ProviderList component -->
+          <!-- Provider List -->
           <provider-list
-            v-if="useNewComponents && providerStore"
+            v-if="providerStore"
             :providers="providerStore.providers"
             :selected-id="providerStore.selectedProviderId"
             :loading="providerStore.loading"
@@ -580,12 +496,8 @@
 
     <!-- Map Container -->
     <div class="map-container-wrapper" :class="{ 'with-search': showMobileSearch }">
-      <!-- Week 5: OLD map container (existing implementation) -->
-      <div v-if="!useNewComponents" id="map" class="map-container"></div>
-
-      <!-- Week 5: NEW MapCanvas component -->
+      <!-- Map Canvas -->
       <map-canvas
-        v-if="useNewComponents"
         :mapbox-token="mapboxAccessToken"
         :center="{ lat: 34.0522, lng: -118.2437 }"
         :zoom="10"
@@ -595,9 +507,9 @@
         @viewport-change="handleViewportChange"
       />
 
-      <!-- Week 5: NEW ProviderDetails overlay -->
+      <!-- Provider Details Overlay -->
       <provider-details
-        v-if="useNewComponents && providerStore && providerStore.selectedProvider"
+        v-if="providerStore && providerStore.selectedProvider"
         :provider="providerStore.selectedProvider"
         :is-visible="true"
         :show-directions="true"
@@ -669,8 +581,8 @@ export default {
 
   data() {
     return {
-      // Week 5: Feature flag for new components (set to true to test)
-      useNewComponents: false,
+      // Week 5B: New components now enabled by default
+      useNewComponents: true,
 
       // Week 5: Store instances (initialized in created())
       providerStore: null,
