@@ -336,12 +336,29 @@ class ProviderV2Admin(admin.ModelAdmin):
     def import_pasadena_providers(self, request, queryset):
         """Import Pasadena providers from Excel file"""
         from django.core.management import call_command
+        from django.conf import settings
         from io import StringIO
         import os
 
         output = StringIO()
         try:
-            file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'Pasadena Provider List.xlsx')
+            # Try multiple possible paths
+            possible_paths = [
+                '/var/app/current/data/Pasadena Provider List.xlsx',  # EB deployment path
+                os.path.join(settings.BASE_DIR, '..', 'data', 'Pasadena Provider List.xlsx'),  # Relative to project
+                os.path.join(os.path.dirname(settings.BASE_DIR), 'data', 'Pasadena Provider List.xlsx'),  # One level up
+            ]
+
+            file_path = None
+            for path in possible_paths:
+                if os.path.exists(path):
+                    file_path = path
+                    break
+
+            if not file_path:
+                self.message_user(request, f"❌ File not found. Tried: {', '.join(possible_paths)}", level='ERROR')
+                return
+
             call_command('import_regional_center_providers', file=file_path, area='Pasadena', stdout=output)
             self.message_user(request, f"✅ Pasadena providers import completed!\n\n{output.getvalue()}", level='SUCCESS')
         except Exception as e:
@@ -352,12 +369,29 @@ class ProviderV2Admin(admin.ModelAdmin):
     def import_san_gabriel_providers(self, request, queryset):
         """Import San Gabriel/Pomona providers from Excel file"""
         from django.core.management import call_command
+        from django.conf import settings
         from io import StringIO
         import os
 
         output = StringIO()
         try:
-            file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'San Gabriel Pomona Provider List.xlsx')
+            # Try multiple possible paths
+            possible_paths = [
+                '/var/app/current/data/San Gabriel Pomona Provider List.xlsx',  # EB deployment path
+                os.path.join(settings.BASE_DIR, '..', 'data', 'San Gabriel Pomona Provider List.xlsx'),  # Relative to project
+                os.path.join(os.path.dirname(settings.BASE_DIR), 'data', 'San Gabriel Pomona Provider List.xlsx'),  # One level up
+            ]
+
+            file_path = None
+            for path in possible_paths:
+                if os.path.exists(path):
+                    file_path = path
+                    break
+
+            if not file_path:
+                self.message_user(request, f"❌ File not found. Tried: {', '.join(possible_paths)}", level='ERROR')
+                return
+
             call_command('import_regional_center_providers', file=file_path, regional_center='San Gabriel', stdout=output)
             self.message_user(request, f"✅ San Gabriel/Pomona providers import completed!\n\n{output.getvalue()}", level='SUCCESS')
         except Exception as e:
