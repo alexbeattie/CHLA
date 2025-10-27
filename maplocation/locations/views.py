@@ -190,6 +190,25 @@ class LocationReviewViewSet(viewsets.ModelViewSet):
 
 
 class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Regional Center API Endpoints
+
+    Standard endpoints:
+    - GET /api/regional-centers/ - List all regional centers (supports search, filtering, ordering)
+    - GET /api/regional-centers/{id}/ - Get single regional center by ID
+
+    Custom action endpoints:
+    - GET /api/regional-centers/service_area_boundaries/ - **CRITICAL** Returns GeoJSON with all LA County
+      regional centers including their polygon geometries AND complete ZIP code arrays for each center
+    - GET /api/regional-centers/lookup_by_zip/?zip_code={zip} - Find regional center for specific ZIP code
+    - GET /api/regional-centers/nearby/?lat={lat}&lng={lng}&radius={miles} - Find centers near coordinates
+    - GET /api/regional-centers/by_location/?location={address_or_zip} - Geocode and find centers
+
+    The service_area_boundaries endpoint is the primary source for:
+    1. Regional center polygon geometries (MultiPolygon GeoJSON)
+    2. Complete ZIP code coverage for each center
+    3. Map visualization data
+    """
     queryset = RegionalCenter.objects.all()
     serializer_class = RegionalCenterSerializer
     filter_backends = [

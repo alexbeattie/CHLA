@@ -1,5 +1,15 @@
 # CHLA Provider Map - Complete Stack Documentation
 
+## ⚠️ Known Data Issues
+
+### Regional Center ZIP Code Coverage
+- **Issue**: ZIP 91403 (Sherman Oaks) is not mapped to any Regional Center in the database
+- **Impact**: Users searching for this ZIP code will see "Regional Center (Not Found)"
+- **Expected RC**: North Los Angeles County Regional Center
+- **Status**: Awaiting data update from user
+- **API Endpoint**: `/api/regional-centers/service_area_boundaries/` returns all RC polygons with their ZIP codes
+- **Verification**: `curl "http://127.0.0.1:8000/api/regional-centers/lookup_by_zip/?zip_code=91403"` returns 404
+
 ## 🏗️ Architecture Overview
 
 ### Frontend
