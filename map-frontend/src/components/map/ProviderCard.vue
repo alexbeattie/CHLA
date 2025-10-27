@@ -36,9 +36,9 @@
     </div>
 
     <!-- Address -->
-    <div v-if="provider.address" class="provider-address">
+    <div v-if="formattedAddress" class="provider-address">
       <i class="bi bi-map"></i>
-      <span>{{ provider.address }}</span>
+      <span>{{ formattedAddress }}</span>
     </div>
 
     <!-- Contact Info -->
@@ -201,19 +201,80 @@ export default {
     });
 
     /**
+     * Format address from JSON object to string
+     */
+    const formattedAddress = computed(() => {
+      if (!props.provider.address) return null;
+
+      // Handle JSON object address
+      if (typeof props.provider.address === 'object') {
+        const addr = props.provider.address;
+        const parts = [];
+
+        if (addr.street) parts.push(addr.street);
+        if (addr.city) parts.push(addr.city);
+        if (addr.state) parts.push(addr.state);
+        if (addr.zip) parts.push(addr.zip);
+
+        return parts.join(', ');
+      }
+
+      // Handle string address (might be JSON string)
+      if (typeof props.provider.address === 'string') {
+        try {
+          const addr = JSON.parse(props.provider.address);
+          const parts = [];
+
+          if (addr.street) parts.push(addr.street);
+          if (addr.city) parts.push(addr.city);
+          if (addr.state) parts.push(addr.state);
+          if (addr.zip) parts.push(addr.zip);
+
+          return parts.join(', ');
+        } catch (e) {
+          // If not JSON, return as-is
+          return props.provider.address;
+        }
+      }
+
+      return null;
+    });
+
+    /**
      * Parse and display insurance types
      */
     const insuranceTypes = computed(() => {
       if (!props.provider.insurance_accepted) return [];
 
-      // Handle comma-separated or pipe-separated insurance types
-      const insuranceStr = props.provider.insurance_accepted;
-      const separator = insuranceStr.includes('|') ? '|' : ',';
+      let insuranceData = props.provider.insurance_accepted;
 
-      return insuranceStr
-        .split(separator)
-        .map(type => type.trim())
-        .filter(type => type.length > 0);
+      // Handle JSON object or empty object
+      if (typeof insuranceData === 'object') {
+        if (Array.isArray(insuranceData)) {
+          return insuranceData.filter(type => type && type.length > 0);
+        }
+        // Empty object {} means no insurance
+        if (Object.keys(insuranceData).length === 0) {
+          return [];
+        }
+        return [];
+      }
+
+      // Handle string (might be JSON string like "{Aetna,Cigna}")
+      if (typeof insuranceData === 'string') {
+        // Remove curly braces if present
+        insuranceData = insuranceData.replace(/^{|}$/g, '').trim();
+
+        if (!insuranceData) return [];
+
+        // Split by comma
+        return insuranceData
+          .split(',')
+          .map(type => type.trim().replace(/^"|"$/g, '')) // Remove quotes
+          .filter(type => type.length > 0);
+      }
+
+      return [];
     });
 
     /**
@@ -269,6 +330,7 @@ export default {
     return {
       hasCoordinates,
       formattedDistance,
+      formattedAddress,
       insuranceTypes,
       displayedTherapies,
       formatPhone,
