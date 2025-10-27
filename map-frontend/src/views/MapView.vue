@@ -2487,8 +2487,18 @@ export default {
             queryParams.append("specialization", this.userData.diagnosis);
           }
 
-          // Always use comprehensive search endpoint (it handles both filtered and unfiltered)
-          const url = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?${queryParams.toString()}`;
+          // Use regional center filtering for ZIP code searches, fallback to comprehensive search
+          const isZipSearch = this.searchText && /^\d{5}$/.test(this.searchText.trim());
+          let url;
+
+          if (isZipSearch) {
+            // Use regional center-based filtering for ZIP searches
+            url = `${this.getApiRoot()}/api/providers-v2/by_regional_center/?zip_code=${this.searchText.trim()}&${queryParams.toString()}`;
+            console.log(`🎯 Using REGIONAL CENTER filtering for ZIP: ${this.searchText.trim()}`);
+          } else {
+            // Use comprehensive search endpoint for address/city searches
+            url = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?${queryParams.toString()}`;
+          }
 
           if (hasSpecificFilters) {
             console.log(`🔍 Fetching FILTERED providers from API: ${url}`);
@@ -2514,8 +2524,16 @@ export default {
           console.log("API URL:", url);
           console.log("Response data:", response.data);
 
-          // Handle regular JSON array response
-          if (response.data && Array.isArray(response.data)) {
+          // Handle different response formats
+          if (isZipSearch && response.data && response.data.results) {
+            // Regional center endpoint returns {results: [...], count: N, regional_center: {...}}
+            this.providers = response.data.results;
+            console.log(
+              `✅ Loaded ${this.providers.length} providers from regional center: ${response.data.regional_center?.name || 'Unknown'}`
+            );
+            console.log(`🎯 Regional center has ${response.data.count} total providers`);
+          } else if (response.data && Array.isArray(response.data)) {
+            // Handle regular JSON array response
             this.providers = response.data;
             console.log(
               `✅ Loaded ${this.providers.length} providers from API (direct array)`
