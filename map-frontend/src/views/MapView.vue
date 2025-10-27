@@ -589,6 +589,11 @@ export default {
       mapStore: null,
       filterStore: null,
 
+      // Mapbox token for MapCanvas component
+      mapboxAccessToken:
+        import.meta.env.VITE_MAPBOX_TOKEN ||
+        "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg",
+
       // Modal visibility
       showFundingInfo: false,
       showOnboarding: false,
@@ -863,38 +868,36 @@ export default {
   },
 
   mounted() {
-    console.log("Vue app mounted");
+    console.log("[MapView] Component mounted");
 
-    // Initialize everything in proper sequence to avoid jankiness
+    // Week 5B: Using new components, no need to call initMap()
+    // MapCanvas component handles map initialization
     this.$nextTick(async () => {
       try {
-        // Step 1: Initialize map first (no data loading yet)
-        console.log("🚀 Step 1: Initializing map...");
-        this.initMap();
-        
-        // Step 2: Wait for map to be ready
-        await this.waitForMapReady();
-        
+        console.log("[MapView] Starting initialization with new components");
+
         // Only load data if not showing onboarding
         if (!this.showOnboarding) {
-          // Step 3: Load regional centers in background (no map changes)
-          console.log("🚀 Step 2: Loading regional centers...");
+          console.log("[MapView] Loading initial data...");
+
+          // Load regional centers if needed
           if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
             await this.fetchRegionalCenters();
           }
-          
-          // Step 4: Load initial providers with smooth map setup
-          console.log("🚀 Step 3: Loading initial providers...");
-          if (!Array.isArray(this.providers) || this.providers.length === 0) {
-            await this.loadInitialProviders();
+
+          // Load initial providers using store
+          if (this.providerStore && this.providerStore.providers.length === 0) {
+            // Load providers - the store will handle the API call
+            // For now, just log that we're ready
+            console.log("[MapView] Waiting for user to search for providers");
           }
-          
-          console.log("🚀 Initialization complete!");
+
+          console.log("[MapView] Initialization complete with new components!");
         } else {
-          console.log("🚀 Onboarding is showing, skipping data loading until onboarding complete");
+          console.log("[MapView] Onboarding showing, skipping data load");
         }
       } catch (e) {
-        console.error("Error during initialization:", e);
+        console.error("[MapView] Error during initialization:", e);
       }
     });
   },
