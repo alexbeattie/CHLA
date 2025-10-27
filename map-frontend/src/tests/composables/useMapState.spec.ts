@@ -3,30 +3,32 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { setActivePinia, createPinia } from 'pinia';
 import { useMapState } from '@/composables/useMapState';
 
 describe('useMapState', () => {
   let composable: ReturnType<typeof useMapState>;
 
   beforeEach(() => {
+    setActivePinia(createPinia());
     composable = useMapState();
   });
 
   describe('Initialization', () => {
     it('should initialize with default viewport', () => {
-      expect(composable.viewport.center).toEqual({ lat: 34.0522, lng: -118.2437 });
-      expect(composable.viewport.zoom).toBe(10);
-      expect(composable.viewport.bearing).toBe(0);
-      expect(composable.viewport.pitch).toBe(0);
+      expect(composable.viewport.value.center).toEqual({ lat: 34.0522, lng: -118.2437 });
+      expect(composable.viewport.value.zoom).toBe(10);
+      expect(composable.viewport.value.bearing).toBe(0);
+      expect(composable.viewport.value.pitch).toBe(0);
     });
 
     it('should initialize with default UI state', () => {
-      expect(composable.uiState.showFilters).toBe(false);
-      expect(composable.uiState.showProviderDetails).toBe(false);
-      expect(composable.uiState.showOnboarding).toBe(false);
-      expect(composable.uiState.showDirections).toBe(false);
-      expect(composable.uiState.sidebarExpanded).toBe(true);
-      expect(composable.uiState.mapStyle).toBe('streets');
+      expect(composable.uiState.value.showFilters).toBe(false);
+      expect(composable.uiState.value.showProviderDetails).toBe(false);
+      expect(composable.uiState.value.showOnboarding).toBe(false);
+      expect(composable.uiState.value.showDirections).toBe(false);
+      expect(composable.uiState.value.sidebarExpanded).toBe(true);
+      expect(composable.uiState.value.mapStyle).toBe('streets');
     });
 
     it('should initialize with null states', () => {
@@ -50,28 +52,28 @@ describe('useMapState', () => {
         zoom: 12
       });
 
-      expect(composable.viewport.center).toEqual({ lat: 34.0, lng: -118.0 });
-      expect(composable.viewport.zoom).toBe(12);
+      expect(composable.viewport.value.center).toEqual({ lat: 34.0, lng: -118.0 });
+      expect(composable.viewport.value.zoom).toBe(12);
     });
 
     it('should partially update viewport', () => {
       composable.setViewport({ zoom: 15 });
 
-      expect(composable.viewport.zoom).toBe(15);
-      expect(composable.viewport.center).toEqual({ lat: 34.0522, lng: -118.2437 });
+      expect(composable.viewport.value.zoom).toBe(15);
+      expect(composable.viewport.value.center).toEqual({ lat: 34.0522, lng: -118.2437 });
     });
 
     it('should center on coordinates', () => {
       composable.centerOn({ lat: 33.0, lng: -117.0 });
 
-      expect(composable.viewport.center).toEqual({ lat: 33.0, lng: -117.0 });
+      expect(composable.viewport.value.center).toEqual({ lat: 33.0, lng: -117.0 });
     });
 
     it('should center on coordinates with zoom', () => {
       composable.centerOn({ lat: 33.0, lng: -117.0 }, 14);
 
-      expect(composable.viewport.center).toEqual({ lat: 33.0, lng: -117.0 });
-      expect(composable.viewport.zoom).toBe(14);
+      expect(composable.viewport.value.center).toEqual({ lat: 33.0, lng: -117.0 });
+      expect(composable.viewport.value.zoom).toBe(14);
     });
 
     it('should fit to bounds', () => {
@@ -106,7 +108,7 @@ describe('useMapState', () => {
       composable.selectProvider(123);
 
       expect(composable.selectedProviderId.value).toBe(123);
-      expect(composable.uiState.showProviderDetails).toBe(true);
+      expect(composable.uiState.value.showProviderDetails).toBe(true);
       expect(composable.hasSelectedProvider.value).toBe(true);
     });
 
@@ -117,7 +119,7 @@ describe('useMapState', () => {
       composable.clearSelection();
 
       expect(composable.selectedProviderId.value).toBe(null);
-      expect(composable.uiState.showProviderDetails).toBe(false);
+      expect(composable.uiState.value.showProviderDetails).toBe(false);
       expect(composable.hasSelectedProvider.value).toBe(false);
     });
 
@@ -126,7 +128,7 @@ describe('useMapState', () => {
       composable.selectProvider(null);
 
       expect(composable.selectedProviderId.value).toBe(null);
-      expect(composable.uiState.showProviderDetails).toBe(false);
+      expect(composable.uiState.value.showProviderDetails).toBe(false);
     });
 
     it('should hover over provider', () => {
@@ -147,42 +149,42 @@ describe('useMapState', () => {
 
   describe('UI state management', () => {
     it('should toggle UI elements', () => {
-      expect(composable.uiState.showFilters).toBe(false);
+      expect(composable.uiState.value.showFilters).toBe(false);
 
       composable.toggleUI('showFilters');
-      expect(composable.uiState.showFilters).toBe(true);
+      expect(composable.uiState.value.showFilters).toBe(true);
 
       composable.toggleUI('showFilters');
-      expect(composable.uiState.showFilters).toBe(false);
+      expect(composable.uiState.value.showFilters).toBe(false);
     });
 
     it('should toggle sidebar', () => {
-      expect(composable.uiState.sidebarExpanded).toBe(true);
+      expect(composable.uiState.value.sidebarExpanded).toBe(true);
 
       composable.toggleSidebar();
-      expect(composable.uiState.sidebarExpanded).toBe(false);
+      expect(composable.uiState.value.sidebarExpanded).toBe(false);
 
       composable.toggleSidebar();
-      expect(composable.uiState.sidebarExpanded).toBe(true);
+      expect(composable.uiState.value.sidebarExpanded).toBe(true);
     });
 
     it('should set map style', () => {
       composable.setMapStyle('satellite');
-      expect(composable.uiState.mapStyle).toBe('satellite');
+      expect(composable.uiState.value.mapStyle).toBe('satellite');
 
       composable.setMapStyle('outdoors');
-      expect(composable.uiState.mapStyle).toBe('outdoors');
+      expect(composable.uiState.value.mapStyle).toBe('outdoors');
 
       composable.setMapStyle('streets');
-      expect(composable.uiState.mapStyle).toBe('streets');
+      expect(composable.uiState.value.mapStyle).toBe('streets');
     });
 
     it('should show and hide onboarding', () => {
       composable.showOnboarding();
-      expect(composable.uiState.showOnboarding).toBe(true);
+      expect(composable.uiState.value.showOnboarding).toBe(true);
 
       composable.hideOnboarding();
-      expect(composable.uiState.showOnboarding).toBe(false);
+      expect(composable.uiState.value.showOnboarding).toBe(false);
     });
 
     it('should set map ready state', () => {
@@ -230,8 +232,8 @@ describe('useMapState', () => {
 
       composable.centerOnUserLocation();
 
-      expect(composable.viewport.center).toEqual(coords);
-      expect(composable.viewport.zoom).toBe(14); // Default zoom
+      expect(composable.viewport.value.center).toEqual(coords);
+      expect(composable.viewport.value.zoom).toBe(14); // Default zoom
     });
 
     it('should center on user location with custom zoom', () => {
@@ -240,16 +242,16 @@ describe('useMapState', () => {
 
       composable.centerOnUserLocation(16);
 
-      expect(composable.viewport.center).toEqual(coords);
-      expect(composable.viewport.zoom).toBe(16);
+      expect(composable.viewport.value.center).toEqual(coords);
+      expect(composable.viewport.value.zoom).toBe(16);
     });
 
     it('should not center if no user location', () => {
-      const originalCenter = composable.viewport.center;
+      const originalCenter = composable.viewport.value.center;
 
       composable.centerOnUserLocation();
 
-      expect(composable.viewport.center).toEqual(originalCenter);
+      expect(composable.viewport.value.center).toEqual(originalCenter);
     });
   });
 
@@ -275,7 +277,7 @@ describe('useMapState', () => {
       expect(composable.directionsRoute.value).toEqual(mockRoute);
       expect(composable.directionsFrom.value).toEqual(from);
       expect(composable.directionsTo.value).toEqual(to);
-      expect(composable.uiState.showDirections).toBe(true);
+      expect(composable.uiState.value.showDirections).toBe(true);
       expect(composable.hasDirections.value).toBe(true);
     });
 
@@ -287,7 +289,7 @@ describe('useMapState', () => {
       expect(composable.directionsRoute.value).toBe(null);
       expect(composable.directionsFrom.value).toBe(null);
       expect(composable.directionsTo.value).toBe(null);
-      expect(composable.uiState.showDirections).toBe(false);
+      expect(composable.uiState.value.showDirections).toBe(false);
       expect(composable.hasDirections.value).toBe(false);
     });
 
@@ -373,10 +375,10 @@ describe('useMapState', () => {
       composable.resetMap();
 
       // Verify reset
-      expect(composable.viewport.center).toEqual({ lat: 34.0522, lng: -118.2437 });
-      expect(composable.viewport.zoom).toBe(10);
-      expect(composable.viewport.bearing).toBe(0);
-      expect(composable.viewport.pitch).toBe(0);
+      expect(composable.viewport.value.center).toEqual({ lat: 34.0522, lng: -118.2437 });
+      expect(composable.viewport.value.zoom).toBe(10);
+      expect(composable.viewport.value.bearing).toBe(0);
+      expect(composable.viewport.value.pitch).toBe(0);
       expect(composable.selectedProviderId.value).toBe(null);
       expect(composable.directionsRoute.value).toBe(null);
     });

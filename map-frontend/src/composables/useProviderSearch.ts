@@ -1,195 +1,62 @@
 /**
  * Provider Search Composable
  * Handles all provider searching and fetching logic
- * Extracted from MapView.vue as part of Week 2 refactoring
+ * Week 3: Now delegates to Pinia providerStore for centralized state
+ * Maintains backward compatibility as a composable wrapper
  */
 
-import { ref, computed } from 'vue';
-import axios from 'axios';
-import { isValidZipCode } from '@/utils/map';
+import { computed } from 'vue';
+import { useProviderStore } from '@/stores/providerStore';
+import type {
+  Provider,
+  SearchParams,
+  RegionalCenterInfo,
+  ProviderSearchResult
+} from '@/stores/providerStore';
 
-export interface Provider {
-  id: number;
-  name: string;
-  address: string;
-  latitude: number | null;
-  longitude: number | null;
-  phone: string | null;
-  website: string | null;
-  email: string | null;
-  insurance_accepted: string;
-  therapy_types: string[] | null;
-  age_groups: string[] | null;
-  diagnoses_treated: string[] | null;
-  description: string | null;
-  type: string | null;
-  // Add other fields as needed
-}
-
-export interface SearchParams {
-  zipCode?: string;
-  lat?: number;
-  lng?: number;
-  radius?: number;
-  insurance?: string;
-  therapy?: string;
-  age?: string;
-  diagnosis?: string;
-  searchText?: string;
-}
-
-export interface RegionalCenterInfo {
-  id: number;
-  name: string;
-  zip_codes: string[];
-}
-
-export interface ProviderSearchResult {
-  providers: Provider[];
-  count: number;
-  regional_center?: RegionalCenterInfo;
-}
+// Re-export types for backward compatibility
+export type { Provider, SearchParams, RegionalCenterInfo, ProviderSearchResult };
 
 export function useProviderSearch(apiBaseUrl: string) {
-  // State
-  const providers = ref<Provider[]>([]);
-  const loading = ref(false);
-  const error = ref<string | null>(null);
-  const searchLocation = ref('');
-  const searchCoordinates = ref<{ lat: number; lng: number } | null>(null);
-  const regionalCenterInfo = ref<RegionalCenterInfo | null>(null);
+  // Get the Pinia store instance
+  const store = useProviderStore();
+
+  // Set API base URL in store
+  if (apiBaseUrl) {
+    store.setApiBaseUrl(apiBaseUrl);
+  }
+
+  // Return store state and methods directly
+  // This maintains the same API as before, but now uses centralized Pinia state
+  const providers = computed(() => store.providers);
+  const loading = computed(() => store.loading);
+  const error = computed(() => store.error);
+  const searchLocation = computed({
+    get: () => store.searchLocation,
+    set: (value: string) => { store.searchLocation = value; }
+  });
+  const searchCoordinates = computed(() => store.searchCoordinates);
+  const regionalCenterInfo = computed(() => store.regionalCenterInfo);
 
   // Computed
-  const providerCount = computed(() => providers.value.length);
+  const providerCount = computed(() => store.providerCount);
+  const providersWithCoordinates = computed(() => store.providersWithCoordinates);
+  const hasProviders = computed(() => store.hasProviders);
 
-  const providersWithCoordinates = computed(() =>
-    providers.value.filter(p => p.latitude && p.longitude)
-  );
-
-  const hasProviders = computed(() => providers.value.length > 0);
-
-  /**
-   * Search providers using appropriate endpoint
-   * Uses regional center filtering for ZIP codes, radius search for addresses
-   */
-  async function searchProviders(params: SearchParams): Promise<ProviderSearchResult | null> {
-    loading.value = true;
-    error.value = null;
-    regionalCenterInfo.value = null;
-
-    try {
-      const isZipSearch = params.zipCode && isValidZipCode(params.zipCode);
-      let url: string;
-      const queryParams = new URLSearchParams();
-
-      if (isZipSearch) {
-        // Use regional center-based filtering for ZIP searches
-        url = `${apiBaseUrl}/api/providers-v2/by_regional_center/`;
-        queryParams.append('zip_code', params.zipCode!);
-
-        console.log(`🎯 Using REGIONAL CENTER filtering for ZIP: ${params.zipCode}`);
-      } else {
-        // Use comprehensive search for address/coordinate searches
-        url = `${apiBaseUrl}/api/providers-v2/comprehensive_search/`;
-
-        if (params.lat && params.lng) {
-          queryParams.append('lat', params.lat.toString());
-          queryParams.append('lng', params.lng.toString());
-          queryParams.append('radius', (params.radius || 25).toString());
-        }
-
-        if (params.searchText) {
-          queryParams.append('q', params.searchText);
-          queryParams.append('location', params.searchText);
-        }
-      }
-
-      // Add common filters
-      if (params.insurance) {
-        queryParams.append('insurance', params.insurance);
-      }
-
-      if (params.therapy) {
-        queryParams.append('therapy', params.therapy);
-      }
-
-      if (params.age) {
-        queryParams.append('age', params.age);
-      }
-
-      if (params.diagnosis) {
-        queryParams.append('diagnosis', params.diagnosis);
-      }
-
-      // Make API call
-      console.log(`🔍 Fetching providers from: ${url}?${queryParams.toString()}`);
-      const response = await axios.get(`${url}?${queryParams.toString()}`);
-
-      // Handle different response formats
-      let result: ProviderSearchResult;
-
-      if (isZipSearch && response.data && response.data.results) {
-        // Regional center endpoint returns {results: [...], count: N, regional_center: {...}}
-        providers.value = response.data.results || [];
-        regionalCenterInfo.value = response.data.regional_center || null;
-
-        result = {
-          providers: providers.value,
-          count: response.data.count || providers.value.length,
-          regional_center: regionalCenterInfo.value || undefined
-        };
-
-        console.log(
-          `✅ Loaded ${providers.value.length} providers from regional center: ${regionalCenterInfo.value?.name || 'Unknown'}`
-        );
-      } else if (Array.isArray(response.data)) {
-        // Comprehensive search returns array directly
-        providers.value = response.data;
-
-        result = {
-          providers: providers.value,
-          count: providers.value.length
-        };
-
-        console.log(`✅ Loaded ${providers.value.length} providers from comprehensive search`);
-      } else {
-        // Fallback for unexpected format
-        providers.value = [];
-        result = { providers: [], count: 0 };
-        console.warn('Unexpected response format:', response.data);
-      }
-
-      return result;
-
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch providers';
-      providers.value = [];
-      console.error('❌ Provider search error:', err);
-      return null;
-    } finally {
-      loading.value = false;
-    }
-  }
+  // Delegate methods to store
+  // All complex logic is now in the store, these are just pass-through methods
 
   /**
    * Search by ZIP code specifically
-   * Convenience method that uses regional center filtering
+   * Delegates to providerStore.searchByZipCode
    */
   async function searchByZipCode(zipCode: string, filters?: Partial<SearchParams>) {
-    if (!isValidZipCode(zipCode)) {
-      error.value = 'Invalid ZIP code format';
-      return null;
-    }
-
-    return searchProviders({
-      zipCode,
-      ...filters
-    });
+    return store.searchByZipCode(zipCode, filters);
   }
 
   /**
    * Search by coordinates with radius
-   * Uses comprehensive search endpoint
+   * Delegates to providerStore.searchByLocation
    */
   async function searchByLocation(
     lat: number,
@@ -197,52 +64,43 @@ export function useProviderSearch(apiBaseUrl: string) {
     radius: number = 25,
     filters?: Partial<SearchParams>
   ) {
-    searchCoordinates.value = { lat, lng };
-
-    return searchProviders({
-      lat,
-      lng,
-      radius,
-      ...filters
-    });
-  }
-
-  /**
-   * Search with multiple filters
-   * Determines best endpoint based on available parameters
-   */
-  async function searchWithFilters(filters: SearchParams) {
-    return searchProviders(filters);
+    return store.searchByLocation(lat, lng, radius, filters);
   }
 
   /**
    * Clear all search results and state
+   * Delegates to providerStore.clearProviders
    */
   function clearSearch() {
-    providers.value = [];
-    searchLocation.value = '';
-    searchCoordinates.value = null;
-    regionalCenterInfo.value = null;
-    error.value = null;
+    store.clearProviders();
   }
 
   /**
    * Get provider by ID
+   * Delegates to providerStore.getProviderById
    */
   function getProviderById(id: number): Provider | undefined {
-    return providers.value.find(p => p.id === id);
+    return store.getProviderById(id);
   }
 
   /**
    * Filter current providers by criteria (client-side)
-   * Useful for quick filtering without re-fetching
+   * Delegates to providerStore.filterProviders
    */
   function filterProviders(predicate: (provider: Provider) => boolean): Provider[] {
-    return providers.value.filter(predicate);
+    return store.filterProviders(predicate);
+  }
+
+  /**
+   * Select a provider
+   * Delegates to providerStore.selectProvider
+   */
+  function selectProvider(id: number | null) {
+    store.selectProvider(id);
   }
 
   return {
-    // State
+    // State (as computed from store)
     providers,
     loading,
     error,
@@ -255,13 +113,12 @@ export function useProviderSearch(apiBaseUrl: string) {
     providersWithCoordinates,
     hasProviders,
 
-    // Methods
-    searchProviders,
+    // Methods (delegated to store)
     searchByZipCode,
     searchByLocation,
-    searchWithFilters,
     clearSearch,
     getProviderById,
-    filterProviders
+    filterProviders,
+    selectProvider
   };
 }

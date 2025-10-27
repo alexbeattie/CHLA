@@ -1,182 +1,93 @@
 /**
  * Filter State Composable
  * Manages all filter state and logic
- * Extracted from MapView.vue as part of Week 2 refactoring
+ * Week 3: Now delegates to Pinia filterStore for centralized state
+ * Maintains backward compatibility as a composable wrapper
  */
 
-import { reactive, computed, ref } from 'vue';
+import { computed } from 'vue';
+import { useFilterStore } from '@/stores/filterStore';
+import type {
+  FilterOptions,
+  UserData
+} from '@/stores/filterStore';
 
-export interface FilterOptions {
-  acceptsInsurance: boolean;
-  acceptsRegionalCenter: boolean;
-  acceptsPrivatePay: boolean;
-  matchesAge: boolean;
-  matchesDiagnosis: boolean;
-  matchesTherapy: boolean;
-  showOnlyFavorites: boolean;
-}
-
-export interface UserData {
-  insurance?: string;
-  age?: string;
-  diagnosis?: string;
-  therapy?: string;
-}
+// Re-export types for backward compatibility
+export type { FilterOptions, UserData };
 
 export function useFilterState() {
-  // Filter toggle state
-  const filterOptions = reactive<FilterOptions>({
-    acceptsInsurance: false,
-    acceptsRegionalCenter: false,
-    acceptsPrivatePay: false,
-    matchesAge: false,
-    matchesDiagnosis: false,
-    matchesTherapy: false,
-    showOnlyFavorites: false
-  });
+  // Get the Pinia store instance
+  const store = useFilterStore();
 
-  // User onboarding data
-  const userData = reactive<UserData>({
-    insurance: undefined,
-    age: undefined,
-    diagnosis: undefined,
-    therapy: undefined
-  });
+  // Return store state as computed properties
+  // This maintains reactivity while using centralized state
+  const filterOptions = computed(() => store.filterOptions);
+  const userData = computed(() => store.userData);
+  const availableTherapyTypes = computed(() => store.availableTherapyTypes);
+  const availableAgeGroups = computed(() => store.availableAgeGroups);
+  const availableDiagnoses = computed(() => store.availableDiagnoses);
+  const availableInsuranceTypes = computed(() => store.availableInsuranceTypes);
 
-  // Available filter options (from backend or config)
-  const availableTherapyTypes = ref<string[]>([]);
-  const availableAgeGroups = ref<string[]>([]);
-  const availableDiagnoses = ref<string[]>([]);
-  const availableInsuranceTypes = ref<string[]>([]);
+  // Computed properties (delegated to store)
+  const hasActiveFilters = computed(() => store.hasActiveFilters);
+  const activeFilterCount = computed(() => store.activeFilterCount);
+  const hasUserData = computed(() => store.hasUserData);
+  const filterParams = computed(() => store.filterParams);
 
-  // Computed properties
-  const hasActiveFilters = computed(() => {
-    return (
-      filterOptions.acceptsInsurance ||
-      filterOptions.acceptsRegionalCenter ||
-      filterOptions.acceptsPrivatePay ||
-      filterOptions.matchesAge ||
-      filterOptions.matchesDiagnosis ||
-      filterOptions.matchesTherapy ||
-      filterOptions.showOnlyFavorites
-    );
-  });
-
-  const activeFilterCount = computed(() => {
-    let count = 0;
-    if (filterOptions.acceptsInsurance) count++;
-    if (filterOptions.acceptsRegionalCenter) count++;
-    if (filterOptions.acceptsPrivatePay) count++;
-    if (filterOptions.matchesAge) count++;
-    if (filterOptions.matchesDiagnosis) count++;
-    if (filterOptions.matchesTherapy) count++;
-    if (filterOptions.showOnlyFavorites) count++;
-    return count;
-  });
-
-  const hasUserData = computed(() => {
-    return !!(
-      userData.insurance ||
-      userData.age ||
-      userData.diagnosis ||
-      userData.therapy
-    );
-  });
+  // Delegate all methods to store
+  // All complex logic is now in the store, these are just pass-through methods
 
   /**
    * Build query parameters object from active filters
-   * Used for API requests
+   * Delegates to filterStore.buildFilterParams
    */
   function buildFilterParams() {
-    const params: Record<string, string> = {};
-
-    // Insurance filters
-    if (filterOptions.acceptsInsurance) {
-      params.insurance = 'insurance';
-    } else if (filterOptions.acceptsRegionalCenter) {
-      params.insurance = 'regional center';
-    } else if (filterOptions.acceptsPrivatePay) {
-      params.insurance = 'private pay';
-    }
-
-    // User data filters (from onboarding)
-    if (filterOptions.matchesAge && userData.age) {
-      params.age = userData.age;
-    }
-
-    if (filterOptions.matchesDiagnosis && userData.diagnosis) {
-      params.diagnosis = userData.diagnosis;
-    }
-
-    if (filterOptions.matchesTherapy && userData.therapy) {
-      params.therapy = userData.therapy;
-    }
-
-    return params;
+    return store.buildFilterParams();
   }
 
   /**
    * Reset all filters to default state
+   * Delegates to filterStore.resetFilters
    */
   function resetFilters() {
-    filterOptions.acceptsInsurance = false;
-    filterOptions.acceptsRegionalCenter = false;
-    filterOptions.acceptsPrivatePay = false;
-    filterOptions.matchesAge = false;
-    filterOptions.matchesDiagnosis = false;
-    filterOptions.matchesTherapy = false;
-    filterOptions.showOnlyFavorites = false;
+    return store.resetFilters();
   }
 
   /**
-   * Reset user data (from onboarding)
+   * Reset user data
+   * Delegates to filterStore.resetUserData
    */
   function resetUserData() {
-    userData.insurance = undefined;
-    userData.age = undefined;
-    userData.diagnosis = undefined;
-    userData.therapy = undefined;
+    return store.resetUserData();
   }
 
   /**
    * Toggle a specific filter on/off
+   * Delegates to filterStore.toggleFilter
    */
   function toggleFilter(filterName: keyof FilterOptions) {
-    if (typeof filterOptions[filterName] === 'boolean') {
-      filterOptions[filterName] = !filterOptions[filterName];
-
-      // Handle mutual exclusivity for insurance filters
-      if (filterName === 'acceptsInsurance' && filterOptions[filterName]) {
-        filterOptions.acceptsRegionalCenter = false;
-        filterOptions.acceptsPrivatePay = false;
-      } else if (filterName === 'acceptsRegionalCenter' && filterOptions[filterName]) {
-        filterOptions.acceptsInsurance = false;
-        filterOptions.acceptsPrivatePay = false;
-      } else if (filterName === 'acceptsPrivatePay' && filterOptions[filterName]) {
-        filterOptions.acceptsInsurance = false;
-        filterOptions.acceptsRegionalCenter = false;
-      }
-    }
+    return store.toggleFilter(filterName);
   }
 
   /**
-   * Set filter from external source (e.g., onboarding flow)
+   * Set filter from external source
+   * Delegates to filterStore.setFilter
    */
   function setFilter(filterName: keyof FilterOptions, value: boolean) {
-    if (typeof filterOptions[filterName] === 'boolean') {
-      filterOptions[filterName] = value;
-    }
+    return store.setFilter(filterName, value);
   }
 
   /**
    * Update user data from onboarding
+   * Delegates to filterStore.updateUserData
    */
   function updateUserData(data: Partial<UserData>) {
-    Object.assign(userData, data);
+    return store.updateUserData(data);
   }
 
   /**
    * Load filter options from API or config
+   * Delegates to filterStore.setAvailableOptions
    */
   function setAvailableOptions(options: {
     therapyTypes?: string[];
@@ -184,51 +95,27 @@ export function useFilterState() {
     diagnoses?: string[];
     insuranceTypes?: string[];
   }) {
-    if (options.therapyTypes) {
-      availableTherapyTypes.value = options.therapyTypes;
-    }
-    if (options.ageGroups) {
-      availableAgeGroups.value = options.ageGroups;
-    }
-    if (options.diagnoses) {
-      availableDiagnoses.value = options.diagnoses;
-    }
-    if (options.insuranceTypes) {
-      availableInsuranceTypes.value = options.insuranceTypes;
-    }
+    return store.setAvailableOptions(options);
   }
 
   /**
    * Apply filters from onboarding data
-   * Automatically enables relevant filters based on user data
+   * Delegates to filterStore.applyOnboardingFilters
    */
   function applyOnboardingFilters() {
-    if (userData.insurance) {
-      const insuranceLower = userData.insurance.toLowerCase();
-      if (insuranceLower.includes('regional center')) {
-        filterOptions.acceptsRegionalCenter = true;
-      } else if (insuranceLower.includes('private')) {
-        filterOptions.acceptsPrivatePay = true;
-      } else {
-        filterOptions.acceptsInsurance = true;
-      }
-    }
+    return store.applyOnboardingFilters();
+  }
 
-    if (userData.age) {
-      filterOptions.matchesAge = true;
-    }
-
-    if (userData.diagnosis) {
-      filterOptions.matchesDiagnosis = true;
-    }
-
-    if (userData.therapy) {
-      filterOptions.matchesTherapy = true;
-    }
+  /**
+   * Clear all filters and user data
+   * Delegates to filterStore.clearAll
+   */
+  function clearAll() {
+    return store.clearAll();
   }
 
   return {
-    // State
+    // State (as computed from store)
     filterOptions,
     userData,
     availableTherapyTypes,
@@ -240,8 +127,9 @@ export function useFilterState() {
     hasActiveFilters,
     activeFilterCount,
     hasUserData,
+    filterParams,
 
-    // Methods
+    // Methods (delegated to store)
     buildFilterParams,
     resetFilters,
     resetUserData,
@@ -249,6 +137,7 @@ export function useFilterState() {
     setFilter,
     updateUserData,
     setAvailableOptions,
-    applyOnboardingFilters
+    applyOnboardingFilters,
+    clearAll
   };
 }

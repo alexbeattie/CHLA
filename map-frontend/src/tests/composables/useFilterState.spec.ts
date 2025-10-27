@@ -1,33 +1,37 @@
 /**
  * Tests for useFilterState composable
+ * Week 3: Updated to work with Pinia store-backed composables
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import { setActivePinia, createPinia } from 'pinia';
 import { useFilterState } from '@/composables/useFilterState';
 
 describe('useFilterState', () => {
   let composable: ReturnType<typeof useFilterState>;
 
   beforeEach(() => {
+    // Create fresh Pinia instance for each test
+    setActivePinia(createPinia());
     composable = useFilterState();
   });
 
   describe('Initialization', () => {
     it('should initialize with all filters disabled', () => {
-      expect(composable.filterOptions.acceptsInsurance).toBe(false);
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(false);
-      expect(composable.filterOptions.acceptsPrivatePay).toBe(false);
-      expect(composable.filterOptions.matchesAge).toBe(false);
-      expect(composable.filterOptions.matchesDiagnosis).toBe(false);
-      expect(composable.filterOptions.matchesTherapy).toBe(false);
-      expect(composable.filterOptions.showOnlyFavorites).toBe(false);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(false);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(false);
+      expect(composable.filterOptions.value.acceptsPrivatePay).toBe(false);
+      expect(composable.filterOptions.value.matchesAge).toBe(false);
+      expect(composable.filterOptions.value.matchesDiagnosis).toBe(false);
+      expect(composable.filterOptions.value.matchesTherapy).toBe(false);
+      expect(composable.filterOptions.value.showOnlyFavorites).toBe(false);
     });
 
     it('should initialize with empty user data', () => {
-      expect(composable.userData.insurance).toBeUndefined();
-      expect(composable.userData.age).toBeUndefined();
-      expect(composable.userData.diagnosis).toBeUndefined();
-      expect(composable.userData.therapy).toBeUndefined();
+      expect(composable.userData.value.insurance).toBeUndefined();
+      expect(composable.userData.value.age).toBeUndefined();
+      expect(composable.userData.value.diagnosis).toBeUndefined();
+      expect(composable.userData.value.therapy).toBeUndefined();
     });
 
     it('should initialize computed properties correctly', () => {
@@ -39,50 +43,50 @@ describe('useFilterState', () => {
 
   describe('toggleFilter', () => {
     it('should toggle a single filter on and off', () => {
-      expect(composable.filterOptions.acceptsInsurance).toBe(false);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(false);
 
       composable.toggleFilter('acceptsInsurance');
-      expect(composable.filterOptions.acceptsInsurance).toBe(true);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(true);
 
       composable.toggleFilter('acceptsInsurance');
-      expect(composable.filterOptions.acceptsInsurance).toBe(false);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(false);
     });
 
     it('should enforce mutual exclusivity for insurance filters', () => {
       // Enable regional center
       composable.toggleFilter('acceptsRegionalCenter');
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(true);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(true);
 
       // Enable insurance (should disable regional center)
       composable.toggleFilter('acceptsInsurance');
-      expect(composable.filterOptions.acceptsInsurance).toBe(true);
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(false);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(true);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(false);
 
       // Enable private pay (should disable insurance)
       composable.toggleFilter('acceptsPrivatePay');
-      expect(composable.filterOptions.acceptsPrivatePay).toBe(true);
-      expect(composable.filterOptions.acceptsInsurance).toBe(false);
+      expect(composable.filterOptions.value.acceptsPrivatePay).toBe(true);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(false);
     });
 
     it('should not affect mutual exclusivity when disabling', () => {
       composable.toggleFilter('acceptsInsurance');
-      expect(composable.filterOptions.acceptsInsurance).toBe(true);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(true);
 
       // Disable insurance
       composable.toggleFilter('acceptsInsurance');
-      expect(composable.filterOptions.acceptsInsurance).toBe(false);
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(false);
-      expect(composable.filterOptions.acceptsPrivatePay).toBe(false);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(false);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(false);
+      expect(composable.filterOptions.value.acceptsPrivatePay).toBe(false);
     });
   });
 
   describe('setFilter', () => {
     it('should set filter to specific value', () => {
       composable.setFilter('matchesAge', true);
-      expect(composable.filterOptions.matchesAge).toBe(true);
+      expect(composable.filterOptions.value.matchesAge).toBe(true);
 
       composable.setFilter('matchesAge', false);
-      expect(composable.filterOptions.matchesAge).toBe(false);
+      expect(composable.filterOptions.value.matchesAge).toBe(false);
     });
 
     it('should not enforce mutual exclusivity when using setFilter', () => {
@@ -91,8 +95,8 @@ describe('useFilterState', () => {
       composable.setFilter('acceptsInsurance', true);
       composable.setFilter('acceptsRegionalCenter', true);
 
-      expect(composable.filterOptions.acceptsInsurance).toBe(true);
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(true);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(true);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(true);
     });
   });
 
@@ -108,9 +112,9 @@ describe('useFilterState', () => {
       // Reset
       composable.resetFilters();
 
-      expect(composable.filterOptions.acceptsInsurance).toBe(false);
-      expect(composable.filterOptions.matchesAge).toBe(false);
-      expect(composable.filterOptions.showOnlyFavorites).toBe(false);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(false);
+      expect(composable.filterOptions.value.matchesAge).toBe(false);
+      expect(composable.filterOptions.value.showOnlyFavorites).toBe(false);
       expect(composable.activeFilterCount.value).toBe(0);
     });
   });
@@ -123,20 +127,20 @@ describe('useFilterState', () => {
         diagnosis: 'Autism'
       });
 
-      expect(composable.userData.insurance).toBe('Regional Center');
-      expect(composable.userData.age).toBe('3-5');
-      expect(composable.userData.diagnosis).toBe('Autism');
+      expect(composable.userData.value.insurance).toBe('Regional Center');
+      expect(composable.userData.value.age).toBe('3-5');
+      expect(composable.userData.value.diagnosis).toBe('Autism');
       expect(composable.hasUserData.value).toBe(true);
     });
 
     it('should partially update user data', () => {
       composable.updateUserData({ insurance: 'Regional Center' });
-      expect(composable.userData.insurance).toBe('Regional Center');
-      expect(composable.userData.age).toBeUndefined();
+      expect(composable.userData.value.insurance).toBe('Regional Center');
+      expect(composable.userData.value.age).toBeUndefined();
 
       composable.updateUserData({ age: '6-12' });
-      expect(composable.userData.insurance).toBe('Regional Center');
-      expect(composable.userData.age).toBe('6-12');
+      expect(composable.userData.value.insurance).toBe('Regional Center');
+      expect(composable.userData.value.age).toBe('6-12');
     });
 
     it('should reset user data', () => {
@@ -151,10 +155,10 @@ describe('useFilterState', () => {
 
       composable.resetUserData();
 
-      expect(composable.userData.insurance).toBeUndefined();
-      expect(composable.userData.age).toBeUndefined();
-      expect(composable.userData.diagnosis).toBeUndefined();
-      expect(composable.userData.therapy).toBeUndefined();
+      expect(composable.userData.value.insurance).toBeUndefined();
+      expect(composable.userData.value.age).toBeUndefined();
+      expect(composable.userData.value.diagnosis).toBeUndefined();
+      expect(composable.userData.value.therapy).toBeUndefined();
       expect(composable.hasUserData.value).toBe(false);
     });
   });
@@ -242,46 +246,46 @@ describe('useFilterState', () => {
 
       composable.applyOnboardingFilters();
 
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(true);
-      expect(composable.filterOptions.matchesAge).toBe(true);
-      expect(composable.filterOptions.matchesDiagnosis).toBe(true);
-      expect(composable.filterOptions.matchesTherapy).toBe(true);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(true);
+      expect(composable.filterOptions.value.matchesAge).toBe(true);
+      expect(composable.filterOptions.value.matchesDiagnosis).toBe(true);
+      expect(composable.filterOptions.value.matchesTherapy).toBe(true);
     });
 
     it('should detect regional center insurance', () => {
       composable.updateUserData({ insurance: 'regional center' });
       composable.applyOnboardingFilters();
 
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(true);
-      expect(composable.filterOptions.acceptsInsurance).toBe(false);
-      expect(composable.filterOptions.acceptsPrivatePay).toBe(false);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(true);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(false);
+      expect(composable.filterOptions.value.acceptsPrivatePay).toBe(false);
     });
 
     it('should detect private pay insurance', () => {
       composable.updateUserData({ insurance: 'private pay' });
       composable.applyOnboardingFilters();
 
-      expect(composable.filterOptions.acceptsPrivatePay).toBe(true);
-      expect(composable.filterOptions.acceptsInsurance).toBe(false);
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(false);
+      expect(composable.filterOptions.value.acceptsPrivatePay).toBe(true);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(false);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(false);
     });
 
     it('should detect general insurance', () => {
       composable.updateUserData({ insurance: 'Blue Cross' });
       composable.applyOnboardingFilters();
 
-      expect(composable.filterOptions.acceptsInsurance).toBe(true);
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(false);
-      expect(composable.filterOptions.acceptsPrivatePay).toBe(false);
+      expect(composable.filterOptions.value.acceptsInsurance).toBe(true);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(false);
+      expect(composable.filterOptions.value.acceptsPrivatePay).toBe(false);
     });
 
     it('should not enable filters for missing user data', () => {
       composable.updateUserData({ insurance: 'Regional Center' });
       composable.applyOnboardingFilters();
 
-      expect(composable.filterOptions.acceptsRegionalCenter).toBe(true);
-      expect(composable.filterOptions.matchesAge).toBe(false);
-      expect(composable.filterOptions.matchesDiagnosis).toBe(false);
+      expect(composable.filterOptions.value.acceptsRegionalCenter).toBe(true);
+      expect(composable.filterOptions.value.matchesAge).toBe(false);
+      expect(composable.filterOptions.value.matchesDiagnosis).toBe(false);
     });
   });
 

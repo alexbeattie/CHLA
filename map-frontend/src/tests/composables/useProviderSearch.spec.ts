@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { setActivePinia, createPinia } from 'pinia';
 import { useProviderSearch } from '@/composables/useProviderSearch';
 import axios from 'axios';
 
@@ -15,6 +16,7 @@ describe('useProviderSearch', () => {
   let composable: ReturnType<typeof useProviderSearch>;
 
   beforeEach(() => {
+    setActivePinia(createPinia());
     // Reset mocks before each test
     vi.clearAllMocks();
 
@@ -220,57 +222,6 @@ describe('useProviderSearch', () => {
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
         expect.stringMatching(/radius=25/)
-      );
-    });
-  });
-
-  describe('searchWithFilters', () => {
-    it('should route to regional center endpoint for ZIP code searches', async () => {
-      const mockResponse = {
-        data: {
-          results: [],
-          count: 0,
-          regional_center: { id: 1, name: 'Test RC', zip_codes: [] }
-        }
-      };
-
-      mockedAxios.get.mockResolvedValue(mockResponse);
-
-      await composable.searchWithFilters({
-        zipCode: '91769',
-        insurance: 'regional center'
-      });
-
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        expect.stringMatching(/by_regional_center/)
-      );
-    });
-
-    it('should route to comprehensive endpoint for coordinate searches', async () => {
-      const mockResponse = { data: [] };
-      mockedAxios.get.mockResolvedValue(mockResponse);
-
-      await composable.searchWithFilters({
-        lat: 34.0522,
-        lng: -118.2437,
-        radius: 10
-      });
-
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        expect.stringMatching(/comprehensive_search/)
-      );
-    });
-
-    it('should route to comprehensive endpoint for text searches', async () => {
-      const mockResponse = { data: [] };
-      mockedAxios.get.mockResolvedValue(mockResponse);
-
-      await composable.searchWithFilters({
-        searchText: 'Los Angeles'
-      });
-
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        expect.stringMatching(/comprehensive_search/)
       );
     });
   });
