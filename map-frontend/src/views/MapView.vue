@@ -2151,6 +2151,7 @@ export default {
 
     handleRegionalCenterMatched(center) {
       this.matchedRegionalCenter = center;
+      this.userRegionalCenter = center; // Also set this for the UI
 
       // Update polygon highlighting to emphasize user's RC
       this.$nextTick(() => {
@@ -5359,6 +5360,17 @@ export default {
       // Use filtered providers from onboarding instead of fetching all providers
       if (data.filteredProviders && data.filteredProviders.length > 0) {
         console.log("🎉 Using filtered providers from onboarding:", data.filteredProviders.length);
+
+        // Update providerStore for new component architecture
+        if (this.providerStore) {
+          this.providerStore.providers = data.filteredProviders;
+          if (data.matchedRegionalCenter) {
+            this.providerStore.regionalCenterInfo = data.matchedRegionalCenter;
+          }
+          console.log("🎉 Updated providerStore with", data.filteredProviders.length, "providers");
+        }
+
+        // Keep old system for compatibility during transition
         this.providers = data.filteredProviders;
         this.updateMarkers(); // Update markers with filtered providers
       }
@@ -5366,6 +5378,7 @@ export default {
       // Set regional center if provided
       if (data.matchedRegionalCenter) {
         this.matchedRegionalCenter = data.matchedRegionalCenter;
+        this.userRegionalCenter = data.matchedRegionalCenter; // Also set for UI
         console.log("🎉 Set regional center:", data.matchedRegionalCenter);
       } else {
         // Find regional center for user's ZIP code
