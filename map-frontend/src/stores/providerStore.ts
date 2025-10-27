@@ -61,8 +61,8 @@ export const useProviderStore = defineStore('provider', () => {
   const searchCoordinates = ref<{ lat: number; lng: number } | null>(null);
   const regionalCenterInfo = ref<RegionalCenterInfo | null>(null);
 
-  // API base URL
-  const apiBaseUrl = ref(import.meta.env.VITE_API_URL || 'http://localhost:8000');
+  // API base URL - use VITE_API_BASE_URL for consistency
+  const apiBaseUrl = ref(import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000');
 
   // ==================== GETTERS ====================
 
