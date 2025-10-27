@@ -2151,6 +2151,12 @@ export default {
 
     handleRegionalCenterMatched(center) {
       this.matchedRegionalCenter = center;
+
+      // Update polygon highlighting to emphasize user's RC
+      this.$nextTick(() => {
+        this.updateRegionalCenterHighlighting();
+      });
+
       // Center map softly on the matched center
       if (
         center &&
@@ -3981,6 +3987,17 @@ export default {
           "#9e9e9e",
         ];
 
+        // Build opacity expression based on user's RC
+        const userRCName = this.userRegionalCenterName;
+        const opacityExpression = userRCName
+          ? [
+              "case",
+              ["==", ["get", "REGIONALCENTER"], userRCName],
+              0.8, // Full opacity for user's RC
+              0.3, // Dimmed opacity for other RCs
+            ]
+          : 0.8; // Default opacity if no user RC
+
         // Fill layer
         this.map.addLayer({
           id: "rc-static-fill",
@@ -3988,7 +4005,7 @@ export default {
           source: "rc",
           paint: {
             "fill-color": colorMatch,
-            "fill-opacity": 0.8,
+            "fill-opacity": opacityExpression,
             "fill-outline-color": "#ffffff",
           },
         });
@@ -4123,6 +4140,36 @@ export default {
         console.log("Static Regional Centers overlay added");
       } catch (error) {
         console.error("Error adding static LA Regional Centers overlay:", error);
+      }
+    },
+
+    /**
+     * Update Regional Center polygon highlighting based on user's RC
+     * Highlights user's RC at full opacity, dims others
+     */
+    updateRegionalCenterHighlighting() {
+      if (!this.map || !this.map.getLayer("rc-static-fill")) {
+        console.log("[MapView] Cannot update RC highlighting - layer not ready");
+        return;
+      }
+
+      const userRCName = this.userRegionalCenterName;
+      console.log("[MapView] Updating RC highlighting for:", userRCName);
+
+      const opacityExpression = userRCName
+        ? [
+            "case",
+            ["==", ["get", "REGIONALCENTER"], userRCName],
+            0.8, // Full opacity for user's RC
+            0.3, // Dimmed opacity for other RCs
+          ]
+        : 0.8; // Default opacity if no user RC
+
+      try {
+        this.map.setPaintProperty("rc-static-fill", "fill-opacity", opacityExpression);
+        console.log("[MapView] RC highlighting updated successfully");
+      } catch (error) {
+        console.error("[MapView] Error updating RC highlighting:", error);
       }
     },
 
