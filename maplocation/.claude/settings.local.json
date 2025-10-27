@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/alexbeattie/Developer/CHLA/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -49,51 +49,97 @@ A comprehensive healthcare provider mapping application for Children's Hospital 
 
 ### Local Development Setup
 
-1. **Clone and setup**:
+1. **Backend Setup**:
 
    ```bash
-   git clone <repository-url>
-   cd CHLAProj
-   ./setup-local.sh
-   ```
+   # Navigate to backend directory
+   cd maplocation
 
-2. **Start backend**:
+   # Create virtual environment
+   python3.12 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-   ```bash
-   ./start-backend.sh
+   # Install dependencies
+   pip install -r requirements.txt
+
+   # Set up environment variables (see maplocation/README.md)
+   export DB_NAME="your_db"
+   export DB_USER="your_user"
+   export DB_PASSWORD="your_password"
+   # ... other variables
+
+   # Run migrations
+   python manage.py migrate
+
+   # Create superuser
+   python manage.py createsuperuser
+
+   # Start backend
+   python manage.py runserver
    ```
 
    Backend available at: <http://127.0.0.1:8000>
 
-3. **Start frontend** (in new terminal):
+2. **Frontend Setup** (in new terminal):
 
    ```bash
-   ./start-frontend.sh
+   # Navigate to frontend directory
+   cd map-frontend
+
+   # Install dependencies
+   npm install
+
+   # Start development server
+   npm run dev
    ```
 
    Frontend available at: <http://localhost:3000>
 
+**For detailed setup instructions, see [Backend Getting Started Guide](maplocation/README.md)**
+
 ## 📚 Documentation
 
-- **[Deployment Guide](DEPLOYMENT_GUIDE.md)**: Canonical deployment + CI/CD + DB sync. Use this only.
+### Quick Links
+
+- **[Documentation Index](docs/README.md)** - Complete documentation directory
+- **[Getting Started - Backend](maplocation/README.md)** - Set up Django backend
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deploy to production
+- **[GitHub Actions/CI/CD](docs/GITHUB_ACTIONS.md)** - Automatic deployment setup
+- **[Database Sync](docs/DATABASE_SYNC.md)** - Manage migrations and data
+- **[Stack Documentation](STACK_DOCUMENTATION.md)** - Complete architecture reference
+
+### By Role
+
+- **New Developers**: Start with [Getting Started](maplocation/README.md) and [Stack Docs](STACK_DOCUMENTATION.md)
+- **Developers**: Use [Deployment](docs/DEPLOYMENT.md) and [Database Sync](docs/DATABASE_SYNC.md)
+- **DevOps**: See [GitHub Actions](docs/GITHUB_ACTIONS.md) and [Deployment](docs/DEPLOYMENT.md)
+
+**All documentation organized in [/docs](docs/)** - Old/outdated docs moved to [/docs/archive](docs/archive/)
 
 ## 🔧 Development
 
 ### Project Structure
 
 ```
-CHLAProj/
-├── maplocation/           # Django backends
+CHLA/
+├── maplocation/           # Django backend
 │   ├── manage.py
 │   ├── requirements.txt
 │   ├── Procfile
-│   └── locations/         # Main Django app
+│   ├── locations/         # Main Django app (providers, regional centers)
+│   ├── users/            # User authentication app
+│   └── README.md         # Backend getting started guide
 ├── map-frontend/          # Vue.js frontend
 │   ├── src/
 │   ├── package.json
 │   └── vite.config.js
+├── docs/                  # Organized documentation
+│   ├── README.md         # Documentation index
+│   ├── DEPLOYMENT.md
+│   ├── GITHUB_ACTIONS.md
+│   └── DATABASE_SYNC.md
 ├── .github/workflows/     # GitHub Actions CI/CD
-└── scripts/              # Deployment scripts
+└── STACK_DOCUMENTATION.md # Architecture reference
 ```
 
 ### Key Technologies
@@ -215,7 +261,7 @@ npm run test
    - Check AWS credentials and permissions
    - Review GitHub Actions logs
 
-See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for detailed troubleshooting.
+See [Deployment Guide](docs/DEPLOYMENT.md) and [GitHub Actions Guide](docs/GITHUB_ACTIONS.md) for detailed troubleshooting.
 
 ## 📊 Performance
 

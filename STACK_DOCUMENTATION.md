@@ -54,7 +54,7 @@
 ### Backend Setup
 ```bash
 cd maplocation
-source ../.venv/bin/activate  # Activate Python virtual environment
+source venv/bin/activate  # Activate Python virtual environment
 pip install -r requirements.txt
 python3 manage.py runserver 127.0.0.1:8000
 ```

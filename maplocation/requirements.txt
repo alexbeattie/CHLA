@@ -10,3 +10,4 @@ psycopg2-binary==2.9.9; python_version < "3.13"
 psycopg[binary]==3.2.9; python_version >= "3.13"
 whitenoise>=6,<7
 requests==2.32.3
+openpyxl==3.1.5  # Excel file support for data imports
