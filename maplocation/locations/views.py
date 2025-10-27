@@ -1252,6 +1252,110 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=False, methods=["get"])
+    def by_regional_center(self, request):
+        """
+        Filter providers by regional center ZIP codes.
+        Query parameters:
+        - regional_center_id: ID of the regional center
+        - zip_code: ZIP code to look up regional center (alternative to regional_center_id)
+        - Additional filters: insurance, age, diagnosis, therapy
+        """
+        try:
+            from locations.models import RegionalCenter
+            import re
+
+            # Get regional center either by ID or ZIP lookup
+            regional_center_id = request.query_params.get("regional_center_id")
+            zip_code = request.query_params.get("zip_code")
+
+            if regional_center_id:
+                regional_center = RegionalCenter.objects.get(id=regional_center_id)
+            elif zip_code:
+                regional_center = RegionalCenter.find_by_zip_code(zip_code)
+                if not regional_center:
+                    return Response(
+                        {"error": f"No regional center found for ZIP {zip_code}"},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+            else:
+                return Response(
+                    {"error": "Either regional_center_id or zip_code is required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if not regional_center.zip_codes:
+                return Response(
+                    {"error": "Regional center has no ZIP codes defined"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Get all providers
+            providers = ProviderV2.objects.all()
+
+            # Filter providers whose address contains one of the regional center's ZIP codes
+            rc_zip_set = set(regional_center.zip_codes)
+            filtered_providers = []
+
+            for provider in providers:
+                # Extract ZIP code from address field
+                address_str = provider.address if isinstance(provider.address, str) else str(provider.address)
+
+                # Look for 5-digit ZIP codes in the address
+                zip_matches = re.findall(r'\b\d{5}\b', address_str)
+
+                # Check if any ZIP matches the regional center's ZIPs
+                if any(zip_code in rc_zip_set for zip_code in zip_matches):
+                    filtered_providers.append(provider.id)
+
+            # Filter queryset to only matching providers
+            providers = ProviderV2.objects.filter(id__in=filtered_providers)
+
+            # Apply additional filters
+            insurance = request.query_params.get("insurance")
+            if insurance:
+                if insurance.lower() == "regional center":
+                    providers = providers.filter(insurance_accepted__icontains="regional center")
+                elif insurance.lower() == "insurance":
+                    providers = providers.filter(insurance_accepted__isnull=False).exclude(insurance_accepted="")
+                elif insurance.lower() == "private pay":
+                    providers = providers.filter(insurance_accepted__icontains="private")
+
+            age = request.query_params.get("age")
+            if age:
+                providers = providers.filter(age_groups__contains=[age])
+
+            diagnosis = request.query_params.get("diagnosis")
+            if diagnosis:
+                providers = providers.filter(diagnoses_treated__contains=[diagnosis])
+
+            therapy = request.query_params.get("therapy")
+            if therapy:
+                providers = providers.filter(therapy_types__contains=[therapy])
+
+            # Serialize and return
+            serializer = self.get_serializer(providers, many=True)
+
+            return Response({
+                "count": providers.count(),
+                "regional_center": {
+                    "id": regional_center.id,
+                    "name": regional_center.regional_center,
+                    "zip_codes": regional_center.zip_codes
+                },
+                "results": serializer.data
+            })
+
+        except RegionalCenter.DoesNotExist:
+            return Response(
+                {"error": "Regional center not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     @action(detail=True, methods=["get"])
     def regional_centers(self, request, pk=None):
         """Get regional centers associated with this provider"""
