@@ -885,16 +885,32 @@ export default {
             await this.fetchRegionalCenters();
           }
 
-          // Load initial providers using store
+          // Load initial providers based on user location
           if (this.providerStore && this.providerStore.providers.length === 0) {
-            // Load default LA County providers
-            console.log("[MapView] Loading default LA County providers...");
-            await this.providerStore.searchByLocation(
-              34.0522, // LA County center latitude
-              -118.2437, // LA County center longitude
-              50 // 50 mile radius
-            );
-            console.log(`[MapView] Loaded ${this.providerStore.providers.length} initial providers`);
+            console.log("[MapView] Loading initial providers...");
+
+            // Try to get user's location and ZIP code
+            try {
+              const userZipCode = await this.getUserZipCode();
+
+              if (userZipCode) {
+                // Load providers for user's ZIP code (uses Regional Center filtering)
+                console.log(`[MapView] Loading providers for ZIP: ${userZipCode}`);
+                await this.providerStore.searchByZipCode(userZipCode);
+                console.log(`[MapView] Loaded ${this.providerStore.providers.length} providers for user's ZIP code`);
+              } else {
+                // Fallback: Load nearby providers based on geolocation or LA County default
+                console.log("[MapView] No ZIP code, loading nearby providers...");
+                const lat = this.userLocation?.latitude || 34.0522;
+                const lng = this.userLocation?.longitude || -118.2437;
+                await this.providerStore.searchByLocation(lat, lng, 25);
+                console.log(`[MapView] Loaded ${this.providerStore.providers.length} nearby providers`);
+              }
+            } catch (error) {
+              console.error("[MapView] Error loading initial providers:", error);
+              // Fallback to LA County default
+              await this.providerStore.searchByLocation(34.0522, -118.2437, 25);
+            }
           }
 
           console.log("[MapView] Initialization complete with new components!");
@@ -1060,6 +1076,66 @@ export default {
         padding: 50,
         maxZoom: 12,
       });
+    },
+
+    /**
+     * Get user's ZIP code from browser geolocation
+     * Returns ZIP code string or null
+     */
+    async getUserZipCode() {
+      console.log("[MapView] Attempting to get user's ZIP code from geolocation...");
+
+      // Check if geolocation is available
+      if (!navigator.geolocation) {
+        console.warn("[MapView] Geolocation not supported");
+        return null;
+      }
+
+      try {
+        // Get user's position
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000, // 5 minutes
+          });
+        });
+
+        const { latitude, longitude } = position.coords;
+        console.log(`[MapView] Got geolocation: ${latitude}, ${longitude}`);
+
+        // Store user location
+        this.userLocation = {
+          latitude,
+          longitude,
+          accuracy: position.coords.accuracy,
+          detected: true,
+          error: null,
+        };
+
+        // Reverse geocode to get ZIP code
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${this.mapboxAccessToken}&types=postcode`
+        );
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+          const zipCode = data.features[0].text;
+          console.log(`[MapView] Found ZIP code: ${zipCode}`);
+
+          // Update user data
+          this.userData.address = data.features[0].place_name || zipCode;
+
+          return zipCode;
+        }
+
+        console.warn("[MapView] No ZIP code found in geocoding response");
+        return null;
+
+      } catch (error) {
+        console.warn("[MapView] Error getting user ZIP code:", error.message);
+        return null;
+      }
     },
 
     // ============================================
