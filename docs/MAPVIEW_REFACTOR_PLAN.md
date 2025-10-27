@@ -673,31 +673,31 @@ describe('useProviderSearch', () => {
 
 ## Migration Checklist
 
-### Week 1: Utils
-- [ ] Create `src/utils/map/` directory
-- [ ] Extract geocoding.ts
-- [ ] Extract coordinates.ts
-- [ ] Extract distance.ts
-- [ ] Extract formatters.ts
-- [ ] Write unit tests
-- [ ] Update MapView to import utils (but keep existing code)
+### Week 1: Utils ✅ COMPLETE
+- [x] Create `src/utils/map/` directory
+- [x] Extract geocoding.ts
+- [x] Extract coordinates.ts
+- [x] Extract distance.ts
+- [x] Extract formatters.ts
+- [x] Write unit tests (72 tests passing)
+- [x] Update MapView to import utils (but keep existing code)
 
-### Week 2: Composables
-- [ ] Create `src/composables/` directory
-- [ ] Create useMapState.ts
-- [ ] Create useProviderSearch.ts
-- [ ] Create useFilterState.ts
-- [ ] Create useRegionalCenter.ts
-- [ ] Write composable tests
-- [ ] Start using in MapView (hybrid approach)
+### Week 2: Composables ✅ COMPLETE
+- [x] Create `src/composables/` directory
+- [x] Create useMapState.ts
+- [x] Create useProviderSearch.ts
+- [x] Create useFilterState.ts
+- [x] Create useRegionalCenter.ts
+- [x] Write composable tests (88 tests passing)
+- [x] Start using in MapView (hybrid approach)
 
-### Week 3: Stores
-- [ ] Set up Pinia
-- [ ] Create providerStore.ts
-- [ ] Create mapStore.ts
-- [ ] Create filterStore.ts
-- [ ] Migrate state management
-- [ ] Test store integration
+### Week 3: Stores ✅ COMPLETE
+- [x] Set up Pinia
+- [x] Create providerStore.ts (311 lines)
+- [x] Create mapStore.ts (308 lines)
+- [x] Create filterStore.ts (269 lines)
+- [x] Migrate state management (composables delegate to stores)
+- [x] Test store integration (221 tests passing - 107 store + 114 composable)
 
 ### Week 4: Components
 - [ ] Create MapContainer.vue
