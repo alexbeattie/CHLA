@@ -20,6 +20,7 @@ router.register(r"service-models", views.ServiceDeliveryModelViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("docs/", views.api_documentation, name="api-docs"),
     path("california-counties/", views.california_counties, name="california-counties"),
     path("update-orange-county-zips/", update_orange_county_zips, name="update_orange_county_zips"),
 ]

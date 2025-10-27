@@ -545,6 +545,64 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
             "coordinates": [coordinates]
         }
 
+    @action(detail=False, methods=["get"])
+    def zip_code_analysis(self, request):
+        """
+        Analyze ZIP code coverage across all Regional Centers.
+        Returns statistics about ZIP code distribution and identifies potential gaps.
+        """
+        try:
+            # Get all LA County Regional Centers with ZIP codes
+            la_centers = RegionalCenter.objects.filter(is_la_regional_center=True)
+
+            analysis = {
+                "total_regional_centers": la_centers.count(),
+                "centers": [],
+                "total_unique_zips": 0,
+                "zip_distribution": {}
+            }
+
+            all_zips = set()
+
+            for center in la_centers:
+                zip_codes = center.zip_codes or []
+                all_zips.update(zip_codes)
+
+                center_info = {
+                    "name": center.regional_center,
+                    "id": center.id,
+                    "zip_count": len(zip_codes),
+                    "sample_zips": sorted(zip_codes)[:10] if zip_codes else []
+                }
+                analysis["centers"].append(center_info)
+
+            analysis["total_unique_zips"] = len(all_zips)
+
+            # Analyze ZIP code ranges
+            sorted_zips = sorted(all_zips)
+            analysis["zip_range"] = {
+                "min": sorted_zips[0] if sorted_zips else None,
+                "max": sorted_zips[-1] if sorted_zips else None
+            }
+
+            # Sample missing ZIPs (known problem areas)
+            known_problem_zips = ["91403", "91401", "91405", "91406", "91411", "91423", "91436"]
+            missing_zips = [z for z in known_problem_zips if z not in all_zips]
+
+            analysis["known_missing_zips"] = {
+                "count": len(missing_zips),
+                "examples": missing_zips,
+                "note": "These are known Sherman Oaks/Van Nuys area ZIPs that are missing"
+            }
+
+            return Response(analysis)
+
+        except Exception as e:
+            return Response(
+                {"error": "Failed to analyze ZIP codes", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 # Reference data ViewSets
 class FundingSourceViewSet(viewsets.ReadOnlyModelViewSet):
@@ -1481,3 +1539,195 @@ def california_counties(request):
             {"error": "Unexpected error", "message": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+@api_view(["GET"])
+def api_documentation(request):
+    """
+    Comprehensive API Documentation
+    Lists all available endpoints including @action routes that are not visible in the default API root.
+
+    Access this at: /api/docs/
+    """
+    base_url = request.build_absolute_uri('/api/')
+
+    docs = {
+        "message": "CHLA Provider Map - Complete API Reference",
+        "version": "2.0",
+        "base_url": base_url,
+
+        "core_endpoints": {
+            "regional_centers": f"{base_url}regional-centers/",
+            "providers": f"{base_url}providers/",
+            "providers_v2": f"{base_url}providers-v2/",
+            "providers_legacy": f"{base_url}providers-legacy/",
+            "funding_sources": f"{base_url}funding-sources/",
+            "insurance_carriers": f"{base_url}insurance-carriers/",
+            "service_models": f"{base_url}service-models/",
+        },
+
+        "broken_endpoints": {
+            "description": "These endpoints exist in the router but return 500 errors - they should be removed or fixed",
+            "endpoints": [
+                f"{base_url}categories/",
+                f"{base_url}locations/",
+                f"{base_url}images/",
+                f"{base_url}reviews/"
+            ]
+        },
+
+        "regional_center_actions": {
+            "description": "Extended Regional Center endpoints",
+            "endpoints": {
+                "service_area_boundaries": {
+                    "url": f"{base_url}regional-centers/service_area_boundaries/",
+                    "method": "GET",
+                    "description": "⭐ CRITICAL - Returns GeoJSON with all LA County Regional Centers including polygon geometries AND complete ZIP code arrays",
+                    "parameters": None,
+                    "example": f"{base_url}regional-centers/service_area_boundaries/"
+                },
+                "lookup_by_zip": {
+                    "url": f"{base_url}regional-centers/lookup_by_zip/",
+                    "method": "GET",
+                    "description": "Find Regional Center by ZIP code",
+                    "parameters": {"zip_code": "5-digit ZIP code (required)"},
+                    "example": f"{base_url}regional-centers/lookup_by_zip/?zip_code=90001"
+                },
+                "nearby": {
+                    "url": f"{base_url}regional-centers/nearby/",
+                    "method": "GET",
+                    "description": "Find Regional Centers near coordinates",
+                    "parameters": {
+                        "lat": "Latitude (required)",
+                        "lng": "Longitude (required)",
+                        "radius": "Search radius in miles (default: 25)",
+                        "limit": "Max results (default: 10)"
+                    },
+                    "example": f"{base_url}regional-centers/nearby/?lat=34.0522&lng=-118.2437&radius=25"
+                },
+                "by_location": {
+                    "url": f"{base_url}regional-centers/by_location/",
+                    "method": "GET",
+                    "description": "Find Regional Centers by address or ZIP (with geocoding)",
+                    "parameters": {
+                        "location": "Address or ZIP code (required)",
+                        "radius": "Search radius in miles (default: 25)",
+                        "limit": "Max results (default: 10)"
+                    },
+                    "example": f"{base_url}regional-centers/by_location/?location=Los+Angeles"
+                },
+                "zip_code_analysis": {
+                    "url": f"{base_url}regional-centers/zip_code_analysis/",
+                    "method": "GET",
+                    "description": "Analyze ZIP code coverage across all Regional Centers",
+                    "parameters": None,
+                    "example": f"{base_url}regional-centers/zip_code_analysis/"
+                }
+            }
+        },
+
+        "provider_actions": {
+            "description": "Extended Provider search endpoints",
+            "endpoints": {
+                "by_regional_center": {
+                    "url": f"{base_url}providers-v2/by_regional_center/",
+                    "method": "GET",
+                    "description": "Search providers by Regional Center ZIP code with filters",
+                    "parameters": {
+                        "zip_code": "5-digit ZIP code (required)",
+                        "insurance": "Insurance filter (optional)",
+                        "therapy": "Therapy type filter (optional)",
+                        "age": "Age group filter (optional)",
+                        "diagnosis": "Diagnosis filter (optional)"
+                    },
+                    "example": f"{base_url}providers-v2/by_regional_center/?zip_code=90001"
+                },
+                "comprehensive_search": {
+                    "url": f"{base_url}providers-v2/comprehensive_search/",
+                    "method": "GET",
+                    "description": "Comprehensive provider search with location and filters",
+                    "parameters": {
+                        "lat": "Latitude (optional, requires lng)",
+                        "lng": "Longitude (optional, requires lat)",
+                        "radius": "Search radius in miles (default: 25)",
+                        "q": "Text search query (optional)",
+                        "location": "Location string (optional)",
+                        "insurance": "Insurance filter (optional)",
+                        "therapy": "Therapy type filter (optional)",
+                        "age": "Age group filter (optional)",
+                        "diagnosis": "Diagnosis filter (optional)"
+                    },
+                    "example": f"{base_url}providers-v2/comprehensive_search/?lat=34.0522&lng=-118.2437&radius=25"
+                },
+                "nearby": {
+                    "url": f"{base_url}providers-v2/nearby/",
+                    "method": "GET",
+                    "description": "Find providers near coordinates",
+                    "parameters": {
+                        "lat": "Latitude (required)",
+                        "lng": "Longitude (required)",
+                        "radius": "Search radius in miles (default: 25)"
+                    },
+                    "example": f"{base_url}providers-v2/nearby/?lat=34.0522&lng=-118.2437"
+                },
+                "by_location": {
+                    "url": f"{base_url}providers-v2/by_location/",
+                    "method": "GET",
+                    "description": "Find providers by address or ZIP (with geocoding)",
+                    "parameters": {
+                        "location": "Address or ZIP code (required)",
+                        "radius": "Search radius in miles (default: 25)"
+                    },
+                    "example": f"{base_url}providers-v2/by_location/?location=90001"
+                }
+            }
+        },
+
+        "location_actions": {
+            "description": "Extended Location endpoints",
+            "endpoints": {
+                "nearby": {
+                    "url": f"{base_url}locations/nearby/",
+                    "method": "GET",
+                    "description": "Find locations near coordinates",
+                    "parameters": {
+                        "lat": "Latitude (required)",
+                        "lng": "Longitude (required)",
+                        "radius": "Search radius in kilometers (default: 5)"
+                    },
+                    "example": f"{base_url}locations/nearby/?lat=34.0522&lng=-118.2437&radius=10"
+                },
+                "by_category": {
+                    "url": f"{base_url}locations/by_category/",
+                    "method": "GET",
+                    "description": "Get locations by category ID",
+                    "parameters": {"category_id": "Category ID (required)"},
+                    "example": f"{base_url}locations/by_category/?category_id=1"
+                }
+            }
+        },
+
+        "utility_endpoints": {
+            "california_counties": {
+                "url": f"{base_url}california-counties/",
+                "method": "GET",
+                "description": "List all California counties",
+                "example": f"{base_url}california-counties/"
+            },
+            "api_docs": {
+                "url": f"{base_url}docs/",
+                "method": "GET",
+                "description": "This comprehensive API documentation endpoint",
+                "example": f"{base_url}docs/"
+            }
+        },
+
+        "notes": [
+            "⚠️ All endpoints support standard DRF features: pagination, search, filtering, ordering",
+            "⚠️ Use ?format=json to get JSON responses instead of browsable API HTML",
+            "⚠️ The service_area_boundaries endpoint is the primary source for Regional Center polygon data and ZIP codes",
+            "⚠️ Known issue: Some LA County ZIP codes (e.g., 914xx Sherman Oaks/Van Nuys area) are missing from Regional Center data"
+        ]
+    }
+
+    return Response(docs)
