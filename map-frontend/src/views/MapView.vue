@@ -517,6 +517,15 @@
         @close="handleDetailsClose"
         @get-directions="handleGetDirections"
       />
+
+      <!-- Regional Center Legend -->
+      <regional-center-legend
+        v-if="!showOnboarding"
+        :user-regional-center="userRegionalCenterName"
+        :start-collapsed="false"
+        class="rc-legend-overlay"
+        @rc-select="handleRCSelect"
+      />
     </div>
   </div>
 </template>
@@ -543,6 +552,7 @@ import ProviderList from "@/components/map/ProviderList.vue";
 import ProviderCard from "@/components/map/ProviderCard.vue";
 import ProviderDetails from "@/components/map/ProviderDetails.vue";
 import FilterPanel from "@/components/map/FilterPanel.vue";
+import RegionalCenterLegend from "@/components/map/RegionalCenterLegend.vue";
 
 // Week 5: Pinia stores for new components
 import { useProviderStore } from "@/stores/providerStore";
@@ -577,6 +587,7 @@ export default {
     ProviderCard,
     ProviderDetails,
     FilterPanel,
+    RegionalCenterLegend,
   },
 
   data() {
@@ -723,6 +734,19 @@ export default {
         (this.userData.address && this.userData.address !== "") ||
         (this.userData.diagnosis && this.userData.diagnosis !== "")
       );
+    },
+
+    // User's matched Regional Center name (from providerStore or userRegionalCenter)
+    userRegionalCenterName() {
+      // First try providerStore (from ZIP search)
+      if (this.providerStore && this.providerStore.regionalCenterInfo) {
+        return this.providerStore.regionalCenterInfo.name;
+      }
+      // Fallback to userRegionalCenter object
+      if (this.userRegionalCenter && this.userRegionalCenter.name) {
+        return this.userRegionalCenter.name;
+      }
+      return null;
     },
 
     // Count of locations within radius
@@ -1136,6 +1160,15 @@ export default {
         console.warn("[MapView] Error getting user ZIP code:", error.message);
         return null;
       }
+    },
+
+    /**
+     * Handle Regional Center selection from legend
+     */
+    handleRCSelect(rc) {
+      console.log("[MapView] Regional Center selected from legend:", rc.name);
+      // Could zoom to that RC's bounds, highlight it, etc.
+      // For now, just log it
     },
 
     // ============================================
@@ -6605,6 +6638,22 @@ export default {
 
 .bg-primary {
   background: #004877 !important;
+}
+
+/* Regional Center Legend Overlay */
+.rc-legend-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .rc-legend-overlay {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+  }
 }
 
 /* Reset Button */
