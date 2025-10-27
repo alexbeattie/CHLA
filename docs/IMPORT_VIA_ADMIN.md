@@ -1,6 +1,21 @@
-# Import Providers via Django Admin (One-Click Solution)
+# Import Providers via Django Admin
 
-## Quick Steps
+## Automatic Import (Default)
+
+**Good News!** Provider imports now happen automatically on every deployment via `.ebextensions` configuration.
+
+When you push to `main`, the deployment will automatically:
+1. ✅ Populate regional center ZIP codes (San Gabriel, Pasadena/Eastern LA)
+2. ✅ Import Pasadena providers (39 providers)
+3. ✅ Import San Gabriel/Pomona providers (39 providers)
+
+**Total: 78 providers imported automatically!**
+
+---
+
+## Manual Import (If Needed)
+
+If automatic import fails or you need to re-import:
 
 ### 1. Wait for Deployment (~15-20 minutes)
 
@@ -24,7 +39,7 @@ Click on **"Providers V2"** in the admin sidebar.
 
 ---
 
-### 4. Import Pasadena Providers
+### 4. Import Pasadena Providers (Manual)
 
 1. Select **any one provider** from the list (just check any checkbox - the selection doesn't matter, this is just how Django admin actions work)
 2. From the **"Action"** dropdown at the top, select:
@@ -173,14 +188,38 @@ You can now edit any provider directly in the admin:
 ### Verify in Frontend
 
 Visit https://kinddhelp.com and test:
+
+#### **Test ZIP Codes**
 - **Pasadena ZIP codes**: 91101, 91103, 91104, 91105, 91106, 91107
 - **Pomona ZIP codes**: 91766, 91767, 91768, 91769
 - **San Gabriel ZIP codes**: 91775, 91776, 91778
 
+#### **What You Should See**
+
+When you search any of these ZIP codes, the map should display:
+
+1. **Regional Center Boundary** (polygon overlay)
+   - Pomona ZIPs → San Gabriel/Pomona Regional Center boundary
+   - Pasadena ZIPs → Eastern Los Angeles Regional Center boundary
+   - San Gabriel ZIPs → San Gabriel/Pomona Regional Center boundary
+
+2. **Provider Markers** within 25-mile radius
+   - All providers imported from the Excel files
+   - Additional providers from the original 221 in database
+   - Markers are clickable with provider details
+
+3. **Working Filters**
+   - Regional Center funding filter works (text-based search)
+   - Therapy type filters work
+   - Insurance filters work
+
+#### **Provider Data Quality**
+
 All 78 imported providers will have:
-- ✅ `accepts_regional_center = True` (they'll appear when filtering by RC)
+- ✅ `insurance_accepted` contains "Regional Center" text (required for filtering)
 - ✅ Geocoded addresses with map markers
-- ✅ Parsed therapy types and insurance information
+- ✅ Parsed therapy types from Services column
+- ✅ Parsed insurance information
 
 ---
 
@@ -194,3 +233,85 @@ All 78 imported providers will have:
 6. 🎉 Done! 78 new providers now in production
 
 **Total time: ~2 minutes of actual work once deployment is done**
+
+---
+
+## Troubleshooting ZIP Code Searches
+
+### No Regional Center Boundary Shows
+
+**Problem:** Searching a ZIP code doesn't show the regional center boundary polygon.
+
+**Possible Causes:**
+1. **ZIP not assigned to regional center** - Check if the ZIP code is in the regional center's `zip_codes` field
+2. **Regional center has no geometry** - Some RCs don't have `service_area` geometry defined
+
+**Solution:**
+- For San Gabriel/Pomona: Run `python manage.py populate_san_gabriel_zips`
+- For Pasadena/Eastern LA: Run `python manage.py populate_pasadena_zips`
+- These run automatically on deployment, but can be run manually if needed
+
+### No Providers Show on Map
+
+**Problem:** Searching a ZIP code shows the boundary but no provider markers.
+
+**Possible Causes:**
+1. **No providers in that area** - Check provider count in admin
+2. **Providers outside CA bounds** - Coordinate validation skips providers outside 32-42°N, -125--114°W
+3. **Providers lack coordinates** - Some providers may not have been geocoded
+
+**Solution:**
+- Check total provider count: `curl "https://api.kinddhelp.com/api/providers-v2/" | grep count`
+- Search broader radius (default is 25 miles)
+- Verify providers have valid coordinates in admin
+
+### Regional Center Filter Doesn't Work
+
+**Problem:** Toggling "Regional Center" filter doesn't show providers.
+
+**Root Cause:** The filter is TEXT-BASED, not boolean-based. It searches for "regional center" text in the `insurance_accepted` field.
+
+**Solution:**
+1. Check that providers have "Regional Center" in their `insurance_accepted` field
+2. Run imports with latest code (commit 92a4842 or later) which adds "Regional Center" text automatically
+3. For existing providers, manually add "Regional Center" to the insurance_accepted field
+
+### Providers in Wrong Location
+
+**Problem:** Provider markers appear in the wrong place on the map.
+
+**Possible Causes:**
+1. **Geocoding error** - Address was misinterpreted by geocoding service
+2. **Bad address data** - Address in Excel file is incomplete or incorrect
+
+**Solution:**
+1. Edit provider in admin
+2. Verify address is correct
+3. Update latitude/longitude manually or clear them to trigger re-geocoding
+4. Save and verify on map
+
+---
+
+## Technical Notes
+
+### How ZIP Code Search Works
+
+1. **User enters ZIP** → Frontend geocodes to lat/lng
+2. **Regional Center Lookup** → Backend finds RC by ZIP using `zip_codes` JSONField
+3. **Provider Query** → Backend finds all providers within radius using Haversine distance
+4. **Filtering** → Sequential filters applied (text search, insurance, specialization, age groups, location)
+5. **Display** → Frontend creates markers for providers with valid coordinates within CA bounds
+
+### Known Limitations
+
+1. **Coordinate Validation is Strict** - Providers outside CA bounds (32-42°N, -125--114°W) are silently skipped
+2. **Text-Based Insurance Filtering** - Uses `insurance_accepted` text field, not boolean `accepts_regional_center`
+3. **Sequential Filter Pipeline** - Filters run in order, earlier filters reduce set for later filters
+4. **No Service Area Polygon Filtering** - Providers shown if within radius, regardless of RC service area boundaries
+
+### Future Improvements Needed
+
+See `/Users/alexbeattie/Developer/CHLA/docs/TECHNICAL_DEBT.md` for:
+- Coordinate validation improvements
+- Filter optimization and query performance
+- MapView.vue refactoring (currently 6000+ lines)
