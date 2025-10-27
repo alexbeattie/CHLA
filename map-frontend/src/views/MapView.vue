@@ -1838,30 +1838,8 @@ export default {
     },
     // Simple geocoder using Nominatim (frontend) to make the search box reliable
     async geocodeTextToCoords(text) {
-      try {
-        if (!text || !text.trim()) return null;
-        // Bias searches to California (or current map center) to avoid Westlake, TX, etc.
-        const inCA = (lat, lng) =>
-          lat >= 32.0 && lat <= 42.5 && lng >= -125.0 && lng <= -114.0;
-        let q = text.trim();
-        if (
-          !/\bCA\b|California/i.test(q) &&
-          inCA(this.userLocation.latitude || 0, this.userLocation.longitude || 0)
-        ) {
-          q = `${q}, California`;
-        }
-        const viewbox = "-124.5,42.5,-114.0,32.0"; // lonW,latN,lonE,latS
-        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&bounded=1&viewbox=${viewbox}&q=${encodeURIComponent(
-          q
-        )}`;
-        const res = await fetch(url, { headers: { Accept: "application/json" } });
-        if (!res.ok) return null;
-        const data = await res.json();
-        if (!data || data.length === 0) return null;
-        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-      } catch (e) {
-        return null;
-      }
+      // Use composable for geocoding
+      return await this.geolocation.geocodeTextToCoords(text);
     },
 
     getApiRoot() {
@@ -1884,38 +1862,9 @@ export default {
         return this.userRegionalCenter;
       }
 
-      // Extract ZIP code from address - handle various formats
-      let zipCode = null;
-      
-      // Try different ZIP code patterns - be more strict about US ZIP codes
-      const patterns = [
-        /\b\d{5}-\d{4}\b/,  // 12345-6789 format
-        /\b\d{5}\b/,        // 12345 format (strict word boundaries)
-      ];
-      
-      for (const pattern of patterns) {
-        const match = this.userData.address.match(pattern);
-        if (match) {
-          // Extract just the first 5 digits for API call
-          zipCode = match[0].substring(0, 5);
-          console.log(`Found ZIP code using pattern ${pattern}: ${zipCode}`);
-          break;
-        }
-      }
-      
-      // If still no ZIP code found, try to extract any sequence of digits
-      // But be more strict - only accept 5-digit numbers
-      if (!zipCode) {
-        const allNumbers = this.userData.address.match(/\d+/g);
-        if (allNumbers && allNumbers.length > 0) {
-          // Look for exactly 5-digit numbers (US ZIP code format)
-          const fiveDigitNumbers = allNumbers.filter(num => num.length === 5);
-          if (fiveDigitNumbers.length > 0) {
-            zipCode = fiveDigitNumbers[0];
-            console.log(`Found ZIP code from 5-digit number sequence: ${zipCode}`);
-          }
-        }
-      }
+      // Extract ZIP code from address using utility
+      const zipCode = extractZipCode(this.userData.address);
+      console.log(`Extracted ZIP code: ${zipCode}`);
       
       if (!zipCode) {
         console.log("No ZIP code found in address:", this.userData.address);
@@ -1932,40 +1881,24 @@ export default {
       }
       console.log("Found ZIP code:", zipCode);
 
-      try {
-        // Call the API to find regional center by ZIP code
-        const response = await fetch(
-          `${this.getApiRoot()}/api/regional-centers/by_zip_code/?zip_code=${zipCode}`
-        );
+      // Use composable to find regional center by ZIP
+      const regionalCenter = this.regionalCenterData.findByZipCode(zipCode);
 
-        if (response.ok) {
-          const regionalCenter = await response.json();
-          // Map API fields to expected format
-          this.userRegionalCenter = {
-            name: regionalCenter.regional_center,
-            address: regionalCenter.address,
-            phone: regionalCenter.telephone,
-            website: regionalCenter.website,
-            // Keep original data too
-            ...regionalCenter,
-          };
-          console.log("User regional center found via API:", this.userRegionalCenter);
-          return this.userRegionalCenter;
-        } else {
-          console.log("No regional center found for ZIP code:", zipCode);
-          this.userRegionalCenter = {
-            name: "Regional Center (Not Found)",
-            address: `No regional center found for ZIP code ${zipCode}`,
-            phone: null,
-            website: null,
-          };
-          return this.userRegionalCenter;
-        }
-      } catch (error) {
-        console.error("Error finding regional center:", error);
+      if (regionalCenter) {
         this.userRegionalCenter = {
-          name: "Regional Center (Error)",
-          address: "Error retrieving regional center information",
+          name: regionalCenter.name || regionalCenter.regional_center,
+          address: regionalCenter.address,
+          phone: regionalCenter.phone,
+          website: regionalCenter.website,
+          ...regionalCenter,
+        };
+        console.log("User regional center found via composable:", this.userRegionalCenter);
+        return this.userRegionalCenter;
+      } else {
+        console.log("No regional center found for ZIP code:", zipCode);
+        this.userRegionalCenter = {
+          name: "Regional Center (Not Found)",
+          address: `No regional center found for ZIP code ${zipCode}`,
           phone: null,
           website: null,
         };
@@ -2446,39 +2379,18 @@ export default {
     async detectUserLocation() {
       console.log("🌍 Detecting user location...");
 
-      if (!navigator.geolocation) {
-        console.warn("⚠️ Geolocation not supported by this browser");
-        this.setFallbackLocation("Geolocation not supported");
-        return;
-      }
+      const success = await this.geolocation.detectUserLocation();
 
-      const options = {
-        enableHighAccuracy: true,
-        timeout: 10000, // 10 seconds
-        maximumAge: 300000, // 5 minutes
-      };
+      if (success) {
+        // Sync composable location to component data
+        this.userLocation = { ...this.geolocation.userLocation.value };
 
-      try {
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, options);
-        });
+        // Update user address if available
+        if (this.geolocation.userLocation.value.address) {
+          this.userData.address = this.geolocation.userLocation.value.address;
+        }
 
-        const { latitude, longitude, accuracy } = position.coords;
-
-        console.log(
-          `✅ Location detected: ${latitude}, ${longitude} (accuracy: ${accuracy}m)`
-        );
-
-        this.userLocation = {
-          latitude: latitude,
-          longitude: longitude,
-          accuracy: accuracy,
-          detected: true,
-          error: null,
-        };
-
-        // Update user address data based on location
-        this.reverseGeocode(latitude, longitude);
+        console.log(`✅ Location detected via composable`);
 
         // Initialize map with detected location
         this.initMap();
@@ -2487,23 +2399,9 @@ export default {
         setTimeout(() => {
           this.fetchProviders();
         }, 1500);
-      } catch (error) {
-        console.warn("⚠️ Geolocation failed:", error.message);
-        let errorMessage = "Location detection failed";
-
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = "Location access denied by user";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = "Location information unavailable";
-            break;
-          case error.TIMEOUT:
-            errorMessage = "Location request timed out";
-            break;
-        }
-
-        this.setFallbackLocation(errorMessage);
+      } else {
+        console.warn("⚠️ Geolocation failed, using fallback");
+        this.setFallbackLocation(this.geolocation.userLocation.value.error || "Location detection failed");
       }
     },
 
@@ -2541,36 +2439,17 @@ export default {
 
     // Reverse geocode to get address from coordinates
     async reverseGeocode(latitude, longitude) {
-      try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}&types=place,postcode,region`
-        );
-        const data = await response.json();
+      // Use composable for reverse geocoding
+      const address = await this.geolocation.reverseGeocode(latitude, longitude);
 
-        if (data.features && data.features.length > 0) {
-          const place = data.features[0];
-          const city = place.context?.find((c) => c.id.includes("place"))?.text || "";
-          const postcode =
-            place.context?.find((c) => c.id.includes("postcode"))?.text || "";
+      if (address) {
+        console.log(`🏠 Detected address: ${address}`);
+        this.userData.address = address;
 
-          // Prefer zip code format for LA area, fallback to city
-          let address;
-          if (postcode) {
-            address = `${city} ${postcode}`;
-          } else if (city) {
-            address = city;
-          } else {
-            address = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-          }
-
-          console.log(`🏠 Detected address: ${address}`);
-          this.userData.address = address;
-
-          // Find regional center for the detected location
-          this.findUserRegionalCenter();
-        }
-      } catch (error) {
-        console.warn("⚠️ Reverse geocoding failed:", error);
+        // Find regional center for the detected location
+        this.findUserRegionalCenter();
+      } else {
+        console.warn("⚠️ Reverse geocoding failed");
         this.userData.address = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
       }
     },
