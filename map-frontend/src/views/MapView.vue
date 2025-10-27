@@ -1016,7 +1016,7 @@ export default {
     handleViewportChange(viewport) {
       console.log("[MapView] Viewport changed", viewport);
       // Update map store with new viewport
-      this.mapStore.updateViewport(viewport);
+      this.mapStore.setViewport(viewport);
     },
 
     /**
