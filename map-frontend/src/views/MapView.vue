@@ -499,7 +499,7 @@
       <!-- Map Canvas -->
       <map-canvas
         :mapbox-token="mapboxAccessToken"
-        :center="{ lat: 34.0522, lng: -118.2437 }"
+        :center="LA_COUNTY_CENTER"
         :zoom="10"
         class="map-container"
         @map-ready="handleMapReady"
@@ -948,7 +948,7 @@ export default {
             } catch (error) {
               console.error("[MapView] Error loading initial providers:", error);
               // Fallback to comprehensive search
-              await this.providerStore.searchByLocation(34.0522, -118.2437, 25);
+              await this.providerStore.searchByLocation(LA_COUNTY_CENTER.lat, LA_COUNTY_CENTER.lng, 25);
             }
           }
 
@@ -1909,7 +1909,7 @@ export default {
     // Find regional center using coordinates when ZIP code lookup fails
     async findRegionalCenterByCoordinates() {
       console.log("Finding regional center by coordinates...");
-      
+
       if (!this.userLocation?.latitude || !this.userLocation?.longitude) {
         console.log("No coordinates available for regional center lookup");
         this.userRegionalCenter = {
@@ -1921,45 +1921,27 @@ export default {
         return this.userRegionalCenter;
       }
 
-      try {
-        // Ensure regional centers are loaded
-        if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
-          console.log("Regional centers not loaded, fetching now...");
-          await this.fetchRegionalCenters();
-        }
+      // Use composable to find nearest regional center
+      const result = this.regionalCenterData.findNearestToCoordinates({
+        lat: this.userLocation.latitude,
+        lng: this.userLocation.longitude,
+      });
 
-        // Use the existing method to find nearest regional center
-        const nearestCenter = this.findNearestRegionalCenterFromList(
-          this.userLocation.latitude, 
-          this.userLocation.longitude
-        );
-        
-        if (nearestCenter) {
-          this.userRegionalCenter = {
-            name: nearestCenter.regional_center || nearestCenter.name,
-            address: nearestCenter.address,
-            phone: nearestCenter.telephone || nearestCenter.phone,
-            website: nearestCenter.website,
-            ...nearestCenter,
-          };
-          console.log("Found regional center by coordinates:", this.userRegionalCenter);
-          return this.userRegionalCenter;
-        } else {
-          console.log("No regional center found for coordinates");
-          console.log("Available regional centers:", this.regionalCenters.length);
-          this.userRegionalCenter = {
-            name: "Regional Center (Not Found)",
-            address: "No regional center found for this location",
-            phone: null,
-            website: null,
-          };
-          return this.userRegionalCenter;
-        }
-      } catch (error) {
-        console.error("Error finding regional center by coordinates:", error);
+      if (result) {
         this.userRegionalCenter = {
-          name: "Regional Center (Error)",
-          address: "Error retrieving regional center information",
+          name: result.center.name || result.center.regional_center,
+          address: result.center.address,
+          phone: result.center.phone,
+          website: result.center.website,
+          ...result.center,
+        };
+        console.log(`Found regional center by coordinates: ${result.center.name} (${result.distance.toFixed(2)} miles)`);
+        return this.userRegionalCenter;
+      } else {
+        console.log("No regional center found for coordinates");
+        this.userRegionalCenter = {
+          name: "Regional Center (Not Found)",
+          address: "No regional center found for this location",
           phone: null,
           website: null,
         };
@@ -1967,34 +1949,6 @@ export default {
       }
     },
 
-    findNearestRegionalCenterFromList(lat, lng) {
-      if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
-        return null;
-      }
-      let best = null;
-      let bestDist = Infinity;
-      const toRad = (d) => (d * Math.PI) / 180;
-      for (const c of this.regionalCenters) {
-        const clat = parseFloat(c.latitude);
-        const clng = parseFloat(c.longitude);
-        if (isNaN(clat) || isNaN(clng)) continue;
-        const dlat = toRad(clat - lat);
-        const dlng = toRad(clng - lng);
-        const a =
-          Math.sin(dlat / 2) * Math.sin(dlat / 2) +
-          Math.cos(toRad(lat)) *
-            Math.cos(toRad(clat)) *
-            Math.sin(dlng / 2) *
-            Math.sin(dlng / 2);
-        const cang = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const dist = 3959 * cang; // miles
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = c;
-        }
-      }
-      return best;
-    },
 
     // Set display type
     setDisplayType(type) {
@@ -2817,7 +2771,7 @@ export default {
                 // If still no results, try getting LA County providers only as last resort
                 if (this.providers.length === 0) {
                   console.log("🔍 No nearby providers found, trying to get LA County providers only...");
-                  const laCountyUrl = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?lat=34.0522&lng=-118.2437&radius=50`;
+                  const laCountyUrl = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${LA_COUNTY_CENTER.lat}&lng=${LA_COUNTY_CENTER.lng}&radius=50`;
                   try {
                     const laResponse = await axios.get(laCountyUrl);
                     console.log("🔍 LA County providers response:", laResponse.data);
