@@ -311,7 +311,7 @@ class Command(BaseCommand):
         insurance_list = []
         accepts_flags = {
             "accepts_insurance": False,
-            "accepts_regional_center": False,
+            "accepts_regional_center": True,  # Default to True since these are regional center provider lists
             "accepts_private_pay": False,
         }
 
