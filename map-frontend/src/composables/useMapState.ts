@@ -120,6 +120,8 @@ export function useMapState() {
     selectedProviderId.value = providerId;
     if (providerId !== null) {
       uiState.showProviderDetails = true;
+    } else {
+      uiState.showProviderDetails = false;
     }
   }
 
