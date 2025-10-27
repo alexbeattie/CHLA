@@ -545,6 +545,7 @@ import ProviderCard from "@/components/map/ProviderCard.vue";
 import ProviderDetails from "@/components/map/ProviderDetails.vue";
 import FilterPanel from "@/components/map/FilterPanel.vue";
 import RegionalCenterLegend from "@/components/map/RegionalCenterLegend.vue";
+import SidebarPanel from "@/components/SidebarPanel.vue";
 
 // Pinia stores
 import { useProviderStore } from "@/stores/providerStore";
@@ -590,6 +591,7 @@ export default {
     ProviderDetails,
     FilterPanel,
     RegionalCenterLegend,
+    SidebarPanel,
   },
 
   data() {
@@ -921,7 +923,7 @@ export default {
 
           // Load regional centers if needed
           if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
-            await this.fetchRegionalCenters();
+            await this.regionalCenterData.fetchRegionalCenters();
           }
 
           // Load initial providers based on user location
@@ -1958,7 +1960,7 @@ export default {
       if (type === "providers" && this.providers.length === 0) {
         this.fetchProviders();
       } else if (type === "regionalCenters" && this.regionalCenters.length === 0) {
-        this.fetchRegionalCenters();
+        this.regionalCenterData.fetchRegionalCenters();
       }
 
       // Update markers
@@ -2046,7 +2048,7 @@ export default {
       if (this.displayType === "providers") {
         this.fetchProviders();
       } else if (this.displayType === "regionalCenters") {
-        this.fetchRegionalCenters();
+        this.regionalCenterData.fetchRegionalCenters();
       } else {
         this.updateFilteredLocations();
       }
@@ -2236,7 +2238,7 @@ export default {
         if (!center) {
           try {
             if (this.regionalCenters.length === 0) {
-              await this.fetchRegionalCenters();
+              await this.regionalCenterData.fetchRegionalCenters();
             }
           } catch (_) {}
           let coords = null;
@@ -3048,170 +3050,7 @@ export default {
     },
 
     // Fetch regional centers
-    async fetchRegionalCenters() {
-      this.loading = true;
-      this.error = null;
 
-      try {
-        console.log("Fetching regional centers");
-        const apiRoot = this.getApiRoot();
-
-        // If using local data, use sample data
-        if (USE_LOCAL_DATA_ONLY) {
-          console.log("Using local data instead of API");
-          const sampleRegionalCenters = [
-            {
-              id: 1,
-              name: "Far Northern Regional Center",
-              address: "421 Chestnut Street",
-              city: "Mt. Shasta",
-              state: "CA",
-              zip_code: "96067",
-              latitude: 41.31,
-              longitude: -122.31,
-              phone: "530-555-1000",
-            },
-            {
-              id: 2,
-              name: "North Bay Regional Center",
-              address: "519 E Street",
-              city: "Santa Rosa",
-              state: "CA",
-              zip_code: "95404",
-              latitude: 38.444,
-              longitude: -122.714,
-              phone: "707-555-2000",
-            },
-          ];
-
-          this.regionalCenters = sampleRegionalCenters;
-        } else {
-          // Fetch from API
-          const url = `${apiRoot}/api/regional-centers/`;
-          console.log(`Fetching regional centers from API: ${url}`);
-
-          try {
-            const response = await axios.get(url);
-            console.log("API Response:", response);
-
-            if (response.data && Array.isArray(response.data)) {
-              this.regionalCenters = response.data;
-            } else if (response.data && Array.isArray(response.data.results)) {
-              this.regionalCenters = response.data.results;
-            } else {
-              console.error("Unexpected API response format:", response.data);
-              throw new Error("Unexpected API response format");
-            }
-
-            console.log(
-              `Loaded ${this.regionalCenters.length} regional centers from API`
-            );
-          } catch (apiError) {
-            console.error(
-              "Error fetching from API, falling back to sample data:",
-              apiError
-            );
-            throw apiError;
-          }
-        }
-      } catch (error) {
-        console.error("Error loading regional centers:", error);
-        this.error = "Failed to load regional centers";
-
-        // Provide sample data in case of error for better user experience
-        this.regionalCenters = [
-          {
-            id: 1,
-            name: "Far Northern Regional Center (Sample)",
-            address: "421 Chestnut Street",
-            city: "Mt. Shasta",
-            state: "CA",
-            zip_code: "96067",
-            latitude: 41.31,
-            longitude: -122.31,
-            phone: "530-555-1000",
-          },
-        ];
-      } finally {
-        this.loading = false;
-        this.updateMarkers();
-      }
-    },
-
-    // Enhanced regional center matching using service area boundaries
-    async matchRegionalCenterByLocation(locationText) {
-      try {
-        const apiRoot = this.getApiRoot();
-        const url = `${apiRoot}/api/regional-centers/service_area_boundaries/`;
-        
-        const response = await fetch(url, { headers: { Accept: "application/json" } });
-        if (!response.ok) return null;
-        
-        const data = await response.json();
-        
-        if (data && data.features && Array.isArray(data.features)) {
-          // Check if location is a ZIP code (5 digits)
-          const zipMatch = locationText.match(/\b\d{5}\b/);
-          
-          if (zipMatch) {
-            // Find regional center by ZIP code
-            const matchingCenter = data.features.find(feature => 
-              feature.properties.zip_codes && 
-              feature.properties.zip_codes.includes(zipMatch[0])
-            );
-            
-            if (matchingCenter) {
-              return {
-                regional_center: matchingCenter.properties.name,
-                name: matchingCenter.properties.name,
-                phone: matchingCenter.properties.phone,
-                address: matchingCenter.properties.address,
-                website: matchingCenter.properties.website,
-                service_area: matchingCenter.properties.service_areas,
-                zip_codes: matchingCenter.properties.zip_codes,
-                center_id: matchingCenter.properties.center_id
-              };
-            }
-          } else {
-            // For non-ZIP locations, try to find by location name
-            const locationLower = locationText.toLowerCase();
-            
-            const matchingCenter = data.features.find(feature => {
-              const name = feature.properties.name.toLowerCase();
-              const serviceAreas = feature.properties.service_areas;
-              
-              // Check if location text contains any service area names
-              if (Array.isArray(serviceAreas)) {
-                return serviceAreas.some(area => 
-                  locationLower.includes(area.toLowerCase())
-                );
-              }
-              
-              // Fallback: check if location contains regional center name
-              return locationLower.includes(name.toLowerCase());
-            });
-            
-            if (matchingCenter) {
-              return {
-                regional_center: matchingCenter.properties.name,
-                name: matchingCenter.properties.name,
-                phone: matchingCenter.properties.phone,
-                address: matchingCenter.properties.address,
-                website: matchingCenter.properties.website,
-                service_area: matchingCenter.properties.service_areas,
-                zip_codes: matchingCenter.properties.zip_codes,
-                center_id: matchingCenter.properties.center_id
-              };
-            }
-          }
-        }
-        
-        return null;
-      } catch (error) {
-        console.error("Error matching regional center:", error);
-        return null;
-      }
-    },
 
     // Fetch service areas
     async fetchServiceAreas() {
@@ -3330,7 +3169,7 @@ export default {
         // Make sure we have regional center data so the list and markers appear immediately
         try {
           if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
-            await this.fetchRegionalCenters();
+            await this.regionalCenterData.fetchRegionalCenters();
           }
         } catch (e) {
           console.warn("Failed to pre-load regional centers:", e);
