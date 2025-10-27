@@ -72,42 +72,42 @@ export default {
     return {
       isCollapsed: this.startCollapsed,
 
-      // 7 LA County Regional Centers with distinct colors
+      // 7 LA County Regional Centers - colors match polygon rendering
       regionalCenters: [
         {
-          name: 'San Gabriel/Pomona Regional Center',
-          color: '#EF4444', // Red
-          abbreviation: 'SGPRC'
-        },
-        {
-          name: 'Harbor Regional Center',
-          color: '#3B82F6', // Blue
-          abbreviation: 'HRC'
-        },
-        {
           name: 'North Los Angeles County Regional Center',
-          color: '#10B981', // Green
+          color: '#f1c40f', // Yellow
           abbreviation: 'NLACRC'
         },
         {
+          name: 'San Gabriel/Pomona Regional Center',
+          color: '#4caf50', // Green
+          abbreviation: 'SGPRC'
+        },
+        {
           name: 'Eastern Los Angeles Regional Center',
-          color: '#F59E0B', // Orange
+          color: '#ff9800', // Orange
           abbreviation: 'ELARC'
         },
         {
-          name: 'South Central Los Angeles Regional Center',
-          color: '#8B5CF6', // Purple
-          abbreviation: 'SCLARC'
-        },
-        {
           name: 'Westside Regional Center',
-          color: '#EC4899', // Pink
+          color: '#e91e63', // Pink
           abbreviation: 'WRC'
         },
         {
           name: 'Frank D. Lanterman Regional Center',
-          color: '#14B8A6', // Teal
+          color: '#9c27b0', // Purple
           abbreviation: 'FDLRC'
+        },
+        {
+          name: 'South Central Los Angeles Regional Center',
+          color: '#f44336', // Red
+          abbreviation: 'SCLARC'
+        },
+        {
+          name: 'Harbor Regional Center',
+          color: '#2196f3', // Blue
+          abbreviation: 'HRC'
         }
       ]
     };

@@ -792,13 +792,13 @@ export default {
     // LA Regional Centers list with colors
     laRegionalCentersList() {
       return [
-        { name: "North Los Angeles County Regional Center", color: "#f1c40f" },
-        { name: "San Gabriel/Pomona Regional Center", color: "#4caf50" },
-        { name: "Eastern Los Angeles Regional Center", color: "#00cfe3" },
-        { name: "Westside Regional Center", color: "#e91e63" },
-        { name: "Frank D. Lanterman Regional Center", color: "#9c27b0" },
-        { name: "South Central Los Angeles Regional Center", color: "#f44336" },
-        { name: "Harbor Regional Center", color: "#00bcd4" },
+        { name: "North Los Angeles County Regional Center", color: "#f1c40f" }, // Yellow
+        { name: "San Gabriel/Pomona Regional Center", color: "#4caf50" }, // Green
+        { name: "Eastern Los Angeles Regional Center", color: "#ff9800" }, // Orange
+        { name: "Westside Regional Center", color: "#e91e63" }, // Pink
+        { name: "Frank D. Lanterman Regional Center", color: "#9c27b0" }, // Purple
+        { name: "South Central Los Angeles Regional Center", color: "#f44336" }, // Red
+        { name: "Harbor Regional Center", color: "#2196f3" }, // Blue
       ];
     },
 
@@ -1236,13 +1236,13 @@ export default {
         // Update the visibility by modifying the paint opacity
         // This is a simpler approach than complex filters
         const centerColors = {
-          "North Los Angeles County Regional Center": "#f1c40f",
-          "San Gabriel/Pomona Regional Center": "#4caf50",
-          "Eastern Los Angeles Regional Center": "#00cfe3",
-          "Westside Regional Center": "#e91e63",
-          "Frank D. Lanterman Regional Center": "#9c27b0",
-          "South Central Los Angeles Regional Center": "#f44336",
-          "Harbor Regional Center": "#00bcd4",
+          "North Los Angeles County Regional Center": "#f1c40f", // Yellow
+          "San Gabriel/Pomona Regional Center": "#4caf50", // Green
+          "Eastern Los Angeles Regional Center": "#ff9800", // Orange
+          "Westside Regional Center": "#e91e63", // Pink
+          "Frank D. Lanterman Regional Center": "#9c27b0", // Purple
+          "South Central Los Angeles Regional Center": "#f44336", // Red
+          "Harbor Regional Center": "#2196f3", // Blue
         };
 
         // For now, we'll just log the change - full implementation would require
@@ -1519,7 +1519,7 @@ export default {
           "Westside Regional Center": "#e91e63",
           "Frank D. Lanterman Regional Center": "#9c27b0",
           "South Central Los Angeles Regional Center": "#f44336",
-          "Harbor Regional Center": "#00bcd4",
+          "Harbor Regional Center": "#2196f3", // Blue
         };
 
         // Assign color by regional center; fallback to ZIP-hash if missing
@@ -3911,13 +3911,13 @@ export default {
 
         // Color palette keyed by REGIONALCENTER property
         const centerColors = {
-          "North Los Angeles County Regional Center": "#f1c40f",
-          "San Gabriel/Pomona Regional Center": "#4caf50",
-          "Eastern Los Angeles Regional Center": "#00cfe3",
-          "Westside Regional Center": "#e91e63",
-          "Frank D. Lanterman Regional Center": "#9c27b0",
-          "South Central Los Angeles Regional Center": "#f44336",
-          "Harbor Regional Center": "#00bcd4",
+          "North Los Angeles County Regional Center": "#f1c40f", // Yellow
+          "San Gabriel/Pomona Regional Center": "#4caf50", // Green
+          "Eastern Los Angeles Regional Center": "#ff9800", // Orange
+          "Westside Regional Center": "#e91e63", // Pink
+          "Frank D. Lanterman Regional Center": "#9c27b0", // Purple
+          "South Central Los Angeles Regional Center": "#f44336", // Red
+          "Harbor Regional Center": "#2196f3", // Blue
         };
 
         // Build a match expression for fill-color
