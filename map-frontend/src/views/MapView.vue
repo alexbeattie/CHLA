@@ -913,26 +913,26 @@ export default {
           if (this.providerStore && this.providerStore.providers.length === 0) {
             console.log("[MapView] Loading initial providers...");
 
-            // Try to get user's location and ZIP code
+            // Load providers for LA County default ZIP immediately
+            // Don't wait for geolocation to avoid blocking
             try {
-              const userZipCode = await this.getUserZipCode();
+              const defaultZip = "90001"; // Central LA County
+              console.log(`[MapView] Loading providers for default LA ZIP: ${defaultZip}`);
+              await this.providerStore.searchByZipCode(defaultZip);
+              console.log(`[MapView] Loaded ${this.providerStore.providers.length} providers`);
 
-              if (userZipCode) {
-                // Load providers for user's ZIP code (uses Regional Center filtering)
-                console.log(`[MapView] Loading providers for ZIP: ${userZipCode}`);
-                await this.providerStore.searchByZipCode(userZipCode);
-                console.log(`[MapView] Loaded ${this.providerStore.providers.length} providers for user's ZIP code`);
-              } else {
-                // Fallback: Load nearby providers based on geolocation or LA County default
-                console.log("[MapView] No ZIP code, loading nearby providers...");
-                const lat = this.userLocation?.latitude || 34.0522;
-                const lng = this.userLocation?.longitude || -118.2437;
-                await this.providerStore.searchByLocation(lat, lng, 25);
-                console.log(`[MapView] Loaded ${this.providerStore.providers.length} nearby providers`);
-              }
+              // Optionally try to get user's location in background (don't await)
+              this.getUserZipCode().then((userZipCode) => {
+                if (userZipCode && userZipCode !== defaultZip) {
+                  console.log(`[MapView] Got user ZIP: ${userZipCode}, reloading providers...`);
+                  this.providerStore.searchByZipCode(userZipCode);
+                }
+              }).catch((err) => {
+                console.log("[MapView] Could not get user location:", err.message);
+              });
             } catch (error) {
               console.error("[MapView] Error loading initial providers:", error);
-              // Fallback to LA County default
+              // Fallback to comprehensive search
               await this.providerStore.searchByLocation(34.0522, -118.2437, 25);
             }
           }
