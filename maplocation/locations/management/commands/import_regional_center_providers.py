@@ -260,11 +260,11 @@ class Command(BaseCommand):
 
         # Parse insurance
         insurance_text = self.get_value(row_data, column_map.get("insurance"))
-        if insurance_text:
-            insurance_list, accepts_flags = self.parse_insurance(insurance_text)
-            if insurance_list:
-                data["insurance_accepted"] = ", ".join(insurance_list)
-            data.update(accepts_flags)
+        # Always parse insurance (even if empty) to add "Regional Center" text
+        insurance_list, accepts_flags = self.parse_insurance(insurance_text or "")
+        if insurance_list:
+            data["insurance_accepted"] = ", ".join(insurance_list)
+        data.update(accepts_flags)
 
         # Parse notes into description
         notes = self.get_value(row_data, column_map.get("notes"))
@@ -315,12 +315,11 @@ class Command(BaseCommand):
             "accepts_private_pay": False,
         }
 
-        insurance_lower = insurance_text.lower()
+        # ALWAYS add Regional Center since these are regional center provider lists
+        # This is needed for text-based filtering in the API (insurance_accepted field)
+        insurance_list.append("Regional Center")
 
-        # Check for Regional Center
-        if "regional center" in insurance_lower or "rc" in insurance_lower:
-            insurance_list.append("Regional Center")
-            accepts_flags["accepts_regional_center"] = True
+        insurance_lower = insurance_text.lower()
 
         # Check for Private Pay
         if "private" in insurance_lower or "self pay" in insurance_lower or "cash" in insurance_lower:
