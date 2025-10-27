@@ -887,9 +887,14 @@ export default {
 
           // Load initial providers using store
           if (this.providerStore && this.providerStore.providers.length === 0) {
-            // Load providers - the store will handle the API call
-            // For now, just log that we're ready
-            console.log("[MapView] Waiting for user to search for providers");
+            // Load default LA County providers
+            console.log("[MapView] Loading default LA County providers...");
+            await this.providerStore.searchByLocation(
+              34.0522, // LA County center latitude
+              -118.2437, // LA County center longitude
+              50 // 50 mile radius
+            );
+            console.log(`[MapView] Loaded ${this.providerStore.providers.length} initial providers`);
           }
 
           console.log("[MapView] Initialization complete with new components!");
@@ -984,10 +989,16 @@ export default {
     handleMapReady(mapInstance) {
       console.log("[MapView] Map ready from new MapCanvas");
       this.mapInstance = mapInstance;
+      this.map = mapInstance; // Also set this.map for compatibility with old methods
 
       // If we have providers, fit bounds to show them all
       if (this.providerStore && this.providerStore.providers.length > 0) {
         this.fitMapToProviders();
+      }
+
+      // Show LA Regional Centers polygons by default
+      if (!this.showLARegionalCenters) {
+        this.toggleLARegionalCenters();
       }
     },
 
