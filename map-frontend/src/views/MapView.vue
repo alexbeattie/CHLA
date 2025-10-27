@@ -987,21 +987,61 @@ export default {
     /**
      * Handle filter changes from FilterPanel
      */
-    handleFilterChange(filters) {
+    async handleFilterChange(filters) {
       console.log("[MapView] Filter change", filters);
 
-      // Apply filters to filter store
-      Object.keys(filters).forEach(key => {
-        this.filterStore.toggleFilter(key, filters[key]);
-      });
+      // Filters are already applied to store by FilterPanel
+      // Now re-fetch providers with the updated filters
+      try {
+        const filterParams = this.filterStore.buildFilterParams();
+        console.log("[MapView] Re-fetching providers with filters:", filterParams);
+
+        // If we have a user location/ZIP, re-search with filters
+        if (this.userData.address || this.userLocation?.latitude) {
+          if (this.userData.address) {
+            // Re-search by ZIP with filters
+            const zipMatch = this.userData.address.match(/\d{5}/);
+            if (zipMatch) {
+              await this.providerStore.searchByZipCode(zipMatch[0]);
+            }
+          } else if (this.userLocation?.latitude) {
+            // Re-search by location with filters
+            await this.providerStore.searchByLocation(
+              this.userLocation.latitude,
+              this.userLocation.longitude,
+              25 // radius in miles
+            );
+          }
+        }
+      } catch (error) {
+        console.error("[MapView] Error re-fetching providers:", error);
+      }
     },
 
     /**
      * Handle filter reset from FilterPanel
      */
-    handleFilterReset() {
+    async handleFilterReset() {
       console.log("[MapView] Filters reset");
       this.filterStore.resetFilters();
+
+      // Re-fetch providers without filters
+      try {
+        if (this.userData.address) {
+          const zipMatch = this.userData.address.match(/\d{5}/);
+          if (zipMatch) {
+            await this.providerStore.searchByZipCode(zipMatch[0]);
+          }
+        } else if (this.userLocation?.latitude) {
+          await this.providerStore.searchByLocation(
+            this.userLocation.latitude,
+            this.userLocation.longitude,
+            25
+          );
+        }
+      } catch (error) {
+        console.error("[MapView] Error re-fetching providers after reset:", error);
+      }
     },
 
     /**

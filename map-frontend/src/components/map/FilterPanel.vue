@@ -257,7 +257,6 @@ export default {
     // Local copy of filters for manual apply mode
     const localFilters = ref({
       acceptsInsurance: filterStore.filterOptions.acceptsInsurance,
-      acceptsRegionalCenter: filterStore.filterOptions.acceptsRegionalCenter,
       acceptsPrivatePay: filterStore.filterOptions.acceptsPrivatePay,
       matchesAge: filterStore.filterOptions.matchesAge,
       matchesDiagnosis: filterStore.filterOptions.matchesDiagnosis,
@@ -277,7 +276,6 @@ export default {
     const activeFilterCount = computed(() => {
       let count = 0;
       if (localFilters.value.acceptsInsurance) count++;
-      if (localFilters.value.acceptsRegionalCenter) count++;
       if (localFilters.value.acceptsPrivatePay) count++;
       if (localFilters.value.matchesAge) count++;
       if (localFilters.value.matchesDiagnosis) count++;
@@ -309,10 +307,10 @@ export default {
      * Apply filters to store
      */
     const applyFiltersToStore = () => {
-      console.log('🔍 FilterPanel: Applying filters to store');
+      console.log('🔍 FilterPanel: Applying filters to store', localFilters.value);
 
       Object.keys(localFilters.value).forEach(key => {
-        filterStore.toggleFilter(key, localFilters.value[key]);
+        filterStore.setFilter(key, localFilters.value[key]);
       });
     };
 
