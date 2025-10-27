@@ -345,8 +345,9 @@ class ProviderV2Admin(admin.ModelAdmin):
             # Try multiple possible paths
             possible_paths = [
                 '/var/app/current/data/Pasadena Provider List.xlsx',  # EB deployment path
-                os.path.join(settings.BASE_DIR, '..', 'data', 'Pasadena Provider List.xlsx'),  # Relative to project
-                os.path.join(os.path.dirname(settings.BASE_DIR), 'data', 'Pasadena Provider List.xlsx'),  # One level up
+                os.path.join(settings.BASE_DIR, 'data', 'Pasadena Provider List.xlsx'),  # Inside maplocation
+                os.path.join(settings.BASE_DIR, '..', 'data', 'Pasadena Provider List.xlsx'),  # One level up (old location)
+                os.path.join(os.path.dirname(settings.BASE_DIR), 'data', 'Pasadena Provider List.xlsx'),  # Parent dir
             ]
 
             file_path = None
@@ -378,8 +379,9 @@ class ProviderV2Admin(admin.ModelAdmin):
             # Try multiple possible paths
             possible_paths = [
                 '/var/app/current/data/San Gabriel Pomona Provider List.xlsx',  # EB deployment path
-                os.path.join(settings.BASE_DIR, '..', 'data', 'San Gabriel Pomona Provider List.xlsx'),  # Relative to project
-                os.path.join(os.path.dirname(settings.BASE_DIR), 'data', 'San Gabriel Pomona Provider List.xlsx'),  # One level up
+                os.path.join(settings.BASE_DIR, 'data', 'San Gabriel Pomona Provider List.xlsx'),  # Inside maplocation
+                os.path.join(settings.BASE_DIR, '..', 'data', 'San Gabriel Pomona Provider List.xlsx'),  # One level up (old location)
+                os.path.join(os.path.dirname(settings.BASE_DIR), 'data', 'San Gabriel Pomona Provider List.xlsx'),  # Parent dir
             ]
 
             file_path = None
