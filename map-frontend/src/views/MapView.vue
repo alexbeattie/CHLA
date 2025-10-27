@@ -1002,14 +1002,15 @@ export default {
             // Re-search by ZIP with filters
             const zipMatch = this.userData.address.match(/\d{5}/);
             if (zipMatch) {
-              await this.providerStore.searchByZipCode(zipMatch[0]);
+              await this.providerStore.searchByZipCode(zipMatch[0], filterParams);
             }
           } else if (this.userLocation?.latitude) {
             // Re-search by location with filters
             await this.providerStore.searchByLocation(
               this.userLocation.latitude,
               this.userLocation.longitude,
-              25 // radius in miles
+              25, // radius in miles
+              filterParams
             );
           }
         }
