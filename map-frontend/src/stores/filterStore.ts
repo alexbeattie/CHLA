@@ -9,7 +9,6 @@ import { ref, computed, reactive } from 'vue';
 
 export interface FilterOptions {
   acceptsInsurance: boolean;
-  acceptsRegionalCenter: boolean;
   acceptsPrivatePay: boolean;
   matchesAge: boolean;
   matchesDiagnosis: boolean;
@@ -30,7 +29,6 @@ export const useFilterStore = defineStore('filter', () => {
   // Filter toggle state
   const filterOptions = reactive<FilterOptions>({
     acceptsInsurance: false,
-    acceptsRegionalCenter: false,
     acceptsPrivatePay: false,
     matchesAge: false,
     matchesDiagnosis: false,
@@ -57,7 +55,6 @@ export const useFilterStore = defineStore('filter', () => {
   const hasActiveFilters = computed(() => {
     return (
       filterOptions.acceptsInsurance ||
-      filterOptions.acceptsRegionalCenter ||
       filterOptions.acceptsPrivatePay ||
       filterOptions.matchesAge ||
       filterOptions.matchesDiagnosis ||
@@ -69,7 +66,6 @@ export const useFilterStore = defineStore('filter', () => {
   const activeFilterCount = computed(() => {
     let count = 0;
     if (filterOptions.acceptsInsurance) count++;
-    if (filterOptions.acceptsRegionalCenter) count++;
     if (filterOptions.acceptsPrivatePay) count++;
     if (filterOptions.matchesAge) count++;
     if (filterOptions.matchesDiagnosis) count++;
@@ -97,8 +93,6 @@ export const useFilterStore = defineStore('filter', () => {
     // Insurance filters
     if (filterOptions.acceptsInsurance) {
       params.insurance = 'insurance';
-    } else if (filterOptions.acceptsRegionalCenter) {
-      params.insurance = 'regional center';
     } else if (filterOptions.acceptsPrivatePay) {
       params.insurance = 'private pay';
     }
@@ -134,7 +128,6 @@ export const useFilterStore = defineStore('filter', () => {
    */
   function resetFilters() {
     filterOptions.acceptsInsurance = false;
-    filterOptions.acceptsRegionalCenter = false;
     filterOptions.acceptsPrivatePay = false;
     filterOptions.matchesAge = false;
     filterOptions.matchesDiagnosis = false;
@@ -163,14 +156,9 @@ export const useFilterStore = defineStore('filter', () => {
 
       // Handle mutual exclusivity for insurance filters
       if (filterName === 'acceptsInsurance' && filterOptions[filterName]) {
-        filterOptions.acceptsRegionalCenter = false;
-        filterOptions.acceptsPrivatePay = false;
-      } else if (filterName === 'acceptsRegionalCenter' && filterOptions[filterName]) {
-        filterOptions.acceptsInsurance = false;
         filterOptions.acceptsPrivatePay = false;
       } else if (filterName === 'acceptsPrivatePay' && filterOptions[filterName]) {
         filterOptions.acceptsInsurance = false;
-        filterOptions.acceptsRegionalCenter = false;
       }
 
       console.log(`🎛️ [Store] Toggled filter ${filterName}: ${filterOptions[filterName]}`);
@@ -226,9 +214,7 @@ export const useFilterStore = defineStore('filter', () => {
   function applyOnboardingFilters() {
     if (userData.insurance) {
       const insuranceLower = userData.insurance.toLowerCase();
-      if (insuranceLower.includes('regional center')) {
-        filterOptions.acceptsRegionalCenter = true;
-      } else if (insuranceLower.includes('private')) {
+      if (insuranceLower.includes('private')) {
         filterOptions.acceptsPrivatePay = true;
       } else {
         filterOptions.acceptsInsurance = true;

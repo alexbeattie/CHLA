@@ -50,14 +50,6 @@
           <label class="filter-checkbox">
             <input
               type="checkbox"
-              v-model="localFilters.acceptsRegionalCenter"
-              @change="handleFilterChange"
-            />
-            <span class="checkbox-label">Accepts Regional Center</span>
-          </label>
-          <label class="filter-checkbox">
-            <input
-              type="checkbox"
               v-model="localFilters.acceptsPrivatePay"
               @change="handleFilterChange"
             />
