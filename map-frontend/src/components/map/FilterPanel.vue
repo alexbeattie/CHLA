@@ -1,201 +1,168 @@
 <template>
-  <div class="filter-panel" :class="{ 'is-collapsed': isCollapsed }">
-    <!-- Header -->
-    <div class="panel-header">
-      <div class="header-title">
-        <i class="bi bi-funnel"></i>
-        <h3>Filters</h3>
-        <span v-if="activeFilterCount > 0" class="filter-count-badge">
-          {{ activeFilterCount }}
-        </span>
+  <div class="filter-panel">
+    <!-- Payment Options -->
+    <div class="filter-section">
+      <div class="section-header">
+        <i class="bi bi-credit-card"></i>
+        <h4>Payment</h4>
       </div>
-      <div class="header-actions">
-        <button
-          v-if="hasActiveFilters"
-          class="btn-reset"
-          @click="handleReset"
-          aria-label="Reset all filters"
+      <div class="filter-options">
+        <label class="filter-option">
+          <input
+            type="checkbox"
+            v-model="localFilters.acceptsInsurance"
+            @change="handleFilterChange"
+          />
+          <span>Accepts Insurance</span>
+        </label>
+        <label class="filter-option">
+          <input
+            type="checkbox"
+            v-model="localFilters.acceptsPrivatePay"
+            @change="handleFilterChange"
+          />
+          <span>Accepts Private Pay</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- My Needs (Based on Profile) -->
+    <div class="filter-section" v-if="hasUserProfile">
+      <div class="section-header">
+        <i class="bi bi-sliders"></i>
+        <h4>Filter by My Needs</h4>
+        <button class="btn-info" @click="showInfoModal = true" title="What's this?">
+          <i class="bi bi-question-circle"></i>
+        </button>
+      </div>
+      <div class="filter-options">
+        <label 
+          class="filter-option" 
+          v-if="userData.age"
         >
-          <i class="bi bi-arrow-counterclockwise"></i>
-          <span>Reset</span>
+          <input
+            type="checkbox"
+            v-model="localFilters.matchesAge"
+            @change="handleFilterChange"
+          />
+          <span class="filter-label">
+            Serves age {{ formatAge(userData.age) }}
+          </span>
+        </label>
+        
+        <label 
+          class="filter-option" 
+          v-if="userData.diagnosis"
+        >
+          <input
+            type="checkbox"
+            v-model="localFilters.matchesDiagnosis"
+            @change="handleFilterChange"
+          />
+          <span class="filter-label">
+            Treats {{ formatDiagnosis(userData.diagnosis) }}
+          </span>
+        </label>
+        
+        <label 
+          class="filter-option" 
+          v-if="userData.therapy"
+        >
+          <input
+            type="checkbox"
+            v-model="localFilters.matchesTherapy"
+            @change="handleFilterChange"
+          />
+          <span class="filter-label">
+            Offers {{ userData.therapy }}
+          </span>
+        </label>
+
+        <div v-if="!userData.age && !userData.diagnosis && !userData.therapy" class="no-profile-hint">
+          <i class="bi bi-info-circle"></i>
+          <span>Set up your profile to see personalized filters</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Filters Summary -->
+    <div v-if="hasActiveFilters" class="active-filters">
+      <div class="active-filters-header">
+        <span class="active-count">{{ activeFilterCount }} active</span>
+        <button class="btn-clear-all" @click="handleReset">
+          Clear all
+        </button>
+      </div>
+      <div class="filter-chips">
+        <button
+          v-if="localFilters.acceptsInsurance"
+          class="filter-chip"
+          @click="toggleFilter('acceptsInsurance')"
+        >
+          Insurance
+          <i class="bi bi-x"></i>
         </button>
         <button
-          v-if="showCollapseToggle"
-          class="btn-collapse"
-          @click="handleToggleCollapse"
-          :aria-label="isCollapsed ? 'Expand filters' : 'Collapse filters'"
+          v-if="localFilters.acceptsPrivatePay"
+          class="filter-chip"
+          @click="toggleFilter('acceptsPrivatePay')"
         >
-          <i :class="isCollapsed ? 'bi bi-chevron-down' : 'bi bi-chevron-up'"></i>
+          Private Pay
+          <i class="bi bi-x"></i>
+        </button>
+        <button
+          v-if="localFilters.matchesAge"
+          class="filter-chip"
+          @click="toggleFilter('matchesAge')"
+        >
+          Age {{ formatAge(userData.age) }}
+          <i class="bi bi-x"></i>
+        </button>
+        <button
+          v-if="localFilters.matchesDiagnosis"
+          class="filter-chip"
+          @click="toggleFilter('matchesDiagnosis')"
+        >
+          {{ formatDiagnosis(userData.diagnosis) }}
+          <i class="bi bi-x"></i>
+        </button>
+        <button
+          v-if="localFilters.matchesTherapy"
+          class="filter-chip"
+          @click="toggleFilter('matchesTherapy')"
+        >
+          {{ userData.therapy }}
+          <i class="bi bi-x"></i>
         </button>
       </div>
     </div>
 
-    <!-- Filter Content -->
-    <div v-if="!isCollapsed" class="panel-content">
-      <!-- Insurance Filters -->
-      <div class="filter-section">
-        <h4 class="section-title">
-          <i class="bi bi-credit-card"></i>
-          <span>Insurance</span>
-        </h4>
-        <div class="filter-group">
-          <label class="filter-checkbox">
-            <input
-              type="checkbox"
-              v-model="localFilters.acceptsInsurance"
-              @change="handleFilterChange"
-            />
-            <span class="checkbox-label">Accepts Insurance</span>
-          </label>
-          <label class="filter-checkbox">
-            <input
-              type="checkbox"
-              v-model="localFilters.acceptsPrivatePay"
-              @change="handleFilterChange"
-            />
-            <span class="checkbox-label">Accepts Private Pay</span>
-          </label>
+    <!-- Info Modal -->
+    <div v-if="showInfoModal" class="info-modal-overlay" @click="showInfoModal = false">
+      <div class="info-modal" @click.stop>
+        <div class="modal-header">
+          <h3>Filter by My Needs</h3>
+          <button class="btn-close" @click="showInfoModal = false">
+            <i class="bi bi-x-lg"></i>
+          </button>
         </div>
-      </div>
-
-      <!-- Profile Matching Filters -->
-      <div class="filter-section">
-        <h4 class="section-title">
-          <i class="bi bi-person-check"></i>
-          <span>Match My Profile</span>
-        </h4>
-        <div class="filter-group">
-          <label class="filter-checkbox" :class="{ 'disabled': !hasUserAge }">
-            <input
-              type="checkbox"
-              v-model="localFilters.matchesAge"
-              @change="handleFilterChange"
-              :disabled="!hasUserAge"
-            />
-            <span class="checkbox-label">
-              Match Age
-              <span v-if="userData.age" class="profile-value">({{ userData.age }})</span>
-              <span v-else class="no-data">(Not set)</span>
-            </span>
-          </label>
-          <label class="filter-checkbox" :class="{ 'disabled': !hasUserDiagnosis }">
-            <input
-              type="checkbox"
-              v-model="localFilters.matchesDiagnosis"
-              @change="handleFilterChange"
-              :disabled="!hasUserDiagnosis"
-            />
-            <span class="checkbox-label">
-              Match Diagnosis
-              <span v-if="userData.diagnosis" class="profile-value">({{ userData.diagnosis }})</span>
-              <span v-else class="no-data">(Not set)</span>
-            </span>
-          </label>
-          <label class="filter-checkbox" :class="{ 'disabled': !hasUserTherapy }">
-            <input
-              type="checkbox"
-              v-model="localFilters.matchesTherapy"
-              @change="handleFilterChange"
-              :disabled="!hasUserTherapy"
-            />
-            <span class="checkbox-label">
-              Match Therapy
-              <span v-if="userData.therapy" class="profile-value">({{ userData.therapy }})</span>
-              <span v-else class="no-data">(Not set)</span>
-            </span>
-          </label>
+        <div class="modal-body">
+          <p>
+            These filters help you find providers that match your specific requirements:
+          </p>
+          <ul>
+            <li><strong>Age:</strong> Shows only providers who serve your age group</li>
+            <li><strong>Diagnosis:</strong> Shows only providers who treat your condition</li>
+            <li><strong>Therapy:</strong> Shows only providers who offer the services you need</li>
+          </ul>
+          <p class="modal-note">
+            These options are based on the profile you set up. You can update your profile anytime by clicking the edit button at the top.
+          </p>
         </div>
-      </div>
-
-      <!-- Other Filters -->
-      <div v-if="showFavorites" class="filter-section">
-        <h4 class="section-title">
-          <i class="bi bi-star"></i>
-          <span>Favorites</span>
-        </h4>
-        <div class="filter-group">
-          <label class="filter-checkbox">
-            <input
-              type="checkbox"
-              v-model="localFilters.showOnlyFavorites"
-              @change="handleFilterChange"
-            />
-            <span class="checkbox-label">Show Only Favorites</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Apply Button (if manual application is enabled) -->
-      <div v-if="manualApply && hasChanges" class="apply-section">
-        <button class="btn-apply" @click="handleApply">
-          <i class="bi bi-check-circle"></i>
-          <span>Apply Filters</span>
-        </button>
-      </div>
-
-      <!-- Active Filters Summary -->
-      <div v-if="showSummary && hasActiveFilters" class="filters-summary">
-        <div class="summary-header">
-          <i class="bi bi-info-circle"></i>
-          <span>Active Filters:</span>
-        </div>
-        <div class="summary-chips">
-          <span
-            v-if="localFilters.acceptsInsurance"
-            class="filter-chip"
-            @click="toggleFilter('acceptsInsurance')"
-          >
-            Insurance
-            <i class="bi bi-x"></i>
-          </span>
-          <span
-            v-if="localFilters.acceptsRegionalCenter"
-            class="filter-chip"
-            @click="toggleFilter('acceptsRegionalCenter')"
-          >
-            Regional Center
-            <i class="bi bi-x"></i>
-          </span>
-          <span
-            v-if="localFilters.acceptsPrivatePay"
-            class="filter-chip"
-            @click="toggleFilter('acceptsPrivatePay')"
-          >
-            Private Pay
-            <i class="bi bi-x"></i>
-          </span>
-          <span
-            v-if="localFilters.matchesAge"
-            class="filter-chip"
-            @click="toggleFilter('matchesAge')"
-          >
-            Age Match
-            <i class="bi bi-x"></i>
-          </span>
-          <span
-            v-if="localFilters.matchesDiagnosis"
-            class="filter-chip"
-            @click="toggleFilter('matchesDiagnosis')"
-          >
-            Diagnosis Match
-            <i class="bi bi-x"></i>
-          </span>
-          <span
-            v-if="localFilters.matchesTherapy"
-            class="filter-chip"
-            @click="toggleFilter('matchesTherapy')"
-          >
-            Therapy Match
-            <i class="bi bi-x"></i>
-          </span>
-          <span
-            v-if="localFilters.showOnlyFavorites"
-            class="filter-chip"
-            @click="toggleFilter('showOnlyFavorites')"
-          >
-            Favorites Only
-            <i class="bi bi-x"></i>
-          </span>
+        <div class="modal-footer">
+          <button class="btn-primary" @click="showInfoModal = false">
+            Got it
+          </button>
         </div>
       </div>
     </div>
@@ -206,36 +173,18 @@
 import { ref, computed, watch } from 'vue';
 import { useFilterStore } from '@/stores/filterStore';
 
-/**
- * FilterPanel Component
- * Displays and manages filter controls
- * Week 4: Component Extraction
- */
 export default {
   name: 'FilterPanel',
 
   props: {
-    // Whether panel starts collapsed
-    startCollapsed: {
-      type: Boolean,
-      default: false
-    },
-    // Show collapse/expand toggle
-    showCollapseToggle: {
-      type: Boolean,
-      default: true
-    },
-    // Show favorites filter
     showFavorites: {
       type: Boolean,
       default: false
     },
-    // Show active filters summary
     showSummary: {
       type: Boolean,
       default: true
     },
-    // Require manual "Apply" button click
     manualApply: {
       type: Boolean,
       default: false
@@ -243,18 +192,16 @@ export default {
   },
 
   emits: [
-    'filter-change',  // When filters change
-    'apply',          // When apply button is clicked
-    'reset'           // When reset is clicked
+    'filter-change',
+    'apply',
+    'reset'
   ],
 
   setup(props, { emit }) {
     const filterStore = useFilterStore();
+    const showInfoModal = ref(false);
 
-    const isCollapsed = ref(props.startCollapsed);
-    const hasChanges = ref(false);
-
-    // Local copy of filters for manual apply mode
+    // Local copy of filters
     const localFilters = ref({
       acceptsInsurance: filterStore.filterOptions.acceptsInsurance,
       acceptsPrivatePay: filterStore.filterOptions.acceptsPrivatePay,
@@ -266,11 +213,11 @@ export default {
 
     // User data from store
     const userData = computed(() => filterStore.userData);
-
-    // Check if user has set profile data
-    const hasUserAge = computed(() => !!userData.value.age);
-    const hasUserDiagnosis = computed(() => !!userData.value.diagnosis);
-    const hasUserTherapy = computed(() => !!userData.value.therapy);
+    
+    // Check if user has profile data
+    const hasUserProfile = computed(() => {
+      return !!(userData.value.age || userData.value.diagnosis || userData.value.therapy);
+    });
 
     // Active filter count
     const activeFilterCount = computed(() => {
@@ -288,19 +235,40 @@ export default {
     const hasActiveFilters = computed(() => activeFilterCount.value > 0);
 
     /**
+     * Format age for display
+     */
+    const formatAge = (age) => {
+      if (!age) return '';
+      if (age.includes('-') || age.includes('+')) {
+        return `${age} years`;
+      }
+      return age;
+    };
+
+    /**
+     * Format diagnosis for display
+     */
+    const formatDiagnosis = (diagnosis) => {
+      if (!diagnosis) return '';
+      const shortForms = {
+        'Autism Spectrum Disorder': 'Autism',
+        'Global Development Delay': 'Development Delay',
+        'Intellectual Disability': 'Intellectual Disability',
+        'Speech and Language Disorder': 'Speech/Language',
+        'ADHD': 'ADHD'
+      };
+      return shortForms[diagnosis] || diagnosis;
+    };
+
+    /**
      * Handle filter change
      */
     const handleFilterChange = () => {
-      console.log('🔍 FilterPanel: Filter changed');
-
-      if (props.manualApply) {
-        // Mark as changed but don't apply yet
-        hasChanges.value = true;
-      } else {
-        // Apply immediately
-        applyFiltersToStore();
-        emit('filter-change', localFilters.value);
-      }
+      console.log('🔍 FilterPanel: Filter changed', localFilters.value);
+      
+      // Apply to store
+      applyFiltersToStore();
+      emit('filter-change', localFilters.value);
     };
 
     /**
@@ -315,17 +283,6 @@ export default {
     };
 
     /**
-     * Handle manual apply
-     */
-    const handleApply = () => {
-      console.log('🔍 FilterPanel: Apply button clicked');
-
-      applyFiltersToStore();
-      hasChanges.value = false;
-      emit('apply', localFilters.value);
-    };
-
-    /**
      * Handle reset
      */
     const handleReset = () => {
@@ -334,7 +291,6 @@ export default {
       // Reset all filters
       localFilters.value = {
         acceptsInsurance: false,
-        acceptsRegionalCenter: false,
         acceptsPrivatePay: false,
         matchesAge: false,
         matchesDiagnosis: false,
@@ -342,11 +298,7 @@ export default {
         showOnlyFavorites: false
       };
 
-      if (!props.manualApply) {
-        applyFiltersToStore();
-      }
-
-      hasChanges.value = false;
+      applyFiltersToStore();
       emit('reset');
     };
 
@@ -355,45 +307,31 @@ export default {
      */
     const toggleFilter = (filterKey) => {
       console.log(`🔍 FilterPanel: Toggling filter ${filterKey}`);
-
       localFilters.value[filterKey] = !localFilters.value[filterKey];
       handleFilterChange();
     };
 
-    /**
-     * Handle collapse toggle
-     */
-    const handleToggleCollapse = () => {
-      isCollapsed.value = !isCollapsed.value;
-      console.log(`🔍 FilterPanel: ${isCollapsed.value ? 'Collapsed' : 'Expanded'}`);
-    };
-
-    // Sync with store when store changes (from other sources)
+    // Sync with store when store changes
     watch(
       () => filterStore.filterOptions,
       (newOptions) => {
-        if (!hasChanges.value) {
-          localFilters.value = { ...newOptions };
-        }
+        localFilters.value = { ...newOptions };
       },
       { deep: true }
     );
 
     return {
-      isCollapsed,
-      hasChanges,
       localFilters,
       userData,
-      hasUserAge,
-      hasUserDiagnosis,
-      hasUserTherapy,
+      hasUserProfile,
       activeFilterCount,
       hasActiveFilters,
+      showInfoModal,
+      formatAge,
+      formatDiagnosis,
       handleFilterChange,
-      handleApply,
       handleReset,
-      toggleFilter,
-      handleToggleCollapse
+      toggleFilter
     };
   }
 };
@@ -401,277 +339,308 @@ export default {
 
 <style scoped>
 .filter-panel {
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.filter-panel.is-collapsed .panel-content {
-  display: none;
-}
-
-/* Header */
-.panel-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.header-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.header-title i {
-  font-size: 20px;
-  color: #2563eb;
-}
-
-.header-title h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-}
-
-.filter-count-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 8px;
-  background-color: #2563eb;
-  color: white;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-reset,
-.btn-collapse {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: transparent;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  color: #6b7280;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-reset:hover,
-.btn-collapse:hover {
-  background-color: #f3f4f6;
-  color: #1f2937;
-  border-color: #9ca3af;
-}
-
-.btn-collapse {
-  padding: 6px;
-  min-width: 32px;
-}
-
-/* Content */
-.panel-content {
-  padding: 16px;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 /* Filter Section */
 .filter-section {
-  margin-bottom: 20px;
+  background: white;
+  border-radius: 10px;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
 }
 
-.filter-section:last-child {
-  margin-bottom: 0;
-}
-
-.section-title {
+.section-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 12px 0;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.section-title i {
-  font-size: 16px;
+.section-header i {
+  font-size: 1.125rem;
   color: #6b7280;
 }
 
-/* Filter Group */
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.section-header h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
 }
 
-/* Checkbox */
-.filter-checkbox {
+.btn-info {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px;
+  transition: color 0.2s ease;
+}
+
+.btn-info:hover {
+  color: #004877;
+}
+
+.btn-info i {
+  font-size: 1rem;
+}
+
+/* Filter Options */
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s ease;
   user-select: none;
 }
 
-.filter-checkbox:hover {
+.filter-option:hover {
   background-color: #f9fafb;
 }
 
-.filter-checkbox.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.filter-checkbox.disabled:hover {
-  background-color: transparent;
-}
-
-.filter-checkbox input[type="checkbox"] {
+.filter-option input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #2563eb;
+  accent-color: #004877;
+  flex-shrink: 0;
 }
 
-.filter-checkbox.disabled input[type="checkbox"] {
-  cursor: not-allowed;
+.filter-option span {
+  font-size: 0.9375rem;
+  color: #374151;
+  line-height: 1.4;
 }
 
-.checkbox-label {
-  font-size: 14px;
-  color: #4b5563;
-  cursor: pointer;
+.filter-label {
+  font-weight: 400;
 }
 
-.filter-checkbox.disabled .checkbox-label {
-  cursor: not-allowed;
+/* No Profile Hint */
+.no-profile-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f3f4f6;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.5;
 }
 
-.profile-value {
-  font-weight: 500;
-  color: #2563eb;
+.no-profile-hint i {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
 }
 
-.no-data {
-  font-style: italic;
-  color: #9ca3af;
-  font-size: 13px;
+/* Active Filters */
+.active-filters {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  padding: 1rem;
 }
 
-/* Apply Section */
-.apply-section {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.btn-apply {
-  width: 100%;
+.active-filters-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background-color: #2563eb;
-  color: white;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.active-count {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.btn-clear-all {
+  background: transparent;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  color: #6b7280;
+  font-size: 0.8125rem;
   cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
   transition: all 0.2s ease;
 }
 
-.btn-apply:hover {
-  background-color: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+.btn-clear-all:hover {
+  background: #dbeafe;
+  color: #1e40af;
 }
 
-/* Filters Summary */
-.filters-summary {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.summary-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
-  margin-bottom: 10px;
-}
-
-.summary-header i {
-  font-size: 14px;
-}
-
-.summary-chips {
+/* Filter Chips */
+.filter-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .filter-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background-color: #eff6ff;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: white;
+  border: 1px solid #bfdbfe;
+  border-radius: 16px;
   color: #1e40af;
-  border-radius: 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .filter-chip:hover {
-  background-color: #dbeafe;
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
 .filter-chip i {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
-/* Responsive */
+/* Info Modal */
+.info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.info-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.btn-close:hover {
+  color: #1f2937;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-body p {
+  margin: 0 0 1rem 0;
+  font-size: 0.9375rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.modal-body ul {
+  margin: 0 0 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.modal-body li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9375rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.modal-note {
+  background: #f9fafb;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  border-left: 3px solid #004877;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  background: #004877;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #003a5d;
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .panel-header {
-    padding: 14px;
-  }
-
-  .panel-content {
-    padding: 14px;
-  }
-
   .filter-section {
-    margin-bottom: 16px;
+    padding: 0.875rem;
+  }
+
+  .filter-option {
+    padding: 0.625rem 0.5rem;
+  }
+
+  .info-modal {
+    max-width: 100%;
+    margin: 0.5rem;
   }
 }
 </style>

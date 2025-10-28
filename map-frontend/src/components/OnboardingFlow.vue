@@ -58,18 +58,11 @@
               <input
                 type="text"
                 class="form-control location-input"
-                  placeholder="ZIP code (5 digits) or city"
+                placeholder="ZIP code (5 digits) or city"
                 v-model="userLocation"
-                @keyup.enter="validateLocation"
-                  @input="validateZipFormat"
+                @keyup.enter="nextStep"
+                @input="validateZipFormat"
               />
-              <button
-                class="btn btn-chla-outline"
-                @click="validateLocation"
-                :disabled="!userLocation"
-              >
-                Continue
-              </button>
             </div>
           </div>
 
@@ -296,21 +289,35 @@
 
       <!-- Navigation -->
       <div class="step-navigation">
-        <button v-if="currentStep > 1" class="btn btn-secondary" @click="previousStep">
+        <!-- Back Button (all steps except first) -->
+        <button 
+          v-if="currentStep > 1" 
+          class="btn btn-secondary" 
+          @click="previousStep"
+        >
           <i class="bi bi-arrow-left"></i>
           Back
         </button>
 
+        <!-- Skip Link (only on first step) -->
+        <button 
+          v-if="currentStep === 1"
+          class="btn btn-link skip-link"
+          @click="skipOnboarding"
+        >
+          Skip for now
+        </button>
+
         <div class="nav-spacer"></div>
 
+        <!-- Next/Complete Button -->
         <button
           v-if="currentStep < totalSteps"
           class="btn btn-chla-primary"
           @click="nextStep"
           :disabled="!canProceed"
         >
-          <span v-if="currentStep === 1">Get Started</span>
-          <span v-else>Continue</span>
+          Next
           <i class="bi bi-arrow-right"></i>
         </button>
 
@@ -319,16 +326,8 @@
           class="btn btn-chla-primary"
           @click="completeOnboarding"
         >
-          Complete Setup
+          Complete
           <i class="bi bi-check"></i>
-        </button>
-
-        <button
-          v-if="currentStep < totalSteps"
-          class="btn btn-link skip-btn"
-          @click="skipOnboarding"
-        >
-          Skip for now
         </button>
       </div>
     </div>
@@ -428,6 +427,12 @@ export default {
   methods: {
     async nextStep() {
       if (this.currentStep < this.totalSteps) {
+        // On step 1, validate location before proceeding
+        if (this.currentStep === 1) {
+          await this.validateLocation();
+          return; // validateLocation will handle moving to next step
+        }
+        
         this.currentStep++;
         if (this.currentStep === 4) {
           await this.generateResults();
@@ -460,10 +465,10 @@ export default {
           address,
         });
 
-        // Detect regional center immediately
-        this.matchRegionalCenterByLocation(address).catch((error) => {
-          console.error('Regional center detection failed:', error);
-        });
+        // Detect regional center immediately (await to ensure it's ready)
+        console.log('🔍 Detecting regional center for geolocation:', address);
+        await this.matchRegionalCenterByLocation(address);
+        console.log('✅ Regional center detected:', this.localRegionalCenter);
       } catch (error) {
         this.locationError = "Unable to detect location. Please enter manually.";
         console.error("Location detection failed:", error);
@@ -554,7 +559,7 @@ export default {
       }
     },
 
-    validateLocation() {
+    async validateLocation() {
       if (!this.userLocation.trim()) {
         this.locationError = "Please enter a location";
         return;
@@ -571,8 +576,14 @@ export default {
 
       this.locationError = "";
       this.$emit("location-manual", this.userLocation);
-      this.matchRegionalCenterByLocation(this.userLocation).catch(() => {});
-      this.nextStep();
+      
+      // MUST await regional center detection before proceeding!
+      console.log('🔍 Detecting regional center for:', this.userLocation);
+      await this.matchRegionalCenterByLocation(this.userLocation);
+      console.log('✅ Regional center detected:', this.localRegionalCenter);
+      
+      // Move to next step
+      this.currentStep++;
     },
 
     async matchRegionalCenterByLocation(locationText) {
@@ -661,54 +672,85 @@ export default {
         console.log('=== GENERATE RESULTS DEBUG ===');
         console.log('User location:', this.userLocation);
         console.log('User profile:', this.userProfile);
+        console.log('Local regional center:', this.localRegionalCenter);
         console.log('API base URL:', apiBaseUrl);
         
-        // Get provider count within 5-mile radius of user's location
-        const providerParams = new URLSearchParams();
-        if (this.userLocation) {
-          // Clean up the location string - remove extra spaces and fix encoding
-          const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, '');
-          providerParams.append('location', cleanLocation);
-          providerParams.append('radius', '5'); // 5-mile radius for focused results
+        // Get the ZIP code from user location or detected regional center
+        let searchZip = null;
+        const zipMatch = this.userLocation?.match(/\b\d{5}\b/);
+        if (zipMatch) {
+          searchZip = zipMatch[0];
+        } else if (this.localRegionalCenter?.zip_codes?.length > 0) {
+          // Use first ZIP from detected regional center
+          searchZip = this.localRegionalCenter.zip_codes[0];
         }
         
-        // Apply user's filters to make their selections meaningful
-        if (this.userProfile.age) {
-          providerParams.append('age', this.userProfile.age);
-        }
-        
-        if (this.userProfile.diagnosis) {
-          providerParams.append('diagnosis', this.userProfile.diagnosis);
-        }
-        
-        if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
-          this.userProfile.therapies.forEach(therapy => {
-            providerParams.append('therapy', therapy);
-          });
-        }
-        
-        if (this.userProfile.hasInsurance) {
-          providerParams.append('insurance', 'insurance'); // Backend expects lowercase "insurance"
-        }
-        
-        const filteredUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${providerParams.toString()}`;
-        console.log('Filtered provider API URL:', filteredUrl);
-        console.log('Applied filters:', {
-          age: this.userProfile.age,
-          diagnosis: this.userProfile.diagnosis,
-          therapies: this.userProfile.therapies,
-          hasInsurance: this.userProfile.hasInsurance
-        });
+        console.log('Search ZIP:', searchZip);
         
         let providerData = [];
-        try {
-          const filteredResponse = await fetch(filteredUrl);
-          if (filteredResponse.ok) {
-            providerData = await filteredResponse.json();
-            console.log('Filtered provider data received:', providerData);
+        
+        if (searchZip) {
+          // Use by_regional_center endpoint with ZIP code
+          const providerParams = new URLSearchParams();
+          providerParams.append('zip_code', searchZip);
+          
+          // Apply user's filters to make their selections meaningful
+          if (this.userProfile.age) {
+            providerParams.append('age', this.userProfile.age);
           }
-        } catch (error) {
-          console.error('Filtered search failed:', error);
+          
+          if (this.userProfile.diagnosis) {
+            providerParams.append('diagnosis', this.userProfile.diagnosis);
+          }
+          
+          if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
+            this.userProfile.therapies.forEach(therapy => {
+              providerParams.append('therapy', therapy);
+            });
+          }
+          
+          if (this.userProfile.hasInsurance) {
+            providerParams.append('insurance', 'insurance');
+          }
+          
+          const filteredUrl = `${apiBaseUrl}/api/providers-v2/by_regional_center/?${providerParams.toString()}`;
+          console.log('✅ Filtered provider API URL:', filteredUrl);
+          console.log('Applied filters:', {
+            zip_code: searchZip,
+            age: this.userProfile.age,
+            diagnosis: this.userProfile.diagnosis,
+            therapies: this.userProfile.therapies,
+            hasInsurance: this.userProfile.hasInsurance
+          });
+          
+          try {
+            const filteredResponse = await fetch(filteredUrl);
+            if (filteredResponse.ok) {
+              const responseData = await filteredResponse.json();
+              // Extract providers array from response (backend returns "results", not "providers")
+              providerData = responseData.results || responseData.providers || [];
+              console.log('✅ Filtered provider data received:', providerData.length, 'providers');
+              console.log('Response data:', responseData);
+              
+              // If no results with filters, try again WITHOUT filters to show something
+              if (providerData.length === 0) {
+                console.log('⚠️ No providers match all filters, fetching unfiltered results...');
+                const unfilteredUrl = `${apiBaseUrl}/api/providers-v2/by_regional_center/?zip_code=${searchZip}`;
+                const unfilteredResponse = await fetch(unfilteredUrl);
+                if (unfilteredResponse.ok) {
+                  const unfilteredData = await unfilteredResponse.json();
+                  providerData = unfilteredData.results || unfilteredData.providers || [];
+                  console.log('✅ Showing unfiltered providers:', providerData.length);
+                }
+              }
+            } else {
+              console.error('Provider API error:', filteredResponse.status);
+            }
+          } catch (error) {
+            console.error('Filtered search failed:', error);
+          }
+        } else {
+          console.warn('No ZIP code available for provider search');
         }
         
         // Set the results count and store the actual provider data
@@ -729,106 +771,16 @@ export default {
           console.log('No provider data received');
         }
         
-        // Get regional center count using service area boundaries
-        try {
-          const regionalCenterUrl = `${apiBaseUrl}/api/regional-centers/service_area_boundaries/`;
-          console.log('Regional center API URL:', regionalCenterUrl);
-          
-          const regionalCenterResponse = await fetch(regionalCenterUrl, { 
-            headers: { Accept: "application/json" } 
-          });
-          
-          console.log('Regional center response status:', regionalCenterResponse.status);
-          
-          if (regionalCenterResponse.ok) {
-            const regionalCenterData = await regionalCenterResponse.json();
-            console.log('Regional center data received:', regionalCenterData);
-            
-            if (regionalCenterData && regionalCenterData.features && Array.isArray(regionalCenterData.features)) {
-              // Clean up the location string
-              const cleanLocation = this.userLocation.trim().replace(/\s+/g, ' ').replace(/\+/g, '');
-              
-              // Check if location is a ZIP code (5 digits)
-              const zipMatch = cleanLocation.match(/\b\d{5}\b/);
-              
-              if (zipMatch) {
-                // Find regional center by ZIP code
-                const matchingCenter = regionalCenterData.features.find(feature => 
-                  feature.properties.zip_codes && 
-                  feature.properties.zip_codes.includes(zipMatch[0])
-                );
-                
-                if (matchingCenter) {
-                  this.regionalCentersCount = 1;
-                  this.localRegionalCenter = {
-                    regional_center: matchingCenter.properties.name,
-                    name: matchingCenter.properties.name,
-                    phone: matchingCenter.properties.phone,
-                    address: matchingCenter.properties.address,
-                    website: matchingCenter.properties.website,
-                    service_area: matchingCenter.properties.service_areas,
-                    zip_codes: matchingCenter.properties.zip_codes,
-                    center_id: matchingCenter.properties.center_id
-                  };
-                  console.log('Regional center count (ZIP code):', this.regionalCentersCount);
-                  console.log('Regional center name:', matchingCenter.properties.name);
-                } else {
-                  this.regionalCentersCount = 0;
-                  this.localRegionalCenter = null;
-                  console.log('Regional center count (ZIP code, not found):', this.regionalCentersCount);
-                }
-              } else {
-                // For non-ZIP locations, try to find by location name
-                const locationLower = cleanLocation.toLowerCase();
-                
-                const matchingCenters = regionalCenterData.features.filter(feature => {
-                  const name = feature.properties.name.toLowerCase();
-                  const serviceAreas = feature.properties.service_areas;
-                  
-                  // Check if location text contains any service area names
-                  if (Array.isArray(serviceAreas)) {
-                    return serviceAreas.some(area => 
-                      locationLower.includes(area.toLowerCase())
-                    );
-                  }
-                  
-                  // Fallback: check if location contains regional center name
-                  return locationLower.includes(name.toLowerCase());
-                });
-                
-                this.regionalCentersCount = matchingCenters.length;
-                if (matchingCenters.length > 0) {
-                  this.localRegionalCenter = {
-                    regional_center: matchingCenters[0].properties.name,
-                    name: matchingCenters[0].properties.name,
-                    phone: matchingCenters[0].properties.phone,
-                    address: matchingCenters[0].properties.address,
-                    website: matchingCenters[0].properties.website,
-                    service_area: matchingCenters[0].properties.service_areas,
-                    zip_codes: matchingCenters[0].properties.zip_codes,
-                    center_id: matchingCenters[0].properties.center_id
-                  };
-                  console.log('Regional center name:', matchingCenters[0].properties.name);
-                }
-                console.log('Regional center count (location):', this.regionalCentersCount);
-              }
-            } else {
-              this.regionalCentersCount = 0;
-              this.localRegionalCenter = null;
-              console.log('Regional center count (no features):', this.regionalCentersCount);
-            }
-          } else {
-            console.error('Regional center API error:', regionalCenterResponse.status);
-            this.regionalCentersCount = 0;
-            this.localRegionalCenter = null;
-          }
-        } catch (error) {
-          console.error('Regional center fetch error:', error);
+        // Use the regional center detected earlier by matchRegionalCenterByLocation
+        if (this.localRegionalCenter) {
+          this.regionalCentersCount = 1;
+          console.log('✅ Using detected regional center:', this.localRegionalCenter.regional_center);
+        } else {
           this.regionalCentersCount = 0;
-          this.localRegionalCenter = null;
+          console.log('⚠️ No regional center detected');
         }
         
-        console.log(`Generated results within 5-mile radius: ${this.resultsCount} providers, ${this.regionalCentersCount} regional centers`);
+        console.log(`✅ Generated results: ${this.resultsCount} providers, ${this.regionalCentersCount} regional center`);
         
       } catch (error) {
         console.error('Error generating results:', error);
@@ -1544,15 +1496,19 @@ export default {
   flex: 1;
 }
 
-.skip-btn {
-  color: #ffffff;
-  font-size: 14px;
+.skip-link {
+  color: #6c757d;
+  font-size: 0.875rem;
   text-decoration: none;
-  margin-left: 16px;
+  padding: 0.375rem 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
-.skip-btn:hover {
-  color: #e9ecef;
+.skip-link:hover {
+  color: #004877;
+  text-decoration: underline;
 }
 
 /* Button Styles - Small & Subtle Design */

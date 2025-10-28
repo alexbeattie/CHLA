@@ -11,7 +11,7 @@ from .models import (
     LocationImage,
     LocationReview,
     RegionalCenter,
-    Provider,
+    # Provider model removed - use ProviderV2
     FundingSource,
     InsuranceCarrier,
     ServiceDeliveryModel,
@@ -27,9 +27,7 @@ from .serializers import (
     LocationImageSerializer,
     LocationReviewSerializer,
     RegionalCenterSerializer,
-    ProviderSerializer,
-    ProviderWriteSerializer,
-    ProviderGeoSerializer,
+    # Old Provider serializers removed - use ProviderV2 serializers
     FundingSourceSerializer,
     InsuranceCarrierSerializer,
     ServiceDeliveryModelSerializer,
@@ -626,359 +624,8 @@ class ServiceDeliveryModelViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ["name", "description"]
 
 
-class ProviderViewSet(viewsets.ModelViewSet):
-    queryset = Provider.objects.all()
-    serializer_class = ProviderSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
-    search_fields = ["name", "type", "description", "address"]
-    ordering_fields = ["name"]
-    
-    def get_serializer_class(self):
-        """Use different serializers for different operations"""
-        if self.action in ['create', 'update', 'partial_update']:
-            return ProviderWriteSerializer
-        return ProviderSerializer
-
-    @action(detail=False, methods=["get"])
-    def by_area(self, request):
-        """
-        Find providers serving a specific area.
-        Query parameters:
-        - area: Area name (required)
-        """
-        try:
-            # Get area parameter
-            area_param = request.query_params.get("area")
-
-            # Validate parameters
-            if not area_param:
-                return Response(
-                    {"error": "Area parameter is required"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Search for providers serving the area
-            providers = Provider.objects.filter(
-                Q(coverage_areas__icontains=area_param) | Q(areas__icontains=area_param)
-            )
-
-            serializer = self.get_serializer(providers, many=True)
-            return Response(serializer.data)
-
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @action(detail=False, methods=["get"])
-    def nearby(self, request):
-        """
-        Find providers near given coordinates.
-        Query parameters:
-        - lat: Latitude (required)
-        - lng: Longitude (required)
-        - radius: Search radius in miles (default: 10)
-        - limit: Maximum results (default: 20)
-        """
-        try:
-            # Get coordinates
-            lat = request.query_params.get("lat")
-            lng = request.query_params.get("lng")
-            radius = float(request.query_params.get("radius", 10))
-            limit = int(request.query_params.get("limit", 20))
-
-            # Validate coordinates
-            if not lat or not lng:
-                return Response(
-                    {"error": "Latitude and longitude are required"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            lat = float(lat)
-            lng = float(lng)
-
-            # Find nearby providers
-            providers = Provider.find_nearest(lat, lng, radius, limit)
-
-            # Serialize with distance
-            data = []
-            for provider in providers:
-                provider_data = self.get_serializer(provider).data
-                provider_data["distance"] = round(provider.distance, 2)
-                data.append(provider_data)
-
-            return Response(data)
-
-        except ValueError:
-            return Response(
-                {"error": "Invalid coordinate or numeric values"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @action(detail=False, methods=["get"])
-    def by_location(self, request):
-        """
-        Find providers by address or zip code.
-        Query parameters:
-        - location: Address or zip code (required)
-        - radius: Search radius in miles (default: 10)
-        - limit: Maximum results (default: 20)
-        """
-        try:
-            # Get location parameter
-            location = request.query_params.get("location")
-            radius = float(request.query_params.get("radius", 10))
-            limit = int(request.query_params.get("limit", 20))
-
-            if not location:
-                return Response(
-                    {"error": "Location parameter is required"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Geocode and search
-            providers = Provider.geocode_and_search(location, radius, limit)
-
-            if not providers:
-                return Response(
-                    {"error": "Could not geocode location or no providers found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            # Serialize with distance
-            data = []
-            for provider in providers:
-                provider_data = self.get_serializer(provider).data
-                provider_data["distance"] = round(provider.distance, 2)
-                data.append(provider_data)
-
-            return Response(data)
-
-        except ValueError:
-            return Response(
-                {"error": "Invalid numeric values"}, status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @action(detail=False, methods=["get"])
-    def comprehensive_search(self, request):
-        """
-        Comprehensive search with multiple filters.
-        Query parameters:
-        - q: Search query (searches name, specializations, services)
-        - location: Address or zip code for geographic filtering
-        - radius: Search radius in miles (default: 15)
-        - insurance: Insurance filter (can be multiple values)
-        - specialization: Specialization filter
-        - lat: Latitude for geographic filtering
-        - lng: Longitude for geographic filtering
-        - age: Age for age group filtering
-        - diagnosis: Diagnosis for specialization filtering
-        """
-        try:
-            query = request.query_params.get("q", "")
-            location = request.query_params.get("location")
-            radius = float(request.query_params.get("radius", 15))
-            lat = request.query_params.get("lat")
-            lng = request.query_params.get("lng")
-            age = request.query_params.get("age")
-            diagnosis = request.query_params.get("diagnosis")
-
-            # Get all insurance filter values (can be multiple)
-            insurance_filters = request.query_params.getlist("insurance")
-            specialization = request.query_params.get("specialization")
-
-            # Start with all providers
-            providers = Provider.objects.all()
-
-            # Apply text search
-            if query:
-                # Text search across common text fields, including address
-                providers = providers.filter(
-                    Q(name__icontains=query)
-                    | Q(address__icontains=query)
-                    | Q(type__icontains=query)
-                    | Q(description__icontains=query)
-                    | Q(insurance_accepted__icontains=query)
-                )
-
-            # Apply insurance filters
-            if insurance_filters:
-                insurance_q = Q()
-                for insurance_type in insurance_filters:
-                    if insurance_type.lower() == "insurance":
-                        # Filter for providers that accept any form of insurance
-                        # Look for common insurance-related terms and specific insurers
-                        insurance_q |= (
-                            Q(insurance_accepted__icontains="insurance")
-                            | Q(insurance_accepted__icontains="medical")
-                            | Q(insurance_accepted__icontains="health")
-                            | Q(insurance_accepted__icontains="medi-cal")
-                            | Q(insurance_accepted__icontains="medicaid")
-                            | Q(insurance_accepted__icontains="blue")
-                            | Q(insurance_accepted__icontains="anthem")
-                            | Q(insurance_accepted__icontains="aetna")
-                            | Q(insurance_accepted__icontains="cigna")
-                            | Q(insurance_accepted__icontains="united")
-                            | Q(insurance_accepted__icontains="kaiser")
-                            | Q(insurance_accepted__icontains="optum")
-                            | Q(insurance_accepted__icontains="magellan")
-                            | Q(insurance_accepted__icontains="beacon")
-                            | Q(insurance_accepted__icontains="molina")
-                            | Q(insurance_accepted__icontains="humana")
-                            | Q(insurance_accepted__icontains="tricare")
-                            |
-                            # Exclude null/empty values
-                            Q(insurance_accepted__isnull=False)
-                            & ~Q(insurance_accepted="")
-                        )
-                    elif insurance_type.lower() == "regional center":
-                        # Filter for providers that accept regional center funding
-                        insurance_q |= Q(
-                            insurance_accepted__icontains="regional center"
-                        ) | Q(insurance_accepted__icontains="regional centre")
-                    elif insurance_type.lower() == "private pay":
-                        # Filter for providers that accept private pay
-                        insurance_q |= (
-                            Q(insurance_accepted__icontains="private pay")
-                            | Q(insurance_accepted__icontains="private")
-                            | Q(insurance_accepted__icontains="self pay")
-                        )
-                    else:
-                        # Generic insurance filter
-                        insurance_q |= Q(insurance_accepted__icontains=insurance_type)
-
-                providers = providers.filter(insurance_q)
-
-            # Apply specialization filter (diagnosis) against enum[] using UNNEST
-            if specialization:
-                providers = providers.filter(
-                    RawSQL(
-                        "EXISTS (SELECT 1 FROM unnest(specializations) s WHERE lower(s::text)=lower(%s))",
-                        [specialization],
-                    )
-                )
-
-            # Apply diagnosis filter (enum[])
-            if diagnosis:
-                providers = providers.filter(
-                    RawSQL(
-                        "EXISTS (SELECT 1 FROM unnest(specializations) s WHERE lower(s::text)=lower(%s))",
-                        [diagnosis],
-                    )
-                )
-
-            # Apply therapy filters (multiple allowed)
-            therapy_values = request.query_params.getlist("therapy")
-            for therapy in therapy_values:
-                providers = providers.filter(
-                    RawSQL(
-                        "EXISTS (SELECT 1 FROM unnest(services) sv WHERE lower(sv::text)=lower(%s))",
-                        [therapy],
-                    )
-                )
-
-            # Apply location-based filtering using provided coordinates
-            if lat and lng:
-                try:
-                    lat_float = float(lat)
-                    lng_float = float(lng)
-
-                    # Get IDs of already filtered providers
-                    filtered_provider_ids = list(providers.values_list('id', flat=True))
-                    
-                    if filtered_provider_ids:
-                        # Filter by distance using raw SQL, but only for already filtered providers
-                        from django.db import connection
-
-                        # Convert provider IDs to a comma-separated string for SQL IN clause
-                        id_list = ','.join(map(str, filtered_provider_ids))
-                        
-                        with connection.cursor() as cursor:
-                            cursor.execute(
-                                f"""
-                                SELECT id FROM providers 
-                                WHERE id IN ({id_list})
-                                AND latitude IS NOT NULL AND longitude IS NOT NULL
-                                AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                                cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                                sin(radians(latitude)))) < %s
-                            """,
-                                [lat_float, lng_float, lat_float, radius],
-                            )
-                            nearby_ids = [row[0] for row in cursor.fetchall()]
-
-                        providers = providers.filter(id__in=nearby_ids)
-                    else:
-                        # If no providers match the non-geographic filters, return empty queryset
-                        providers = providers.none()
-                except (ValueError, TypeError):
-                    pass  # Skip location filtering if coordinates are invalid
-
-            # Apply location-based filtering using address geocoding (fallback)
-            elif location:
-                coordinates = RegionalCenter.geocode_address(location)
-                if coordinates:
-                    lat_coord, lng_coord = coordinates
-                    
-                    # Get IDs of already filtered providers
-                    filtered_provider_ids = list(providers.values_list('id', flat=True))
-                    
-                    if filtered_provider_ids:
-                        # Filter by distance using raw SQL, but only for already filtered providers
-                        from django.db import connection
-
-                        # Convert provider IDs to a comma-separated string for SQL IN clause
-                        id_list = ','.join(map(str, filtered_provider_ids))
-                        
-                        with connection.cursor() as cursor:
-                            cursor.execute(
-                                f"""
-                                SELECT id FROM providers 
-                                WHERE id IN ({id_list})
-                                AND latitude IS NOT NULL AND longitude IS NOT NULL
-                                AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                                cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                                sin(radians(latitude)))) < %s
-                            """,
-                                [lat_coord, lng_coord, lat_coord, radius],
-                            )
-                            nearby_ids = [row[0] for row in cursor.fetchall()]
-
-                        providers = providers.filter(id__in=nearby_ids)
-                    else:
-                        # If no providers match the non-geographic filters, return empty queryset
-                        providers = providers.none()
-
-            # Apply age filtering
-            if age:
-                # Try to filter by age groups, but if no results, fall back to no age filter
-                age_filtered = providers.filter(age_groups__contains=[age])
-                if age_filtered.exists():
-                    providers = age_filtered
-                # If no providers match age filter, keep all providers (lenient approach)
-
-            # Apply limit
-            providers = providers[:100]  # Reasonable limit
-
-            serializer = self.get_serializer(providers, many=True)
-            return Response(serializer.data)
-
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+# REMOVED: Old ProviderViewSet - Use ProviderV2ViewSet instead
+# Legacy /api/providers-legacy/ endpoint has been removed
 
 
 # ProviderV2 ViewSet with enum array support
@@ -1170,50 +817,22 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     | Q(insurance_accepted__icontains=query)
                 )
 
-            # Apply insurance filters using text field operations
+            # Apply insurance filters - use boolean fields for reliability
             if insurance_filters:
                 insurance_q = Q()
                 for insurance_type in insurance_filters:
                     if insurance_type.lower() == "insurance":
-                        # Filter for providers that accept any form of insurance
-                        # Look for providers that have actual insurance data (not empty arrays)
-                        insurance_q |= (
-                            Q(insurance_accepted__isnull=False) 
-                            & (
-                                Q(insurance_accepted__icontains="Health Net") |
-                                Q(insurance_accepted__icontains="Aetna") |
-                                Q(insurance_accepted__icontains="Blue Shield") |
-                                Q(insurance_accepted__icontains="Medicaid") |
-                                Q(insurance_accepted__icontains="Medi-Cal") |
-                                Q(insurance_accepted__icontains="Cigna") |
-                                Q(insurance_accepted__icontains="Kaiser") |
-                                Q(insurance_accepted__icontains="Anthem") |
-                                Q(insurance_accepted__icontains="Molina") |
-                                Q(insurance_accepted__icontains="Magellan") |
-                                Q(insurance_accepted__icontains="Beacon") |
-                                Q(insurance_accepted__icontains="Optum") |
-                                Q(insurance_accepted__icontains="United Healthcare") |
-                                Q(insurance_accepted__icontains="Tricare") |
-                                Q(insurance_accepted__icontains="Blue Cross") |
-                                Q(insurance_accepted__icontains="Humana") |
-                                Q(insurance_accepted__icontains="MHN") |
-                                Q(insurance_accepted__icontains="CalOptima") |
-                                Q(insurance_accepted__icontains="Inland Empire Health Plan") |
-                                Q(insurance_accepted__icontains="L.A. Care") |
-                                Q(insurance_accepted__icontains="United Behavioral Health") |
-                                Q(insurance_accepted__icontains="The Holman Group") |
-                                Q(insurance_accepted__icontains="Molina Health Care") |
-                                Q(insurance_accepted__icontains="Covered California")
-                            )
-                        )
+                        # Use accepts_insurance boolean field for reliable filtering
+                        insurance_q |= Q(accepts_insurance=True)
+                    elif insurance_type.lower() == "private pay":
+                        insurance_q |= Q(accepts_private_pay=True)
                     elif insurance_type.lower() == "regional center":
-                        # Filter for providers that accept regional center funding
-                        insurance_q |= Q(insurance_accepted__icontains="regional center")
+                        insurance_q |= Q(accepts_regional_center=True)
                     else:
-                        # Generic insurance filter
+                        # Fallback to text search for specific carrier names
                         insurance_q |= Q(insurance_accepted__icontains=insurance_type)
 
-                # Debug: Log the query before applying
+                # Debug: Log the filter
                 print(f"DEBUG: Insurance filter query: {insurance_q}")
                 providers = providers.filter(insurance_q)
 
@@ -1248,24 +867,24 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     filtered_provider_ids = list(providers.values_list('id', flat=True))
                     
                     if filtered_provider_ids:
-                        # Filter by distance using raw SQL, but only for already filtered providers
+                        # Filter by distance using raw SQL with proper parameterization
                         from django.db import connection
 
-                        # Convert provider IDs to a comma-separated string for SQL IN clause
-                        id_list = ','.join([f"'{str(id)}'" for id in filtered_provider_ids])
+                        # Build placeholders for the IN clause
+                        placeholders = ','.join(['%s'] * len(filtered_provider_ids))
                         
                         with connection.cursor() as cursor:
-                            cursor.execute(
-                                f"""
+                            # Use proper parameterized query
+                            sql = f"""
                                 SELECT id FROM providers_v2 
-                                WHERE id::text IN ({id_list})
+                                WHERE id IN ({placeholders})
                                 AND latitude IS NOT NULL AND longitude IS NOT NULL
                                 AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
                                 cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
                                 sin(radians(latitude)))) < %s
-                            """,
-                                [lat_float, lng_float, lat_float, radius],
-                            )
+                            """
+                            params = list(filtered_provider_ids) + [lat_float, lng_float, lat_float, radius]
+                            cursor.execute(sql, params)
                             nearby_ids = [row[0] for row in cursor.fetchall()]
 
                         providers = providers.filter(id__in=nearby_ids)
@@ -1285,24 +904,24 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     filtered_provider_ids = list(providers.values_list('id', flat=True))
                     
                     if filtered_provider_ids:
-                        # Filter by distance using raw SQL, but only for already filtered providers
+                        # Filter by distance using raw SQL with proper parameterization
                         from django.db import connection
 
-                        # Convert provider IDs to a comma-separated string for SQL IN clause
-                        id_list = ','.join([f"'{str(id)}'" for id in filtered_provider_ids])
+                        # Build placeholders for the IN clause
+                        placeholders = ','.join(['%s'] * len(filtered_provider_ids))
                         
                         with connection.cursor() as cursor:
-                            cursor.execute(
-                                f"""
+                            # Use proper parameterized query
+                            sql = f"""
                                 SELECT id FROM providers_v2 
-                                WHERE id::text IN ({id_list})
+                                WHERE id IN ({placeholders})
                                 AND latitude IS NOT NULL AND longitude IS NOT NULL
                                 AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
                                 cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
                                 sin(radians(latitude)))) < %s
-                            """,
-                                [lat_coord, lng_coord, lat_coord, radius],
-                            )
+                            """
+                            params = list(filtered_provider_ids) + [lat_coord, lng_coord, lat_coord, radius]
+                            cursor.execute(sql, params)
                             nearby_ids = [row[0] for row in cursor.fetchall()]
 
                         providers = providers.filter(id__in=nearby_ids)
@@ -1325,6 +944,16 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         except Exception as e:
+            # Log the full error for debugging
+            import traceback
+            print("\n" + "="*80)
+            print("❌ ERROR in comprehensive_search:")
+            print(f"Error type: {type(e).__name__}")
+            print(f"Error message: {str(e)}")
+            print("Full traceback:")
+            traceback.print_exc()
+            print("="*80 + "\n")
+            
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -1389,14 +1018,15 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             providers = ProviderV2.objects.filter(id__in=filtered_providers)
 
             # Apply additional filters
+            # Apply insurance filter using boolean fields for reliability
             insurance = request.query_params.get("insurance")
             if insurance:
                 if insurance.lower() == "regional center":
-                    providers = providers.filter(insurance_accepted__icontains="regional center")
+                    providers = providers.filter(accepts_regional_center=True)
                 elif insurance.lower() == "insurance":
-                    providers = providers.filter(insurance_accepted__isnull=False).exclude(insurance_accepted="")
+                    providers = providers.filter(accepts_insurance=True)
                 elif insurance.lower() == "private pay":
-                    providers = providers.filter(insurance_accepted__icontains="private")
+                    providers = providers.filter(accepts_private_pay=True)
 
             age = request.query_params.get("age")
             if age:
@@ -1429,6 +1059,16 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
+            # Log the full error for debugging
+            import traceback
+            print("\n" + "="*80)
+            print("❌ ERROR in by_regional_center:")
+            print(f"Error type: {type(e).__name__}")
+            print(f"Error message: {str(e)}")
+            print("Full traceback:")
+            traceback.print_exc()
+            print("="*80 + "\n")
+            
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
