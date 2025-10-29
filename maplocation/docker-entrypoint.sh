@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Fixing migration history if needed..."
+python manage.py fix_migrations || echo "Migration fix skipped or failed"
+
 echo "Running database migrations..."
 python manage.py migrate --noinput
 
