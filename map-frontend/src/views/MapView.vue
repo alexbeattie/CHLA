@@ -778,16 +778,16 @@ export default {
       return this.locations;
     },
 
-    // LA Regional Centers list with colors
+    // LA Regional Centers list with colors and abbreviations
     laRegionalCentersList() {
       return [
-        { name: "North Los Angeles County Regional Center", color: "#f1c40f" }, // Yellow
-        { name: "San Gabriel/Pomona Regional Center", color: "#4caf50" }, // Green
-        { name: "Eastern Los Angeles Regional Center", color: "#ff9800" }, // Orange
-        { name: "Westside Regional Center", color: "#e91e63" }, // Pink
-        { name: "Frank D. Lanterman Regional Center", color: "#9c27b0" }, // Purple
-        { name: "South Central Los Angeles Regional Center", color: "#f44336" }, // Red
-        { name: "Harbor Regional Center", color: "#2196f3" }, // Blue
+        { name: "North Los Angeles County Regional Center", abbreviation: "NLACRC", color: "#f1c40f" }, // Yellow
+        { name: "San Gabriel/Pomona Regional Center", abbreviation: "SGPRC", color: "#4caf50" }, // Green
+        { name: "Eastern Los Angeles Regional Center", abbreviation: "ELARC", color: "#ff9800" }, // Orange
+        { name: "Westside Regional Center", abbreviation: "WRC", color: "#e91e63" }, // Pink
+        { name: "Frank D. Lanterman Regional Center", abbreviation: "FDLRC", color: "#9c27b0" }, // Purple
+        { name: "South Central Los Angeles Regional Center", abbreviation: "SCLARC", color: "#f44336" }, // Red
+        { name: "Harbor Regional Center", abbreviation: "HRC", color: "#2196f3" }, // Blue
       ];
     },
 
@@ -1959,24 +1959,44 @@ export default {
       }, 500); // Increased delay to reduce jankiness
     },
 
-    // Handle radius slider changes while preserving zoom level
+    // Handle radius slider changes and adjust map zoom
     async onRadiusChange() {
       console.log('🔍 Radius changed to:', this.radius, 'miles');
       this.isAdjustingRadius = true;
-      
+
+      // Calculate appropriate zoom level based on radius
+      // Mapbox zoom levels: higher number = closer zoom
+      // Approximate conversion: zoom 15 = ~0.5mi, zoom 13 = ~2mi, zoom 11 = ~8mi, zoom 9 = ~30mi
+      let targetZoom;
+      if (this.radius <= 2) targetZoom = 13;
+      else if (this.radius <= 5) targetZoom = 12;
+      else if (this.radius <= 10) targetZoom = 11;
+      else if (this.radius <= 15) targetZoom = 10.5;
+      else if (this.radius <= 25) targetZoom = 10;
+      else targetZoom = 9;
+
+      // Adjust map zoom to show the selected radius
+      if (this.mapStore && this.userLocation?.latitude && this.userLocation?.longitude) {
+        this.mapStore.centerOn(
+          { lat: this.userLocation.latitude, lng: this.userLocation.longitude },
+          targetZoom
+        );
+        console.log(`📍 Adjusted map zoom to ${targetZoom} for ${this.radius} mile radius`);
+      }
+
       // Re-fetch providers with new radius
       if (this.providerStore && this.userLocation?.latitude && this.userLocation?.longitude) {
         try {
           const filterParams = this.filterStore ? this.filterStore.buildFilterParams() : {};
           console.log('[MapView] Re-fetching providers with new radius:', this.radius, 'miles');
-          
+
           await this.providerStore.searchByLocation(
             this.userLocation.latitude,
             this.userLocation.longitude,
             this.radius,
             filterParams
           );
-          
+
           // Update map markers
           this.updateMarkers();
           console.log(`✅ Updated providers with ${this.providerStore.providers.length} results within ${this.radius} miles`);
@@ -1984,7 +2004,7 @@ export default {
           console.error('[MapView] Error updating radius:', error);
         }
       }
-      
+
       this.isAdjustingRadius = false;
     },
 
