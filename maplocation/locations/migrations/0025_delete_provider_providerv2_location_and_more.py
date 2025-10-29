@@ -11,10 +11,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Provider model/table was already deleted in migration 0022_drop_old_provider_table
-        # migrations.DeleteModel(
-        #     name="Provider",
-        # ),
         migrations.AddField(
             model_name="providerv2",
             name="location",
