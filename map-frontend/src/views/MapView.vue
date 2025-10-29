@@ -5470,13 +5470,13 @@ export default {
       // Load regional centers if not already loaded
       if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
         console.log("🏢 Loading regional centers...");
-        await this.fetchRegionalCenters();
+        await this.regionalCenterData.fetchRegionalCenters();
       }
 
       // Only fetch providers if we don't already have them from onboarding
       if (!this.providers || this.providers.length === 0) {
         console.log("📊 Loading providers without filters...");
-        await this.fetchProviders();
+        await this.searchProviders();
       } else {
         console.log("📊 Using providers from onboarding:", this.providers.length);
       }
