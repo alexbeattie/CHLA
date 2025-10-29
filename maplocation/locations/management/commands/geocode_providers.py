@@ -1,6 +1,8 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from locations.models import Provider, RegionalCenter
+from locations.models import ProviderV2, RegionalCenter
+from locations.utils.mapbox_geocode import geocode_with_fallback
+from decimal import Decimal
 import requests
 import time
 import logging
@@ -58,12 +60,13 @@ class Command(BaseCommand):
         
         # Get providers that need geocoding
         if force:
-            providers = Provider.objects.filter(address__isnull=False)
+            providers = ProviderV2.objects.all()
         else:
-            providers = Provider.objects.filter(
-                address__isnull=False,
-                latitude__isnull=True,
-                longitude__isnull=True
+            # Find providers with NULL or 0.00000000 coordinates (both mean not geocoded)
+            from django.db.models import Q
+            providers = ProviderV2.objects.filter(
+                Q(latitude__isnull=True) | Q(longitude__isnull=True) |
+                Q(latitude=Decimal('0.00000000')) | Q(longitude=Decimal('0.00000000'))
             )
 
         total_providers = providers.count()
@@ -84,19 +87,37 @@ class Command(BaseCommand):
             self.stdout.write(f'[{i}/{total_providers}] Geocoding {provider.name}...')
             
             try:
-                coordinates = self.geocode_address(provider.address)
+                # Build address from provider data
+                address = provider.address
+                if isinstance(address, dict):
+                    # Handle JSON address format
+                    parts = [
+                        address.get('street', ''),
+                        address.get('city', ''),
+                        address.get('state', ''),
+                        address.get('zip', '')
+                    ]
+                    address = ', '.join([p for p in parts if p])
+                
+                if not address:
+                    failed_count += 1
+                    self.stdout.write(self.style.WARNING(f'  ⚠ No address available'))
+                    continue
+                
+                # Use Mapbox geocoding with fallback
+                coordinates = geocode_with_fallback(address)
                 if coordinates:
-                    provider.latitude = coordinates['lat']
-                    provider.longitude = coordinates['lng']
+                    provider.latitude = Decimal(str(coordinates[0]))
+                    provider.longitude = Decimal(str(coordinates[1]))
                     provider.save()
                     geocoded_count += 1
                     self.stdout.write(
-                        self.style.SUCCESS(f'  ✓ Success: {coordinates["lat"]}, {coordinates["lng"]}')
+                        self.style.SUCCESS(f'  ✓ Success: {coordinates[0]}, {coordinates[1]}')
                     )
                 else:
                     failed_count += 1
                     self.stdout.write(
-                        self.style.ERROR(f'  ✗ Failed to geocode: {provider.address}')
+                        self.style.ERROR(f'  ✗ Failed to geocode: {address}')
                     )
                 
                 # Rate limiting
@@ -120,12 +141,13 @@ class Command(BaseCommand):
         
         # Get regional centers that need geocoding
         if force:
-            centers = RegionalCenter.objects.filter(address__isnull=False)
+            centers = RegionalCenter.objects.all()
         else:
+            # Find centers with NULL or 0.00000000 coordinates
+            from django.db.models import Q
             centers = RegionalCenter.objects.filter(
-                address__isnull=False,
-                latitude__isnull=True,
-                longitude__isnull=True
+                Q(latitude__isnull=True) | Q(longitude__isnull=True) |
+                Q(latitude=Decimal('0.00000000')) | Q(longitude=Decimal('0.00000000'))
             )
 
         total_centers = centers.count()
@@ -159,14 +181,20 @@ class Command(BaseCommand):
                 
                 full_address = ', '.join(filter(None, address_parts))
                 
-                coordinates = self.geocode_address(full_address)
+                if not full_address:
+                    failed_count += 1
+                    self.stdout.write(self.style.WARNING(f'  ⚠ No address available'))
+                    continue
+                
+                # Use Mapbox geocoding with fallback
+                coordinates = geocode_with_fallback(full_address)
                 if coordinates:
-                    center.latitude = coordinates['lat']
-                    center.longitude = coordinates['lng']
+                    center.latitude = Decimal(str(coordinates[0]))
+                    center.longitude = Decimal(str(coordinates[1]))
                     center.save()
                     geocoded_count += 1
                     self.stdout.write(
-                        self.style.SUCCESS(f'  ✓ Success: {coordinates["lat"]}, {coordinates["lng"]}')
+                        self.style.SUCCESS(f'  ✓ Success: {coordinates[0]}, {coordinates[1]}')
                     )
                 else:
                     failed_count += 1

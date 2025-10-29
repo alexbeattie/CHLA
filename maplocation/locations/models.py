@@ -289,171 +289,9 @@ class RegionalCenter(models.Model):
         return self.providers.all()
 
 
-class Provider(models.Model):
-    # Basic Information
-    name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=100, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-    website_domain = models.URLField(blank=True, null=True)
-
-    # Geographic Information
-    latitude = models.DecimalField(
-        max_digits=9, decimal_places=6, blank=True, null=True
-    )
-    longitude = models.DecimalField(
-        max_digits=9, decimal_places=6, blank=True, null=True
-    )
-
-    # Service Areas and Centers
-    center_based_services = models.TextField(blank=True, null=True)
-    areas = models.TextField(blank=True, null=True)  # Geographic coverage areas
-
-    # Service Details
-    specializations = models.TextField(blank=True, null=True)
-    insurance_accepted = models.TextField(blank=True, null=True)
-    services = models.TextField(blank=True, null=True)
-
-    # Legacy fields for backward compatibility
-    coverage_areas = models.TextField(blank=True, null=True)
-
-    class Meta:
-        db_table = "providers"
-
-    def __str__(self):
-        return self.name
-
-    @classmethod
-    def find_nearest(cls, latitude, longitude, radius_miles=10, limit=20):
-        """Find providers within radius of given coordinates"""
-        from django.db import connection
-
-        # Use Haversine formula for distance calculation
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT id, name, phone, address, latitude, longitude,
-                       (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                       cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                       sin(radians(latitude)))) AS distance
-                FROM providers 
-                WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-                AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                sin(radians(latitude)))) < %s
-                ORDER BY distance
-                LIMIT %s
-            """,
-                [
-                    latitude,
-                    longitude,
-                    latitude,
-                    latitude,
-                    longitude,
-                    latitude,
-                    radius_miles,
-                    limit,
-                ],
-            )
-
-            columns = [col[0] for col in cursor.description]
-            results = []
-            for row in cursor.fetchall():
-                provider_data = dict(zip(columns, row))
-                provider = cls.objects.get(id=provider_data["id"])
-                provider.distance = provider_data["distance"]
-                results.append(provider)
-            return results
-
-    @classmethod
-    def geocode_and_search(cls, address_or_zip, radius_miles=10, limit=20):
-        """Geocode an address/zip and find nearby providers"""
-        coordinates = RegionalCenter.geocode_address(address_or_zip)
-        if coordinates:
-            return cls.find_nearest(coordinates[0], coordinates[1], radius_miles, limit)
-        return []
-
-    def get_serving_regional_centers(self):
-        """Get regional centers that serve this provider's area"""
-        return self.regional_centers.all()
-
-    def get_distance_to(self, latitude, longitude):
-        """Calculate distance from provider to given coordinates"""
-        if not self.latitude or not self.longitude:
-            return None
-
-        # Haversine formula
-        lat1, lon1 = float(self.latitude), float(self.longitude)
-        lat2, lon2 = float(latitude), float(longitude)
-
-        R = 3959  # Earth's radius in miles
-        dlat = math.radians(lat2 - lat1)
-        dlon = math.radians(lon2 - lon1)
-        a = math.sin(dlat / 2) * math.sin(dlat / 2) + math.cos(
-            math.radians(lat1)
-        ) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) * math.sin(dlon / 2)
-        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-        return R * c
-
-    # Helper properties for frontend compatibility
-    @property
-    def city(self):
-        if self.address:
-            # Extract city from address (format: "address, city, state zip")
-            parts = self.address.split(",")
-            if len(parts) >= 2:
-                return (
-                    parts[-2].strip().split()[-2]
-                    if len(parts[-2].strip().split()) > 1
-                    else ""
-                )
-        return ""
-
-    @property
-    def state(self):
-        if self.address:
-            # Extract state from address
-            parts = self.address.split(",")
-            if len(parts) >= 2:
-                last_part = parts[-1].strip()
-                if " " in last_part:
-                    return last_part.split()[0]
-        return "CA"
-
-    @property
-    def zip_code(self):
-        if self.address:
-            # Extract zip from address
-            parts = self.address.split(",")
-            if len(parts) >= 2:
-                last_part = parts[-1].strip()
-                if " " in last_part:
-                    return last_part.split()[-1]
-        return ""
-
-    # Backward compatibility properties
-    @property
-    def age_groups_served(self):
-        return ""
-
-    @property
-    def diagnoses_served(self):
-        return self.specializations or ""
-
-    @property
-    def accepts_insurance(self):
-        return bool(self.insurance_accepted)
-
-    @property
-    def accepts_private_pay(self):
-        return "private pay" in (self.insurance_accepted or "").lower()
-
-    @property
-    def accepts_regional_center(self):
-        return "regional center" in (self.insurance_accepted or "").lower()
-
-    @property
-    def website(self):
-        return self.website_domain
+# REMOVED: Old Provider model - replaced by ProviderV2
+# Data was migrated via migration 0010_copy_providers_to_providerv2
+# Table will be dropped in a future migration
 
 
 class ProviderV2(models.Model):
@@ -715,7 +553,7 @@ class ProviderRegionalCenter(models.Model):
     """Many-to-many relationship between providers and regional centers they work with"""
 
     provider = models.ForeignKey(
-        Provider, on_delete=models.CASCADE, related_name="regional_centers"
+        ProviderV2, on_delete=models.CASCADE, related_name="regional_centers"
     )
     regional_center = models.ForeignKey(
         RegionalCenter, on_delete=models.CASCADE, related_name="providers"
@@ -790,10 +628,10 @@ class ServiceDeliveryModel(models.Model):
 
 class ProviderFundingSource(models.Model):
     provider = models.ForeignKey(
-        Provider, on_delete=models.CASCADE, related_name="funding_sources"
+        ProviderV2, on_delete=models.CASCADE, related_name="provider_funding_sources"
     )
     funding_source = models.ForeignKey(
-        FundingSource, on_delete=models.CASCADE, related_name="providers"
+        FundingSource, on_delete=models.CASCADE, related_name="provider_links"
     )
 
     class Meta:
@@ -805,10 +643,10 @@ class ProviderFundingSource(models.Model):
 
 class ProviderInsuranceCarrier(models.Model):
     provider = models.ForeignKey(
-        Provider, on_delete=models.CASCADE, related_name="insurance_carriers"
+        ProviderV2, on_delete=models.CASCADE, related_name="provider_insurance_carriers"
     )
     insurance_carrier = models.ForeignKey(
-        InsuranceCarrier, on_delete=models.CASCADE, related_name="providers"
+        InsuranceCarrier, on_delete=models.CASCADE, related_name="provider_links"
     )
 
     class Meta:
@@ -820,10 +658,10 @@ class ProviderInsuranceCarrier(models.Model):
 
 class ProviderServiceModel(models.Model):
     provider = models.ForeignKey(
-        Provider, on_delete=models.CASCADE, related_name="service_models"
+        ProviderV2, on_delete=models.CASCADE, related_name="provider_service_models"
     )
     service_model = models.ForeignKey(
-        ServiceDeliveryModel, on_delete=models.CASCADE, related_name="providers"
+        ServiceDeliveryModel, on_delete=models.CASCADE, related_name="provider_links"
     )
 
     class Meta:

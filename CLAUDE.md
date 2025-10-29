@@ -1,0 +1,2 @@
+- always continue until this massive file is refactored
+- Please dont stop and brag about the progress - keep going

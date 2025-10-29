@@ -1,0 +1,4191 @@
+<template>
+  <div class="map-app" :class="{ authenticated: isAuthenticated }">
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar" v-show="!showOnboarding">
+      <div class="navbar-content">
+        <button
+          class="mobile-menu-btn d-md-none"
+          @click="toggleMobileSidebar"
+          :class="{ active: showMobileSidebar }"
+        >
+          <i class="bi bi-list"></i>
+        </button>
+
+        <div class="navbar-brand">
+          <span class="kindd-text-logo">KINDD</span>
+          <span class="brand-separator d-none d-md-inline">|</span>
+          <span class="brand-subtitle d-none d-md-inline">ABA Provider Map</span>
+        </div>
+
+        <div class="navbar-actions">
+          <button class="btn-icon d-md-none" @click="toggleSearch">
+            <i class="bi bi-search"></i>
+          </button>
+          <button class="btn-icon" @click="toggleUserMenu" v-if="isAuthenticated">
+            <i class="bi bi-person-circle"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Search Bar -->
+    <div v-if="!showOnboarding" class="search-bar-wrapper">
+      <search-bar
+        placeholder="Enter city or ZIP code"
+        :show-results-summary="true"
+        :auto-focus="false"
+        @search="handleNewSearch"
+        @clear="handleSearchClear"
+      />
+    </div>
+
+    <!-- Onboarding Flow -->
+    <onboarding-flow
+      :showOnboarding="showOnboarding"
+      @onboarding-complete="handleOnboardingComplete"
+      @onboarding-skipped="handleOnboardingSkipped"
+      @location-detected="handleLocationDetected"
+      @location-manual="handleLocationManual"
+      @regional-center-matched="handleRegionalCenterMatched"
+    />
+
+    <!-- Funding Info Modal -->
+    <funding-info-panel :showModal="showFundingInfo" @close="toggleFundingInfo" />
+
+    <!-- Mobile Backdrop -->
+    <div
+      v-if="showMobileSidebar"
+      class="mobile-backdrop d-md-none"
+      @click="toggleMobileSidebar"
+    ></div>
+
+    <!-- Sidebar (always on left) -->
+    <div class="sidebar-container" :class="{ 'mobile-open': showMobileSidebar }">
+      <div class="sidebar">
+        <!-- CHLA Header -->
+        <div class="chla-header">
+          <div class="chla-logo-container">
+            <img
+              src="@/assets/chla-logo.svg"
+              alt="Children's Hospital Los Angeles"
+              class="chla-logo"
+            />
+          </div>
+          <div class="chla-mission">
+            <p class="chla-tagline">We create hope and build healthier futures</p>
+          </div>
+        </div>
+
+        <!-- Simple Display Toggle -->
+        <div class="display-toggle mb-3">
+          <div class="btn-group w-100 d-flex">
+            <button
+              class="btn flex-grow-1"
+              :class="{
+                'btn-chla-primary': displayType === 'regionalCenters',
+                'btn-chla-outline': displayType !== 'regionalCenters',
+              }"
+              @click="setDisplayType('regionalCenters')"
+            >
+              <i class="bi bi-building me-1"></i>
+              <span>Regional Centers</span>
+            </button>
+            <button
+              class="btn flex-grow-1"
+              :class="{
+                'btn-chla-primary': displayType === 'providers',
+                'btn-chla-outline': displayType !== 'providers',
+              }"
+              @click="setDisplayType('providers')"
+            >
+              <i class="bi bi-hospital me-1"></i>
+              <span>Services</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- User Profile Summary -->
+        <div
+          class="info-card-section mb-3"
+          v-if="userData.age || userData.diagnosis || userData.therapies?.length"
+        >
+          <div class="form-control info-card border-primary bg-primary bg-opacity-10">
+            <div class="info-card-header">
+              <i class="bi bi-person-circle text-primary me-2"></i>
+              <strong>Your Profile</strong>
+            </div>
+            <div class="info-card-content mt-2">
+              <div class="info-card-item" v-if="userData.age">
+                <i class="bi bi-calendar text-muted me-2"></i>
+                <span>{{ userData.age }}</span>
+              </div>
+              <div class="info-card-item" v-if="userData.diagnosis">
+                <i class="bi bi-heart-pulse text-danger me-2"></i>
+                <span>{{ userData.diagnosis }}</span>
+              </div>
+              <div class="info-card-item" v-if="userData.therapies?.length">
+                <i class="bi bi-tools text-info me-2"></i>
+                <span>{{ userData.therapies.join(", ") }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Regional Center Info -->
+        <div class="info-card-section mb-3">
+          <div class="form-control info-card border-info bg-info bg-opacity-10">
+            <div class="info-card-header">
+              <i class="bi bi-building-fill text-info me-2"></i>
+              <strong>Your Regional Center</strong>
+            </div>
+            <div class="info-card-content mt-2">
+              <div class="info-card-item">
+                <strong>Your regional center is:</strong>
+                <span class="ms-1">{{
+                  userRegionalCenter && userRegionalCenter.name
+                    ? userRegionalCenter.name
+                    : "Detecting location..."
+                }}</span>
+              </div>
+              <template v-if="userRegionalCenter">
+                <div class="info-card-item">
+                  <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                  <span>{{ userRegionalCenter.address }}</span>
+                </div>
+                <div class="info-card-item" v-if="userRegionalCenter.phone">
+                  <i class="bi bi-telephone-fill text-success me-2"></i>
+                  <a
+                    :href="'tel:' + userRegionalCenter.phone"
+                    class="text-decoration-none"
+                  >
+                    {{ userRegionalCenter.phone }}
+                  </a>
+                </div>
+                <div class="info-card-item" v-if="userRegionalCenter.website">
+                  <i class="bi bi-globe text-info me-2"></i>
+                  <a
+                    :href="
+                      userRegionalCenter.website.startsWith('http')
+                        ? userRegionalCenter.website
+                        : 'https://' + userRegionalCenter.website
+                    "
+                    target="_blank"
+                    class="text-decoration-none"
+                  >
+                    Visit Website
+                  </a>
+                </div>
+              </template>
+              
+              <!-- Adjust Profile Button -->
+              <div class="info-card-item mt-3 pt-3 border-top">
+                <button 
+                  @click="showOnboarding = true" 
+                  class="btn btn-outline-primary btn-sm w-100"
+                  title="Adjust your location and preferences"
+                >
+                  <i class="bi bi-gear me-2"></i>
+                  Adjust Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simple Search -->
+        <div class="info-card-section mb-3">
+          <div class="form-control info-card border-secondary bg-secondary bg-opacity-5">
+            <div class="info-card-header mb-2">
+              <i class="bi bi-search text-secondary me-2"></i>
+              <strong
+                >Search
+                {{
+                  displayType === "providers" ? "Services" : "Regional Centers"
+                }}</strong
+              >
+            </div>
+            <div class="info-card-content">
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model.trim="searchText"
+                  :placeholder="
+                    displayType === 'providers'
+                      ? 'Search services, areas...'
+                      : 'Search locations...'
+                  "
+                  @keyup.enter="updateFilteredLocations"
+                  @input="debounceSearch"
+                  @focus="console.log('Search input focused')"
+                  @blur="console.log('Search input blurred')"
+                />
+                <button
+                  v-if="searchText && searchText.trim()"
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  @click="clearSearch"
+                  title="Clear search"
+                >
+                  <i class="bi bi-x"></i>
+                </button>
+                <button
+                  class="btn btn-chla-primary"
+                  type="button"
+                  @click="updateFilteredLocations"
+                  :disabled="loading"
+                >
+                  <i class="bi bi-search" v-if="!loading"></i>
+                  <div class="spinner-border spinner-border-sm" role="status" v-else>
+                    <span class="visually-hidden">Searching...</span>
+                  </div>
+                </button>
+              </div>
+              <div class="small text-muted mt-2" v-if="displayType === 'providers'">
+                <em
+                  >Try: "ABA", "speech therapy", "Los Angeles", "autism", or provider
+                  name</em
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Notice -->
+        <div class="location-notice mb-3">
+          <div
+            class="form-control d-flex align-items-center justify-content-between"
+            :class="
+              userLocation.detected
+                ? 'border-success bg-success bg-opacity-10'
+                : 'border-warning bg-warning bg-opacity-10'
+            "
+          >
+            <div class="d-flex align-items-center flex-grow-1">
+              <i
+                :class="
+                  userLocation.detected
+                    ? 'bi bi-geo-alt-fill text-success'
+                    : 'bi bi-geo-alt text-warning'
+                "
+                class="me-2"
+              ></i>
+              <div class="flex-grow-1">
+                <strong v-if="userLocation.detected">Location Detected:</strong>
+                <strong v-else>⚠️ Using Default Location:</strong>
+                <span class="ms-1">{{ userData.address || "Los Angeles Area" }}</span>
+              </div>
+            </div>
+            <div v-if="!userLocation.detected" class="small text-muted ms-2">
+              <em>Use map 🎯 for precise results</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simple Action Buttons -->
+        <div class="info-card-section mb-3">
+          <div class="form-control info-card border-dark bg-dark bg-opacity-5">
+            <div class="info-card-header mb-2">
+              <i class="bi bi-sliders text-dark me-2"></i>
+              <strong>Quick Actions</strong>
+            </div>
+            <div class="info-card-content">
+              <div class="btn-group-vertical w-100" v-if="!zipViewOnly">
+                <button
+                  class="btn sidebar-action-btn"
+                  @click="applyLACountyFocus"
+                  :class="focusLACounty ? 'btn-chla-primary' : 'btn-chla-outline'"
+                >
+                  <i
+                    class="bi"
+                    :class="focusLACounty ? 'bi-geo-alt-fill' : 'bi-geo-alt'"
+                  ></i>
+                  <span class="ms-2">{{
+                    focusLACounty ? "LA County Focused" : "Focus on LA County"
+                  }}</span>
+                </button>
+                <button
+                  class="btn sidebar-action-btn"
+                  @click="toggleLARegionalCenters"
+                  :class="showLARegionalCenters ? 'btn-chla-primary' : 'btn-chla-outline'"
+                >
+                  <i
+                    class="bi"
+                    :class="showLARegionalCenters ? 'bi-building-fill' : 'bi-building'"
+                  ></i>
+                  <span class="ms-2"
+                    >{{ showLARegionalCenters ? "Hide" : "Show" }} LA Regional
+                    Centers</span
+                  >
+                </button>
+              </div>
+              <div v-else class="btn-group-vertical w-100">
+                <button class="btn btn-chla-primary" disabled>
+                  <i class="bi bi-grid-3x3-gap me-1"></i>
+                  ZIP View Active
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="info-card-section mb-3">
+          <div class="form-control info-card border-warning bg-warning bg-opacity-5">
+            <div class="info-card-header mb-2">
+              <i class="bi bi-funnel-fill text-warning me-2"></i>
+              <strong>Filters</strong>
+            </div>
+            <div class="info-card-content">
+              <!-- Radius Filter (when geolocation is available) -->
+              <div class="mb-3" v-if="userLocation.latitude && userLocation.longitude">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label mb-0 small">
+                    <span v-if="searchText && searchText.trim()">
+                      Search: "<strong>{{ searchText }}</strong
+                      >"
+                    </span>
+                    <span v-else>
+                      Distance Radius: <strong>{{ radius }} miles</strong>
+                    </span>
+                  </label>
+                  <span class="badge bg-info small"
+                    >{{ countLocationsInRadius }} found</span
+                  >
+                </div>
+                <input
+                  type="range"
+                  v-model.number="radius"
+                  class="form-range"
+                  min="5"
+                  max="75"
+                  step="5"
+                  @change="onRadiusChange"
+                />
+                <div class="d-flex justify-content-between small text-muted">
+                  <span>5 miles</span>
+                  <span>75 miles</span>
+                </div>
+              </div>
+
+              <!-- Filter Panel -->
+              <filter-panel
+                v-if="filterStore"
+                :show-favorites="false"
+                :show-summary="true"
+                :manual-apply="false"
+                @filter-change="handleFilterChange"
+                @reset="handleFilterReset"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section">
+          <div class="info-card-section mb-3">
+            <div class="form-control info-card border-success bg-success bg-opacity-5">
+              <div class="info-card-header">
+                <i class="bi bi-list-ul text-success me-2"></i>
+                <strong>
+                  {{
+                    displayType === "locations"
+                      ? "Locations"
+                      : displayType === "regionalCenters"
+                      ? "Regional Centers"
+                      : "Providers"
+                  }}
+                </strong>
+                <span class="badge bg-success ms-2">
+                  {{
+                    displayType === "locations"
+                      ? filteredLocations.length
+                      : displayType === "regionalCenters"
+                      ? filteredRegionalCenters.length
+                      : filteredProviders.length
+                  }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Regional Centers Toggle List -->
+          <div
+            v-if="displayType === 'regionalCenters' && showLARegionalCenters"
+            class="info-card-section mb-3"
+          >
+            <div class="form-control info-card border-info bg-info bg-opacity-5">
+              <div class="info-card-header mb-2">
+                <i class="bi bi-building-fill text-info me-2"></i>
+                <strong>LA Regional Centers</strong>
+              </div>
+              <div class="info-card-content">
+                <div class="regional-center-toggles">
+                  <div
+                    v-for="center in laRegionalCentersList"
+                    :key="center.name"
+                    class="form-check mb-2"
+                  >
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      :id="`rc-toggle-${center.name.replace(/\s+/g, '-')}`"
+                      :checked="selectedRegionalCenters[center.name] !== false"
+                      @change="toggleCenterSelection(center.name)"
+                    />
+                    <label
+                      class="form-check-label d-flex align-items-center"
+                      :for="`rc-toggle-${center.name.replace(/\s+/g, '-')}`"
+                    >
+                      <span
+                        class="color-indicator me-2"
+                        :style="`background-color: ${center.color}; width: 12px; height: 12px; border-radius: 50%; display: inline-block;`"
+                      ></span>
+                      <span class="flex-grow-1">{{ center.name }}</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Nearest Regional Centers -->
+                <div
+                  v-if="nearestRegionalCenters.length > 0"
+                  class="mt-3 pt-3"
+                  style="border-top: 1px solid rgba(0, 0, 0, 0.08)"
+                >
+                  <div class="info-card-subtitle mb-2">
+                    <i class="bi bi-geo-alt-fill text-primary me-1"></i>
+                    <span class="text-muted small">Nearest Regional Centers</span>
+                  </div>
+                  <div class="nearest-centers-list">
+                    <div
+                      v-for="(center, index) in nearestRegionalCenters"
+                      :key="`nearest-${center.name}-${index}`"
+                      class="nearest-center-item"
+                    >
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                          <span
+                            class="color-indicator me-2"
+                            :style="`background-color: ${center.color}; width: 8px; height: 8px; border-radius: 50%; display: inline-block;`"
+                          ></span>
+                          <span class="small">{{ center.name }}</span>
+                        </div>
+                        <span class="badge bg-secondary small"
+                          >{{ center.distance }} mi</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Provider List -->
+          <provider-list
+            v-if="providerStore"
+            :providers="providerStore.providers"
+            :selected-id="providerStore.selectedProviderId"
+            :loading="providerStore.loading"
+            :show-distance="true"
+            @provider-select="handleProviderSelect"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="map-container-wrapper" :class="{ 'with-search': showMobileSearch }">
+      <!-- Map Canvas -->
+      <map-canvas
+        :mapbox-token="mapboxAccessToken"
+        :center="LA_COUNTY_CENTER"
+        :zoom="10"
+        class="map-container"
+        @map-ready="handleMapReady"
+        @marker-click="handleMarkerClick"
+        @viewport-change="handleViewportChange"
+      />
+
+      <!-- Provider Details Overlay -->
+      <provider-details
+        v-if="providerStore && providerStore.selectedProvider"
+        :provider="providerStore.selectedProvider"
+        :is-visible="true"
+        :show-directions="true"
+        class="provider-details-overlay"
+        @close="handleDetailsClose"
+        @get-directions="handleGetDirections"
+      />
+
+      <!-- Regional Center Legend -->
+      <regional-center-legend
+        v-if="!showOnboarding"
+        :user-regional-center="userRegionalCenterName"
+        :start-collapsed="false"
+        class="rc-legend-overlay"
+        @rc-select="handleRCSelect"
+      />
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from "axios";
+import mapboxgl from "mapbox-gl";
+import FundingInfoPanel from "@/components/FundingInfoPanel.vue";
+import OnboardingFlow from "@/components/OnboardingFlow.vue";
+import { authService } from "@/services/auth.js";
+
+// Extracted components
+import MapCanvas from "@/components/map/MapCanvas.vue";
+import SearchBar from "@/components/map/SearchBar.vue";
+import ProviderList from "@/components/map/ProviderList.vue";
+import ProviderCard from "@/components/map/ProviderCard.vue";
+import ProviderDetails from "@/components/map/ProviderDetails.vue";
+import FilterPanel from "@/components/map/FilterPanel.vue";
+import RegionalCenterLegend from "@/components/map/RegionalCenterLegend.vue";
+import SidebarPanel from "@/components/SidebarPanel.vue";
+
+// Pinia stores
+import { useProviderStore } from "@/stores/providerStore";
+import { useMapStore } from "@/stores/mapStore";
+import { useFilterStore } from "@/stores/filterStore";
+import { useRegionalCenterStore } from "@/stores/regionalCenterStore";
+import { useUIStore } from "@/stores/uiStore";
+
+// Composables
+import { useGeolocation } from "@/composables/useGeolocation";
+import { useRegionalCenterData } from "@/composables/useRegionalCenterData";
+import { usePopups } from "@/composables/usePopups";
+import { useMapLayers } from "@/composables/useMapLayers";
+
+// Constants and utilities
+import { LA_COUNTY_CENTER, LA_COUNTY_BOUNDS } from "@/constants/regionalCenters";
+import {
+  calculateDistance,
+  extractZipCode,
+  isValidZipCode,
+  normalizeCoordinates,
+  toLngLatArray
+} from "@/utils/map/coordinates";
+import { hslToHex, generateColorFromString, REGIONAL_CENTER_COLORS } from "@/utils/colorUtils";
+
+// Flag to use actual API data instead of sample data - set to false to query the database
+// Import LA Regional Centers GeoJSON overlay
+// Removed hardcoded GeoJSON import - now using API endpoint
+
+const USE_LOCAL_DATA_ONLY = false;
+
+// Static asset URL for LA ZIP codes GeoJSON
+const LA_ZIP_CODES_URL = new URL(
+  "../assets/all-zip-codes-los-angeles.geojson",
+  import.meta.url
+).href;
+
+export default {
+  name: "MapView",
+
+  components: {
+    FundingInfoPanel,
+    OnboardingFlow,
+    MapCanvas,
+    SearchBar,
+    ProviderList,
+    ProviderCard,
+    ProviderDetails,
+    FilterPanel,
+    RegionalCenterLegend,
+    SidebarPanel,
+  },
+
+  data() {
+    return {
+      // Constants
+      LA_COUNTY_CENTER,
+      LA_COUNTY_BOUNDS,
+
+      // Store instances (initialized in created())
+      providerStore: null,
+      mapStore: null,
+      filterStore: null,
+      regionalCenterStore: null,
+      uiStore: null,
+
+      // Composables (initialized in created())
+      geolocation: null,
+      regionalCenterData: null,
+      popups: null,
+      mapLayers: null,
+
+      // Mapbox token for MapCanvas component
+      mapboxAccessToken:
+        import.meta.env.VITE_MAPBOX_TOKEN ||
+        "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg",
+
+      // Modal visibility
+      showFundingInfo: false,
+      showOnboarding: false,
+      showMobileSidebar: false,
+      showMobileSearch: false,
+      showUserMenu: false,
+
+      // Display type
+      displayType: "providers", // 'regionalCenters' or 'providers'
+
+      // Service areas
+      showServiceAreas: false,
+      pinServiceAreas: false,
+      serviceAreas: null,
+      serviceAreasLoaded: false,
+      focusLACounty: false,
+      matchedRegionalCenter: null,
+      laZipInput: "",
+      laZipError: "",
+
+      // User's regional center (fetched from API)
+      userRegionalCenter: null,
+
+      // LA Regional Centers overlay
+      showLARegionalCenters: false,
+      laRegionalCentersData: null,
+      // ZIP-view-only mode to simplify the UI while we focus on ZIP colors
+      zipViewOnly: false,
+      // In-memory GeoJSON used for live recoloring of ZIPs
+      coloredZipsData: null,
+      // Zip → Regional Center lookup and hover state
+      zipToCenter: {},
+      zipHoverId: null,
+      // Sidebar checkboxes state: center name -> boolean
+      selectedRegionalCenters: {},
+
+      // Filter options
+      filterOptions: {
+        acceptsInsurance: false,
+        acceptsRegionalCenter: false,
+        matchesDiagnosis: false,
+        matchesAge: false,
+        diagnoses: [],
+        therapies: [],
+      },
+      diagnosisOptions: [
+        "Global Development Delay",
+        "Autism Spectrum Disorder",
+        "Intellectual Disability",
+        "Speech and Language Disorder",
+        "ADHD",
+      ],
+      therapyOptions: [
+        "ABA therapy",
+        "Speech therapy",
+        "Occupational therapy",
+        "Physical therapy",
+        "Feeding therapy",
+        "Parent child interaction therapy/parent training behavior management",
+      ],
+
+      // Search debounce
+      searchDebounce: null,
+
+      // Map data
+      map: null,
+      // REMOVED: markers: [] - MapCanvas manages all markers now
+      // REMOVED: providers: [] - use providerStore.providers instead
+
+      // Locations
+      locations: [],
+      regionalCenters: [], // Array to store regional centers (TODO: move to store)
+
+      // Categories and filters
+      categories: [],
+      category: null, // Add this property explicitly to avoid warnings
+      selectedCategory: "",
+      searchText: "",
+
+      // User location (will be determined by geolocation or fallback)
+      userLocation: {
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        detected: false,
+        error: null,
+      },
+      radius: 15, // miles (increased from 5 to find more results)
+      isAdjustingRadius: false, // flag to track radius slider adjustments
+      isMapMoving: false, // flag to prevent conflicting map movements
+
+      // User information
+      userData: {
+        age: "",
+        address: "",
+        diagnosis: "",
+        otherDiagnosis: "",
+      },
+      showUserPanel: true, // Show by default
+
+      // UI state
+      loading: true,
+      error: null,
+
+      // Layout handling
+      resizeTimeout: null,
+
+      // Map movement tracking
+      isMapMoving: false,
+    };
+  },
+
+  computed: {
+    isAuthenticated() {
+      return authService.isAuthenticated();
+    },
+    laRegionalCentersForLegend() {
+      const feats = this.laRegionalCentersData?.features || [];
+      return feats.filter(
+        (f) => f?.properties?.name && f.properties.name !== "Los Angeles County"
+      );
+    },
+    hasUserData() {
+      // Check if user has entered any meaningful data
+      return (
+        (this.userData.age && this.userData.age !== "") ||
+        (this.userData.address && this.userData.address !== "") ||
+        (this.userData.diagnosis && this.userData.diagnosis !== "")
+      );
+    },
+
+    // Providers from store (proxy to avoid breaking existing code)
+    providers() {
+      return this.providerStore?.providers || [];
+    },
+
+    // User's matched Regional Center name (from providerStore or userRegionalCenter)
+    userRegionalCenterName() {
+      // First try providerStore (from ZIP search)
+      if (this.providerStore && this.providerStore.regionalCenterInfo) {
+        return this.providerStore.regionalCenterInfo.name;
+      }
+      // Fallback to userRegionalCenter object
+      if (this.userRegionalCenter && this.userRegionalCenter.name) {
+        return this.userRegionalCenter.name;
+      }
+      return null;
+    },
+
+    // Count of locations within radius
+    countLocationsInRadius() {
+      if (this.displayType === "providers") {
+        return this.filteredProviders.length;
+      } else if (this.displayType === "regionalCenters") {
+        return this.filteredRegionalCenters.length;
+      } else {
+        return this.filteredLocations.length;
+      }
+    },
+
+    // Filtered providers - since we use API-level filtering, just return the providers
+    filteredProviders() {
+      console.log(`🔍 filteredProviders computed: providers.length = ${this.providers.length}`);
+      console.log(`🔍 filteredProviders computed: providers =`, this.providers);
+      
+      if (!this.providers.length) {
+        console.log(`⚠️ No providers available for filtering`);
+        return [];
+      }
+
+      // Since we're using API-level filtering in fetchProviders(),
+      // the this.providers array already contains the correctly filtered results
+      // No need for additional client-side filtering
+      console.log(
+        `✅ Returning ${this.providers.length} providers from API (already filtered)`
+      );
+      return this.providers;
+    },
+
+    // Filtered regional centers
+    filteredRegionalCenters() {
+      return this.regionalCenters;
+    },
+
+    // Filtered locations
+    filteredLocations() {
+      return this.locations;
+    },
+
+    // LA Regional Centers list with colors
+    laRegionalCentersList() {
+      return [
+        { name: "North Los Angeles County Regional Center", color: "#f1c40f" }, // Yellow
+        { name: "San Gabriel/Pomona Regional Center", color: "#4caf50" }, // Green
+        { name: "Eastern Los Angeles Regional Center", color: "#ff9800" }, // Orange
+        { name: "Westside Regional Center", color: "#e91e63" }, // Pink
+        { name: "Frank D. Lanterman Regional Center", color: "#9c27b0" }, // Purple
+        { name: "South Central Los Angeles Regional Center", color: "#f44336" }, // Red
+        { name: "Harbor Regional Center", color: "#2196f3" }, // Blue
+      ];
+    },
+
+    // Calculate nearest regional centers based on user location
+    nearestRegionalCenters() {
+      if (!this.userLocation.latitude || !this.userLocation.longitude) {
+        return [];
+      }
+
+      // Define center coordinates for each regional center
+      const centerCoordinates = {
+        "North Los Angeles County Regional Center": { lat: 34.2523, lng: -118.4085 }, // Van Nuys
+        "San Gabriel/Pomona Regional Center": { lat: 34.0522, lng: -117.7499 }, // Pomona
+        "Eastern Los Angeles Regional Center": { lat: 33.9425, lng: -118.0353 }, // Whittier
+        "Westside Regional Center": { lat: 34.0239, lng: -118.3897 }, // Culver City
+        "Frank D. Lanterman Regional Center": { lat: 34.0689, lng: -118.1228 }, // Alhambra
+        "South Central Los Angeles Regional Center": { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        "Harbor Regional Center": { lat: 33.7905, lng: -118.2923 }, // Torrance
+      };
+
+      // Calculate distances and sort
+      const centersWithDistance = this.laRegionalCentersList
+        .map((center) => {
+          const coords = centerCoordinates[center.name];
+          if (!coords) return null;
+
+          // Calculate distance using Haversine formula
+          const R = 3959; // Earth's radius in miles
+          const lat1 = (this.userLocation.latitude * Math.PI) / 180;
+          const lat2 = (coords.lat * Math.PI) / 180;
+          const deltaLat = ((coords.lat - this.userLocation.latitude) * Math.PI) / 180;
+          const deltaLng = ((coords.lng - this.userLocation.longitude) * Math.PI) / 180;
+
+          const a =
+            Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+            Math.cos(lat1) *
+              Math.cos(lat2) *
+              Math.sin(deltaLng / 2) *
+              Math.sin(deltaLng / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          const distance = R * c;
+
+          return {
+            ...center,
+            distance: distance.toFixed(1),
+          };
+        })
+        .filter((center) => center !== null)
+        .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
+        .slice(0, 3); // Show top 3 nearest
+
+      return centersWithDistance;
+    },
+  },
+
+  async created() {
+    console.log("[MapView] Component created");
+
+    // Initialize Pinia stores
+    this.providerStore = useProviderStore();
+    this.mapStore = useMapStore();
+    this.filterStore = useFilterStore();
+    this.regionalCenterStore = useRegionalCenterStore();
+    this.uiStore = useUIStore();
+
+    // Initialize composables
+    const geolocation = useGeolocation();
+    const regionalCenterData = useRegionalCenterData();
+    const popups = usePopups();
+    const mapLayers = useMapLayers();
+
+    // Store composables for use in methods
+    this.geolocation = geolocation;
+    this.regionalCenterData = regionalCenterData;
+    this.popups = popups;
+    this.mapLayers = mapLayers;
+
+    console.log("[MapView] Stores and composables initialized");
+
+    // Initialize with empty arrays to prevent null reference errors
+    this.categories = [];
+    this.locations = [];
+    this.markers = [];
+    if (this.providerStore) {
+      this.providerStore.providers = [];
+    }
+
+    // Fetch regional centers data
+    await this.regionalCenterData.fetchRegionalCenters();
+
+    // Check if onboarding should be shown
+    this.checkOnboardingStatus();
+
+    // Load saved user data if available (including regional center)
+    await this.loadUserData();
+
+    // Detect user location first, then fetch providers (only if not showing onboarding)
+    if (!this.showOnboarding) {
+      this.detectUserLocation();
+    }
+  },
+
+  mounted() {
+    console.log("[MapView] Component mounted");
+
+    // Week 5B: Using new components, no need to call initMap()
+    // MapCanvas component handles map initialization
+    this.$nextTick(async () => {
+      try {
+        console.log("[MapView] Starting initialization with new components");
+
+        // Only load data if not showing onboarding
+        if (!this.showOnboarding) {
+          console.log("[MapView] Loading initial data...");
+
+          // Load regional centers if needed
+          if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
+            await this.regionalCenterData.fetchRegionalCenters();
+          }
+
+          // Load initial providers based on user location
+          if (this.providerStore && this.providerStore.providers.length === 0) {
+            console.log("[MapView] Loading initial providers...");
+
+            // Load providers for LA County default ZIP immediately
+            // Don't wait for geolocation to avoid blocking
+            try {
+              const defaultZip = "90001"; // Central LA County
+              console.log(`[MapView] Loading providers for default LA ZIP: ${defaultZip}`);
+              await this.providerStore.searchByZipCode(defaultZip);
+              console.log(`[MapView] Loaded ${this.providerStore.providers.length} providers`);
+
+              // Optionally try to get user's location in background (don't await)
+              this.getUserZipCode().then((userZipCode) => {
+                if (userZipCode && userZipCode !== defaultZip) {
+                  console.log(`[MapView] Got user ZIP: ${userZipCode}, reloading providers...`);
+                  this.providerStore.searchByZipCode(userZipCode);
+                }
+              }).catch((err) => {
+                console.log("[MapView] Could not get user location:", err.message);
+              });
+            } catch (error) {
+              console.error("[MapView] Error loading initial providers:", error);
+              // Fallback to comprehensive search
+              await this.providerStore.searchByLocation(LA_COUNTY_CENTER.lat, LA_COUNTY_CENTER.lng, 25);
+            }
+          }
+
+          console.log("[MapView] Initialization complete with new components!");
+        } else {
+          console.log("[MapView] Onboarding showing, skipping data load");
+        }
+      } catch (e) {
+        console.error("[MapView] Error during initialization:", e);
+      }
+    });
+  },
+
+  beforeUnmount() {
+    // Cleanup LA ZIP codes overlay on unmount
+    try {
+      if (this.map && this.mapLayers) {
+        this.mapLayers.removeLAZipCodes(this.map);
+      }
+    } catch (e) {
+      console.warn("Error cleaning up ZIP codes on unmount:", e);
+    }
+  },
+
+  methods: {
+    // ============================================
+    // WEEK 5: NEW COMPONENT ORCHESTRATION METHODS
+    // ============================================
+
+    /**
+     * Handle search from new SearchBar component
+     */
+    handleNewSearch(searchData) {
+      console.log("[MapView] New search handler", searchData);
+
+      // Delegate search to provider store
+      this.providerStore.search(searchData.query, searchData.type);
+
+      // Center map on search location if provided
+      if (searchData.location) {
+        this.mapStore.centerOn(searchData.location);
+      }
+    },
+
+    /**
+     * Handle search clear from SearchBar
+     */
+    handleSearchClear() {
+      console.log("[MapView] Search cleared");
+      this.providerStore.clearSearch();
+    },
+
+    /**
+     * Handle filter changes from FilterPanel
+     */
+    async handleFilterChange(filters) {
+      console.log("[MapView] Filter change", filters);
+
+      // Filters are already applied to store by FilterPanel
+      // Now re-fetch providers with the updated filters
+      try {
+        const filterParams = this.filterStore.buildFilterParams();
+        console.log("[MapView] Re-fetching providers with filters:", filterParams);
+
+        // If we have a user location/ZIP, re-search with filters
+        if (this.userData.address || this.userLocation?.latitude) {
+          if (this.userData.address) {
+            // Re-search by ZIP with filters
+            const zipMatch = this.userData.address.match(/\d{5}/);
+            if (zipMatch) {
+              await this.providerStore.searchByZipCode(zipMatch[0], filterParams);
+            }
+          } else if (this.userLocation?.latitude) {
+            // Re-search by location with filters
+            await this.providerStore.searchByLocation(
+              this.userLocation.latitude,
+              this.userLocation.longitude,
+              25, // radius in miles
+              filterParams
+            );
+          }
+        }
+      } catch (error) {
+        console.error("[MapView] Error re-fetching providers:", error);
+      }
+    },
+
+    /**
+     * Handle filter reset from FilterPanel
+     */
+    async handleFilterReset() {
+      console.log("[MapView] Filters reset");
+      this.filterStore.resetFilters();
+
+      // Re-fetch providers without filters
+      try {
+        if (this.userData.address) {
+          const zipMatch = this.userData.address.match(/\d{5}/);
+          if (zipMatch) {
+            await this.providerStore.searchByZipCode(zipMatch[0]);
+          }
+        } else if (this.userLocation?.latitude) {
+          await this.providerStore.searchByLocation(
+            this.userLocation.latitude,
+            this.userLocation.longitude,
+            25
+          );
+        }
+      } catch (error) {
+        console.error("[MapView] Error re-fetching providers after reset:", error);
+      }
+    },
+
+    /**
+     * Handle provider selection from ProviderList
+     */
+    handleProviderSelect(providerId) {
+      console.log("[MapView] Provider selected", providerId);
+
+      // Update provider store selection
+      this.providerStore.selectProvider(providerId);
+
+      // Center map on selected provider
+      const provider = this.providerStore.providers.find(p => p.id === providerId);
+      if (provider && provider.latitude && provider.longitude) {
+        this.mapStore.centerOn({
+          lat: provider.latitude,
+          lng: provider.longitude,
+        }, 14); // Zoom level 14 for provider view
+      }
+    },
+
+    /**
+     * Handle map ready event from MapCanvas
+     */
+    handleMapReady(mapInstance) {
+      console.log("[MapView] Map ready from new MapCanvas");
+      this.mapInstance = mapInstance;
+      this.map = mapInstance; // Also set this.map for compatibility with old methods
+
+      // If we have providers, fit bounds to show them all
+      if (this.providerStore && this.providerStore.providers.length > 0) {
+        this.fitMapToProviders();
+      }
+
+      // Show LA Regional Centers polygons by default
+      if (!this.showLARegionalCenters) {
+        this.toggleLARegionalCenters();
+      }
+    },
+
+    /**
+     * Handle marker click from MapCanvas
+     */
+    handleMarkerClick(provider) {
+      console.log("[MapView] Marker clicked", provider.id);
+      this.handleProviderSelect(provider.id);
+    },
+
+    /**
+     * Handle viewport change from MapCanvas
+     */
+    handleViewportChange(viewport) {
+      console.log("[MapView] Viewport changed", viewport);
+      // Update map store with new viewport
+      this.mapStore.setViewport(viewport);
+    },
+
+    /**
+     * Handle details panel close from ProviderDetails
+     */
+    handleDetailsClose() {
+      console.log("[MapView] Details closed");
+      this.providerStore.clearSelection();
+    },
+
+    /**
+     * Handle get directions from ProviderDetails
+     */
+    handleGetDirections(data) {
+      console.log("[MapView] Get directions", data);
+
+      // Request directions from map store
+      this.mapStore.getDirectionsTo({
+        lat: data.coordinates.lat,
+        lng: data.coordinates.lng,
+      });
+    },
+
+    /**
+     * Fit map bounds to show all providers
+     */
+    fitMapToProviders() {
+      if (!this.mapInstance || !this.providerStore) return;
+
+      const providers = this.providerStore.providersWithCoordinates;
+      if (providers.length === 0) return;
+
+      // Create bounds from all provider coordinates
+      const bounds = new mapboxgl.LngLatBounds();
+      providers.forEach(provider => {
+        bounds.extend([provider.longitude, provider.latitude]);
+      });
+
+      // Fit map to bounds with padding
+      this.mapInstance.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 12,
+      });
+    },
+
+    /**
+     * Get user's ZIP code from browser geolocation
+     * Returns ZIP code string or null
+     */
+    async getUserZipCode() {
+      console.log("[MapView] Attempting to get user's ZIP code from geolocation...");
+
+      // Check if geolocation is available
+      if (!navigator.geolocation) {
+        console.warn("[MapView] Geolocation not supported");
+        return null;
+      }
+
+      try {
+        // Get user's position
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000, // 5 minutes
+          });
+        });
+
+        const { latitude, longitude } = position.coords;
+        console.log(`[MapView] Got geolocation: ${latitude}, ${longitude}`);
+
+        // Store user location
+        this.userLocation = {
+          latitude,
+          longitude,
+          accuracy: position.coords.accuracy,
+          detected: true,
+          error: null,
+        };
+
+        // Reverse geocode to get ZIP code
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${this.mapboxAccessToken}&types=postcode`
+        );
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+          const zipCode = data.features[0].text;
+          console.log(`[MapView] Found ZIP code: ${zipCode}`);
+
+          // Update user data
+          this.userData.address = data.features[0].place_name || zipCode;
+
+          return zipCode;
+        }
+
+        console.warn("[MapView] No ZIP code found in geocoding response");
+        return null;
+
+      } catch (error) {
+        console.warn("[MapView] Error getting user ZIP code:", error.message);
+        return null;
+      }
+    },
+
+    /**
+     * Handle Regional Center selection from legend
+     */
+    handleRCSelect(rc) {
+      console.log("[MapView] Regional Center selected from legend:", rc.name);
+      // Could zoom to that RC's bounds, highlight it, etc.
+      // For now, just log it
+    },
+
+    // ============================================
+    // EXISTING METHODS (unchanged)
+    // ============================================
+
+    toggleCenterSelection(name) {
+      if (!(name in this.selectedRegionalCenters)) {
+        this.$set
+          ? this.$set(this.selectedRegionalCenters, name, true)
+          : (this.selectedRegionalCenters[name] = true);
+      } else {
+        this.selectedRegionalCenters[name] = !this.selectedRegionalCenters[name];
+      }
+
+      // Update visibility of the regional center polygon
+      this.updateRegionalCenterVisibility(name);
+
+      // Update markers if needed
+      this.updateMarkers();
+
+      // Zoom to the regional center when toggling it on
+      if (this.selectedRegionalCenters[name] !== false) {
+        this.zoomToRegionalCenter(name);
+      }
+    },
+
+    zoomToRegionalCenter(name) {
+      // Define center coordinates for each regional center
+      const centerCoordinates = {
+        "North Los Angeles County Regional Center": [-118.4085, 34.2523], // Van Nuys
+        "San Gabriel/Pomona Regional Center": [-117.7499, 34.0522], // Pomona
+        "Eastern Los Angeles Regional Center": [-118.0353, 33.9425], // Whittier
+        "Westside Regional Center": [-118.3897, 34.0239], // Culver City
+        "Frank D. Lanterman Regional Center": [-118.1228, 34.0689], // Alhambra
+        "South Central Los Angeles Regional Center": [-118.2437, 34.0522], // Los Angeles
+        "Harbor Regional Center": [-118.2923, 33.7905], // Torrance
+      };
+
+      const coords = centerCoordinates[name];
+      if (coords && this.map && !this.isMapMoving) {
+        this.isMapMoving = true;
+        this.map.flyTo({
+          center: coords,
+          zoom: 12,
+          essential: true,
+          duration: 1500,
+        });
+        setTimeout(() => {
+          this.isMapMoving = false;
+        }, 1600);
+      }
+    },
+
+    // Update visibility of a specific regional center on the map
+    updateRegionalCenterVisibility(centerName) {
+      if (!this.map || !this.showLARegionalCenters) return;
+
+      // Get the visibility state
+      const isVisible = this.selectedRegionalCenters[centerName] !== false;
+
+      // Update the filter on the regional center layers
+      const currentFilter = this.map.getFilter("rc-static-fill");
+      if (currentFilter) {
+        // Update the visibility by modifying the paint opacity
+        // This is a simpler approach than complex filters
+
+        // For now, we'll just log the change - full implementation would require
+        // more complex filter manipulation
+        console.log(`Regional center ${centerName} visibility: ${isVisible}`);
+      }
+    },
+    // Toggle ZIP highlight layer visibility per selected center
+    updateLAZipCenterVisibility() {
+      if (!this.map || !this.laRegionalCentersData?.features) return;
+      for (const feature of this.laRegionalCentersData.features) {
+        const name = feature.properties?.name;
+        if (!name) continue;
+        const layerId = `la-zip-center-${name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")}-fill`;
+        if (this.map.getLayer(layerId)) {
+          try {
+            this.map.setLayoutProperty(
+              layerId,
+              "visibility",
+              this.selectedRegionalCenters[name] ? "visible" : "none"
+            );
+          } catch (e) {}
+        }
+      }
+    },
+    // Detect which property key in the ZIP GeoJSON holds the 5-digit ZIP code
+    async detectLaZipPropertyKey() {
+      if (this.laZipPropertyKey) return this.laZipPropertyKey;
+
+      const candidateKeys = [
+        "zip",
+        "zipcode",
+        "ZIP",
+        "ZIP_CODE",
+        "ZIPCODE",
+        "ZCTA5CE10",
+        "ZCTA5CE",
+        "ZCTA5",
+        "GEOID10",
+        "GEOID",
+        "POSTAL",
+        "POSTCODE",
+        "POSTALCODE",
+        "NAME",
+        "Name",
+        "name",
+      ];
+
+      const isZip = (v) => typeof v === "string" && /^\d{5}$/.test(v.trim());
+
+      try {
+        // Try rendered features first (requires layer to exist)
+        const rendered = this.map
+          ? this.map.queryRenderedFeatures({ layers: ["la-zip-codes-fill"] })
+          : [];
+        const sample = (rendered || []).slice(0, 100);
+        for (const key of candidateKeys) {
+          const ok =
+            sample.length > 0 &&
+            sample.every((f) => {
+              const val = f?.properties?.[key];
+              if (val === undefined || val === null) return true;
+              return isZip(String(val).padStart(5, "0"));
+            });
+          if (ok) {
+            this.laZipPropertyKey = key;
+            console.log("Detected ZIP property key from rendered features:", key);
+            return key;
+          }
+        }
+      } catch {}
+
+      try {
+        // Fallback: fetch a bit of the GeoJSON and inspect
+        const res = await fetch(LA_ZIP_CODES_URL);
+        const geo = await res.json();
+        const feats = geo && geo.features ? geo.features.slice(0, 200) : [];
+        for (const key of candidateKeys) {
+          const ok =
+            feats.length > 0 &&
+            feats.every((f) => {
+              const val = f?.properties?.[key];
+              if (val === undefined || val === null) return true;
+              return isZip(String(val).padStart(5, "0"));
+            });
+          if (ok) {
+            this.laZipPropertyKey = key;
+            console.log("Detected ZIP property key from source JSON:", key);
+            return key;
+          }
+        }
+      } catch (e) {
+        console.warn("Could not fetch ZIP GeoJSON to detect key:", e);
+      }
+
+      // Default to common Census key
+      this.laZipPropertyKey = "ZCTA5CE10";
+      console.warn("Falling back to default ZIP key:", this.laZipPropertyKey);
+      return this.laZipPropertyKey;
+    },
+
+    // Convenience: fetch LA County geometry and show colored ZIPs immediately
+    async showLAZipColorsOnly() {
+      try {
+        const countiesResponse = await fetch(
+          `${this.getApiRoot()}/api/california-counties/`
+        );
+        if (!countiesResponse.ok) return;
+        const countiesData = await countiesResponse.json();
+        const laCounty = countiesData.features.find(
+          (feature) => feature.properties.name === "Los Angeles"
+        );
+        if (!laCounty) return;
+        // Transparent LA county fill for clarity
+        try {
+          if (!this.map.getSource("la-regional-centers")) {
+            this.map.addSource("la-regional-centers", {
+              type: "geojson",
+              data: {
+                type: "FeatureCollection",
+                features: [
+                  {
+                    type: "Feature",
+                    properties: { name: "Los Angeles County" },
+                    geometry: laCounty.geometry,
+                  },
+                ],
+              },
+            });
+          }
+          if (!this.map.getLayer("la-county-boundary")) {
+            this.map.addLayer({
+              id: "la-county-boundary",
+              type: "fill",
+              source: "la-regional-centers",
+              paint: { "fill-color": "#e3f2fd", "fill-opacity": 0 },
+            });
+          }
+          if (!this.map.getLayer("la-county-outline")) {
+            this.map.addLayer({
+              id: "la-county-outline",
+              type: "line",
+              source: "la-regional-centers",
+              paint: { "line-color": "#1976d2", "line-width": 2 },
+            });
+          }
+        } catch (e) {}
+        await this.addColoredLAZipsLayer(laCounty);
+      } catch (e) {}
+    },
+
+    // Ensure we have a mapping of ZIP → Regional Center
+    async ensureZipToCenterMap() {
+      if (this.zipToCenter && Object.keys(this.zipToCenter).length > 0) return;
+      try {
+        const response = await fetch(
+          `${this.getApiRoot()}/api/regional-centers/service_area_boundaries/`
+        );
+        if (!response.ok) {
+          console.warn("ZIP→Center map fetch failed:", response.status);
+          return;
+        }
+        const data = await response.json();
+        this.laRegionalCentersData = data;
+        const map = {};
+        for (const feature of data.features || []) {
+          const name = feature?.properties?.name || "Regional Center";
+          const zips = feature?.properties?.zip_codes || [];
+          for (const z of zips) {
+            map[String(z).padStart(5, "0")] = name;
+          }
+        }
+        // Spatial fallback for any ZIP missing in the lists: nearest center by centroid
+        try {
+          const rcCenters = (data.features || [])
+            .filter((f) => f?.properties?.name)
+            .map((f) => ({
+              name: f.properties.name,
+              // quick centroid from bbox/geometry: use first coordinate as proxy
+              lng: Array.isArray(f?.geometry?.coordinates)
+                ? f.geometry.coordinates[0]?.[0]?.[0]?.[0] ?? null
+                : null,
+              lat: Array.isArray(f?.geometry?.coordinates)
+                ? f.geometry.coordinates[0]?.[0]?.[0]?.[1] ?? null
+                : null,
+            }))
+            .filter((c) => c.lat !== null && c.lng !== null);
+          const dist2 = (a, b) => {
+            const dx = (a.lng || 0) - (b.lng || 0);
+            const dy = (a.lat || 0) - (b.lat || 0);
+            return dx * dx + dy * dy;
+          };
+          // Build a rough centroid lookup for ZIPs by reading a small sample from GeoJSON
+          try {
+            const res = await fetch(LA_ZIP_CODES_URL);
+            const geo = await res.json();
+            const zipKey = await this.detectLaZipPropertyKey();
+            for (const f of geo.features || []) {
+              const zip = String(f?.properties?.[zipKey] || "").padStart(5, "0");
+              if (map[zip]) continue;
+              const coord = Array.isArray(f?.geometry?.coordinates)
+                ? f.geometry.coordinates[0]?.[0]?.[0]
+                : null;
+              if (!coord) continue;
+              const pt = { lng: coord[0], lat: coord[1] };
+              let best = null;
+              for (const c of rcCenters) {
+                const d = dist2(c, pt);
+                if (!best || d < best.d) best = { name: c.name, d };
+              }
+              if (best) map[zip] = best.name;
+            }
+          } catch (_) {}
+        } catch (_) {}
+
+        this.zipToCenter = map;
+        console.log(`Loaded ZIP→Center map entries: ${Object.keys(map).length}`);
+      } catch (_) {}
+    },
+
+    // Add a single colored ZIP layer inside LA County, coloring each ZIP differently
+    async addColoredLAZipsLayer(laCounty) {
+      try {
+        // Load and colorize the ZIP GeoJSON
+        let geo = this.coloredZipsData;
+        if (!geo) {
+          try {
+            const res = await fetch(LA_ZIP_CODES_URL);
+            geo = await res.json();
+            this.coloredZipsData = geo;
+          } catch (e) {
+            console.warn(
+              "Local ZIP GeoJSON load failed; trying backend /api/la-zip-codes/",
+              e
+            );
+            const res2 = await fetch(`${this.getApiRoot()}/api/la-zip-codes/`);
+            if (res2.ok) {
+              geo = await res2.json();
+              this.coloredZipsData = geo;
+            } else {
+              throw new Error(
+                "Failed to load ZIP GeoJSON from both local asset and backend"
+              );
+            }
+          }
+        }
+        const zipKey = await this.detectLaZipPropertyKey();
+
+        // Ensure we have ZIP → Regional Center mapping
+        await this.ensureZipToCenterMap();
+
+        // Center color palette (per request: North LA = Yellow)
+        const centerColors = {
+          "North Los Angeles Regional Center": "#f1c40f", // Yellow
+          "San Gabriel/Pomona Regional Center": "#4caf50",
+          "Eastern Los Angeles Regional Center": "#ff9800",
+          "Westside Regional Center": "#e91e63",
+          "Frank D. Lanterman Regional Center": "#9c27b0",
+          "South Central Los Angeles Regional Center": "#f44336",
+          "Harbor Regional Center": "#2196f3", // Blue
+        };
+
+        // Assign color by regional center; fallback to ZIP-hash if missing
+        const colorized = {
+          type: "FeatureCollection",
+          features: (geo.features || []).map((f) => {
+            const raw = f?.properties?.[zipKey];
+            const zip = String(raw || "").padStart(5, "0");
+            const rcName = this.zipToCenter[zip] || null;
+            let color = centerColors[rcName] || null;
+            if (!color) {
+              color = generateColorFromString(zip);
+            }
+            return {
+              ...f,
+              properties: {
+                ...(f.properties || {}),
+                _zipColor: color,
+                _zipId: zip,
+                _rcName: rcName,
+              },
+            };
+          }),
+        };
+
+        // Remove prior colored layers/sources if present
+        if (this.map.getLayer("la-zip-codes-colored-fill")) {
+          try {
+            this.map.removeLayer("la-zip-codes-colored-fill");
+          } catch (e) {}
+        }
+        if (this.map.getLayer("la-zip-codes-colored-outline")) {
+          try {
+            this.map.removeLayer("la-zip-codes-colored-outline");
+          } catch (e) {}
+        }
+        if (this.map.getSource("la-zip-codes-colored")) {
+          try {
+            this.map.removeSource("la-zip-codes-colored");
+          } catch (e) {}
+        }
+
+        // Add colored source clipped to LA County at data level to avoid Mapbox within issues on some platforms
+        const clipped = {
+          type: "FeatureCollection",
+          features: (colorized.features || []).filter(() => true),
+        };
+        this.map.addSource("la-zip-codes-colored", {
+          type: "geojson",
+          data: clipped,
+        });
+
+        // Hide the base ZIP fill if present
+        if (this.map.getLayer("la-zip-codes-fill")) {
+          try {
+            this.map.setPaintProperty("la-zip-codes-fill", "fill-opacity", 0);
+          } catch (e) {}
+        }
+
+        // Add colored fill (one color per ZIP)
+        this.map.addLayer({
+          id: "la-zip-codes-colored-fill",
+          type: "fill",
+          source: "la-zip-codes-colored",
+          paint: {
+            "fill-color": ["get", "_zipColor"],
+            "fill-opacity": 0.8,
+          },
+        });
+
+        // Add crisp outlines over the colored fills
+        this.map.addLayer({
+          id: "la-zip-codes-colored-outline",
+          type: "line",
+          source: "la-zip-codes-colored",
+          paint: {
+            "line-color": "#2c3e50",
+            "line-width": 1.2,
+            "line-opacity": 1,
+          },
+        });
+
+        // Ensure outline is on top
+        try {
+          this.map.moveLayer("la-zip-codes-colored-outline");
+        } catch (e) {}
+
+        // Interactivity: click to show ZIP + Regional Center name
+        this.map.on("mouseenter", "la-zip-codes-colored-fill", () => {
+          this.map.getCanvas().style.cursor = "pointer";
+        });
+        this.map.on("mouseleave", "la-zip-codes-colored-fill", () => {
+          this.map.getCanvas().style.cursor = "";
+        });
+        this.map.on("click", "la-zip-codes-colored-fill", (e) => {
+          const f = e.features && e.features[0];
+          if (!f) return;
+          const zip =
+            f.properties?._zipId || f.properties?.ZIP || f.properties?.ZIP_CODE || "";
+          const rc = f.properties?._rcName || this.zipToCenter[zip] || "Unassigned";
+          new mapboxgl.Popup({ closeOnClick: true })
+            .setLngLat(e.lngLat)
+            .setHTML(
+              `<div style=\"font-size:13px\"><div><strong>ZIP:</strong> ${zip}</div><div><strong>Regional Center:</strong> ${rc}</div></div>`
+            )
+            .addTo(this.map);
+        });
+      } catch (e) {
+        console.error("Failed to add colored LA ZIPs:", e);
+      }
+    },
+    // Toggle mobile sidebar
+    toggleMobileSidebar() {
+      this.showMobileSidebar = !this.showMobileSidebar;
+      // Close other mobile menus
+      this.showMobileSearch = false;
+      this.showUserMenu = false;
+    },
+
+    // Toggle mobile search
+    toggleSearch() {
+      this.showMobileSearch = !this.showMobileSearch;
+      // Close other mobile menus
+      this.showMobileSidebar = false;
+      this.showUserMenu = false;
+    },
+
+    // Toggle user menu
+    toggleUserMenu() {
+      this.showUserMenu = !this.showUserMenu;
+      // Close other mobile menus
+      this.showMobileSidebar = false;
+      this.showMobileSearch = false;
+    },
+
+    // Perform search
+    performSearch() {
+      // Trigger the search functionality
+      this.debounceSearch();
+    },
+
+    // Toggle funding info modal
+    toggleFundingInfo() {
+      this.showFundingInfo = !this.showFundingInfo;
+    },
+
+    // Update filtered locations based on filters
+    updateFilteredLocations() {
+      console.log("Updating filtered locations with filters:", this.filterOptions);
+
+      // If any provider-specific filters are enabled, automatically switch to providers
+      const hasProviderFilters =
+        this.filterOptions.acceptsInsurance ||
+        this.filterOptions.acceptsRegionalCenter ||
+        this.filterOptions.matchesDiagnosis ||
+        this.filterOptions.matchesAge;
+
+      if (hasProviderFilters && this.displayType !== "providers") {
+        console.log("🔄 Provider filters applied, switching to providers view");
+        this.displayType = "providers";
+      }
+
+      // Log current filter state for debugging
+      console.log("🎛️ Current filter state:", {
+        acceptsInsurance: this.filterOptions.acceptsInsurance,
+        acceptsRegionalCenter: this.filterOptions.acceptsRegionalCenter,
+        matchesDiagnosis: this.filterOptions.matchesDiagnosis,
+        displayType: this.displayType,
+      });
+
+      // If we're showing providers, refetch from API with filters
+      if (this.displayType === "providers") {
+        // Store current map state to preserve zoom level only when adjusting radius
+        const currentMapState = (this.isAdjustingRadius && this.map) ? {
+          center: this.map.getCenter(),
+          zoom: this.map.getZoom()
+        } : null;
+        
+        if (currentMapState) {
+          console.log("🔍 Preserving map state for radius adjustment:", currentMapState);
+        }
+        
+        this.fetchProviders().then(() => {
+          // Restore map state after providers are loaded (only for radius adjustments)
+          if (currentMapState && this.map) {
+            console.log("🔍 Restoring map state after radius change:", currentMapState);
+            this.map.setCenter(currentMapState.center);
+            this.map.setZoom(currentMapState.zoom);
+          }
+          // Reset the flag
+          this.isAdjustingRadius = false;
+        });
+      } else {
+        // For other types, just update markers
+        this.$nextTick(() => {
+          this.updateMarkers();
+        });
+      }
+    },
+
+    // Debounce search to prevent too many updates
+    debounceSearch() {
+      console.log('🔍 debounceSearch called, searchText:', this.searchText);
+      if (this.searchDebounce) {
+        clearTimeout(this.searchDebounce);
+      }
+
+      this.searchDebounce = setTimeout(() => {
+        console.log('🔍 Executing search with text:', this.searchText);
+        // Clear any pending map movements to prevent conflicts
+        if (this.map) {
+          this.map.stop();
+        }
+        this.updateFilteredLocations();
+      }, 500); // Increased delay to reduce jankiness
+    },
+
+    // Handle radius slider changes while preserving zoom level
+    onRadiusChange() {
+      console.log('🔍 Radius changed to:', this.radius, 'miles');
+      this.isAdjustingRadius = true;
+      this.updateFilteredLocations();
+    },
+
+    // Wait for map to be fully ready
+    async waitForMapReady() {
+      return new Promise((resolve) => {
+        if (this.map && this.map.isStyleLoaded()) {
+          resolve();
+          return;
+        }
+        
+        const checkMap = () => {
+          if (this.map && this.map.isStyleLoaded()) {
+            resolve();
+          } else {
+            setTimeout(checkMap, 100);
+          }
+        };
+        checkMap();
+      });
+    },
+
+    // Load initial providers with smooth map setup
+    async loadInitialProviders() {
+      // Load providers without any map movements
+      console.log("📊 Loading initial providers...");
+      this.isMapMoving = true; // Prevent any map bounds changes
+      await this.fetchProviders();
+      this.isMapMoving = false;
+      
+      console.log("✅ Initial load complete - LA County view with providers");
+    },
+    clearSearch() {
+      this.searchText = "";
+      this.updateFilteredLocations();
+    },
+    // Simple geocoder using Nominatim (frontend) to make the search box reliable
+    async geocodeTextToCoords(text) {
+      // Use composable for geocoding
+      return await this.geolocation.geocodeTextToCoords(text);
+    },
+
+    getApiRoot() {
+      // Use the API base URL from environment variable
+      return import.meta.env.VITE_API_BASE_URL || "";
+    },
+
+    // Find regional center for user's ZIP code
+    async findUserRegionalCenter() {
+      console.log("Finding regional center for user address:", this.userData?.address);
+
+      if (!this.userData?.address) {
+        console.log("No user address found");
+        this.userRegionalCenter = {
+          name: "Regional Center (No Address)",
+          address: "Unable to determine regional center",
+          phone: null,
+          website: null,
+        };
+        return this.userRegionalCenter;
+      }
+
+      // Extract ZIP code from address using utility
+      const zipCode = extractZipCode(this.userData.address);
+      console.log(`Extracted ZIP code: ${zipCode}`);
+      
+      if (!zipCode) {
+        console.log("No ZIP code found in address:", this.userData.address);
+        console.log("Address breakdown:", {
+          fullAddress: this.userData.address,
+          length: this.userData.address.length,
+          hasNumbers: /\d/.test(this.userData.address),
+          allNumbers: this.userData.address.match(/\d+/g)
+        });
+        
+        // Try to find regional center using coordinates instead
+        console.log("Attempting coordinate-based regional center lookup...");
+        return await this.findRegionalCenterByCoordinates();
+      }
+      console.log("Found ZIP code:", zipCode);
+
+      // Use composable to find regional center by ZIP
+      const regionalCenter = this.regionalCenterData.findByZipCode(zipCode);
+
+      if (regionalCenter) {
+        this.userRegionalCenter = {
+          name: regionalCenter.name || regionalCenter.regional_center,
+          address: regionalCenter.address,
+          phone: regionalCenter.phone,
+          website: regionalCenter.website,
+          ...regionalCenter,
+        };
+        console.log("User regional center found via composable:", this.userRegionalCenter);
+        return this.userRegionalCenter;
+      } else {
+        console.log("No regional center found for ZIP code:", zipCode);
+        this.userRegionalCenter = {
+          name: "Regional Center (Not Found)",
+          address: `No regional center found for ZIP code ${zipCode}`,
+          phone: null,
+          website: null,
+        };
+        return this.userRegionalCenter;
+      }
+    },
+
+    // Find regional center using coordinates when ZIP code lookup fails
+    async findRegionalCenterByCoordinates() {
+      console.log("Finding regional center by coordinates...");
+
+      if (!this.userLocation?.latitude || !this.userLocation?.longitude) {
+        console.log("No coordinates available for regional center lookup");
+        this.userRegionalCenter = {
+          name: "Regional Center (No Coordinates)",
+          address: "Unable to determine regional center - no location data",
+          phone: null,
+          website: null,
+        };
+        return this.userRegionalCenter;
+      }
+
+      // Use composable to find nearest regional center
+      const result = this.regionalCenterData.findNearestToCoordinates({
+        lat: this.userLocation.latitude,
+        lng: this.userLocation.longitude,
+      });
+
+      if (result) {
+        this.userRegionalCenter = {
+          name: result.center.name || result.center.regional_center,
+          address: result.center.address,
+          phone: result.center.phone,
+          website: result.center.website,
+          ...result.center,
+        };
+        console.log(`Found regional center by coordinates: ${result.center.name} (${result.distance.toFixed(2)} miles)`);
+        return this.userRegionalCenter;
+      } else {
+        console.log("No regional center found for coordinates");
+        this.userRegionalCenter = {
+          name: "Regional Center (Not Found)",
+          address: "No regional center found for this location",
+          phone: null,
+          website: null,
+        };
+        return this.userRegionalCenter;
+      }
+    },
+
+
+    // Set display type
+    setDisplayType(type) {
+      this.displayType = type;
+
+      // Fetch data if needed
+      if (type === "providers" && this.providers.length === 0) {
+        this.fetchProviders();
+      } else if (type === "regionalCenters" && this.regionalCenters.length === 0) {
+        this.regionalCenterData.fetchRegionalCenters();
+      }
+
+      // Update markers
+      this.$nextTick(() => {
+        this.updateMarkers();
+      });
+
+      // When switching to regional centers, center on LA Regional Centers
+      if (type === "regionalCenters" && this.map && !this.isMapMoving) {
+        // Center on Los Angeles County with appropriate zoom
+        const laCenter = [-118.2437, 34.0522]; // LA County center
+        this.isMapMoving = true;
+        this.map.flyTo({
+          center: laCenter,
+          zoom: 9.5, // Good zoom level to see all LA Regional Centers
+          duration: 1000,
+          essential: true,
+        });
+        setTimeout(() => {
+          this.isMapMoving = false;
+        }, 1100);
+
+        // Also ensure LA Regional Centers are shown
+        if (!this.showLARegionalCenters) {
+          this.toggleLARegionalCenters();
+        }
+      } else if (type === "providers") {
+        // When switching back to providers, check if we should refocus
+        if (this.map && this.userLocation?.latitude && this.userLocation?.longitude) {
+          const laBounds = this.getLACountyBounds();
+          const inLA = this.isPointInBounds(
+            this.userLocation.longitude,
+            this.userLocation.latitude,
+            laBounds
+          );
+          if (inLA) {
+            this.map.fitBounds(laBounds, { padding: 40, duration: 600 });
+          } else {
+            // Otherwise, center on user's location with a reasonable zoom
+            const targetZoom = Math.max(this.map.getZoom() || 0, 10);
+            this.map.flyTo({
+              center: [this.userLocation.longitude, this.userLocation.latitude],
+              zoom: targetZoom,
+              duration: 600,
+            });
+          }
+        }
+        // Ensure service areas are visible and layers are present
+        (async () => {
+          try {
+            if (!this.serviceAreasLoaded) {
+              await this.fetchServiceAreas();
+            }
+            if (this.serviceAreasLoaded) {
+              if (
+                !this.map.getSource("service-areas") ||
+                !this.map.getLayer("california-counties-fill")
+              ) {
+                this.addServiceAreasToMap();
+              }
+              // Apply visual highlight to LA only (no camera move)
+              this.highlightLACountyVisual();
+            }
+          } catch (_) {}
+        })();
+      }
+    },
+
+    // Reset all filters
+    resetFilters() {
+      this.selectedCategory = "";
+      this.searchText = "";
+      this.radius = 15; // Reset to 15 miles for better coverage
+
+      // Reset filter options
+      this.filterOptions = {
+        acceptsInsurance: false,
+        acceptsRegionalCenter: false,
+        matchesDiagnosis: false,
+        matchesAge: false,
+      };
+
+      // Re-fetch data with reset filters (maintain current display type)
+      console.log(`Resetting filters, maintaining display type: ${this.displayType}`);
+      if (this.displayType === "providers") {
+        this.fetchProviders();
+      } else if (this.displayType === "regionalCenters") {
+        this.regionalCenterData.fetchRegionalCenters();
+      } else {
+        this.updateFilteredLocations();
+      }
+    },
+
+    handleRegionalCenterMatched(center) {
+      this.matchedRegionalCenter = center;
+      this.userRegionalCenter = center; // Also set this for the UI
+
+      // Update polygon highlighting to emphasize user's RC
+      this.$nextTick(() => {
+        if (this.map && this.mapLayers) {
+          this.mapLayers.updateRegionalCenterHighlighting(this.map, this.selectedRegionalCenters);
+        }
+      });
+    },
+
+    updateRegionalCenterHighlighting() {
+      if (this.map && this.mapLayers) {
+        this.mapLayers.updateRegionalCenterHighlighting(this.map, this.selectedRegionalCenters);
+      }
+    },
+
+    showMatchedCenterOnMap() {
+      const c = this.matchedRegionalCenter;
+      if (!c || !this.map) return;
+      const lng = parseFloat(c.longitude);
+      const lat = parseFloat(c.latitude);
+      if (isNaN(lat) || isNaN(lng)) return;
+      this.map.flyTo({ center: [lng, lat], zoom: 11 });
+      // Drop a temporary marker
+      const el = document.createElement("div");
+      el.className = "marker marker-regional-center";
+      el.style.width = "14px";
+      el.style.height = "14px";
+      el.style.background = "#1f618d";
+      el.style.border = "2px solid white";
+      el.style.borderRadius = "50%";
+      const marker = new mapboxgl.Marker(el).setLngLat([lng, lat]).addTo(this.map);
+      setTimeout(() => marker.remove(), 8000);
+    },
+
+    applyLACountyFocus() {
+      // Toggle the state first
+      this.focusLACounty = !this.focusLACounty;
+      // If toggled on, zoom to LA County bounds and fade other counties
+      if (!this.map) return;
+      if (this.focusLACounty) {
+        // LA County approximate bounds
+        const laBounds = [
+          [-119.1, 33.3],
+          [-117.5, 34.9],
+        ];
+        this.map.fitBounds(laBounds, { padding: 40, duration: 700 });
+
+        // If counties layer exists, highlight LA
+        if (this.map.getLayer("california-counties-fill")) {
+          // Add a filter to emphasize Los Angeles
+          this.map.setPaintProperty("california-counties-fill", "fill-opacity", [
+            "case",
+            ["==", ["downcase", ["get", "name"]], "los angeles"],
+            0.55,
+            0.12,
+          ]);
+          this.map.setPaintProperty("california-counties-fill", "fill-color", [
+            "case",
+            ["==", ["downcase", ["get", "name"]], "los angeles"],
+            "#e67e22",
+            [
+              "interpolate",
+              ["linear"],
+              ["get", "regional_center_count"],
+              0,
+              "#e8e8e8",
+              2,
+              "#a8d5e5",
+              5,
+              "#5dade2",
+              10,
+              "#3498db",
+              11,
+              "#1f618d",
+            ],
+          ]);
+        }
+      } else {
+        // Restore normal styling
+        if (this.map.getLayer("california-counties-fill")) {
+          this.map.setPaintProperty("california-counties-fill", "fill-opacity", 0.2);
+          this.map.setPaintProperty("california-counties-fill", "fill-color", [
+            "interpolate",
+            ["linear"],
+            ["get", "regional_center_count"],
+            0,
+            "#e8e8e8",
+            2,
+            "#a8d5e5",
+            5,
+            "#5dade2",
+            10,
+            "#3498db",
+            11,
+            "#1f618d",
+          ]);
+        }
+      }
+    },
+
+    highlightLACountyVisual() {
+      if (!this.map) return;
+      if (this.map.getLayer("california-counties-fill")) {
+        // Emphasize LA via color/opacity without adjusting camera
+        this.map.setPaintProperty("california-counties-fill", "fill-opacity", [
+          "case",
+          ["==", ["downcase", ["get", "name"]], "los angeles"],
+          0.55,
+          0.2,
+        ]);
+        this.map.setPaintProperty("california-counties-fill", "fill-color", [
+          "case",
+          ["==", ["downcase", ["get", "name"]], "los angeles"],
+          "#e67e22",
+          [
+            "interpolate",
+            ["linear"],
+            ["get", "regional_center_count"],
+            0,
+            "#e8e8e8",
+            2,
+            "#a8d5e5",
+            5,
+            "#5dade2",
+            10,
+            "#3498db",
+            11,
+            "#1f618d",
+          ],
+        ]);
+      }
+    },
+
+    getLACountyBounds() {
+      // Approximate LA County bounds
+      return [
+        [-119.1, 33.3],
+        [-117.5, 34.9],
+      ];
+    },
+
+    isPointInBounds(lng, lat, bounds) {
+      if (!Array.isArray(bounds) || bounds.length !== 2) return false;
+      const [[minLng, minLat], [maxLng, maxLat]] = bounds;
+      return lng >= minLng && lng <= maxLng && lat >= minLat && lat <= maxLat;
+    },
+
+    async findRegionalCenterByZip() {
+      try {
+        this.laZipError = "";
+        const zip = (this.laZipInput || "").trim();
+        if (!/^\d{5}$/.test(zip)) {
+          this.laZipError = "Enter a valid 5-digit ZIP";
+          return;
+        }
+        const apiRoot = this.getApiRoot();
+        const url = `${apiRoot}/api/regional-centers/by_location/?location=${zip}&radius=60&limit=5`;
+
+        let center = null;
+        try {
+          const res = await fetch(url, { headers: { Accept: "application/json" } });
+          if (res.ok) {
+            const centers = await res.json();
+            if (Array.isArray(centers) && centers.length > 0) {
+              center = centers[0];
+            }
+          }
+        } catch (e) {
+          console.warn("ZIP center lookup API failed; using fallback", e);
+        }
+
+        if (!center) {
+          try {
+            if (this.regionalCenters.length === 0) {
+              await this.regionalCenterData.fetchRegionalCenters();
+            }
+          } catch (_) {}
+          let coords = null;
+          try {
+            coords = await this.basicGeocode(Number(zip));
+          } catch (_) {}
+          if (!coords) {
+            try {
+              const gc = await this.geocodeTextToCoords(zip);
+              if (gc) coords = { lat: gc.lat, lng: gc.lng };
+            } catch (_) {}
+          }
+          if (coords) {
+            try {
+              center = this.findNearestRegionalCenterFromList(coords.lat, coords.lng);
+            } catch (_) {}
+          }
+          if (!center) {
+            this.laZipError = "No regional center found for that ZIP";
+            return;
+          }
+        }
+
+        this.matchedRegionalCenter = center;
+        const lng = parseFloat(center.longitude);
+        const lat = parseFloat(center.latitude);
+        if (this.map && !isNaN(lat) && !isNaN(lng)) {
+          if (this.focusLACounty) {
+            this.map.fitBounds(this.getLACountyBounds(), { padding: 40, duration: 0 });
+          }
+          this.map.flyTo({ center: [lng, lat], zoom: 11, duration: 600 });
+          const el = document.createElement("div");
+          el.className = "marker marker-regional-center";
+          el.style.width = "14px";
+          el.style.height = "14px";
+          el.style.background = "#1f618d";
+          el.style.border = "2px solid white";
+          el.style.borderRadius = "50%";
+          const marker = new mapboxgl.Marker(el).setLngLat([lng, lat]).addTo(this.map);
+          setTimeout(() => marker.remove(), 8000);
+        }
+      } catch (err) {
+        console.error("ZIP lookup handler error:", err);
+        this.laZipError = "Lookup failed. Try again.";
+      }
+    },
+
+    // User panel methods
+    toggleUserPanel() {
+      this.showUserPanel = !this.showUserPanel;
+    },
+
+    saveUserData(userData) {
+      this.userData = { ...userData };
+      this.showUserPanel = false;
+
+      // Apply filters with new user data
+      this.updateFilteredLocations();
+    },
+
+    async loadUserData() {
+      // Load saved user data from localStorage
+      const savedProfile = localStorage.getItem("chla-user-profile");
+
+      if (savedProfile) {
+        try {
+          this.userData = JSON.parse(savedProfile);
+          console.log("Loaded saved user profile:", this.userData);
+        } catch (e) {
+          console.error("Error parsing saved profile:", e);
+          // Use default data as fallback
+          this.userData = {
+            age: "5",
+            address: "Los Angeles, CA 90001",
+            diagnosis: "Autism",
+            otherDiagnosis: "",
+          };
+        }
+      } else {
+        // Use sample data for testing with ZIP code
+        this.userData = {
+          age: "5",
+          address: "Los Angeles, CA 90001",
+          diagnosis: "Autism",
+          otherDiagnosis: "",
+        };
+      }
+
+      // Find regional center for user's ZIP code
+      await this.findUserRegionalCenter();
+    },
+
+    // Detect user location using browser geolocation API
+    async detectUserLocation() {
+      console.log("🌍 Detecting user location...");
+
+      const success = await this.geolocation.detectUserLocation();
+
+      if (success) {
+        // Sync composable location to component data
+        this.userLocation = { ...this.geolocation.userLocation.value };
+
+        // Update user address if available
+        if (this.geolocation.userLocation.value.address) {
+          this.userData.address = this.geolocation.userLocation.value.address;
+        }
+
+        console.log(`✅ Location detected via composable`);
+
+        // Initialize map with detected location
+        this.initMap();
+
+        // Fetch providers for the detected location (wait for map to settle)
+        setTimeout(() => {
+          this.fetchProviders();
+        }, 1500);
+      } else {
+        console.warn("⚠️ Geolocation failed, using fallback");
+        this.setFallbackLocation(this.geolocation.userLocation.value.error || "Location detection failed");
+      }
+    },
+
+    // Set fallback location (default to California center for statewide coverage)
+    setFallbackLocation(error = null) {
+      console.log("🏠 Using fallback location (California center)");
+
+      this.userLocation = {
+        latitude: 36.7783, // California geographic center
+        longitude: -119.4179,
+        accuracy: null,
+        detected: false,
+        error: error,
+      };
+
+      // Update user address to reflect fallback
+      this.userData.address = "Los Angeles Area (location detection failed)";
+
+      // Set a fallback regional center when location detection fails
+      this.userRegionalCenter = {
+        name: "Regional Center (Location Detection Failed)",
+        address: "Unable to determine specific regional center",
+        phone: null,
+        website: null,
+      };
+
+      // Initialize map with fallback location
+      this.initMap();
+
+      // Fetch providers for the fallback location
+      setTimeout(() => {
+        this.fetchProviders();
+      }, 500);
+    },
+
+    // Reverse geocode to get address from coordinates
+    async reverseGeocode(latitude, longitude) {
+      // Use composable for reverse geocoding
+      const address = await this.geolocation.reverseGeocode(latitude, longitude);
+
+      if (address) {
+        console.log(`🏠 Detected address: ${address}`);
+        this.userData.address = address;
+
+        // Find regional center for the detected location
+        this.findUserRegionalCenter();
+      } else {
+        console.warn("⚠️ Reverse geocoding failed");
+        this.userData.address = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      }
+    },
+
+    // Map initialization
+    initMap() {
+      // Ensure we have valid coordinates before initializing
+      if (!this.userLocation.latitude || !this.userLocation.longitude) {
+        console.warn(
+          "⚠️ No valid coordinates for map initialization, using California center"
+        );
+        this.userLocation.latitude = 36.7783;
+        this.userLocation.longitude = -119.4179;
+      }
+
+      // Set Mapbox access token
+      const mapboxToken =
+        import.meta.env.VITE_MAPBOX_TOKEN ||
+        "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg";
+      mapboxgl.accessToken = mapboxToken;
+
+      console.log("🗺️ Mapbox token:", mapboxToken.substring(0, 20) + "...");
+      console.log(
+        `🗺️ Initializing map at: ${this.userLocation.latitude}, ${this.userLocation.longitude}`
+      );
+
+      // Check if map container exists
+      const mapContainer = document.getElementById("map");
+      if (!mapContainer) {
+        console.error("❌ Map container 'map' not found!");
+        return;
+      }
+
+      try {
+        // Create Mapbox map with LA County focus
+        this.map = new mapboxgl.Map({
+          container: "map",
+          style: "mapbox://styles/mapbox/streets-v12",
+          center: [-118.2437, 34.0522], // Los Angeles center
+          zoom: 10, // Good zoom level for LA County overview
+          duration: 0, // Immediate initial positioning
+        });
+
+        console.log("✅ Mapbox map instance created successfully");
+      } catch (error) {
+        console.error("❌ Error creating Mapbox map:", error);
+        return;
+      }
+
+      // Add navigation controls
+      this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+      // Add geolocation control for users to manually update their location
+      this.map.addControl(
+        new mapboxgl.GeolocateControl({
+          positionOptions: {
+            enableHighAccuracy: true,
+          },
+          fitBoundsOptions: {
+            maxZoom: 15,
+          },
+          trackUserLocation: false,
+          showAccuracyCircle: true,
+        }),
+        "top-right"
+      );
+
+      // When map loads, update markers
+      this.map.on("load", () => {
+        console.log("✅ Map loaded successfully");
+        this.updateMarkers();
+
+        // If service areas are already enabled, add them now
+        if (this.showServiceAreas && this.serviceAreasLoaded) {
+          console.log("Map loaded and service areas are enabled, adding them now");
+          this.addServiceAreasToMap();
+        }
+
+        // Show 7 regional center polygons immediately (not ZIPs)
+        this.toggleLARegionalCenters();
+      });
+
+      // Add error handling for map loading
+      this.map.on("error", (error) => {
+        console.error("❌ Map error:", error);
+      });
+
+      this.map.on("styleimagemissing", (error) => {
+        console.warn("⚠️ Map style image missing:", error);
+      });
+
+      console.log("Map initialization complete");
+    },
+
+    // Fetch provider data
+    async fetchProviders() {
+      console.log("🚀 fetchProviders() called - delegating to providerStore");
+      
+      try {
+        // Build search params from current state
+        const params = {
+          lat: this.userLocation?.latitude,
+          lng: this.userLocation?.longitude,
+          radius: this.radius || 25,
+          searchText: this.searchText?.trim() || '',
+          insurance: this.filterOptions.acceptsInsurance ? 'yes' : undefined,
+          therapy: this.filterOptions.therapies?.length ? this.filterOptions.therapies.join(',') : undefined,
+          diagnosis: this.filterOptions.diagnoses?.length ? this.filterOptions.diagnoses.join(',') : undefined,
+        };
+
+        // Use store's search action
+        await this.providerStore.searchProviders(params);
+        
+        console.log(`✅ fetchProviders() completed with ${this.providerStore.providers.length} providers`);
+      } catch (error) {
+        console.error("❌ fetchProviders() error:", error);
+        this.error = error.message || 'Failed to fetch providers';
+      }
+    },
+
+    // Fetch regional centers
+
+
+    // Fetch service areas
+    async fetchServiceAreas() {
+      if (this.serviceAreasLoaded) {
+        console.log("Service areas already loaded, skipping fetch");
+        return; // Already loaded
+      }
+
+      try {
+        console.log("Fetching service areas from API...");
+        const apiRoot = this.getApiRoot();
+        const url = `${apiRoot}/api/regional-centers/service_areas/`;
+
+        const response = await axios.get(url);
+        console.log("Service areas API Response status:", response.status);
+        console.log("Service areas API Response data type:", typeof response.data);
+
+        if (response.data && response.data.type === "FeatureCollection") {
+          this.serviceAreas = response.data;
+          this.serviceAreasLoaded = true;
+          console.log(
+            `Successfully loaded ${response.data.features.length} service areas`
+          );
+        } else {
+          console.error("Unexpected service areas API response format:", response.data);
+          throw new Error("Invalid API response format");
+        }
+      } catch (error) {
+        console.error("Error loading service areas:", error);
+        this.serviceAreasLoaded = false;
+        this.serviceAreas = null;
+
+        // Show user-friendly error
+        if (error.response) {
+          console.error(
+            "API responded with error:",
+            error.response.status,
+            error.response.data
+          );
+        } else if (error.request) {
+          console.error("No response received from API");
+        } else {
+          console.error("Error setting up request:", error.message);
+        }
+      }
+    },
+
+    // Toggle service areas visibility
+    async toggleServiceAreas() {
+      // Toggle the state first
+      this.showServiceAreas = !this.showServiceAreas;
+      console.log("toggleServiceAreas called, showServiceAreas:", this.showServiceAreas);
+
+      if (!this.map) {
+        console.error("Map not initialized yet");
+        return;
+      }
+
+      if (this.showServiceAreas) {
+        console.log("Showing service areas...");
+        console.log("serviceAreasLoaded:", this.serviceAreasLoaded);
+        console.log("serviceAreas type:", typeof this.serviceAreas);
+        console.log("serviceAreas:", this.serviceAreas);
+
+        // Load service areas if not already loaded
+        if (!this.serviceAreasLoaded) {
+          console.log("Loading service areas...");
+          await this.fetchServiceAreas();
+          console.log("After fetch - serviceAreasLoaded:", this.serviceAreasLoaded);
+          console.log("After fetch - serviceAreas:", this.serviceAreas);
+        }
+
+        if (this.serviceAreas && this.serviceAreas.features) {
+          console.log(
+            "Adding service areas to map, features count:",
+            this.serviceAreas.features.length
+          );
+          this.addServiceAreasToMap();
+          // Update markers to hide redundant regional center markers
+          this.updateMarkers();
+        } else {
+          console.error("No service areas data available");
+          console.error("serviceAreas exists:", !!this.serviceAreas);
+          console.error(
+            "serviceAreas.features exists:",
+            !!(this.serviceAreas && this.serviceAreas.features)
+          );
+          console.error("serviceAreas structure:", this.serviceAreas);
+        }
+      } else {
+        console.log("Hiding service areas...");
+        this.removeServiceAreasFromMap();
+        // Update markers to show regional center markers again if needed
+        this.updateMarkers();
+      }
+    },
+
+    // Toggle LA Regional Centers overlay
+    async toggleLARegionalCenters() {
+      this.showLARegionalCenters = !this.showLARegionalCenters;
+      console.log(
+        "toggleLARegionalCenters called, showLARegionalCenters:",
+        this.showLARegionalCenters
+      );
+
+      if (!this.map) {
+        console.error("Map not initialized yet");
+        return;
+      }
+
+      if (this.showLARegionalCenters) {
+        console.log("Showing LA Regional Centers overlay...");
+
+        // Don't automatically switch to regional centers tab
+        // Users can manually switch if they want to see regional centers
+        // Make sure we have regional center data so the list and markers appear immediately
+        try {
+          if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
+            await this.regionalCenterData.fetchRegionalCenters();
+          }
+        } catch (e) {
+          console.warn("Failed to pre-load regional centers:", e);
+        }
+
+        // Initialize all regional centers as visible
+        this.laRegionalCentersList.forEach((center) => {
+          if (!(center.name in this.selectedRegionalCenters)) {
+            this.$set
+              ? this.$set(this.selectedRegionalCenters, center.name, true)
+              : (this.selectedRegionalCenters[center.name] = true);
+          }
+        });
+
+        // Fetch data first if we don't have it
+        if (!this.laRegionalCentersData) {
+          try {
+            console.log("Fetching service area data from API...");
+            const response = await fetch(
+              `${this.getApiRoot()}/api/regional-centers/service_area_boundaries/`
+            );
+            if (response.ok) {
+              this.laRegionalCentersData = await response.json();
+              console.log(
+                "Service area data fetched successfully:",
+                this.laRegionalCentersData
+              );
+            } else {
+              console.error("Failed to fetch service area data:", response.status);
+            }
+          } catch (error) {
+            console.error("Error fetching service area data:", error);
+          }
+        } else {
+          console.log("Using cached service area data:", this.laRegionalCentersData);
+        }
+        await this.addLARegionalCentersToMap();
+        // Ensure markers/list reflect current state without needing a second click
+        try {
+          this.updateMarkers();
+        } catch (_) {}
+        // While showing ZIP-section overlay, fade county choropleth to avoid confusion
+        try {
+          if (this.map.getLayer("california-counties-fill")) {
+            // Hide LA County fill completely; keep neighbors softly visible
+            this.map.setPaintProperty("california-counties-fill", "fill-opacity", [
+              "case",
+              ["==", ["get", "name"], "Los Angeles"],
+              0,
+              0.15,
+            ]);
+          }
+          if (this.map.getLayer("california-counties-outline")) {
+            this.map.setPaintProperty("california-counties-outline", "line-opacity", 0.3);
+          }
+        } catch (e) {}
+      } else {
+        console.log("Hiding LA Regional Centers overlay...");
+        this.removeLARegionalCentersFromMap();
+      }
+    },
+
+    removeLARegionalCentersFromMap() {
+      if (this.map) {
+        this.mapLayers.removeLARegionalCenters(this.map);
+      }
+    },
+
+    // Add service areas to map
+    async addServiceAreasToMap() {
+      if (!this.map || !this.serviceAreas) {
+        console.log("Map or service areas not ready");
+        return;
+      }
+      
+      await this.mapLayers.addServiceAreas(this.map, this.serviceAreas, this.getApiRoot());
+    },
+
+    // Remove service areas from map
+    removeServiceAreasFromMap() {
+      if (this.map) {
+        this.mapLayers.removeServiceAreas(this.map);
+      }
+    },
+
+    // Add LA ZIP codes overlay to map
+    async addLAZipCodesToMap() {
+      console.log("addLAZipCodesToMap called");
+      if (!this.map) {
+        console.error("Map not available");
+        return;
+      }
+
+      if (!this.map.loaded()) {
+        console.log("Map not loaded yet, waiting...");
+        this.map.once("load", () => this.addLAZipCodesToMap());
+        return;
+      }
+
+      // For now, this method handles ZIP codes with regional center coloring
+      // TODO: Move complex ZIP coloring logic to useMapLayers composable
+      console.log("ZIP codes layer management - keeping existing implementation for now");
+    },
+
+    // Remove LA ZIP codes overlay from map
+    removeLAZipCodesFromMap() {
+      if (!this.map) return;
+      try {
+        // Remove events
+        try {
+          this.map.off("click", "la-zip-codes-fill");
+        } catch {}
+        try {
+          this.map.off("mouseenter", "la-zip-codes-fill");
+        } catch {}
+        try {
+          this.map.off("mouseleave", "la-zip-codes-fill");
+        } catch {}
+
+        // Remove layers
+        if (this.map.getLayer("la-zip-codes-outline")) {
+          this.map.removeLayer("la-zip-codes-outline");
+        }
+        if (this.map.getLayer("la-zip-codes-fill")) {
+          this.map.removeLayer("la-zip-codes-fill");
+        }
+        // Remove source
+        if (this.map.getSource("la-zip-codes")) {
+          this.map.removeSource("la-zip-codes");
+        }
+      } catch (e) {
+        console.warn("Issue removing LA ZIP codes overlay:", e);
+      }
+    },
+
+    // Add LA Regional Centers overlay to map (static GeoJSON)
+    async addLARegionalCentersToMap() {
+      if (!this.map || !this.laRegionalCentersData) {
+        console.log("Map or regional centers data not ready");
+        
+        // Try to load data if not available
+        if (!this.laRegionalCentersData) {
+          try {
+            const resp = await fetch("/assets/geo/la_rc_7.geojson");
+            if (resp.ok) {
+              this.laRegionalCentersData = await resp.json();
+            }
+          } catch (e) {
+            console.error("Failed to load regional centers data:", e);
+            return;
+          }
+        }
+      }
+      
+      await this.mapLayers.addLARegionalCenters(this.map, this.laRegionalCentersData);
+    },
+
+    /**
+     * Update Regional Center polygon highlighting based on user's RC
+     * Highlights user's RC at full opacity, dims others
+     */
+    updateRegionalCenterHighlighting() {
+      if (!this.map || !this.map.getLayer("rc-static-fill")) {
+        console.log("[MapView] Cannot update RC highlighting - layer not ready");
+        return;
+      }
+
+      const userRCName = this.userRegionalCenterName;
+      console.log("[MapView] Updating RC highlighting for:", userRCName);
+
+      const opacityExpression = userRCName
+        ? [
+            "case",
+            ["==", ["get", "REGIONALCENTER"], userRCName],
+            0.8, // Full opacity for user's RC
+            0.3, // Dimmed opacity for other RCs
+          ]
+        : 0.8; // Default opacity if no user RC
+
+      try {
+        this.map.setPaintProperty("rc-static-fill", "fill-opacity", opacityExpression);
+        console.log("[MapView] RC highlighting updated successfully");
+      } catch (error) {
+        console.error("[MapView] Error updating RC highlighting:", error);
+      }
+    },
+
+    // Remove LA Regional Centers overlay from map
+    removeLARegionalCentersFromMap() {
+      console.log("removeLARegionalCentersFromMap called");
+
+      if (!this.map) {
+        console.log("Map not available for removal");
+        return;
+      }
+
+      try {
+        // Remove event listeners first
+        this.map.off("click", "la-regional-centers-fill");
+        this.map.off("mouseenter", "la-regional-centers-fill");
+        this.map.off("mouseleave", "la-regional-centers-fill");
+        this.map.off("click", "la-county-boundary");
+        this.map.off("mouseenter", "la-county-boundary");
+        this.map.off("mouseleave", "la-county-boundary");
+
+        // Remove static and dynamic RC layers
+        const rcLayers = [
+          "rc-static-fill",
+          "rc-static-outline",
+          "la-county-boundary",
+          "la-county-outline",
+          "la-regional-centers-fill",
+          "la-regional-centers-outline",
+        ];
+        for (const lid of rcLayers) {
+          if (this.map.getLayer(lid)) {
+            try {
+              this.map.removeLayer(lid);
+              console.log(`Removed ${lid} layer`);
+            } catch (e) {}
+          }
+        }
+
+        // Remove per-center ZIP highlight layers
+        try {
+          const layers = this.map.getStyle().layers || [];
+          for (const layer of layers) {
+            if (
+              layer.id &&
+              layer.id.startsWith("la-zip-center-") &&
+              this.map.getLayer(layer.id)
+            ) {
+              this.map.removeLayer(layer.id);
+            }
+          }
+        } catch (e) {}
+
+        // Restore base ZIP fill opacity if present
+        if (this.map.getLayer("la-zip-codes-fill")) {
+          try {
+            this.map.setPaintProperty("la-zip-codes-fill", "fill-opacity", 0.15);
+          } catch (e) {}
+        }
+
+        // Remove sources
+        if (this.map.getSource("rc")) {
+          try {
+            this.map.removeSource("rc");
+          } catch (e) {}
+        }
+        if (this.map.getSource("la-regional-centers")) {
+          try {
+            this.map.removeSource("la-regional-centers");
+            console.log("Removed la-regional-centers source");
+          } catch (e) {}
+        }
+
+        console.log("LA Regional Centers overlay successfully removed from map");
+      } catch (error) {
+        console.error("Error removing LA Regional Centers overlay from map:", error);
+      }
+    },
+
+    // Toggle pin service areas (make them persistent)
+    togglePinServiceAreas() {
+      console.log("togglePinServiceAreas called, pinServiceAreas:", this.pinServiceAreas);
+
+      if (this.pinServiceAreas) {
+        // When pinning, ensure service areas are always visible
+        if (!this.showServiceAreas) {
+          this.showServiceAreas = true;
+          this.toggleServiceAreas();
+        }
+
+        // Auto-load on map changes if pinned
+        this.enableAutoLoad();
+      } else {
+        // When unpinning, disable auto-load
+        this.disableAutoLoad();
+      }
+    },
+
+    // Enable auto-loading of service areas when pinned
+    enableAutoLoad() {
+      if (this.map && this.pinServiceAreas) {
+        // Ensure service areas are always visible when map loads
+        this.map.on("style.load", this.autoAddServiceAreas);
+        this.map.on("sourcedata", this.autoAddServiceAreas);
+      }
+    },
+
+    // Disable auto-loading when unpinned
+    disableAutoLoad() {
+      if (this.map) {
+        this.map.off("style.load", this.autoAddServiceAreas);
+        this.map.off("sourcedata", this.autoAddServiceAreas);
+      }
+    },
+
+    // Auto-add service areas when map reloads (for pinned mode)
+    autoAddServiceAreas() {
+      if (this.pinServiceAreas && this.serviceAreasLoaded && this.serviceAreas) {
+        // Small delay to ensure map is ready
+        setTimeout(() => {
+          if (!this.map.getSource("service-areas")) {
+            this.addServiceAreasToMap();
+          }
+        }, 100);
+      }
+    },
+
+    // REMOVED: updateMarkers() and createSingleMarker() methods (258 lines)
+    // Marker management is now fully handled by MapCanvas component
+    // See: /src/components/map/MapCanvas.vue
+
+    // DELEGATED TO COMPOSABLE: Popup formatting methods
+    // These methods now delegate to usePopups composable for better reusability
+    // See: /src/composables/usePopups.ts
+
+    formatHours(hours) {
+      return this.popups.formatHours(hours);
+    },
+
+    formatHoursObject(hoursObj) {
+      return this.popups.formatHoursObject(hoursObj);
+    },
+
+    createSimplePopup(item) {
+      return this.popups.createSimplePopup(item);
+    },
+
+    // Create Regional Center popup with professional styling and richer data
+    createRegionalCenterPopup(name) {
+      return this.popups.createRegionalCenterPopup(name);
+    },
+
+    // Format description text for better readability
+    formatDescription(description) {
+      return this.popups.formatDescription(description);
+    },
+
+    formatInsurance(insurance) {
+      return this.popups.formatInsurance(insurance);
+    },
+
+    formatLanguages(languages) {
+      return this.popups.formatLanguages(languages);
+    },
+  },
+};
+</script>
+
+<style>
+/* Typography */
+* {
+  font-family: "Arial", "Helvetica", sans-serif !important;
+}
+
+/* Top Navigation Bar */
+.top-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.mobile-menu-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #333;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu-btn:hover {
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kindd-text-logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #0066cc 0%, #ff3366 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-separator {
+  color: #e0e0e0;
+  font-size: 20px;
+}
+
+.brand-subtitle {
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #333;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  background: #f5f5f5;
+}
+
+/* Mobile Search Bar */
+.mobile-search-bar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  border-bottom: 1px solid #e0e0e0;
+  height: 140px; /* Fixed height for consistent layout */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.search-input {
+  flex: 1;
+  height: 44px;
+  border: 1px solid #e0e0e0;
+  border-radius: 22px;
+  padding: 0 20px;
+  font-size: 16px;
+  background: #f8f9fa;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #004877;
+  background: #ffffff;
+}
+
+.search-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #004877;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.search-btn:hover {
+  background: #003861;
+}
+
+/* Mobile Filter Pills */
+.mobile-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-filters::-webkit-scrollbar {
+  height: 0;
+}
+
+.filter-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #666;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-pill:hover {
+  border-color: #004877;
+  color: #004877;
+}
+
+.filter-pill.active {
+  background: #004877;
+  color: white;
+  border-color: #004877;
+}
+
+.filter-pill i {
+  font-size: 16px;
+}
+
+/* Mobile-specific navbar adjustments */
+@media (max-width: 767.98px) {
+  .navbar-brand {
+    margin-left: 8px;
+  }
+
+  .kindd-text-logo {
+    font-size: 20px;
+  }
+
+  .navbar-actions {
+    gap: 4px;
+  }
+
+  .btn-icon {
+    padding: 8px;
+    font-size: 18px;
+  }
+
+  /* Mobile popup styling */
+  .mapboxgl-popup-content {
+    padding: 12px !important;
+    max-width: 280px !important;
+  }
+
+  .provider-popup {
+    padding: 12px !important;
+  }
+
+  /* Mobile map controls */
+  .mapboxgl-ctrl-bottom-left,
+  .mapboxgl-ctrl-bottom-right {
+    bottom: 20px !important;
+  }
+
+  .mapboxgl-ctrl-top-right {
+    top: 80px !important;
+    right: 10px !important;
+  }
+}
+
+.map-app {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  background: #f8f9fa;
+}
+
+.sidebar-container {
+  position: fixed;
+  left: 0;
+  top: 60px; /* Below navbar */
+  bottom: 0;
+  width: 380px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 5;
+  background: #ffffff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  border-right: 1px solid #dee2e6;
+  transition: transform 0.3s ease;
+}
+
+/* Layout is now consistent regardless of authentication */
+
+/* Desktop sidebar positioning */
+@media (min-width: 768px) {
+  .sidebar-container {
+    transform: translateX(0) !important; /* Always visible on desktop */
+  }
+}
+
+/* Mobile responsive sidebar - HIDDEN BY DEFAULT */
+@media (max-width: 767.98px) {
+  .sidebar-container {
+    transform: translateX(-100%); /* Hidden off-screen */
+    width: 320px;
+    max-width: 85vw;
+    z-index: 950; /* Below navbar */
+  }
+
+  .sidebar-container.mobile-open {
+    transform: translateX(0); /* Slide in when toggled */
+  }
+
+  /* Map takes full width on mobile when sidebar is hidden */
+  .map-container {
+    flex: 1;
+    width: 100%;
+  }
+
+  /* Mobile map container fills screen */
+  .map-container-wrapper {
+    position: fixed;
+    left: 0 !important; /* Full width on mobile */
+    top: 60px;
+    right: 0;
+    bottom: 0;
+  }
+
+  /* Adjust map position when search bar is visible */
+  .map-container-wrapper.with-search {
+    top: 200px !important; /* Navbar (60px) + search bar (140px) */
+  }
+}
+
+/* Old mobile toggle button styles removed - now using navbar button */
+
+/* Mobile backdrop */
+.mobile-backdrop {
+  position: fixed;
+  top: 60px; /* Below navbar */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 940; /* Below sidebar */
+  animation: fadeIn 0.3s ease;
+}
+
+/* LA Regional Centers Legend */
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sidebar {
+  padding: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* CHLA Header Styling */
+.chla-header {
+  background: white;
+  color: #004877;
+  padding: 20px;
+  margin: 0 0 20px 0;
+  position: relative;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.chla-logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.chla-logo {
+  height: 60px;
+  max-width: 100%;
+}
+
+.chla-mission {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.chla-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #004877;
+}
+
+.chla-tagline {
+  font-size: 14px;
+  margin: 0;
+  color: #0d9ddb;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.chla-info-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #004877;
+  border: 1px solid #004877;
+  color: white;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.chla-info-btn:hover {
+  background: #0d9ddb;
+  border-color: #0d9ddb;
+  color: white;
+}
+
+/* Content Padding */
+.sidebar > div:not(.chla-header) {
+  padding: 0 20px;
+}
+
+.sidebar > div:first-of-type:not(.chla-header) {
+  padding-top: 20px;
+}
+
+/* CHLA Button Styling */
+.chla-btn-group {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 72, 119, 0.15);
+  border: 1px solid #dee2e6;
+}
+
+.chla-btn {
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  border: none !important;
+  transition: all 0.3s ease;
+  border-radius: 0 !important;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.chla-btn:not(:last-child) {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+.btn-chla-primary:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.chla-btn i {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.chla-btn span {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+
+.btn-chla-primary {
+  background: #004877 !important;
+  color: white !important;
+  font-weight: 500;
+  border: none !important;
+}
+
+.btn-chla-primary:hover {
+  background: #0d9ddb !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(0, 72, 119, 0.3);
+}
+
+.btn-chla-outline {
+  background: white !important;
+  color: #004877 !important;
+  font-weight: 400;
+  border: none !important;
+}
+
+.btn-chla-outline:hover {
+  background: #f8f9fa !important;
+  color: #004877 !important;
+  box-shadow: 0 2px 8px rgba(0, 72, 119, 0.2);
+}
+
+/* CHLA Alert Styling */
+.alert {
+  border-radius: 6px;
+  border: 1px solid;
+  font-weight: 400;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border-color: #4daa50;
+}
+
+.alert-warning {
+  background: #fff3cd;
+  color: #856404;
+  border-color: #ffc923;
+}
+
+.alert-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border-color: #0d9ddb;
+}
+
+/* Form Controls */
+.form-control {
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: #004877;
+  box-shadow: 0 0 0 0.2rem rgba(0, 72, 119, 0.25);
+}
+
+.form-check-input:checked {
+  background-color: #004877;
+  border-color: #004877;
+}
+
+.form-range::-webkit-slider-thumb {
+  background: #004877;
+}
+
+.form-range::-moz-range-thumb {
+  background: #004877;
+}
+
+/* Badges */
+.badge {
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.bg-info {
+  background: #0d9ddb !important;
+}
+
+/* Markers - let Mapbox handle everything */
+/* Disable transitions/animations but allow Mapbox transforms */
+:global(.mapboxgl-marker) {
+  transition: none !important;
+  animation: none !important;
+  will-change: auto !important;
+}
+
+/* Simple popup styling */
+.mapboxgl-popup.simple-popup .mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: none;
+  overflow: hidden;
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #004877 #f1f1f1;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-content::-webkit-scrollbar-thumb {
+  background: #004877;
+  border-radius: 4px;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-content::-webkit-scrollbar-thumb:hover {
+  background: #003861;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-close-button {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  line-height: 1;
+  color: #666;
+  border: 1px solid #ddd;
+  top: 8px;
+  right: 8px;
+  transition: all 0.2s ease;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-close-button:hover {
+  background: white;
+  color: #333;
+  border-color: #999;
+  transform: scale(1.1);
+}
+
+.btn-link {
+  display: inline-block;
+  padding: 6px 10px;
+  background: #0d6efd;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 12px;
+}
+.btn-link:hover {
+  background: #0b5ed7;
+}
+
+/* Sidebar action buttons */
+.sidebar-action-btn {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  white-space: nowrap;
+}
+.sidebar-action-btn i {
+  display: inline-flex;
+  width: 1.25rem;
+  justify-content: center;
+  flex-shrink: 0;
+}
+/* Responsive adjustments for action buttons */
+@media (max-width: 1200px) {
+  .action-buttons .sidebar-action-btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 768px) {
+  .action-buttons .sidebar-action-btn {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+  }
+  .action-buttons .sidebar-action-btn i {
+    width: 18px;
+  }
+}
+/* Professional action button styling */
+.sidebar .action-buttons {
+  max-width: 100%;
+  overflow: hidden;
+}
+.action-buttons .btn-group-vertical {
+  gap: 0.5rem;
+}
+.action-buttons .sidebar-action-btn {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.action-buttons .sidebar-action-btn:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 72, 119, 0.15);
+}
+.action-buttons .sidebar-action-btn.btn-chla-primary {
+  background: linear-gradient(135deg, #004877 0%, #0d9ddb 100%);
+  border-color: #004877;
+  color: white;
+}
+.action-buttons .sidebar-action-btn.btn-chla-primary:hover {
+  background: linear-gradient(135deg, #003861 0%, #0b89c2 100%);
+}
+.action-buttons .sidebar-action-btn i {
+  width: 20px;
+  display: inline-block;
+  text-align: center;
+}
+/* Provider and Regional Center popup classes */
+.provider-popup-container .mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: none;
+  overflow: hidden;
+  background: white;
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #004877 #f1f1f1;
+}
+
+.provider-popup-container .mapboxgl-popup-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.provider-popup-container .mapboxgl-popup-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.provider-popup-container .mapboxgl-popup-content::-webkit-scrollbar-thumb {
+  background: #004877;
+  border-radius: 4px;
+}
+
+.provider-popup-container .mapboxgl-popup-content::-webkit-scrollbar-thumb:hover {
+  background: #003861;
+}
+.provider-popup-container .mapboxgl-popup-tip {
+  border-top-color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+.provider-popup-container .mapboxgl-popup-close-button {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  right: 10px;
+  top: 10px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.provider-popup-container .mapboxgl-popup-close-button:hover {
+  background: #f8f9fa;
+  color: #333;
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+.rc-header {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.rc-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #0d6efd10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0d6efd;
+  font-weight: 700;
+}
+.rc-headings {
+  display: flex;
+  flex-direction: column;
+}
+.rc-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+.rc-sub {
+  font-size: 12px;
+  color: #6c757d;
+}
+.rc-body {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  row-gap: 6px;
+  column-gap: 8px;
+  font-size: 13px;
+  color: #34495e;
+  align-items: center;
+  margin-top: 6px;
+}
+.rc-row {
+  display: contents;
+}
+.rc-ico {
+  text-align: center;
+}
+.rc-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rc-link {
+  color: #0d6efd;
+  text-decoration: none;
+}
+.rc-link:hover {
+  text-decoration: underline;
+}
+.rc-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* Enhanced popup tip styling */
+.mapboxgl-popup.simple-popup .mapboxgl-popup-tip {
+  border-top-color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Simple popup container styling */
+.mapboxgl-popup.simple-popup .mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: none;
+  overflow: visible;
+  background: white;
+  max-height: none;
+  overflow-y: visible;
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-close-button {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  right: 10px;
+  top: 10px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-popup.simple-popup .mapboxgl-popup-close-button:hover {
+  background: #f8f9fa;
+  color: #333;
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bg-primary {
+  background: #004877 !important;
+}
+
+/* Regional Center Legend Overlay */
+.rc-legend-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .rc-legend-overlay {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+  }
+}
+
+/* Reset Button */
+.btn-secondary {
+  background: #6c757d;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+/* Section Headers */
+h5,
+h6 {
+  color: #004877;
+  font-weight: 700;
+}
+
+.results-title {
+  color: #004877;
+  border-bottom: 2px solid #ffc923;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.map-container-wrapper {
+  position: fixed;
+  left: 380px; /* Width of sidebar */
+  top: 60px; /* Below navbar */
+  right: 0;
+  bottom: 0;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Service areas toggle styling */
+.form-check-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #004877;
+  font-weight: 500;
+}
+
+/* Map marker pulse animation - more subtle to avoid interference */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.pulse-marker {
+  animation: pulse 2s infinite;
+}
+
+/* Popup styling - let Mapbox handle positioning naturally */
+:global(.mapboxgl-popup-content) {
+  box-shadow: 0 4px 20px rgba(0, 72, 119, 0.2) !important;
+  border: 2px solid #004877 !important;
+  border-radius: 8px !important;
+}
+
+:global(.mapboxgl-popup-tip) {
+  border-top-color: #004877 !important;
+}
+
+:global(.mapboxgl-popup-close-button) {
+  background: #004877 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+}
+
+:global(.mapboxgl-popup-close-button):hover {
+  background: #0d9ddb !important;
+}
+
+/* Additional popup styling to ensure visibility */
+:global(.mapboxgl-popup-anchor-top .mapboxgl-popup-tip),
+:global(.mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip),
+:global(.mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip) {
+  border-bottom-color: #004877 !important;
+}
+
+:global(.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip),
+:global(.mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip),
+:global(.mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip) {
+  border-top-color: #004877 !important;
+}
+
+/* Marker improvements for dense areas */
+/* Removed - let Mapbox handle all marker positioning and z-index */
+
+/* Regional Centers Toggle List */
+.regional-centers-list .card {
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.regional-centers-list .card-title {
+  color: #004877;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.regional-center-toggles {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #004877 #f1f1f1;
+}
+
+.regional-center-toggles::-webkit-scrollbar {
+  width: 8px;
+}
+
+.regional-center-toggles::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.regional-center-toggles::-webkit-scrollbar-thumb {
+  background: #004877;
+  border-radius: 4px;
+}
+
+.regional-center-toggles::-webkit-scrollbar-thumb:hover {
+  background: #003861;
+}
+
+/* Nearest centers list styling */
+.nearest-centers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nearest-center-item {
+  padding: 6px 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.nearest-center-item:hover {
+  background: #e9ecef;
+}
+
+.regional-center-toggles .form-check {
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.regional-center-toggles .form-check:hover {
+  background-color: #f8f9fa;
+}
+
+.regional-center-toggles .form-check-label {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.regional-center-toggles .color-indicator {
+  box-shadow: 0 0 0 2px white, 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure popups don't block marker interactions */
+:global(.mapboxgl-popup) {
+  pointer-events: none;
+}
+
+:global(.mapboxgl-popup-content),
+:global(.mapboxgl-popup-close-button) {
+  pointer-events: auto;
+}
+
+/* Add subtle animation when popup opens */
+:global(.mapboxgl-popup-content) {
+  animation: popupFadeIn 0.2s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Unified Info Card Styling */
+.info-card-section {
+  width: 100%;
+}
+
+.info-card {
+  padding: 12px 16px !important;
+  border-width: 1px;
+  border-style: solid;
+  transition: all 0.2s ease;
+}
+
+.info-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.info-card-header i {
+  font-size: 16px;
+}
+
+.info-card-content {
+  font-size: 13px;
+  color: #495057;
+}
+
+.info-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.info-card-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 2px;
+}
+
+.info-card-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-card-item i {
+  font-size: 14px;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.info-card-item a {
+  color: #0066cc;
+  font-weight: 500;
+}
+
+.info-card-item a:hover {
+  color: #0052a3;
+  text-decoration: underline !important;
+}
+
+/* Specific color adjustments */
+.border-primary.bg-primary.bg-opacity-10 {
+  background-color: rgba(13, 110, 253, 0.08) !important;
+}
+
+.border-info.bg-info.bg-opacity-10 {
+  background-color: rgba(13, 202, 240, 0.08) !important;
+}
+
+.border-info.bg-info.bg-opacity-5 {
+  background-color: rgba(13, 202, 240, 0.05) !important;
+  border-color: #0dcaf0 !important;
+}
+
+.border-secondary.bg-secondary.bg-opacity-5 {
+  background-color: rgba(108, 117, 125, 0.03) !important;
+  border-color: #dee2e6 !important;
+}
+
+.border-dark.bg-dark.bg-opacity-5 {
+  background-color: rgba(33, 37, 41, 0.05) !important;
+  border-color: #495057 !important;
+}
+
+.border-warning.bg-warning.bg-opacity-5 {
+  background-color: rgba(255, 193, 7, 0.05) !important;
+  border-color: #ffc107 !important;
+}
+
+.border-success.bg-success.bg-opacity-5 {
+  background-color: rgba(25, 135, 84, 0.05) !important;
+  border-color: #198754 !important;
+}
+
+/* Search input adjustments */
+.info-card-content .input-group {
+  margin-top: 8px;
+}
+
+.info-card-content .input-group .form-control {
+  font-size: 13px;
+}
+
+.info-card-content .input-group .btn {
+  font-size: 13px;
+}
+
+/* Button group in info cards */
+.info-card-content .btn-group-vertical {
+  gap: 0.25rem;
+}
+
+/* Subtitle styling */
+.info-card-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+</style>

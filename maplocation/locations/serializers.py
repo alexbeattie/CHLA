@@ -6,7 +6,7 @@ from .models import (
     Location,
     LocationCategory,
     RegionalCenter,
-    Provider,
+    # Provider model removed - use ProviderV2
     LocationImage,
     LocationReview,
     FundingSource,
@@ -251,53 +251,7 @@ class ProviderRegionalCenterSerializer(serializers.ModelSerializer):
 
 
 # Enhanced Provider serializer with regional centers
-class ProviderSerializer(serializers.ModelSerializer):
-    # Read-only computed fields for compatibility
-    city = serializers.ReadOnlyField()
-    state = serializers.ReadOnlyField()
-    zip_code = serializers.ReadOnlyField()
-    age_groups_served = serializers.ReadOnlyField()
-    diagnoses_served = serializers.ReadOnlyField()
-    accepts_insurance = serializers.ReadOnlyField()
-    accepts_private_pay = serializers.ReadOnlyField()
-    accepts_regional_center = serializers.ReadOnlyField()
-    website = serializers.ReadOnlyField()
-
-    # Optional: Include related regional centers
-    serving_regional_centers = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Provider
-        fields = [
-            "id",
-            "name",
-            "phone",
-            "address",
-            "website_domain",
-            "latitude",
-            "longitude",
-            "center_based_services",
-            "areas",
-            "specializations",
-            "insurance_accepted",
-            "services",
-            "coverage_areas",
-            # Computed fields for frontend compatibility
-            "city",
-            "state",
-            "zip_code",
-            "age_groups_served",
-            "diagnoses_served",
-            "accepts_insurance",
-            "accepts_private_pay",
-            "accepts_regional_center",
-            "website",
-            "serving_regional_centers",
-        ]
-
-    def get_serving_regional_centers(self, obj):
-        """Get regional centers serving this provider"""
-        return []  # Temporarily simplified
+# REMOVED: Old ProviderSerializer - Use ProviderV2Serializer instead
 
 
 # ProviderV2 serializer with enum array support
@@ -427,103 +381,5 @@ class ProviderV2WriteSerializer(serializers.ModelSerializer):
 
 
 # Provider serializer for write operations (create, update, delete)
-class ProviderWriteSerializer(serializers.ModelSerializer):
-    def validate_latitude(self, value):
-        if value in (None, ""):
-            return None
-        try:
-            dec = Decimal(str(value)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
-            return dec
-        except (InvalidOperation, ValueError, TypeError):
-            return value
-
-    def validate_longitude(self, value):
-        if value in (None, ""):
-            return None
-        try:
-            dec = Decimal(str(value)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
-            return dec
-        except (InvalidOperation, ValueError, TypeError):
-            return value
-    def validate(self, attrs):
-        # If address is provided but no coordinates, try to geocode
-        address = attrs.get("address")
-        lat = attrs.get("latitude")
-        lng = attrs.get("longitude")
-        if address and (lat is None or lng is None):
-            coords = geocode_address(address)
-            if coords:
-                attrs["latitude"], attrs["longitude"] = coords
-
-        # Normalize coordinate precision to fit model constraints
-        def normalize(value):
-            if value is None or value == "":
-                return None
-            try:
-                dec = Decimal(str(value)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
-                return dec
-            except (InvalidOperation, ValueError, TypeError):
-                return value
-
-        attrs["latitude"] = normalize(attrs.get("latitude"))
-        attrs["longitude"] = normalize(attrs.get("longitude"))
-        return attrs
-
-    class Meta:
-        model = Provider
-        fields = [
-            "name",
-            "phone", 
-            "address",
-            "website_domain",
-            "latitude",
-            "longitude",
-            "center_based_services",
-            "areas",
-            "specializations",
-            "insurance_accepted",
-            "services",
-            "coverage_areas",
-        ]
-
-
-# GeoJSON serializer for Provider (simplified)
-class ProviderGeoSerializer(serializers.ModelSerializer):
-    # Virtual fields for compatibility with frontend
-    address = serializers.ReadOnlyField()
-    city = serializers.ReadOnlyField()
-    state = serializers.ReadOnlyField()
-    zip_code = serializers.ReadOnlyField()
-    latitude = serializers.ReadOnlyField()
-    longitude = serializers.ReadOnlyField()
-    age_groups_served = serializers.ReadOnlyField()
-    diagnoses_served = serializers.ReadOnlyField()
-    accepts_insurance = serializers.ReadOnlyField()
-    accepts_private_pay = serializers.ReadOnlyField()
-    accepts_regional_center = serializers.ReadOnlyField()
-    accepts_school_funding = serializers.ReadOnlyField()
-    distance = serializers.FloatField(required=False, read_only=True)
-
-    class Meta:
-        model = Provider
-        fields = [
-            "id",
-            "name",
-            "phone",
-            "coverage_areas",
-            "center_based_services",
-            "areas",
-            "address",
-            "city",
-            "state",
-            "zip_code",
-            "latitude",
-            "longitude",
-            "age_groups_served",
-            "diagnoses_served",
-            "accepts_insurance",
-            "accepts_private_pay",
-            "accepts_regional_center",
-            "accepts_school_funding",
-            "distance",
-        ]
+# REMOVED: Old ProviderWriteSerializer and ProviderGeoSerializer
+# Use ProviderV2WriteSerializer instead

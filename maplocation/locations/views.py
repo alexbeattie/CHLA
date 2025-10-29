@@ -1,6 +1,9 @@
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.db import connection
 from django.db.models import Q, Avg
 # from django.contrib.gis.geos import Point
 # from django.contrib.gis.measure import D
@@ -40,6 +43,35 @@ from .serializers import (
 import math
 from rest_framework.decorators import api_view
 from django.db.models.expressions import RawSQL
+
+
+@require_GET
+def health_check(request):
+    """
+    Health check endpoint for deployment verification.
+    Checks database connectivity and returns system status.
+    """
+    try:
+        # Test database connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+
+        # Get basic stats
+        provider_count = ProviderV2.objects.count()
+        rc_count = RegionalCenter.objects.count()
+
+        return JsonResponse({
+            "status": "healthy",
+            "database": "connected",
+            "providers": provider_count,
+            "regional_centers": rc_count,
+            "version": "2.0.0"
+        })
+    except Exception as e:
+        return JsonResponse({
+            "status": "unhealthy",
+            "error": str(e)
+        }, status=503)
 
 
 class LocationCategoryViewSet(viewsets.ReadOnlyModelViewSet):

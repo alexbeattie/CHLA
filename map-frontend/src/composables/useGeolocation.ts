@@ -123,9 +123,8 @@ export function useGeolocation() {
           lon: coords.lng,
           format: 'json',
         },
-        headers: {
-          'User-Agent': 'CHLA-Provider-Map/1.0',
-        },
+        // Note: User-Agent header cannot be set from browser JavaScript
+        // The browser will use its own User-Agent
       });
 
       if (response.data && response.data.display_name) {

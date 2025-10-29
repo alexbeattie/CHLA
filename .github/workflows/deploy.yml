@@ -1,10 +1,25 @@
-name: Deploy to Production
+# ⚠️ DEPRECATED: This workflow has been replaced by ci-cd.yml
+# This file is kept for reference only and should be removed after migration
+#
+# New workflow: .github/workflows/ci-cd.yml
+# Features:
+#   - Automated testing (backend + frontend)
+#   - Linting and code quality checks
+#   - Health checks with automatic rollback
+#   - Database migration automation
+#   - Comprehensive deployment verification
+#
+# See .github/CICD_GUIDE.md for documentation
+
+name: Deploy to Production (DEPRECATED)
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:  # Allow manual triggers
+  # Disabled to prevent accidental use
+  # Re-enable only if needed for emergency rollback
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   deploy-backend:

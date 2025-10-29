@@ -101,6 +101,8 @@ A comprehensive healthcare provider mapping application for Children's Hospital 
 
 ### Quick Links
 
+- **[CI/CD Pipeline Guide](.github/CICD_GUIDE.md)** - **NEW!** Comprehensive CI/CD documentation
+- **[GitHub Secrets Setup](.github/SECRETS.md)** - **NEW!** Configure deployment secrets
 - **[Documentation Index](docs/README.md)** - Complete documentation directory
 - **[Getting Started - Backend](maplocation/README.md)** - Set up Django backend
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Deploy to production
@@ -167,12 +169,33 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 
 ### GitHub Actions (Recommended)
 
-Push to main branch triggers automatic deployment:
+Push to main branch triggers automatic deployment with comprehensive CI/CD:
 
 ```bash
 git add .
 git commit -m "Your changes"
 git push origin main
+
+# Monitor deployment
+gh run watch
+```
+
+**New Features:**
+- ✅ Automated testing (backend + frontend)
+- ✅ Linting and code quality checks
+- ✅ Health checks with automatic rollback
+- ✅ Database migration automation
+- ✅ Deployment verification
+
+**See:** [CI/CD Guide](.github/CICD_GUIDE.md) | [Secrets Setup](.github/SECRETS.md)
+
+**Quick Setup:**
+```bash
+# Configure GitHub secrets
+./scripts/setup-ci.sh
+
+# Test locally before deploying
+./scripts/deploy-test.sh
 ```
 
 ## 📱 Mobile Features

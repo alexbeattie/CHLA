@@ -163,46 +163,97 @@ export default {
 
       console.log(`🗺️ MapCanvas: Updating markers (${providerStore.providersWithCoordinates.length} providers)`);
 
-      // Remove existing markers
-      markers.value.forEach(marker => marker.remove());
-      markers.value = [];
-
-      // Add markers for providers with coordinates
-      providerStore.providersWithCoordinates.forEach(provider => {
-        const el = document.createElement('div');
-        el.className = 'provider-marker';
-        el.style.width = '30px';
-        el.style.height = '30px';
-        el.style.borderRadius = '50%';
-        el.style.cursor = 'pointer';
-        el.style.border = '2px solid white';
-        el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
-
-        // Color based on selection
-        if (providerStore.selectedProviderId === provider.id) {
-          el.style.backgroundColor = '#2563eb'; // Blue for selected
-        } else {
-          el.style.backgroundColor = '#ef4444'; // Red for unselected
+      // Track existing markers by provider ID for efficient updates
+      const existingMarkers = new Map();
+      markers.value.forEach(marker => {
+        if (marker._providerId) {
+          existingMarkers.set(marker._providerId, marker);
         }
-
-        // Create marker
-        const marker = new mapboxgl.Marker(el)
-          .setLngLat([provider.longitude, provider.latitude])
-          .addTo(map.value);
-
-        // Click handler
-        el.addEventListener('click', () => {
-          console.log(`📍 MapCanvas: Marker clicked for provider ${provider.id}`);
-          providerStore.selectProvider(provider.id);
-          mapStore.selectProvider(provider.id);
-          emit('marker-click', provider);
-        });
-
-        markers.value.push(marker);
       });
+
+      const newMarkers = [];
+      const currentProviderIds = new Set();
+
+      // Add or update markers for current providers
+      providerStore.providersWithCoordinates.forEach(provider => {
+        currentProviderIds.add(provider.id);
+
+        // Check if marker already exists
+        const existingMarker = existingMarkers.get(provider.id);
+
+        if (existingMarker) {
+          // Update existing marker color
+          const el = existingMarker.getElement();
+          const isSelected = providerStore.selectedProviderId === provider.id;
+          el.style.backgroundColor = isSelected ? '#2563eb' : '#ef4444';
+          el.style.zIndex = isSelected ? '1001' : '1000';
+          newMarkers.push(existingMarker);
+        } else {
+          // Create new marker
+          const el = document.createElement('div');
+          el.className = 'provider-marker';
+          el.style.width = '30px';
+          el.style.height = '30px';
+          el.style.borderRadius = '50%';
+          el.style.cursor = 'pointer';
+          el.style.border = '2px solid white';
+          el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+          // DON'T set position - let Mapbox handle it (absolute positioning to coordinates)
+          el.style.zIndex = '1000';
+
+          // Color based on selection
+          if (providerStore.selectedProviderId === provider.id) {
+            el.style.backgroundColor = '#2563eb'; // Blue for selected
+            el.style.zIndex = '1001';
+          } else {
+            el.style.backgroundColor = '#ef4444'; // Red for unselected
+          }
+
+          // Create marker (convert coordinates to numbers)
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat([parseFloat(provider.longitude), parseFloat(provider.latitude)])
+            .addTo(map.value);
+
+          // Store provider ID on marker for tracking
+          marker._providerId = provider.id;
+
+          // Click handler
+          el.addEventListener('click', () => {
+            console.log(`📍 MapCanvas: Marker clicked for provider ${provider.id}`);
+            providerStore.selectProvider(provider.id);
+            mapStore.selectProvider(provider.id);
+            emit('marker-click', provider);
+          });
+
+          newMarkers.push(marker);
+        }
+      });
+
+      // Remove markers for providers that no longer exist
+      existingMarkers.forEach((marker, providerId) => {
+        if (!currentProviderIds.has(providerId)) {
+          marker.remove();
+        }
+      });
+
+      markers.value = newMarkers;
 
       // Release the lock
       isUpdatingMarkers.value = false;
+    };
+
+    /**
+     * Update only marker colors when selection changes (no recreation)
+     */
+    const updateMarkerSelection = () => {
+      if (!map.value) return;
+
+      markers.value.forEach(marker => {
+        const el = marker.getElement();
+        const isSelected = marker._providerId === providerStore.selectedProviderId;
+        el.style.backgroundColor = isSelected ? '#2563eb' : '#ef4444';
+        el.style.zIndex = isSelected ? '1001' : '1000';
+      });
     };
 
     /**
@@ -233,7 +284,7 @@ export default {
         el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.4)';
 
         userLocationMarker.value = new mapboxgl.Marker(el)
-          .setLngLat([userLoc.lng, userLoc.lat])
+          .setLngLat([parseFloat(userLoc.lng), parseFloat(userLoc.lat)])
           .addTo(map.value);
       }
     };
@@ -300,18 +351,22 @@ export default {
     };
 
     /**
-     * Center map on specific coordinates
+     * Center map on specific coordinates with smooth easing
      */
     const centerOn = (coords, zoom = null) => {
       if (!map.value) return;
 
       console.log(`🗺️ MapCanvas: Centering map on ${coords.lat}, ${coords.lng}`);
 
-      map.value.flyTo({
+      // Use easeTo instead of flyTo for smoother, gentler animation
+      map.value.easeTo({
         center: [coords.lng, coords.lat],
         zoom: zoom || map.value.getZoom(),
-        essential: true,
-        duration: 1500
+        duration: 2000,  // Slower 2 second animation for smooth feeling
+        easing(t) {
+          // Bezier curve for smooth ease-in-out (starts slow, speeds up, ends slow)
+          return t * t * (3.0 - 2.0 * t);
+        }
       });
     };
 
@@ -347,7 +402,7 @@ export default {
       () => providerStore.selectedProviderId,
       () => {
         nextTick(() => {
-          updateMarkers();
+          updateMarkerSelection();
         });
       }
     );
@@ -444,12 +499,15 @@ export default {
 
 /* Provider marker styles */
 :deep(.provider-marker) {
-  transition: all 0.2s ease;
+  /* DON'T transition transform - Mapbox needs instant positioning */
+  /* Only transition visual properties for hover effects */
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 :deep(.provider-marker:hover) {
+  /* Use scale on hover, but this won't interfere with Mapbox's translate positioning */
   transform: scale(1.2);
-  z-index: 1;
+  z-index: 1001 !important;
 }
 
 /* User location marker styles */

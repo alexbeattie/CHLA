@@ -5,6 +5,7 @@
       'selected': selected,
       'has-coordinates': hasCoordinates
     }"
+    :data-provider-id="provider.id"
     @click="handleClick"
     role="button"
     :aria-label="`Provider: ${provider.name}`"

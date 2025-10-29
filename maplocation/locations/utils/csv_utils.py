@@ -175,43 +175,15 @@ class CSVImporter:
         if not name:
             raise ValueError("Name is required")
         
-        # Check if provider exists
-        existing_provider = None
-        if update_existing:
-            existing_provider = Provider.objects.filter(name=name).first()
+        # NOTE: This CSV import utility has been deprecated in favor of ProviderV2
+        # If you need to import providers, please use the admin interface or
+        # the import_regional_center_providers management command
         
-        # Create or update provider
-        provider_data = {
-            'name': name,
-            'phone': row.get('Phone', '').strip(),
-            'address': row.get('Address', '').strip(),
-            'website_domain': row.get('Website', '').strip(),
-            'areas': row.get('Areas', '').strip(),
-            'coverage_areas': row.get('Coverage Areas', '').strip(),
-            'center_based_services': row.get('Center Based Services', '').strip(),
-            'specializations': row.get('Specializations', '').strip(),
-            'services': row.get('Services', '').strip(),
-            'insurance_accepted': row.get('Insurance Accepted', '').strip(),
-        }
-        
-        # Handle coordinates
-        try:
-            lat = row.get('Latitude', '').strip()
-            lng = row.get('Longitude', '').strip()
-            if lat and lng:
-                provider_data['latitude'] = float(lat)
-                provider_data['longitude'] = float(lng)
-        except (ValueError, TypeError):
-            self.warnings.append(f"Row {row_num}: Invalid coordinates for {name}")
-        
-        # Create or update provider
-        if existing_provider:
-            for key, value in provider_data.items():
-                setattr(existing_provider, key, value)
-            provider = existing_provider
-            provider.save()
-        else:
-            provider = Provider.objects.create(**provider_data)
+        raise NotImplementedError(
+            "CSV import for the old Provider model has been removed. "
+            "Please use ProviderV2 import methods instead (admin interface or "
+            "import_regional_center_providers management command)."
+        )
         
         # Handle regional center associations
         regional_centers_str = row.get('Regional Centers', '').strip()
