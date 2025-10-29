@@ -2043,6 +2043,15 @@ export default {
             filterParams
           );
 
+          // Check for duplicate IDs
+          const providerIds = this.providerStore.providers.map(p => p.id);
+          const uniqueIds = new Set(providerIds);
+          if (providerIds.length !== uniqueIds.size) {
+            console.error(`⚠️ DUPLICATE PROVIDER IDs DETECTED! Total: ${providerIds.length}, Unique: ${uniqueIds.size}`);
+            const duplicates = providerIds.filter((id, index) => providerIds.indexOf(id) !== index);
+            console.error('Duplicate IDs:', duplicates);
+          }
+
           // Update map markers
           this.updateMarkers();
           console.log(`✅ Updated providers with ${this.providerStore.providers.length} results within ${this.radius} miles`);
