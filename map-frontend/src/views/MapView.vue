@@ -302,13 +302,13 @@
                   v-model.number="radius"
                   class="form-range"
                   min="5"
-                  max="75"
+                  max="50"
                   step="5"
                   @change="onRadiusChange"
                 />
                 <div class="d-flex justify-content-between small text-muted">
                   <span>5 miles</span>
-                  <span>75 miles</span>
+                  <span>50 miles</span>
                 </div>
               </div>
 
@@ -1981,7 +1981,9 @@ export default {
       else if (this.radius <= 10) targetZoom = 11;
       else if (this.radius <= 15) targetZoom = 10.5;
       else if (this.radius <= 25) targetZoom = 10;
-      else targetZoom = 9;
+      else if (this.radius <= 35) targetZoom = 9.5;
+      else if (this.radius <= 50) targetZoom = 9;
+      else targetZoom = 8.5;
 
       // Adjust map zoom with smooth animation
       if (this.mapInstance && this.userLocation?.latitude && this.userLocation?.longitude) {
