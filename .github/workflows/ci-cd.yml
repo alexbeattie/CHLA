@@ -59,6 +59,11 @@ jobs:
           cache: 'pip'
           cache-dependency-path: maplocation/requirements.txt
 
+      - name: Install GDAL and system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdal-bin libgdal-dev python3-gdal
+
       - name: Install dependencies
         run: |
           cd maplocation
