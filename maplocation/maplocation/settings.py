@@ -43,10 +43,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.gis",  # Temporarily disabled due to GDAL issues
+    "django.contrib.gis",  # GeoDjango for PostGIS support
     "rest_framework",
     "rest_framework.authtoken",  # For token authentication
-    # "rest_framework_gis",  # Temporarily disabled due to GDAL issues
+    "rest_framework_gis",  # GIS extensions for Django REST Framework
     "corsheaders",
     "django_filters",
     "graphene_django",
@@ -97,7 +97,7 @@ WSGI_APPLICATION = "maplocation.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",  # Regular PostgreSQL backend
+        "ENGINE": "django.contrib.gis.db.backends.postgis",  # PostGIS backend
         "NAME": os.environ.get("DB_NAME", "shafali"),
         "USER": os.environ.get("DB_USER", "alexbeattie"),
         "PASSWORD": os.environ.get("DB_PASSWORD", ""),
@@ -161,6 +161,17 @@ MEDIA_ROOT = BASE_DIR / "media"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# GDAL configuration for GeoDjango (macOS only, AWS EB will use system GDAL)
+import platform
+
+if platform.system() == "Darwin":  # macOS
+    GDAL_LIBRARY_PATH = (
+        "/Applications/Postgres.app/Contents/Versions/16/lib/libgdal.dylib"
+    )
+    GEOS_LIBRARY_PATH = (
+        "/Applications/Postgres.app/Contents/Versions/16/lib/libgeos_c.dylib"
+    )
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True

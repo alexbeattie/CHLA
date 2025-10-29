@@ -1,8 +1,7 @@
 from django.db import models
-
-# from django.contrib.gis.db import models as gis_models
-# from django.contrib.gis.geos import Point, Polygon, MultiPolygon
-# from django.contrib.gis.measure import Distance
+from django.contrib.gis.db import models as gis_models
+from django.contrib.gis.geos import Point, Polygon, MultiPolygon
+from django.contrib.gis.measure import Distance
 from decimal import Decimal
 import math
 import uuid
@@ -68,13 +67,16 @@ class RegionalCenter(models.Model):
     location_coordinates = models.CharField(max_length=255, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-    location = models.CharField(max_length=100, blank=True, null=True)
+    location_name = models.CharField(max_length=100, blank=True, null=True)
 
-    # Add geometry field for service area boundaries (temporarily stored as text)
-    service_area = models.TextField(
+    # PostGIS spatial fields
+    location = gis_models.PointField(geography=True, srid=4326, blank=True, null=True)
+    service_area = gis_models.MultiPolygonField(
+        geography=True,
+        srid=4326,
         blank=True,
         null=True,
-        help_text="Geographic service area boundary for this regional center (stored as text temporarily)",
+        help_text="Geographic service area boundary for this regional center",
     )
 
     # Add approximate service radius for fallback calculations
@@ -172,44 +174,29 @@ class RegionalCenter(models.Model):
 
     @classmethod
     def find_nearest(cls, latitude, longitude, radius_miles=25, limit=10):
-        """Find regional centers within radius of given coordinates"""
-        from django.db import connection
+        """Find regional centers within radius of given coordinates using PostGIS"""
+        from django.contrib.gis.geos import Point
+        from django.contrib.gis.measure import Distance as D
+        from django.contrib.gis.db.models.functions import Distance as DistanceFunc
 
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT id, regional_center, address, city, latitude, longitude,
-                       (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                       cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                       sin(radians(latitude)))) AS distance
-                FROM regional_centers 
-                WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-                AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                sin(radians(latitude)))) < %s
-                ORDER BY distance
-                LIMIT %s
-            """,
-                [
-                    latitude,
-                    longitude,
-                    latitude,
-                    latitude,
-                    longitude,
-                    latitude,
-                    radius_miles,
-                    limit,
-                ],
+        point = Point(longitude, latitude, srid=4326)
+        radius = D(mi=radius_miles)
+
+        # Use PostGIS spatial query with distance annotation
+        results = (
+            cls.objects.filter(
+                location__isnull=False, location__dwithin=(point, radius)
             )
+            .annotate(distance=DistanceFunc("location", point))
+            .order_by("distance")[:limit]
+        )
 
-            columns = [col[0] for col in cursor.description]
-            results = []
-            for row in cursor.fetchall():
-                center_data = dict(zip(columns, row))
-                center = cls.objects.get(id=center_data["id"])
-                center.distance = center_data["distance"]
-                results.append(center)
-            return results
+        # Convert distance to miles for backward compatibility
+        for center in results:
+            if center.distance:
+                center.distance = center.distance.mi
+
+        return list(results)
 
     @classmethod
     def find_by_location(cls, latitude, longitude):
@@ -402,10 +389,13 @@ class ProviderV2(models.Model):
     description = models.TextField(blank=True, null=True)
     verified = models.BooleanField(default=False)
 
-    # Geographic coordinates
+    # Geographic coordinates (keep for backward compatibility)
     latitude = models.DecimalField(max_digits=11, decimal_places=8, default=0.0)
     longitude = models.DecimalField(max_digits=11, decimal_places=8, default=0.0)
     address = models.TextField(default="")
+
+    # PostGIS spatial field
+    location = gis_models.PointField(geography=True, srid=4326, blank=True, null=True)
     hours = models.JSONField(blank=True, null=True)
 
     # Service details
@@ -569,44 +559,29 @@ class ProviderV2(models.Model):
 
     @classmethod
     def find_nearest(cls, latitude, longitude, radius_miles=10, limit=20):
-        """Find providers within radius of given coordinates"""
-        from django.db import connection
+        """Find providers within radius of given coordinates using PostGIS"""
+        from django.contrib.gis.geos import Point
+        from django.contrib.gis.measure import Distance as D
+        from django.contrib.gis.db.models.functions import Distance as DistanceFunc
 
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT id, name, phone, address, latitude, longitude,
-                       (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                       cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                       sin(radians(latitude)))) AS distance
-                FROM providers_v2 
-                WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-                AND (3959 * acos(cos(radians(%s)) * cos(radians(latitude)) * 
-                cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
-                sin(radians(latitude)))) < %s
-                ORDER BY distance
-                LIMIT %s
-            """,
-                [
-                    latitude,
-                    longitude,
-                    latitude,
-                    latitude,
-                    longitude,
-                    latitude,
-                    radius_miles,
-                    limit,
-                ],
+        point = Point(longitude, latitude, srid=4326)
+        radius = D(mi=radius_miles)
+
+        # Use PostGIS spatial query with distance annotation
+        results = (
+            cls.objects.filter(
+                location__isnull=False, location__dwithin=(point, radius)
             )
+            .annotate(distance=DistanceFunc("location", point))
+            .order_by("distance")[:limit]
+        )
 
-            columns = [col[0] for col in cursor.description]
-            results = []
-            for row in cursor.fetchall():
-                provider_data = dict(zip(columns, row))
-                provider = cls.objects.get(id=provider_data["id"])
-                provider.distance = provider_data["distance"]
-                results.append(provider)
-            return results
+        # Convert distance to miles for backward compatibility
+        for provider in results:
+            if provider.distance:
+                provider.distance = provider.distance.mi
+
+        return list(results)
 
     @classmethod
     def geocode_and_search(cls, address_or_zip, radius_miles=10, limit=20):
@@ -617,21 +592,16 @@ class ProviderV2(models.Model):
         return []
 
     def get_distance_to(self, latitude, longitude):
-        """Calculate distance from provider to given coordinates"""
-        if not self.latitude or not self.longitude:
+        """Calculate distance from provider to given coordinates using PostGIS"""
+        if not self.location:
             return None
 
-        lat1, lon1 = float(self.latitude), float(self.longitude)
-        lat2, lon2 = float(latitude), float(longitude)
+        from django.contrib.gis.geos import Point
+        from django.contrib.gis.measure import Distance as D
 
-        R = 3959  # Earth's radius in miles
-        dlat = math.radians(lat2 - lat1)
-        dlon = math.radians(lon2 - lon1)
-        a = math.sin(dlat / 2) * math.sin(dlat / 2) + math.cos(
-            math.radians(lat1)
-        ) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) * math.sin(dlon / 2)
-        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-        return R * c
+        point = Point(longitude, latitude, srid=4326)
+        distance = D(m=self.location.distance(point))
+        return distance.mi  # Return in miles
 
 
 class ProviderRegionalCenter(models.Model):
