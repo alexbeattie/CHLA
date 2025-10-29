@@ -436,6 +436,7 @@
             :show-distance="true"
             :auto-scroll-to-selected="true"
             @provider-select="handleProviderSelect"
+            @get-directions="handleGetDirections"
           />
           </div>
           <!-- End results-content -->
@@ -470,6 +471,17 @@
         @get-directions="handleGetDirections"
       />
 
+      <!-- Directions Panel -->
+      <directions-panel
+        :visible="showDirections"
+        :directions="currentDirections"
+        :destination="directionsDestination"
+        :loading="directionsLoading"
+        :error="directionsError"
+        @close="closeDirections"
+        @retry="retryDirections"
+      />
+
     </div>
   </div>
 </template>
@@ -487,6 +499,7 @@ import SearchBar from "@/components/map/SearchBar.vue";
 import ProviderList from "@/components/map/ProviderList.vue";
 import ProviderCard from "@/components/map/ProviderCard.vue";
 import ProviderDetails from "@/components/map/ProviderDetails.vue";
+import DirectionsPanel from "@/components/map/DirectionsPanel.vue";
 import FilterPanel from "@/components/map/FilterPanel.vue";
 import SidebarPanel from "@/components/SidebarPanel.vue";
 import ProfileSummary from "@/components/ProfileSummary.vue";
@@ -495,6 +508,9 @@ import ProfileSummary from "@/components/ProfileSummary.vue";
 import { useProviderStore } from "@/stores/providerStore";
 import { useMapStore } from "@/stores/mapStore";
 import { useFilterStore } from "@/stores/filterStore";
+
+// Services
+import { getDrivingDirections, getDrivingDistance } from "@/services/mapboxDirections";
 
 // Composables
 import { useGeolocation } from "@/composables/useGeolocation";
@@ -533,6 +549,7 @@ export default {
     ProviderList,
     ProviderCard,
     ProviderDetails,
+    DirectionsPanel,
     FilterPanel,
     SidebarPanel,
     ProfileSummary,
@@ -566,6 +583,15 @@ export default {
       showMobileSidebar: false,
       showMobileSearch: false,
       showUserMenu: false,
+
+      // Directions panel state
+      showDirections: false,
+      currentDirections: null,
+      directionsDestination: null,
+      directionsLoading: false,
+      directionsError: null,
+      directionsRoute: null,
+      lastDirectionsProvider: null,
 
       // Display type
       displayType: "providers", // 'regionalCenters' or 'providers'
@@ -1168,13 +1194,256 @@ export default {
     /**
      * Handle get directions from ProviderDetails
      */
-    handleGetDirections(data) {
-      console.log("[MapView] Get directions", data);
+    async handleGetDirections(data) {
+      console.log("🗺️ [MapView] Getting directions to:", data);
+      console.log("🗺️ [MapView] User location:", this.userLocation);
 
-      // Request directions from map store
-      this.mapStore.getDirectionsTo({
-        lat: data.coordinates.lat,
-        lng: data.coordinates.lng,
+      // Clear existing directions
+      this.closeDirections();
+
+      // Extract provider from data (could be direct provider object or coordinates object)
+      const provider = data.provider || data;
+
+      // Validate provider has coordinates
+      const providerLat = provider.latitude || data.coordinates?.lat;
+      const providerLng = provider.longitude || data.coordinates?.lng;
+
+      console.log("🗺️ [MapView] Provider coordinates:", { providerLat, providerLng });
+
+      if (!providerLat || !providerLng) {
+        console.error("🗺️ [MapView] Provider location not available");
+        this.directionsError = "Provider location not available";
+        this.showDirections = true;
+        return;
+      }
+
+      // Determine origin for directions
+      let originLat, originLng, originName;
+
+      // First priority: GPS location if detected
+      if (this.userLocation.detected && this.userLocation.latitude && this.userLocation.longitude) {
+        originLat = this.userLocation.latitude;
+        originLng = this.userLocation.longitude;
+        originName = "Your Location";
+        console.log("🗺️ [MapView] Using GPS location as origin");
+      }
+      // Second priority: mapStore user location (from geocoding/ZIP search)
+      else if (this.mapStore?.userLocation?.lat && this.mapStore?.userLocation?.lng) {
+        originLat = this.mapStore.userLocation.lat;
+        originLng = this.mapStore.userLocation.lng;
+        originName = "Your Search Location";
+        console.log("🗺️ [MapView] Using mapStore location (blue marker) as origin:", { lat: originLat, lng: originLng });
+      }
+      // Third priority: Map center
+      else if (this.mapInstance) {
+        const center = this.mapInstance.getCenter();
+        originLat = center.lat;
+        originLng = center.lng;
+        originName = "Current Map View";
+        console.log("🗺️ [MapView] Using map center as origin:", { lat: originLat, lng: originLng });
+      }
+      // No location available
+      else {
+        console.error("🗺️ [MapView] No location available for directions");
+        this.directionsError = "Unable to determine starting location. Please allow location access or search for a location.";
+        this.showDirections = true;
+        return;
+      }
+
+      console.log("🗺️ [MapView] Fetching directions from:", [originLng, originLat], "to:", [providerLng, providerLat]);
+
+      // Show loading state
+      this.showDirections = true;
+      this.directionsLoading = true;
+      this.directionsError = null;
+
+      // Set destination info
+      this.directionsDestination = {
+        name: provider.name || "Selected Location",
+        address: this.formatProviderAddress(provider),
+      };
+
+      // Store provider for retry
+      this.lastDirectionsProvider = provider;
+
+      try {
+        // Fetch directions
+        console.log("🗺️ [MapView] Calling getDrivingDirections...");
+        const directions = await getDrivingDirections(
+          [originLng, originLat],
+          [providerLng, providerLat]
+        );
+
+        console.log("🗺️ [MapView] Received directions:", directions);
+
+        this.currentDirections = directions;
+        this.directionsRoute = directions.route;
+
+        console.log("🗺️ [MapView] Drawing route on map...");
+        // Draw route on map
+        this.drawRouteOnMap(directions.route);
+
+        console.log("🗺️ [MapView] Fitting map to route...");
+        // Fit map to show entire route
+        this.fitMapToRoute(directions.route);
+
+        console.log("🗺️ [MapView] Directions complete!");
+      } catch (error) {
+        console.error("🗺️ [MapView] Error fetching directions:", error);
+        this.directionsError = "Could not calculate route. Please try again.";
+      } finally {
+        this.directionsLoading = false;
+        console.log("🗺️ [MapView] directionsLoading set to false");
+      }
+    },
+
+    /**
+     * Close directions panel
+     */
+    closeDirections() {
+      this.showDirections = false;
+      this.currentDirections = null;
+      this.directionsDestination = null;
+      this.directionsError = null;
+
+      // Remove route from map
+      this.removeRouteFromMap();
+    },
+
+    /**
+     * Retry getting directions
+     */
+    retryDirections() {
+      if (this.lastDirectionsProvider) {
+        this.handleGetDirections(this.lastDirectionsProvider);
+      }
+    },
+
+    /**
+     * Format provider address for display
+     */
+    formatProviderAddress(provider) {
+      if (!provider.address) return "";
+
+      let addressObj = provider.address;
+
+      // If address is a string that looks like JSON, try to parse it
+      if (typeof addressObj === "string") {
+        try {
+          // Check if it looks like JSON
+          if (addressObj.trim().startsWith("{")) {
+            addressObj = JSON.parse(addressObj);
+          } else {
+            // It's already a formatted string
+            return addressObj;
+          }
+        } catch (e) {
+          // Not valid JSON, return as is
+          return addressObj;
+        }
+      }
+
+      // If it's an object, format it
+      if (typeof addressObj === "object" && addressObj !== null) {
+        const parts = [];
+        if (addressObj.street) parts.push(addressObj.street);
+        if (addressObj.city) parts.push(addressObj.city);
+        if (addressObj.state) parts.push(addressObj.state);
+        if (addressObj.zip) parts.push(addressObj.zip);
+        return parts.join(", ");
+      }
+
+      return String(addressObj);
+    },
+
+    /**
+     * Draw route on map
+     */
+    drawRouteOnMap(route) {
+      if (!this.mapInstance) return;
+
+      // Remove existing route if any
+      this.removeRouteFromMap();
+
+      // Add route source
+      this.mapInstance.addSource("route", {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          properties: {},
+          geometry: route.geometry,
+        },
+      });
+
+      // Add route layer (background/outline)
+      this.mapInstance.addLayer({
+        id: "route-outline",
+        type: "line",
+        source: "route",
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
+        },
+        paint: {
+          "line-color": "#1d4ed8",
+          "line-width": 8,
+          "line-opacity": 0.3,
+        },
+      });
+
+      // Add route layer (main line)
+      this.mapInstance.addLayer({
+        id: "route",
+        type: "line",
+        source: "route",
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
+        },
+        paint: {
+          "line-color": "#2563eb",
+          "line-width": 5,
+        },
+      });
+    },
+
+    /**
+     * Remove route from map
+     */
+    removeRouteFromMap() {
+      if (!this.mapInstance) return;
+
+      if (this.mapInstance.getLayer("route")) {
+        this.mapInstance.removeLayer("route");
+      }
+      if (this.mapInstance.getLayer("route-outline")) {
+        this.mapInstance.removeLayer("route-outline");
+      }
+      if (this.mapInstance.getSource("route")) {
+        this.mapInstance.removeSource("route");
+      }
+    },
+
+    /**
+     * Fit map to show entire route
+     */
+    fitMapToRoute(route) {
+      if (!this.mapInstance || !route.geometry) return;
+
+      const coordinates = route.geometry.coordinates;
+
+      // Create bounds
+      const bounds = coordinates.reduce(
+        (bounds, coord) => {
+          return bounds.extend(coord);
+        },
+        new mapboxgl.LngLatBounds(coordinates[0], coordinates[0])
+      );
+
+      // Fit map to bounds
+      this.mapInstance.fitBounds(bounds, {
+        padding: { top: 100, bottom: 100, left: 100, right: 500 }, // Account for directions panel
+        duration: 1000,
       });
     },
 

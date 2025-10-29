@@ -1,0 +1,191 @@
+name: Deploy to Production
+
+# Trigger on push to main branch or manual workflow dispatch
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: 'Deploy Backend'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      deploy_frontend:
+        description: 'Deploy Frontend'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  AWS_REGION: us-west-2
+  EB_ENVIRONMENT: chla-api-env
+  S3_BUCKET: kinddhelp-frontend-1755148345
+  CLOUDFRONT_DIST_ID: E2W6EECHUV4LMM
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: |
+      (github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_backend == 'true')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install EB CLI
+        run: pip install awsebcli
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          cd maplocation
+          echo "🚀 Deploying backend to ${{ env.EB_ENVIRONMENT }}..."
+          eb deploy ${{ env.EB_ENVIRONMENT }} --region ${{ env.AWS_REGION }} --timeout 10
+        timeout-minutes: 15
+
+      - name: Verify Backend Health
+        run: |
+          echo "⏳ Waiting for deployment to stabilize..."
+          sleep 30
+
+          echo "🔍 Testing API endpoints..."
+          echo "Testing: https://api.kinddhelp.com/api/regional-centers/"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" "https://api.kinddhelp.com/api/regional-centers/")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+
+          if [ "$HTTP_CODE" == "200" ]; then
+            echo "✅ Backend API is healthy (HTTP $HTTP_CODE)"
+            COUNT=$(echo "$RESPONSE" | head -n-1 | python3 -c "import sys, json; print(json.load(sys.stdin)['count'])" 2>/dev/null || echo "?")
+            echo "📊 Regional Centers: $COUNT"
+          else
+            echo "❌ Backend API returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: deploy-backend
+    if: |
+      always() &&
+      (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped') &&
+      ((github.event_name == 'push') ||
+       (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_frontend == 'true'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: map-frontend/package-lock.json
+
+      - name: Configure Production Environment
+        run: |
+          cd map-frontend
+          echo "🔧 Configuring production environment..."
+          cat > .env.production << 'EOF'
+          VITE_API_BASE_URL=https://api.kinddhelp.com
+          VITE_MAPBOX_TOKEN=${{ secrets.MAPBOX_TOKEN }}
+          EOF
+          echo "✅ Production environment configured"
+
+      - name: Install Dependencies and Build
+        run: |
+          cd map-frontend
+          npm ci
+          echo "🏗️  Building frontend..."
+          npm run build
+          echo "✅ Build completed"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          cd map-frontend
+          echo "📦 Deploying to S3 bucket: ${{ env.S3_BUCKET }}..."
+          aws s3 sync dist/ s3://${{ env.S3_BUCKET }}/ --delete --region ${{ env.AWS_REGION }}
+          echo "✅ S3 deployment completed"
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          echo "🔄 Invalidating CloudFront cache..."
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id ${{ env.CLOUDFRONT_DIST_ID }} \
+            --paths "/*" \
+            --query 'Invalidation.Id' \
+            --output text)
+          echo "✅ CloudFront invalidation created: $INVALIDATION_ID"
+          echo "⏳ Cache invalidation usually takes 1-2 minutes"
+
+      - name: Verify Frontend
+        run: |
+          echo "⏳ Waiting for CloudFront propagation..."
+          sleep 10
+
+          echo "🔍 Testing frontend..."
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://kinddhelp.com)
+          if [ "$STATUS_CODE" == "200" ]; then
+            echo "✅ Frontend is accessible (HTTP $STATUS_CODE)"
+          else
+            echo "⚠️  Frontend returned HTTP $STATUS_CODE (may need cache time)"
+          fi
+
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: always()
+
+    steps:
+      - name: Deployment Status
+        run: |
+          echo ""
+          echo "════════════════════════════════════════════════════════════"
+          echo "   🚀 Deployment Summary"
+          echo "════════════════════════════════════════════════════════════"
+          echo ""
+          echo "Backend Status:  ${{ needs.deploy-backend.result }}"
+          echo "Frontend Status: ${{ needs.deploy-frontend.result }}"
+          echo ""
+          echo "🌐 Frontend URL: https://kinddhelp.com"
+          echo "🔧 Backend API:  https://api.kinddhelp.com"
+          echo ""
+          echo "════════════════════════════════════════════════════════════"
+          echo ""
+
+          if [ "${{ needs.deploy-backend.result }}" == "failure" ] || [ "${{ needs.deploy-frontend.result }}" == "failure" ]; then
+            echo "❌ Deployment had failures. Check logs above."
+            exit 1
+          else
+            echo "✅ Deployment completed successfully!"
+          fi

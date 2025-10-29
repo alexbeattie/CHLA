@@ -30,10 +30,20 @@
       </div>
     </div>
 
-    <!-- Distance (if provided) -->
-    <div v-if="distance !== null" class="provider-distance">
-      <i class="bi bi-geo-alt-fill"></i>
-      <span>{{ formattedDistance }}</span>
+    <!-- Distance and Directions -->
+    <div v-if="distance !== null" class="provider-distance-section">
+      <div class="provider-distance">
+        <i class="bi bi-signpost-2"></i>
+        <span>{{ formattedDistance }} driving</span>
+      </div>
+      <button
+        class="btn-get-directions"
+        @click.stop="handleGetDirections"
+        :aria-label="`Get driving directions to ${provider.name}`"
+      >
+        <i class="bi bi-pin-map-fill"></i>
+        <span>Directions</span>
+      </button>
     </div>
 
     <!-- Address -->
@@ -173,7 +183,7 @@ export default {
     }
   },
 
-  emits: ['click', 'select'],
+  emits: ['click', 'select', 'get-directions'],
 
   setup(props, { emit }) {
     /**
@@ -328,6 +338,14 @@ export default {
       emit('select', props.provider.id);
     };
 
+    /**
+     * Handle get directions button click
+     */
+    const handleGetDirections = () => {
+      console.log(`🗺️ ProviderCard: Get directions to provider ${props.provider.id} - ${props.provider.name}`);
+      emit('get-directions', props.provider);
+    };
+
     return {
       hasCoordinates,
       formattedDistance,
@@ -336,7 +354,8 @@ export default {
       displayedTherapies,
       formatPhone,
       formatWebsite,
-      handleClick
+      handleClick,
+      handleGetDirections
     };
   }
 };
@@ -424,7 +443,15 @@ export default {
   font-size: 24px;
 }
 
-/* Distance */
+/* Distance and Directions Section */
+.provider-distance-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
 .provider-distance {
   display: flex;
   align-items: center;
@@ -432,11 +459,40 @@ export default {
   font-size: 14px;
   font-weight: 600;
   color: #2563eb;
-  margin-bottom: 8px;
 }
 
 .provider-distance i {
   font-size: 16px;
+}
+
+.btn-get-directions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-get-directions:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.btn-get-directions:active {
+  transform: translateY(0);
+}
+
+.btn-get-directions i {
+  font-size: 14px;
 }
 
 /* Address */

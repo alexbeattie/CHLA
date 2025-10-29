@@ -63,6 +63,7 @@
           :maxTherapiesToShow="maxTherapiesToShow"
           @click="handleProviderClick"
           @select="handleProviderSelect"
+          @get-directions="handleGetDirections"
         />
       </div>
 
@@ -177,6 +178,7 @@ export default {
   emits: [
     'provider-click',     // When provider card is clicked
     'provider-select',    // When provider is selected
+    'get-directions',     // When get directions is clicked
     'scroll',             // When list is scrolled
     'load-more'           // When load more is triggered
   ],
@@ -292,6 +294,14 @@ export default {
     };
 
     /**
+     * Handle get directions
+     */
+    const handleGetDirections = (provider) => {
+      console.log(`📋 ProviderList: Get directions to provider - ${provider.id}`);
+      emit('get-directions', provider);
+    };
+
+    /**
      * Handle sort change
      */
     const handleSortChange = () => {
@@ -387,6 +397,7 @@ export default {
       getProviderDistance,
       handleProviderClick,
       handleProviderSelect,
+      handleGetDirections,
       handleSortChange,
       scrollToTop,
       handleLoadMore
