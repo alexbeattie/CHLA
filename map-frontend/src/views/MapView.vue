@@ -2009,10 +2009,13 @@ export default {
       else if (this.radius <= 50) targetZoom = 9;
       else targetZoom = 8.5;
 
-      // Adjust map zoom with smooth animation
-      if (this.mapInstance && this.userLocation?.latitude && this.userLocation?.longitude) {
+      // Adjust map zoom only - keep current center position
+      if (this.mapInstance) {
+        // Get current center to maintain it
+        const currentCenter = this.mapInstance.getCenter();
+
         this.mapInstance.easeTo({
-          center: [this.userLocation.longitude, this.userLocation.latitude],
+          center: [currentCenter.lng, currentCenter.lat], // Keep current center
           zoom: targetZoom,
           duration: 1000, // 1 second smooth transition
           easing(t) {
@@ -2020,7 +2023,7 @@ export default {
             return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
           }
         });
-        console.log(`📍 Smoothly adjusting map zoom to ${targetZoom} for ${this.radius} mile radius`);
+        console.log(`📍 Smoothly adjusting map zoom to ${targetZoom} for ${this.radius} mile radius (maintaining center at ${currentCenter.lat}, ${currentCenter.lng})`);
       }
 
       // Re-fetch providers with new radius
