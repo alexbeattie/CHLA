@@ -13,7 +13,7 @@ class Command(BaseCommand):
         # Find North LA County Regional Center
         try:
             nlacrc = RegionalCenter.objects.get(
-                name="North Los Angeles County Regional Center"
+                regional_center="North Los Angeles County Regional Center"
             )
         except RegionalCenter.DoesNotExist:
             self.stdout.write(
@@ -29,10 +29,12 @@ class Command(BaseCommand):
         if nlacrc.add_zip_code(zip_code):
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Successfully added ZIP {zip_code} (Sherman Oaks) to {nlacrc.name}"
+                    f"Successfully added ZIP {zip_code} (Sherman Oaks) to {nlacrc.regional_center}"
                 )
             )
         else:
             self.stdout.write(
-                self.style.WARNING(f"ZIP {zip_code} already exists in {nlacrc.name}")
+                self.style.WARNING(
+                    f"ZIP {zip_code} already exists in {nlacrc.regional_center}"
+                )
             )

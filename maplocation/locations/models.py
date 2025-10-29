@@ -134,28 +134,40 @@ class RegionalCenter(models.Model):
         """Find regional center that serves a specific ZIP code (LA-specific)"""
         try:
             from django.db import connection
+            import traceback
+
+            print(f"[DEBUG] find_by_zip_code called with ZIP: {zip_code}")
 
             # Use raw SQL to properly check JSONB array containment
             # The @> operator checks if the JSONB array contains the given element
             with connection.cursor() as cursor:
+                query_param = f'["{zip_code}"]'
+                print(f"[DEBUG] Query param: {query_param}")
+
                 cursor.execute(
                     """
-                    SELECT id
+                    SELECT id, regional_center
                     FROM regional_centers
                     WHERE is_la_regional_center = true
                     AND zip_codes @> %s::jsonb
                     LIMIT 1
                     """,
-                    [f'["{zip_code}"]'],
+                    [query_param],
                 )
                 result = cursor.fetchone()
+                print(f"[DEBUG] Query result: {result}")
+
                 if result:
-                    return cls.objects.get(id=result[0])
+                    rc = cls.objects.get(id=result[0])
+                    print(f"[DEBUG] Found RC: {rc.regional_center}")
+                    return rc
 
             # Fallback: try to find by the center's own zip_code field
+            print(f"[DEBUG] Trying fallback by zip_code field")
             return cls.objects.filter(zip_code=zip_code).first()
         except Exception as e:
-            print(f"Error finding regional center by ZIP code {zip_code}: {e}")
+            print(f"[ERROR] finding regional center by ZIP code {zip_code}: {e}")
+            traceback.print_exc()
             return None
 
     @classmethod
