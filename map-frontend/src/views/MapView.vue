@@ -6081,6 +6081,7 @@ export default {
   margin-bottom: 0.75rem !important;
 }
 
+
 /* Collapsible Section Styling */
 .collapsible-section {
   border: 1px solid #e5e7eb;
@@ -6148,6 +6149,11 @@ export default {
 }
 
 .results-content {
+  padding: 0;
+}
+
+/* Override ProviderList padding to match profile cards */
+.results-content :deep(.provider-items) {
   padding: 1rem;
 }
 
