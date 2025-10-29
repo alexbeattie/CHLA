@@ -61,8 +61,8 @@
 
     <!-- Sidebar (always on left) -->
     <div class="sidebar-container" :class="{ 'mobile-open': showMobileSidebar }">
-      <!-- Fixed Sidebar Header -->
-      <div class="sidebar-header">
+      <!-- Unified Scrollable Content -->
+      <div class="sidebar-content">
         <!-- CHLA Header -->
         <div class="chla-header">
           <div class="chla-logo-container">
@@ -273,10 +273,7 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Scrollable Results Section -->
-      <div class="sidebar-results">
         <!-- Results Section -->
         <div class="results-section">
           <div class="info-card-section mb-3">
@@ -389,6 +386,7 @@
           />
         </div>
       </div>
+      <!-- End sidebar-content -->
     </div>
     <!-- End Sidebar Container -->
 
@@ -5981,43 +5979,29 @@ export default {
   }
 }
 
-/* Sidebar Header (Fixed at top) */
-.sidebar-header {
-  flex-shrink: 0;
-  overflow-y: auto;
-  max-height: 60vh;
-  padding: 0;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-/* Sidebar Results (Scrollable) */
-.sidebar-results {
-  flex: 1;
+/* Unified Sidebar Content - Single Scroll */
+.sidebar-content {
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1rem;
-  background: #f9fafb;
+  padding: 0;
 }
 
 /* Smooth scrolling */
-.sidebar-header::-webkit-scrollbar,
-.sidebar-results::-webkit-scrollbar {
+.sidebar-content::-webkit-scrollbar {
   width: 6px;
 }
 
-.sidebar-header::-webkit-scrollbar-track,
-.sidebar-results::-webkit-scrollbar-track {
+.sidebar-content::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
 
-.sidebar-header::-webkit-scrollbar-thumb,
-.sidebar-results::-webkit-scrollbar-thumb {
+.sidebar-content::-webkit-scrollbar-thumb {
   background: #cbd5e0;
   border-radius: 3px;
 }
 
-.sidebar-header::-webkit-scrollbar-thumb:hover,
-.sidebar-results::-webkit-scrollbar-thumb:hover {
+.sidebar-content::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
 }
 
@@ -6031,17 +6015,24 @@ export default {
   border-bottom: 1px solid #e5e7eb;
 }
 
-/* Sidebar header sections spacing */
-.sidebar-header > * {
+/* Sidebar content sections spacing */
+.sidebar-content > * {
   padding: 0 1rem;
 }
 
-.sidebar-header > .chla-header {
+.sidebar-content > .chla-header {
   padding: 1.25rem;
+  margin-bottom: 0;
 }
 
-.sidebar-header .mb-3 {
+.sidebar-content .mb-3 {
   margin-bottom: 0.75rem !important;
+}
+
+/* Results section padding */
+.results-section {
+  padding: 0 1rem 1rem 1rem;
+  background: #f9fafb;
 }
 
 .chla-logo-container {
