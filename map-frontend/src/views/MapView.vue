@@ -105,26 +105,46 @@
           </div>
         </div>
 
-        <!-- Profile Summary Component -->
-        <profile-summary
-          :profile="userData"
-          :regional-center="displayRegionalCenter"
-          @edit-profile="handleEditProfile"
-          class="mb-3"
-        />
-
-        <!-- Simple Search -->
-        <div class="info-card-section mb-3">
-          <div class="form-control info-card border-secondary bg-secondary bg-opacity-5">
-            <div class="info-card-header mb-2">
-              <i class="bi bi-search text-secondary me-2"></i>
-              <strong
-                >Search
-                {{
-                  displayType === "providers" ? "Services" : "Regional Centers"
-                }}</strong
-              >
+        <!-- Profile Summary Component (Collapsible) -->
+        <div class="collapsible-section mb-3" v-if="userData.age || userData.diagnosis || displayRegionalCenter">
+          <div
+            class="collapsible-header"
+            @click="toggleSection('profile')"
+          >
+            <div class="d-flex align-items-center">
+              <i class="bi bi-person-circle text-primary me-2"></i>
+              <strong>Your Profile</strong>
             </div>
+            <i
+              class="bi toggle-icon"
+              :class="sectionsCollapsed.profile ? 'bi-chevron-down' : 'bi-chevron-up'"
+            ></i>
+          </div>
+          <div class="collapsible-content" v-show="!sectionsCollapsed.profile">
+            <profile-summary
+              :profile="userData"
+              :regional-center="displayRegionalCenter"
+              @edit-profile="handleEditProfile"
+            />
+          </div>
+        </div>
+
+        <!-- Simple Search (Collapsible) -->
+        <div class="collapsible-section mb-3">
+          <div
+            class="collapsible-header"
+            @click="toggleSection('search')"
+          >
+            <div class="d-flex align-items-center">
+              <i class="bi bi-search text-secondary me-2"></i>
+              <strong>Search {{ displayType === "providers" ? "Services" : "Regional Centers" }}</strong>
+            </div>
+            <i
+              class="bi toggle-icon"
+              :class="sectionsCollapsed.search ? 'bi-chevron-down' : 'bi-chevron-up'"
+            ></i>
+          </div>
+          <div class="collapsible-content" v-show="!sectionsCollapsed.search">
             <div class="info-card-content">
               <div class="input-group">
                 <input
@@ -222,13 +242,22 @@
           </div>
         </div>
 
-        <!-- Filter Section -->
-        <div class="info-card-section mb-3">
-          <div class="form-control info-card border-warning bg-warning bg-opacity-5">
-            <div class="info-card-header mb-2">
+        <!-- Filter Section (Collapsible) -->
+        <div class="collapsible-section mb-3">
+          <div
+            class="collapsible-header"
+            @click="toggleSection('filters')"
+          >
+            <div class="d-flex align-items-center">
               <i class="bi bi-funnel-fill text-warning me-2"></i>
               <strong>Filters</strong>
             </div>
+            <i
+              class="bi toggle-icon"
+              :class="sectionsCollapsed.filters ? 'bi-chevron-down' : 'bi-chevron-up'"
+            ></i>
+          </div>
+          <div class="collapsible-content" v-show="!sectionsCollapsed.filters">
             <div class="info-card-content">
               <!-- Radius Filter (when geolocation is available) -->
               <div class="mb-3" v-if="userLocation.latitude && userLocation.longitude">
@@ -274,11 +303,11 @@
           </div>
         </div>
 
-        <!-- Results Section -->
+        <!-- Results Section with Sticky Header -->
         <div class="results-section">
-          <div class="info-card-section mb-3">
-            <div class="form-control info-card border-success bg-success bg-opacity-5">
-              <div class="info-card-header">
+          <!-- Sticky Header -->
+          <div class="results-sticky-header">
+            <div class="info-card-header">
                 <i class="bi bi-list-ul text-success me-2"></i>
                 <strong>
                   {{
@@ -299,10 +328,11 @@
                   }}
                 </span>
               </div>
-            </div>
           </div>
 
-          <!-- Regional Centers Toggle List -->
+          <!-- Scrollable Results Content -->
+          <div class="results-content">
+            <!-- Regional Centers Toggle List -->
           <div
             v-if="displayType === 'regionalCenters' && showLARegionalCenters"
             class="info-card-section mb-3"
@@ -384,7 +414,10 @@
             :auto-scroll-to-selected="true"
             @provider-select="handleProviderSelect"
           />
+          </div>
+          <!-- End results-content -->
         </div>
+        <!-- End results-section -->
       </div>
       <!-- End sidebar-content -->
     </div>
@@ -523,6 +556,14 @@ export default {
 
       // Display type
       displayType: "providers", // 'regionalCenters' or 'providers'
+
+      // Collapsible sections state
+      sectionsCollapsed: {
+        profile: false,
+        search: false,
+        filters: false,
+        mapOptions: false,
+      },
 
       // Service areas
       showServiceAreas: false,
@@ -905,6 +946,17 @@ export default {
   },
 
   methods: {
+    // ============================================
+    // UI INTERACTION METHODS
+    // ============================================
+
+    /**
+     * Toggle collapse state for sidebar sections
+     */
+    toggleSection(section) {
+      this.sectionsCollapsed[section] = !this.sectionsCollapsed[section];
+    },
+
     // ============================================
     // WEEK 5: NEW COMPONENT ORCHESTRATION METHODS
     // ============================================
@@ -6029,10 +6081,74 @@ export default {
   margin-bottom: 0.75rem !important;
 }
 
-/* Results section padding */
-.results-section {
-  padding: 0 1rem 1rem 1rem;
+/* Collapsible Section Styling */
+.collapsible-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.collapsible-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: white;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.collapsible-header:hover {
   background: #f9fafb;
+}
+
+.collapsible-header .toggle-icon {
+  font-size: 1rem;
+  color: #6b7280;
+  transition: transform 0.2s;
+}
+
+.collapsible-content {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Results section with sticky header */
+.results-section {
+  display: flex;
+  flex-direction: column;
+  background: #f9fafb;
+}
+
+.results-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #10b981;
+  padding: 0.75rem 1rem;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.results-sticky-header .info-card-header {
+  display: flex;
+  align-items: center;
+  color: white;
+  margin: 0;
+}
+
+.results-sticky-header .info-card-header i {
+  color: white !important;
+}
+
+.results-sticky-header .badge {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+.results-content {
+  padding: 1rem;
 }
 
 .chla-logo-container {
