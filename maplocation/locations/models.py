@@ -133,17 +133,24 @@ class RegionalCenter(models.Model):
     def find_by_zip_code(cls, zip_code):
         """Find regional center that serves a specific ZIP code (LA-specific)"""
         try:
-            from django.contrib.postgres.fields import JSONField
-            from django.db.models import Q
+            from django.db import connection
 
-            # For JSONB arrays, we need to check if the zip_code string is in the array
-            # Use the @> operator which checks if left contains right
-            center = cls.objects.filter(
-                is_la_regional_center=True, zip_codes__contains=[zip_code]
-            ).first()
-
-            if center:
-                return center
+            # Use raw SQL to properly check JSONB array containment
+            # The @> operator checks if the JSONB array contains the given element
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT id
+                    FROM regional_centers
+                    WHERE is_la_regional_center = true
+                    AND zip_codes @> %s::jsonb
+                    LIMIT 1
+                    """,
+                    [f'["{zip_code}"]'],
+                )
+                result = cursor.fetchone()
+                if result:
+                    return cls.objects.get(id=result[0])
 
             # Fallback: try to find by the center's own zip_code field
             return cls.objects.filter(zip_code=zip_code).first()
