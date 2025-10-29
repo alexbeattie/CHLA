@@ -26,6 +26,10 @@ class Location(models.Model):
     zip_code = models.CharField(max_length=20)
     latitude = models.DecimalField(max_digits=10, decimal_places=7)
     longitude = models.DecimalField(max_digits=10, decimal_places=7)
+    
+    # PostGIS spatial field for efficient geographic queries
+    location = gis_models.PointField(geography=True, srid=4326, blank=True, null=True)
+    
     description = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
@@ -48,6 +52,40 @@ class Location(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        """Auto-populate PostGIS location field from latitude/longitude"""
+        if self.latitude and self.longitude:
+            self.location = Point(float(self.longitude), float(self.latitude), srid=4326)
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def find_nearest(cls, latitude, longitude, radius_miles=10, limit=20):
+        """Find locations within radius of given coordinates using PostGIS"""
+        from django.contrib.gis.geos import Point
+        from django.contrib.gis.measure import Distance as D
+        from django.contrib.gis.db.models.functions import Distance as DistanceFunc
+
+        point = Point(longitude, latitude, srid=4326)
+        radius = D(mi=radius_miles)
+
+        # Use PostGIS spatial query with distance annotation
+        results = (
+            cls.objects.filter(
+                is_active=True,
+                location__isnull=False,
+                location__dwithin=(point, radius)
+            )
+            .annotate(distance=DistanceFunc("location", point))
+            .order_by("distance")[:limit]
+        )
+
+        # Convert distance to miles for backward compatibility
+        for location in results:
+            if location.distance:
+                location.distance = location.distance.mi
+
+        return list(results)
 
 
 class RegionalCenter(models.Model):

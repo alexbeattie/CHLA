@@ -1,0 +1,92 @@
+Migration Fix Log - 2025-10-29 11:21:47.780020
+============================================================
+
+Setting up Django...
+✓ Django setup complete
+
+============================================================
+CURRENT MIGRATION STATE
+============================================================
+
+Found 27 migration records:
+
+   18. 0001_initial                                                 2025-07-05 20:57:28.371236+00:00
+   19. 0008_create_missing_tables                                   2025-07-05 20:57:37.578251+00:00
+   22. 0002_sample_data                                             2025-07-05 21:00:03.344326+00:00
+   23. 0009_merge_0002_sample_data_0008_create_missing_tables       2025-07-05 21:00:10.447348+00:00
+   24. 0010_auto_20250628_1813                                      2025-07-05 21:00:10.480342+00:00
+   25. 0012_auto_20250628_1823                                      2025-07-05 21:00:10.506446+00:00
+   26. 0013_auto_20250628_1832                                      2025-07-05 21:00:10.535537+00:00
+   27. 0014_remove_provider_accepts_insurance_and_more              2025-07-05 21:00:29.571461+00:00
+   28. 0015_auto_20250630_2214                                      2025-07-05 21:00:38.420018+00:00
+   30. 0002_providerv2                                              2025-08-07 22:33:54.367676+00:00
+   31. 0002_fix_provider_id_default                                 2025-08-19 23:40:12.453980+00:00
+   32. 0003_providerv2                                              2025-08-25 15:03:00.499861+00:00
+   33. 0008_add_la_regional_center_fields                           2025-08-25 16:49:20.821535+00:00
+   34. 0009_remove_providerv2_areas_and_more                        2025-08-26 03:15:02.005825+00:00
+   35. 0010_copy_providers_to_providerv2                            2025-08-26 03:19:21.938500+00:00
+   40. 0011_add_provider_service_fields                             2025-10-15 16:12:45.879504+00:00
+   41. 0012_rename_provider_fields                                  2025-10-15 16:16:47.476447+00:00
+   42. 0013_add_missing_boolean_fields                              2025-10-15 16:18:52.995392+00:00
+   43. 0014_increase_coordinate_precision                           2025-10-15 16:30:09.956817+00:00
+   44. 0015_increase_coordinate_precision_final                     2025-10-15 16:36:12.786436+00:00
+   45. 0016_fix_la_regional_center_flags                            2025-10-27 15:28:12.508805+00:00
+   46. 0018_load_regional_center_data                               2025-10-27 21:22:04.807013+00:00
+   47. 0019_deduplicate_la_regional_centers                         2025-10-27 21:22:04.817998+00:00
+   48. 0020_deduplicate_all_regional_centers                        2025-10-27 21:22:04.840614+00:00
+   49. 0021_restore_regional_center_zip_codes                       2025-10-27 21:22:04.862877+00:00
+   50. 0022_drop_old_provider_table                                 2025-10-28 06:11:39.843433+00:00
+   51. 0023_alter_providerfundingsource_provider_and_more           2025-10-29 01:29:06.938605+00:00
+
+============================================================
+UPDATING MIGRATION RECORDS
+============================================================
+
+  Skipped: 0016_5_add_location_name_to_regionalcenter                   (not in database)
+  Skipped: 0017_load_regional_center_data                               (not in database)
+  Skipped: 0018_deduplicate_la_regional_centers                         (not in database)
+  Skipped: 0019_deduplicate_all_regional_centers                        (not in database)
+  Skipped: 0020_restore_regional_center_zip_codes                       (not in database)
+  Skipped: 0021_drop_old_provider_table                                 (not in database)
+  Skipped: 0022_alter_providerfundingsource_provider_and_more           (not in database)
+  Skipped: 0023_add_location_pointfield                                 (not in database)
+
+============================================================
+UPDATED MIGRATION STATE
+============================================================
+
+Migration records after update:
+
+   18. 0001_initial                                                 2025-07-05 20:57:28.371236+00:00
+   19. 0008_create_missing_tables                                   2025-07-05 20:57:37.578251+00:00
+   22. 0002_sample_data                                             2025-07-05 21:00:03.344326+00:00
+   23. 0009_merge_0002_sample_data_0008_create_missing_tables       2025-07-05 21:00:10.447348+00:00
+   24. 0010_auto_20250628_1813                                      2025-07-05 21:00:10.480342+00:00
+   25. 0012_auto_20250628_1823                                      2025-07-05 21:00:10.506446+00:00
+   26. 0013_auto_20250628_1832                                      2025-07-05 21:00:10.535537+00:00
+   27. 0014_remove_provider_accepts_insurance_and_more              2025-07-05 21:00:29.571461+00:00
+   28. 0015_auto_20250630_2214                                      2025-07-05 21:00:38.420018+00:00
+   30. 0002_providerv2                                              2025-08-07 22:33:54.367676+00:00
+   31. 0002_fix_provider_id_default                                 2025-08-19 23:40:12.453980+00:00
+   32. 0003_providerv2                                              2025-08-25 15:03:00.499861+00:00
+   33. 0008_add_la_regional_center_fields                           2025-08-25 16:49:20.821535+00:00
+   34. 0009_remove_providerv2_areas_and_more                        2025-08-26 03:15:02.005825+00:00
+   35. 0010_copy_providers_to_providerv2                            2025-08-26 03:19:21.938500+00:00
+   40. 0011_add_provider_service_fields                             2025-10-15 16:12:45.879504+00:00
+   41. 0012_rename_provider_fields                                  2025-10-15 16:16:47.476447+00:00
+   42. 0013_add_missing_boolean_fields                              2025-10-15 16:18:52.995392+00:00
+   43. 0014_increase_coordinate_precision                           2025-10-15 16:30:09.956817+00:00
+   44. 0015_increase_coordinate_precision_final                     2025-10-15 16:36:12.786436+00:00
+   45. 0016_fix_la_regional_center_flags                            2025-10-27 15:28:12.508805+00:00
+   46. 0018_load_regional_center_data                               2025-10-27 21:22:04.807013+00:00
+   47. 0019_deduplicate_la_regional_centers                         2025-10-27 21:22:04.817998+00:00
+   48. 0020_deduplicate_all_regional_centers                        2025-10-27 21:22:04.840614+00:00
+   49. 0021_restore_regional_center_zip_codes                       2025-10-27 21:22:04.862877+00:00
+   50. 0022_drop_old_provider_table                                 2025-10-28 06:11:39.843433+00:00
+   51. 0023_alter_providerfundingsource_provider_and_more           2025-10-29 01:29:06.938605+00:00
+
+============================================================
+✅ MIGRATION HISTORY FIXED SUCCESSFULLY!
+============================================================
+
+You can now run: python3 manage.py migrate

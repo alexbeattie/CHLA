@@ -98,13 +98,13 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
         Query parameters:
         - lat: latitude (required)
         - lng: longitude (required)
-        - radius: search radius in kilometers (default: 5)
+        - radius: search radius in miles (default: 5)
         """
         try:
             # Get parameters with proper error handling
             lat_param = request.query_params.get("lat")
             lng_param = request.query_params.get("lng")
-            radius_param = request.query_params.get("radius", "5")  # Default to 5 km
+            radius_param = request.query_params.get("radius", "5")  # Default to 5 miles
 
             # Validate parameters
             if not lat_param or not lng_param:
@@ -121,7 +121,7 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
                     {"error": "lat, lng, and radius must be valid numbers"}, status=400
                 )
 
-            # Earth's radius in kilometers (6371) converted to miles (3959)
+            # Earth's radius in miles (use 3959 for miles, 6371 for kilometers)
             earth_radius = 3959
 
             # Get all active locations
@@ -139,17 +139,17 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
                     lat1, lng1 = math.radians(lat), math.radians(lng)
                     lat2, lng2 = math.radians(loc_lat), math.radians(loc_lng)
 
-                    # Haversine formula
-                    dlng = lng2 - lng1
-                    dlat = lat2 - lat1
-                    a = (
-                        math.sin(dlat / 2) ** 2
-                        + math.cos(lat1) * math.cos(lat2) * math.sin(dlng / 2) ** 2
-                    )
-                    c = 2 * math.asin(math.sqrt(a))
-                    distance = earth_radius * c  # in kilometers
+                # Haversine formula
+                dlng = lng2 - lng1
+                dlat = lat2 - lat1
+                a = (
+                    math.sin(dlat / 2) ** 2
+                    + math.cos(lat1) * math.cos(lat2) * math.sin(dlng / 2) ** 2
+                )
+                c = 2 * math.asin(math.sqrt(a))
+                distance = earth_radius * c  # in miles
 
-                    if distance <= radius:
+                if distance <= radius:
                         # Add distance to location object
                         location.distance = round(distance, 2)
                         nearby_locations.append(location)
@@ -1392,7 +1392,7 @@ def api_documentation(request):
                     "parameters": {
                         "lat": "Latitude (required)",
                         "lng": "Longitude (required)",
-                        "radius": "Search radius in kilometers (default: 5)",
+                        "radius": "Search radius in miles (default: 5)",
                     },
                     "example": f"{base_url}locations/nearby/?lat=34.0522&lng=-118.2437&radius=10",
                 },

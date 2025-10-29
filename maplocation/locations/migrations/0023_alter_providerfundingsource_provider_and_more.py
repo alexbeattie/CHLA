@@ -124,7 +124,7 @@ def reverse_delete_provider(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("locations", "0021_drop_old_provider_table"),
+        ("locations", "0022_drop_old_provider_table"),
     ]
 
     operations = [

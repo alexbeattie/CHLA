@@ -88,6 +88,7 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
     served_providers = serializers.SerializerMethodField()
     service_area_geojson = serializers.SerializerMethodField()
     has_service_area = serializers.SerializerMethodField()
+    distance = serializers.SerializerMethodField()
 
     class Meta:
         model = RegionalCenter
@@ -110,6 +111,7 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
             "has_service_area",
             "service_area_geojson",
             "served_providers",
+            "distance",  # Distance in miles (when using PostGIS queries)
         ]
 
     def get_served_providers(self, obj):
@@ -136,6 +138,13 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
     def get_has_service_area(self, obj):
         """Check if this regional center has a service area polygon"""
         return obj.service_area is not None
+
+    def get_distance(self, obj):
+        """Get distance in miles if available from PostGIS query"""
+        if hasattr(obj, 'distance') and obj.distance is not None:
+            # Distance is already converted to miles in the view
+            return round(float(obj.distance), 2)
+        return None
 
 
 # GeoJSON serializer for regional centers with full geospatial data
@@ -272,6 +281,9 @@ class ProviderV2Serializer(serializers.ModelSerializer):
     specializations = serializers.ReadOnlyField()
     services = serializers.ReadOnlyField()
     coverage_areas = serializers.ReadOnlyField()
+    
+    # Distance field (dynamically added when using PostGIS queries)
+    distance = serializers.SerializerMethodField()
 
     # Optional: Include related regional centers
     serving_regional_centers = serializers.SerializerMethodField()
@@ -311,7 +323,15 @@ class ProviderV2Serializer(serializers.ModelSerializer):
             "services",
             "coverage_areas",
             "serving_regional_centers",
+            "distance",  # Distance in miles (when using PostGIS queries)
         ]
+
+    def get_distance(self, obj):
+        """Get distance in miles if available from PostGIS query"""
+        if hasattr(obj, 'distance') and obj.distance is not None:
+            # Distance is already converted to miles in the view
+            return round(float(obj.distance), 2)
+        return None
 
     def get_serving_regional_centers(self, obj):
         """Get regional centers serving this provider"""

@@ -40,7 +40,7 @@ def reverse_restore(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("locations", "0019_deduplicate_all_regional_centers"),
+        ("locations", "0020_deduplicate_all_regional_centers"),
     ]
 
     operations = [

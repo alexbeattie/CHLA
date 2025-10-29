@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: chla-postgres-local
+    environment:
+      POSTGRES_DB: chla_local
+      POSTGRES_USER: chla_dev
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"  # Use 5433 to avoid conflicts with local PostgreSQL
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./maplocation/data:/data  # Mount data directory for imports
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chla_dev -d chla_local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+

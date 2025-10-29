@@ -33,12 +33,31 @@ var/
 *.pot
 *.pyc
 local_settings.py
+db.sqlite3
 db.sqlite3-journal
+
+# Environment files (NEVER commit real credentials!)
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+.env.*.local
+# Keep examples for templates
+!.env.example
+!.env.*.example
+!.env.local.example
+!.env.production.example
+
+# Database backups and exports
+maplocation/backups/
+*.sql
+*.dump
+*_export_*.json
+rds_export_*.json
 
 # Vue/Vite
 .DS_Store
-.env.local
-.env.*.local
 dist
 dist-ssr
 coverage

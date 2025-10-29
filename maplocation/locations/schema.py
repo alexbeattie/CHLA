@@ -95,7 +95,7 @@ class Query(graphene.ObjectType):
             return None
 
     def resolve_nearby_locations(self, info, lat, lng, radius):
-        earth_radius = 6371  # Earth's radius in kilometers
+        earth_radius = 3959  # Earth's radius in miles (use 3959 for miles, 6371 for kilometers)
         locations = Location.objects.filter(is_active=True)
         nearby_locations = []
 
@@ -115,7 +115,7 @@ class Query(graphene.ObjectType):
                     + math.cos(lat1) * math.cos(lat2) * math.sin(dlng / 2) ** 2
                 )
                 c = 2 * math.asin(math.sqrt(a))
-                distance = earth_radius * c  # in kilometers
+                distance = earth_radius * c  # in miles
 
                 if distance <= radius:
                     # Add distance to location

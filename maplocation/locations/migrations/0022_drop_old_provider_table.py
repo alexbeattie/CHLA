@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("locations", "0020_restore_regional_center_zip_codes"),
+        ("locations", "0021_restore_regional_center_zip_codes"),
     ]
 
     operations = [
