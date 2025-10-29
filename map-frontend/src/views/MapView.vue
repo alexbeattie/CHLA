@@ -1993,6 +1993,12 @@ export default {
 
     // Handle radius slider changes and adjust map zoom
     async onRadiusChange() {
+      // Prevent duplicate calls if already adjusting
+      if (this.isAdjustingRadius) {
+        console.log('⚠️ Radius change already in progress, skipping');
+        return;
+      }
+
       console.log('🔍 Radius changed to:', this.radius, 'miles');
       this.isAdjustingRadius = true;
 
