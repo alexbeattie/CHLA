@@ -2009,13 +2009,11 @@ export default {
       else if (this.radius <= 50) targetZoom = 9;
       else targetZoom = 8.5;
 
-      // Adjust map zoom only - keep current center position
-      if (this.mapInstance) {
-        // Get current center to maintain it
-        const currentCenter = this.mapInstance.getCenter();
-
+      // Adjust map zoom centered on user's location
+      if (this.mapInstance && this.userLocation?.latitude && this.userLocation?.longitude) {
+        // Always center on user's location when radius changes
         this.mapInstance.easeTo({
-          center: [currentCenter.lng, currentCenter.lat], // Keep current center
+          center: [this.userLocation.longitude, this.userLocation.latitude], // User's location
           zoom: targetZoom,
           duration: 1000, // 1 second smooth transition
           easing(t) {
@@ -2023,7 +2021,7 @@ export default {
             return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
           }
         });
-        console.log(`📍 Smoothly adjusting map zoom to ${targetZoom} for ${this.radius} mile radius (maintaining center at ${currentCenter.lat}, ${currentCenter.lng})`);
+        console.log(`📍 Smoothly adjusting map zoom to ${targetZoom} for ${this.radius} mile radius centered on user location (${this.userLocation.latitude}, ${this.userLocation.longitude})`);
       }
 
       // Re-fetch providers with new radius
