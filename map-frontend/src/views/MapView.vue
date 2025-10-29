@@ -17,6 +17,28 @@
           <span class="brand-subtitle d-none d-md-inline">ABA Provider Map</span>
         </div>
 
+        <!-- Regional Center Legend (Horizontal) -->
+        <div class="navbar-legend d-none d-lg-flex" v-if="displayType === 'regionalCenters'">
+          <div class="legend-compact">
+            <button class="legend-toggle-btn" @click="toggleRCLegend">
+              <i class="bi bi-map-fill"></i>
+              <span>Regional Centers</span>
+              <i :class="showRCLegend ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+            </button>
+            <div v-if="showRCLegend" class="legend-dropdown">
+              <div
+                v-for="rc in laRegionalCentersList"
+                :key="rc.name"
+                class="legend-item-compact"
+                :class="{ 'is-active': rc.name === userRegionalCenterName }"
+              >
+                <div class="color-dot" :style="{ backgroundColor: rc.color }"></div>
+                <span class="rc-name-short">{{ rc.abbreviation || rc.name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="navbar-actions">
           <button class="btn-icon d-md-none" @click="toggleSearch">
             <i class="bi bi-search"></i>
@@ -447,14 +469,6 @@
         @get-directions="handleGetDirections"
       />
 
-      <!-- Regional Center Legend -->
-      <regional-center-legend
-        v-if="!showOnboarding"
-        :user-regional-center="userRegionalCenterName"
-        :start-collapsed="false"
-        class="rc-legend-overlay"
-        @rc-select="handleRCSelect"
-      />
     </div>
   </div>
 </template>
@@ -473,7 +487,6 @@ import ProviderList from "@/components/map/ProviderList.vue";
 import ProviderCard from "@/components/map/ProviderCard.vue";
 import ProviderDetails from "@/components/map/ProviderDetails.vue";
 import FilterPanel from "@/components/map/FilterPanel.vue";
-import RegionalCenterLegend from "@/components/map/RegionalCenterLegend.vue";
 import SidebarPanel from "@/components/SidebarPanel.vue";
 import ProfileSummary from "@/components/ProfileSummary.vue";
 
@@ -520,7 +533,6 @@ export default {
     ProviderCard,
     ProviderDetails,
     FilterPanel,
-    RegionalCenterLegend,
     SidebarPanel,
     ProfileSummary,
   },
@@ -556,6 +568,9 @@ export default {
 
       // Display type
       displayType: "providers", // 'regionalCenters' or 'providers'
+
+      // Regional Center Legend in navbar
+      showRCLegend: false,
 
       // Collapsible sections state
       sectionsCollapsed: {
@@ -955,6 +970,13 @@ export default {
      */
     toggleSection(section) {
       this.sectionsCollapsed[section] = !this.sectionsCollapsed[section];
+    },
+
+    /**
+     * Toggle Regional Center Legend in navbar
+     */
+    toggleRCLegend() {
+      this.showRCLegend = !this.showRCLegend;
     },
 
     // ============================================
@@ -5765,6 +5787,102 @@ export default {
   font-weight: 500;
 }
 
+/* Regional Center Legend in Navbar */
+.navbar-legend {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.legend-compact {
+  position: relative;
+}
+
+.legend-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.legend-toggle-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.legend-toggle-btn i:first-child {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.legend-toggle-btn i:last-child {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.legend-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  min-width: 400px;
+  z-index: 2000;
+}
+
+.legend-item-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.legend-item-compact:hover {
+  background: #f9fafb;
+}
+
+.legend-item-compact.is-active {
+  background: #eff6ff;
+  border: 1px solid #3b82f6;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.rc-name-short {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -6650,23 +6768,6 @@ export default {
   background: #004877 !important;
 }
 
-/* Regional Center Legend Overlay */
-.rc-legend-overlay {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;  /* Moved to right side for better visibility */
-  z-index: 1100;  /* Above markers (which are z-index 1000-1001) */
-  max-width: 320px;
-}
-
-@media (max-width: 768px) {
-  .rc-legend-overlay {
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
-    max-width: none;  /* Full width on mobile */
-  }
-}
 
 /* Reset Button */
 .btn-secondary {
