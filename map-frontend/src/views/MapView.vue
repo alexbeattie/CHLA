@@ -1197,9 +1197,13 @@ export default {
     async handleGetDirections(data) {
       console.log("🗺️ [MapView] Getting directions to:", data);
       console.log("🗺️ [MapView] User location:", this.userLocation);
+      console.log("🗺️ [MapView] MapStore location:", this.mapStore?.userLocation);
 
-      // Clear existing directions
+      // Clear existing directions and wait for route removal
       this.closeDirections();
+
+      // Small delay to ensure route is removed from map before drawing new one
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Extract provider from data (could be direct provider object or coordinates object)
       const provider = data.provider || data;
@@ -1218,39 +1222,41 @@ export default {
       }
 
       // Determine origin for directions
+      // Origin should ALWAYS be the user's location (GPS or search location)
+      // NEVER use map center as it changes when panning/zooming
       let originLat, originLng, originName;
+
+      console.log("🗺️ [MapView] Determining origin for directions...");
+      console.log("🗺️ [MapView] - GPS detected:", this.userLocation.detected);
+      console.log("🗺️ [MapView] - GPS coords:", this.userLocation.latitude, this.userLocation.longitude);
+      console.log("🗺️ [MapView] - MapStore coords:", this.mapStore?.userLocation);
 
       // First priority: GPS location if detected
       if (this.userLocation.detected && this.userLocation.latitude && this.userLocation.longitude) {
         originLat = this.userLocation.latitude;
         originLng = this.userLocation.longitude;
-        originName = "Your Location";
-        console.log("🗺️ [MapView] Using GPS location as origin");
+        originName = "Your Location (GPS)";
+        console.log("✅ [MapView] Using GPS location as origin:", { lat: originLat, lng: originLng });
       }
-      // Second priority: mapStore user location (from geocoding/ZIP search)
+      // Second priority: mapStore user location (from geocoding/ZIP search - the blue marker)
       else if (this.mapStore?.userLocation?.lat && this.mapStore?.userLocation?.lng) {
         originLat = this.mapStore.userLocation.lat;
         originLng = this.mapStore.userLocation.lng;
         originName = "Your Search Location";
-        console.log("🗺️ [MapView] Using mapStore location (blue marker) as origin:", { lat: originLat, lng: originLng });
+        console.log("✅ [MapView] Using mapStore location (blue marker) as origin:", { lat: originLat, lng: originLng });
       }
-      // Third priority: Map center
-      else if (this.mapInstance) {
-        const center = this.mapInstance.getCenter();
-        originLat = center.lat;
-        originLng = center.lng;
-        originName = "Current Map View";
-        console.log("🗺️ [MapView] Using map center as origin:", { lat: originLat, lng: originLng });
-      }
-      // No location available
+      // No valid user location available
       else {
-        console.error("🗺️ [MapView] No location available for directions");
-        this.directionsError = "Unable to determine starting location. Please allow location access or search for a location.";
+        console.error("❌ [MapView] No user location available for directions");
+        this.directionsError = "Please enter a ZIP code or allow location access to get directions.";
         this.showDirections = true;
         return;
       }
 
-      console.log("🗺️ [MapView] Fetching directions from:", [originLng, originLat], "to:", [providerLng, providerLat]);
+      console.log("🗺️ [MapView] ===== ROUTE REQUEST =====");
+      console.log("🗺️ [MapView] FROM:", originName, [originLng, originLat]);
+      console.log("🗺️ [MapView] TO:", provider.name, [providerLng, providerLat]);
+      console.log("🗺️ [MapView] =======================");
 
       // Show loading state
       this.showDirections = true;
