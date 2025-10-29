@@ -208,7 +208,7 @@ jobs:
         id: deploy
         run: |
           cd maplocation
-          eb deploy chla-api-prod --region ${{ env.AWS_REGION }} --timeout 20
+          eb deploy chla-api-env --region ${{ env.AWS_REGION }} --timeout 20
         timeout-minutes: 25
 
       - name: Wait for deployment to stabilize
@@ -243,7 +243,7 @@ jobs:
         run: |
           cd maplocation
           echo "🔄 Rolling back to version ${{ steps.current-version.outputs.version }}"
-          eb deploy chla-api-prod --version ${{ steps.current-version.outputs.version }} --region ${{ env.AWS_REGION }}
+          eb deploy chla-api-env --version ${{ steps.current-version.outputs.version }} --region ${{ env.AWS_REGION }}
 
       - name: Notify on deployment failure
         if: failure()
