@@ -10,7 +10,10 @@
       "Bash(git add:*)",
       "Bash(git tag:*)",
       "Bash(git commit:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(dig:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)"
     ],
     "deny": []
   }
