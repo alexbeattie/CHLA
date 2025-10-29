@@ -15,14 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import TemplateView
+from django.contrib import admin
 from django.http import HttpResponse
-from graphene_django.views import GraphQLView
+from django.urls import include, path
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
+from graphene_django.views import GraphQLView
 
 # Customize admin site
 admin.site.site_header = "CHLA Provider Portal"
