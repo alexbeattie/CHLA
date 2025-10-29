@@ -30,7 +30,8 @@
                 v-for="rc in laRegionalCentersList"
                 :key="rc.name"
                 class="legend-item-compact"
-                :class="{ 'is-active': rc.name === userRegionalCenterName }"
+                :class="{ 'is-active': selectedRegionalCenterName === rc.name }"
+                @click="handleRegionalCenterSelect(rc)"
               >
                 <div class="color-dot" :style="{ backgroundColor: rc.color }"></div>
                 <span class="rc-name-short">{{ rc.abbreviation || rc.name }}</span>
@@ -571,6 +572,7 @@ export default {
 
       // Regional Center Legend in navbar
       showRCLegend: false,
+      selectedRegionalCenterName: null, // Currently selected RC from legend
 
       // Collapsible sections state
       sectionsCollapsed: {
@@ -1273,10 +1275,32 @@ export default {
     /**
      * Handle Regional Center selection from legend
      */
-    handleRCSelect(rc) {
+    handleRegionalCenterSelect(rc) {
       console.log("[MapView] Regional Center selected from legend:", rc.name);
-      // Could zoom to that RC's bounds, highlight it, etc.
-      // For now, just log it
+
+      // Toggle selection
+      if (this.selectedRegionalCenterName === rc.name) {
+        // Deselect if clicking the same one
+        this.selectedRegionalCenterName = null;
+      } else {
+        // Select this regional center
+        this.selectedRegionalCenterName = rc.name;
+
+        // Zoom to the regional center
+        this.zoomToRegionalCenter(rc.name);
+
+        // Update the regional center visibility if needed
+        if (this.showLARegionalCenters) {
+          // Ensure this regional center is visible
+          if (!(rc.name in this.selectedRegionalCenters)) {
+            this.$set
+              ? this.$set(this.selectedRegionalCenters, rc.name, true)
+              : (this.selectedRegionalCenters[rc.name] = true);
+          }
+          this.updateRegionalCenterVisibility(rc.name);
+          this.updateLAZipCenterVisibility();
+        }
+      }
     },
 
     // ============================================
