@@ -243,7 +243,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 100,
+    "PAGE_SIZE": 1000,  # Show all providers (current DB has ~300)
 }
 
 # Basic Auth for Admin Portal
