@@ -1,6 +1,6 @@
 branch-defaults:
   main:
-    environment: null
+    environment: chla-api-env
     group_suffix: null
 global:
   application_name: chla-api
