@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0022_alter_providerfundingsource_provider_and_more'),
+        ('locations', '0016_fix_la_regional_center_flags'),
     ]
 
     operations = [

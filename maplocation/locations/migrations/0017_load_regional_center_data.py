@@ -35,7 +35,7 @@ def reverse_load(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("locations", "0016_fix_la_regional_center_flags"),
+        ("locations", "0016_5_add_location_name_to_regionalcenter"),
     ]
 
     operations = [
