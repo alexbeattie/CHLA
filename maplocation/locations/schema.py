@@ -1,5 +1,6 @@
 import graphene
 from graphene_django import DjangoObjectType
+from django.db import models
 from .models import LocationCategory, Location, LocationImage, LocationReview
 import math
 

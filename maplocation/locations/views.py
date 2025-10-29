@@ -454,7 +454,7 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
             ).select_related("provider")
             providers = [rel.provider for rel in relationships]
 
-            serializer = ProviderSerializer(providers, many=True)
+            serializer = ProviderV2Serializer(providers, many=True)
             return Response(serializer.data)
 
         except Exception as e:
@@ -1133,7 +1133,7 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             insurance_types = set()
             areas = set()
 
-            for provider in Provider.objects.all():
+            for provider in ProviderV2.objects.all():
                 if provider.specializations:
                     specializations.update(
                         [s.strip() for s in provider.specializations.split(",")]

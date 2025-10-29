@@ -184,11 +184,6 @@ class CSVImporter:
             "Please use ProviderV2 import methods instead (admin interface or "
             "import_regional_center_providers management command)."
         )
-        
-        # Handle regional center associations
-        regional_centers_str = row.get('Regional Centers', '').strip()
-        if regional_centers_str:
-            self._associate_regional_centers(provider, regional_centers_str, row_num)
     
     def _associate_regional_centers(self, provider, regional_centers_str, row_num):
         """Associate provider with regional centers"""
