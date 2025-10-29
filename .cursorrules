@@ -1,62 +1,152 @@
-# CHLA Provider Map Project Rules
+# CHLA Provider Map - Cursor/AI Rules
 
-## Project Overview
-This is a healthcare provider mapping application with:
-- Frontend: Vue 3 + Vite hosted on AWS S3/CloudFront (https://kinddhelp.com)
-- Backend: Django REST API on AWS Elastic Beanstalk (https://api.kinddhelp.com)
-- Database: PostgreSQL on AWS RDS
+## Project Context
+Healthcare provider mapping application for LA County Regional Centers
+- Frontend: Vue 3 + Vite + TypeScript
+- Backend: Django + PostGIS + PostgreSQL
+- Deployment: AWS (S3/CloudFront + Elastic Beanstalk + RDS)
 
-## Key Commands
+## Critical Commands
 
-### Local Development
+### Development
 ```bash
-# Backend (Django)
-cd maplocation && source ../.venv/bin/activate && python3 manage.py runserver
+# Backend
+cd maplocation && source ../venv/bin/activate && python3 manage.py runserver
 
-# Frontend (Vue)
+# Frontend  
 cd map-frontend && ./switch-env.sh dev && npm run dev
+
+# Database (Docker)
+docker-compose -f docker-compose.local.yml up -d
+```
+
+### Testing (ALWAYS run before pushing!)
+```bash
+./scripts/quick-test.sh           # 10 seconds - run before every commit
+./scripts/test-deployment-locally.sh  # 3 minutes - before deployment
 ```
 
 ### Deployment
 ```bash
-# Backend
-cd maplocation && eb deploy --profile personal --region us-west-2
+# Manual (backup method)
+cd maplocation && ./deploy.sh
+cd map-frontend && ./deploy.sh
 
-# Frontend
-cd map-frontend && ./switch-env.sh prod && npm run build
-aws s3 sync dist/ s3://kinddhelp-frontend-1755148345 --delete --profile personal --region us-west-2
-aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*" --profile personal
+# GitHub Actions (primary)
+git push origin main  # automatic deployment
 ```
 
-## Critical Information
-1. ALWAYS use `python3` not `python` for Django commands
-2. Frontend environment switching: Use `./switch-env.sh dev` or `./switch-env.sh prod`
-3. API Base URLs:
-   - Development: http://127.0.0.1:8000
-   - Production: https://api.kinddhelp.com
-4. AWS Profile: `personal`
-5. AWS Region: `us-west-2`
+## Code Standards
 
-## Common Issues
-- 502 errors: Check Elastic Beanstalk health (`eb health`)
-- CORS errors: Update CORS_ALLOWED_ORIGINS in EB environment variables
-- Frontend not updating: CloudFront cache invalidation takes 5-15 minutes
+### Python/Django
+- Always use `python3` not `python`
+- Use PostGIS for geographic queries
+- Follow Django best practices
+- Add docstrings to all public methods
+- Use type hints where possible
 
-## Project Structure
-```
-/CHLAProj/
-├── map-frontend/     # Vue.js frontend
-├── maplocation/      # Django backend
-└── .venv/           # Python virtual environment
-```
+### Vue/TypeScript
+- Use Composition API (not Options API)
+- TypeScript strict mode
+- Pinia for state management
+- Composables in `/composables` directory
 
-## API Endpoints
-- `/api/providers-v2/comprehensive_search/` - Main provider search
-- `/api/regional-centers/` - Regional center data
-- `/api/regional-centers/service_area_boundaries/` - Service area polygons
+### Database
+- All distances in MILES (not kilometers)
+- Use PostGIS for spatial operations
+- Migrations required for schema changes
 
-## Never Do
-- Don't create unnecessary files without user request
-- Don't use relative API URLs in production builds
-- Don't forget to activate the virtual environment for Django
-- Don't use `python` command - always use `python3`
+## Security
+
+### NEVER commit:
+- `.env` files with real credentials
+- Database backups (`.sql`, `.dump`)
+- AWS credentials
+- Secret keys or passwords
+
+### ALWAYS:
+- Use `.env.example` templates
+- Store secrets in GitHub Secrets for CI/CD
+- Rotate passwords every 90 days
+- Use different credentials for local vs production
+
+## File Organization
+
+### Environment Files
+- `.env.local` - Local development (not committed)
+- `.env.production` - Production (not committed)
+- `.env.example` - Template (committed)
+
+### Documentation
+- `QUICK_START.md` - Getting started guide
+- `ENV_SETTINGS.md` - All environment variables and settings
+- `DEPLOY.md` - Deployment procedures
+- `.github/CICD_GUIDE.md` - CI/CD documentation
+
+## Common Pitfalls
+
+1. **Unit Mismatch**: Always use miles for distances
+2. **Database Sync**: Use sync scripts, don't manually copy
+3. **Environment**: Always specify `.env.local` or `.env.production`
+4. **CORS**: Update both backend and frontend configs
+5. **CloudFront**: Cache invalidation takes 5-15 minutes
+
+## Quick Reference
+
+### Local URLs
+- Backend: http://localhost:8000
+- Frontend: http://localhost:5173
+- Admin: http://localhost:8000/admin/
+
+### Production URLs
+- Backend: https://api.kinddhelp.com
+- Frontend: https://kinddhelp.com
+- Admin: https://api.kinddhelp.com/admin/
+
+### Authentication
+- Basic Auth: clientaccess / changeme123!
+- Admin: admin / admin123
+- Client: client1 / client-password-123
+
+### AWS Configuration
+- Region: us-west-2
+- Profile: personal
+- EB Environment: chla-api-env
+- S3 Bucket: kinddhelp-frontend-1755148345
+- CloudFront: E2W6EECHUV4LMM
+
+## Before Making Changes
+
+1. Read relevant documentation first
+2. Check existing patterns in codebase
+3. Run quick tests locally
+4. Create feature branch for non-trivial changes
+5. Test thoroughly before merging to main
+
+## When Stuck
+
+1. Check `QUICK_START.md` for common commands
+2. Check `ENV_SETTINGS.md` for configuration
+3. Run `./scripts/quick-test.sh` to diagnose issues
+4. Check GitHub Actions logs for deployment issues
+5. Review error messages carefully - they usually point to the issue
+
+## Performance
+
+- Frontend build: ~30 seconds
+- Backend deployment: ~3-5 minutes
+- Frontend deployment: ~2-3 minutes (+ cache invalidation)
+- Quick tests: ~10 seconds
+- Full tests: ~3 minutes
+
+## Workflow
+
+1. Make changes locally
+2. Test with `./scripts/quick-test.sh`
+3. Commit to feature branch
+4. Push to GitHub (triggers quick-ci)
+5. Create PR (runs full tests)
+6. Merge to main (triggers deployment)
+7. Monitor GitHub Actions for success
+8. Verify deployment at production URLs
+
