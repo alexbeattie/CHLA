@@ -17,8 +17,8 @@
           <span class="brand-subtitle d-none d-md-inline">ABA Provider Map</span>
         </div>
 
-        <!-- Regional Center Legend (Horizontal) -->
-        <div class="navbar-legend d-none d-lg-flex" v-if="displayType === 'regionalCenters'">
+        <!-- Regional Center Legend (Horizontal) - Always visible -->
+        <div class="navbar-legend d-none d-lg-flex">
           <div class="legend-compact">
             <button class="legend-toggle-btn" @click="toggleRCLegend">
               <i class="bi bi-map-fill"></i>
@@ -1237,6 +1237,14 @@ export default {
           error: null,
         };
 
+        // Update mapStore so the marker appears
+        if (this.mapStore) {
+          this.mapStore.setUserLocation(
+            { lat: latitude, lng: longitude },
+            position.coords.accuracy
+          );
+        }
+
         // Reverse geocode to get ZIP code
         const response = await fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${this.mapboxAccessToken}&types=postcode`
@@ -1975,13 +1983,18 @@ export default {
       else if (this.radius <= 25) targetZoom = 10;
       else targetZoom = 9;
 
-      // Adjust map zoom to show the selected radius
-      if (this.mapStore && this.userLocation?.latitude && this.userLocation?.longitude) {
-        this.mapStore.centerOn(
-          { lat: this.userLocation.latitude, lng: this.userLocation.longitude },
-          targetZoom
-        );
-        console.log(`📍 Adjusted map zoom to ${targetZoom} for ${this.radius} mile radius`);
+      // Adjust map zoom with smooth animation
+      if (this.mapInstance && this.userLocation?.latitude && this.userLocation?.longitude) {
+        this.mapInstance.easeTo({
+          center: [this.userLocation.longitude, this.userLocation.latitude],
+          zoom: targetZoom,
+          duration: 1000, // 1 second smooth transition
+          easing(t) {
+            // Smooth easing function (ease-in-out)
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+          }
+        });
+        console.log(`📍 Smoothly adjusting map zoom to ${targetZoom} for ${this.radius} mile radius`);
       }
 
       // Re-fetch providers with new radius
@@ -2065,6 +2078,12 @@ export default {
           this.userLocation.latitude = coords.lat;
           this.userLocation.longitude = coords.lng;
           this.userLocation.detected = true;
+
+          // Update mapStore so the marker appears
+          if (this.mapStore) {
+            this.mapStore.setUserLocation({ lat: coords.lat, lng: coords.lng });
+          }
+
           console.log(`✅ Geocoded ${zipCode} to: ${coords.lat}, ${coords.lng}`);
           console.log(`✅ userLocation now:`, this.userLocation);
           console.log(`✅ Radius slider should now be visible!`);
