@@ -5,7 +5,7 @@ Check the status of Provider vs ProviderV2 tables
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'maplocation.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "maplocation.settings")
 django.setup()
 
 from locations.models import Provider, ProviderV2
@@ -46,4 +46,3 @@ else:
     print(f"⚠️  Old table has {old_count} records, new has {new_count}")
     print("   Review data before removing old model")
 print("=" * 60)
-

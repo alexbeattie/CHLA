@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0008_add_la_regional_center_fields'),
+        ("locations", "0008_add_la_regional_center_fields"),
     ]
 
     operations = [
@@ -35,12 +35,14 @@ class Migration(migrations.Migration):
                 )
             ],
             state_operations=[
-                migrations.RemoveField(model_name='providerv2', name='areas'),
-                migrations.RemoveField(model_name='providerv2', name='center_based_services'),
-                migrations.RemoveField(model_name='providerv2', name='coverage_areas'),
-                migrations.RemoveField(model_name='providerv2', name='services'),
-                migrations.RemoveField(model_name='providerv2', name='specializations'),
-                migrations.RemoveField(model_name='providerv2', name='website_domain'),
+                migrations.RemoveField(model_name="providerv2", name="areas"),
+                migrations.RemoveField(
+                    model_name="providerv2", name="center_based_services"
+                ),
+                migrations.RemoveField(model_name="providerv2", name="coverage_areas"),
+                migrations.RemoveField(model_name="providerv2", name="services"),
+                migrations.RemoveField(model_name="providerv2", name="specializations"),
+                migrations.RemoveField(model_name="providerv2", name="website_domain"),
             ],
         ),
         # Add new columns (state + DB) safely
@@ -70,13 +72,41 @@ class Migration(migrations.Migration):
                 )
             ],
             state_operations=[
-                migrations.AddField(model_name='providerv2', name='description', field=models.TextField(blank=True, null=True)),
-                migrations.AddField(model_name='providerv2', name='email', field=models.EmailField(blank=True, max_length=254, null=True)),
-                migrations.AddField(model_name='providerv2', name='hours', field=models.TextField(blank=True, null=True)),
-                migrations.AddField(model_name='providerv2', name='languages_spoken', field=models.TextField(blank=True, null=True)),
-                migrations.AddField(model_name='providerv2', name='type', field=models.CharField(blank=True, max_length=100, null=True)),
-                migrations.AddField(model_name='providerv2', name='verified', field=models.BooleanField(default=False)),
-                migrations.AddField(model_name='providerv2', name='website', field=models.URLField(blank=True, null=True)),
+                migrations.AddField(
+                    model_name="providerv2",
+                    name="description",
+                    field=models.TextField(blank=True, null=True),
+                ),
+                migrations.AddField(
+                    model_name="providerv2",
+                    name="email",
+                    field=models.EmailField(blank=True, max_length=254, null=True),
+                ),
+                migrations.AddField(
+                    model_name="providerv2",
+                    name="hours",
+                    field=models.TextField(blank=True, null=True),
+                ),
+                migrations.AddField(
+                    model_name="providerv2",
+                    name="languages_spoken",
+                    field=models.TextField(blank=True, null=True),
+                ),
+                migrations.AddField(
+                    model_name="providerv2",
+                    name="type",
+                    field=models.CharField(blank=True, max_length=100, null=True),
+                ),
+                migrations.AddField(
+                    model_name="providerv2",
+                    name="verified",
+                    field=models.BooleanField(default=False),
+                ),
+                migrations.AddField(
+                    model_name="providerv2",
+                    name="website",
+                    field=models.URLField(blank=True, null=True),
+                ),
             ],
         ),
         # Ensure insurance_accepted is text (state + DB)
@@ -95,8 +125,8 @@ class Migration(migrations.Migration):
             ],
             state_operations=[
                 migrations.AlterField(
-                    model_name='providerv2',
-                    name='insurance_accepted',
+                    model_name="providerv2",
+                    name="insurance_accepted",
                     field=models.TextField(blank=True, null=True),
                 ),
             ],

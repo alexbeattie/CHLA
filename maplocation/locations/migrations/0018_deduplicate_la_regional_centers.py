@@ -8,7 +8,7 @@ def deduplicate_la_rcs(apps, schema_editor):
     Remove duplicates - keep EXACTLY 7 LA County Regional Centers.
     For duplicates, keeps the one with the most ZIP codes.
     """
-    RegionalCenter = apps.get_model('locations', 'RegionalCenter')
+    RegionalCenter = apps.get_model("locations", "RegionalCenter")
 
     LA_COUNTY_REGIONAL_CENTERS = [
         "North Los Angeles County Regional Center",
@@ -27,7 +27,9 @@ def deduplicate_la_rcs(apps, schema_editor):
 
         if len(rcs) > 1:
             # Keep the one with the MOST ZIP codes
-            rcs_with_zips = [(rc, len(rc.zip_codes) if rc.zip_codes else 0) for rc in rcs]
+            rcs_with_zips = [
+                (rc, len(rc.zip_codes) if rc.zip_codes else 0) for rc in rcs
+            ]
             rcs_with_zips.sort(key=lambda x: (-x[1], x[0].id))
             keep = rcs_with_zips[0][0]
             duplicates = [rc for rc, _ in rcs_with_zips[1:]]
@@ -55,7 +57,7 @@ def reverse_dedup(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0017_load_regional_center_data'),
+        ("locations", "0017_load_regional_center_data"),
     ]
 
     operations = [

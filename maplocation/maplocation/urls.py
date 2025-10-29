@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -29,22 +30,46 @@ admin.site.site_title = "Provider Portal"
 admin.site.index_title = "Welcome to the Provider Management Portal"
 
 urlpatterns = [
-    path('client-portal/', admin.site.urls),
-    path('api/', include('locations.urls')),
-    path('api/users/', include('users.urls')),
-    path('api-auth/', include('rest_framework.urls')),
-    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))),
-    path('basic/', TemplateView.as_view(template_name='vue_app/basic.html'), name='basic'),
-    path('mapbox/', TemplateView.as_view(template_name='vue_app/mapbox.html'), name='mapbox'),
-    path('public/', TemplateView.as_view(template_name='vue_app/mapbox_public.html'), name='mapbox_public'),
-    path('leaflet/', TemplateView.as_view(template_name='vue_app/leaflet.html'), name='leaflet'),
-    path('vue/', TemplateView.as_view(template_name='vue_app/vue_mapbox_raw.html'), name='vue_mapbox'),
-    path('simple/', TemplateView.as_view(template_name='vue_app/simple.html'), name='simple'),
+    path("client-portal/", admin.site.urls),
+    path("api/", include("locations.urls")),
+    path("api/users/", include("users.urls")),
+    path("api-auth/", include("rest_framework.urls")),
+    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    path(
+        "basic/", TemplateView.as_view(template_name="vue_app/basic.html"), name="basic"
+    ),
+    path(
+        "mapbox/",
+        TemplateView.as_view(template_name="vue_app/mapbox.html"),
+        name="mapbox",
+    ),
+    path(
+        "public/",
+        TemplateView.as_view(template_name="vue_app/mapbox_public.html"),
+        name="mapbox_public",
+    ),
+    path(
+        "leaflet/",
+        TemplateView.as_view(template_name="vue_app/leaflet.html"),
+        name="leaflet",
+    ),
+    path(
+        "vue/",
+        TemplateView.as_view(template_name="vue_app/vue_mapbox_raw.html"),
+        name="vue_mapbox",
+    ),
+    path(
+        "simple/",
+        TemplateView.as_view(template_name="vue_app/simple.html"),
+        name="simple",
+    ),
     # Simple health check endpoint for load balancer
-    path('', lambda request: HttpResponse('OK'), name='health'),
+    path("", lambda request: HttpResponse("OK"), name="health"),
 ]
 
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+    urlpatterns += static(
+        settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0]
+    )

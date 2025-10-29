@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 from .utils.geocode import geocode_address
+
 # from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from .models import (
     Location,
@@ -140,10 +141,10 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
 # GeoJSON serializer for regional centers with full geospatial data
 class GeoJSONRegionalCenterSerializer(serializers.Serializer):
     """Serializer that returns proper GeoJSON Feature objects for regional centers"""
-    
+
     def to_representation(self, obj):
         geojson_data = obj.get_service_area_as_geojson()
-        
+
         if geojson_data:
             return {
                 "type": "Feature",
@@ -159,7 +160,7 @@ class GeoJSONRegionalCenterSerializer(serializers.Serializer):
                     "zip_code": obj.zip_code,
                     "telephone": obj.telephone,
                     "website": obj.website,
-                }
+                },
             }
         return None
 
@@ -167,20 +168,20 @@ class GeoJSONRegionalCenterSerializer(serializers.Serializer):
 # Simplified serializer for service areas only (for map overlays)
 class ServiceAreaSerializer(serializers.Serializer):
     """Serializer that returns proper GeoJSON Feature objects for service areas only"""
-    
+
     def to_representation(self, obj):
         geojson_data = obj.get_service_area_as_geojson()
-        
+
         if geojson_data:
             return {
-                "type": "Feature", 
+                "type": "Feature",
                 "geometry": geojson_data,
                 "properties": {
                     "id": obj.id,
                     "center_name": obj.regional_center,
                     "county_served": obj.county_served,
                     "service_radius_miles": obj.service_radius_miles,
-                }
+                },
             }
         return None
 
@@ -323,7 +324,9 @@ class ProviderV2WriteSerializer(serializers.ModelSerializer):
         if value in (None, ""):
             return None
         try:
-            dec = Decimal(str(value)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
+            dec = Decimal(str(value)).quantize(
+                Decimal("0.000001"), rounding=ROUND_HALF_UP
+            )
             return dec
         except (InvalidOperation, ValueError, TypeError):
             return value
@@ -332,7 +335,9 @@ class ProviderV2WriteSerializer(serializers.ModelSerializer):
         if value in (None, ""):
             return None
         try:
-            dec = Decimal(str(value)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
+            dec = Decimal(str(value)).quantize(
+                Decimal("0.000001"), rounding=ROUND_HALF_UP
+            )
             return dec
         except (InvalidOperation, ValueError, TypeError):
             return value
@@ -352,7 +357,9 @@ class ProviderV2WriteSerializer(serializers.ModelSerializer):
             if value is None or value == "":
                 return None
             try:
-                dec = Decimal(str(value)).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
+                dec = Decimal(str(value)).quantize(
+                    Decimal("0.000001"), rounding=ROUND_HALF_UP
+                )
                 return dec
             except (InvalidOperation, ValueError, TypeError):
                 return value
@@ -366,7 +373,7 @@ class ProviderV2WriteSerializer(serializers.ModelSerializer):
         fields = [
             "name",
             "type",
-            "phone", 
+            "phone",
             "email",
             "website",
             "description",

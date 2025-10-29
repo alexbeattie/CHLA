@@ -10,13 +10,13 @@ def load_regional_center_fixture(apps, schema_editor):
     This replaces incomplete data in production database.
     """
     # Clear existing Regional Center data to avoid duplicates
-    RegionalCenter = apps.get_model('locations', 'RegionalCenter')
+    RegionalCenter = apps.get_model("locations", "RegionalCenter")
     deleted_count = RegionalCenter.objects.all().count()
     RegionalCenter.objects.all().delete()
     print(f"🗑️  Deleted {deleted_count} existing Regional Center records")
 
     # Load fixture with complete data
-    call_command('loaddata', 'regional_centers_complete.json', app_label='locations')
+    call_command("loaddata", "regional_centers_complete.json", app_label="locations")
 
     new_count = RegionalCenter.objects.all().count()
     print(f"✅ Loaded {new_count} Regional Center records with complete data")
@@ -27,7 +27,7 @@ def reverse_load(apps, schema_editor):
     Reverse by clearing all Regional Center data.
     This is just for migration rollback - data would need to be restored from backup.
     """
-    RegionalCenter = apps.get_model('locations', 'RegionalCenter')
+    RegionalCenter = apps.get_model("locations", "RegionalCenter")
     RegionalCenter.objects.all().delete()
     print("⚠️  Regional Center data cleared - restore from backup if needed")
 
@@ -35,7 +35,7 @@ def reverse_load(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0016_fix_la_regional_center_flags'),
+        ("locations", "0016_fix_la_regional_center_flags"),
     ]
 
     operations = [

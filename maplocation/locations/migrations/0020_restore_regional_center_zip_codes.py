@@ -9,7 +9,7 @@ def restore_zip_codes(apps, schema_editor):
     Restore ZIP codes for all Regional Centers by reloading from fixture.
     This fixes the issue where deduplication kept empty records.
     """
-    RegionalCenter = apps.get_model('locations', 'RegionalCenter')
+    RegionalCenter = apps.get_model("locations", "RegionalCenter")
 
     # Clear all existing RCs
     deleted_count = RegionalCenter.objects.all().count()
@@ -17,7 +17,7 @@ def restore_zip_codes(apps, schema_editor):
     print(f"🗑️  Deleted {deleted_count} existing Regional Center records")
 
     # Load fixture with complete ZIP code data
-    call_command('loaddata', 'regional_centers_with_zips.json', app_label='locations')
+    call_command("loaddata", "regional_centers_with_zips.json", app_label="locations")
 
     new_count = RegionalCenter.objects.all().count()
     print(f"✅ Loaded {new_count} Regional Center records with ZIP codes")
@@ -40,7 +40,7 @@ def reverse_restore(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0019_deduplicate_all_regional_centers'),
+        ("locations", "0019_deduplicate_all_regional_centers"),
     ]
 
     operations = [

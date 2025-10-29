@@ -6,18 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0011_add_provider_service_fields'),
+        ("locations", "0011_add_provider_service_fields"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='providerv2',
-            name='age_groups',
-            field=models.JSONField(blank=True, help_text="Age groups this provider serves (e.g., ['0-5', '6-12', '13-18', '19+'])", null=True),
+            model_name="providerv2",
+            name="age_groups",
+            field=models.JSONField(
+                blank=True,
+                help_text="Age groups this provider serves (e.g., ['0-5', '6-12', '13-18', '19+'])",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='providerv2',
-            name='diagnoses_treated',
-            field=models.JSONField(blank=True, help_text="Diagnoses/conditions this provider treats (e.g., ['Autism Spectrum Disorder', 'ADHD'])", null=True),
+            model_name="providerv2",
+            name="diagnoses_treated",
+            field=models.JSONField(
+                blank=True,
+                help_text="Diagnoses/conditions this provider treats (e.g., ['Autism Spectrum Disorder', 'ADHD'])",
+                null=True,
+            ),
         ),
     ]

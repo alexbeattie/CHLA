@@ -15,8 +15,9 @@ print()
 print("STEP 1: Export providers from LOCAL database")
 print("-" * 80)
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'maplocation.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "maplocation.settings")
 import django
+
 django.setup()
 
 from locations.models import ProviderV2
@@ -34,30 +35,32 @@ print()
 provider_data = []
 for p in providers:
     data = {
-        'name': p.name,
-        'type': p.type,
-        'phone': p.phone,
-        'email': p.email,
-        'website': p.website,
-        'description': p.description,
-        'address': p.address,
-        'latitude': float(p.latitude) if p.latitude else None,
-        'longitude': float(p.longitude) if p.longitude else None,
-        'verified': p.verified,
-        'insurance_accepted': p.insurance_accepted,
-        'age_groups': p.age_groups,
-        'diagnoses_treated': p.diagnoses_treated,
-        'therapy_types': p.therapy_types,
-        'languages_spoken': p.languages_spoken,
-        'accepts_insurance': p.accepts_insurance,
-        'accepts_private_pay': p.accepts_private_pay,
-        'accepts_regional_center': p.accepts_regional_center,
+        "name": p.name,
+        "type": p.type,
+        "phone": p.phone,
+        "email": p.email,
+        "website": p.website,
+        "description": p.description,
+        "address": p.address,
+        "latitude": float(p.latitude) if p.latitude else None,
+        "longitude": float(p.longitude) if p.longitude else None,
+        "verified": p.verified,
+        "insurance_accepted": p.insurance_accepted,
+        "age_groups": p.age_groups,
+        "diagnoses_treated": p.diagnoses_treated,
+        "therapy_types": p.therapy_types,
+        "languages_spoken": p.languages_spoken,
+        "accepts_insurance": p.accepts_insurance,
+        "accepts_private_pay": p.accepts_private_pay,
+        "accepts_regional_center": p.accepts_regional_center,
     }
     provider_data.append(data)
 
 # Save to temp file
-temp_file = f'/tmp/local_providers_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
-with open(temp_file, 'w') as f:
+temp_file = (
+    f'/tmp/local_providers_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
+)
+with open(temp_file, "w") as f:
     json.dump(provider_data, f, indent=2)
 
 print(f"✅ Exported {len(provider_data)} providers to {temp_file}")
@@ -69,16 +72,16 @@ print("-" * 80)
 print()
 
 response = input("Continue to RDS import? (y/n): ")
-if response.lower() != 'y':
+if response.lower() != "y":
     print("❌ Sync cancelled")
     sys.exit(0)
 
 # Reconfigure for RDS
-os.environ['DB_HOST'] = 'chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com'
-os.environ['DB_NAME'] = 'postgres'
-os.environ['DB_USER'] = 'chla_admin'
-os.environ['DB_PASSWORD'] = 'CHLASecure2024'
-os.environ['DB_SSL_REQUIRE'] = 'true'
+os.environ["DB_HOST"] = "chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com"
+os.environ["DB_NAME"] = "postgres"
+os.environ["DB_USER"] = "chla_admin"
+os.environ["DB_PASSWORD"] = "CHLASecure2024"
+os.environ["DB_SSL_REQUIRE"] = "true"
 
 # Reload Django with RDS settings
 from importlib import reload
@@ -107,7 +110,7 @@ except Exception as e:
     sys.exit(1)
 
 # Load the exported data
-with open(temp_file, 'r') as f:
+with open(temp_file, "r") as f:
     providers_to_import = json.load(f)
 
 print(f"Importing {len(providers_to_import)} providers to RDS...")
@@ -120,7 +123,7 @@ skipped = 0
 for data in providers_to_import:
     try:
         # Try to find existing provider by name
-        existing = RDSProviderV2.objects.filter(name=data['name']).first()
+        existing = RDSProviderV2.objects.filter(name=data["name"]).first()
 
         if existing:
             # Update existing provider (preserve id)

@@ -2,6 +2,7 @@
 Management command to deduplicate LA County Regional Centers
 Keeps ONLY 7 entries - one for each of the 7 LA County Regional Centers
 """
+
 from django.core.management.base import BaseCommand
 from locations.models import RegionalCenter
 from django.db.models import Count
@@ -30,16 +31,12 @@ class Command(BaseCommand):
 
         for rc_name in self.LA_COUNTY_REGIONAL_CENTERS:
             # Get all instances with this name
-            rcs = RegionalCenter.objects.filter(
-                regional_center=rc_name
-            )
+            rcs = RegionalCenter.objects.filter(regional_center=rc_name)
 
             count = rcs.count()
 
             if count == 0:
-                self.stdout.write(
-                    self.style.ERROR(f"  ❌ NOT FOUND: {rc_name}")
-                )
+                self.stdout.write(self.style.ERROR(f"  ❌ NOT FOUND: {rc_name}"))
             elif count == 1:
                 self.stdout.write(
                     self.style.SUCCESS(f"  ✅ OK (1 instance): {rc_name}")
@@ -47,21 +44,21 @@ class Command(BaseCommand):
             else:
                 # Keep the one with the MOST ZIP codes (best data)
                 # If tied, keep the one with lowest ID (oldest)
-                rcs_with_zips = [(rc, len(rc.zip_codes) if rc.zip_codes else 0) for rc in rcs]
-                rcs_with_zips.sort(key=lambda x: (-x[1], x[0].id))  # Sort by ZIP count desc, then ID asc
+                rcs_with_zips = [
+                    (rc, len(rc.zip_codes) if rc.zip_codes else 0) for rc in rcs
+                ]
+                rcs_with_zips.sort(
+                    key=lambda x: (-x[1], x[0].id)
+                )  # Sort by ZIP count desc, then ID asc
                 keep = rcs_with_zips[0][0]
                 duplicates = [rc for rc, _ in rcs_with_zips[1:]]
 
                 # Show which one we're keeping
                 zip_count = len(keep.zip_codes) if keep.zip_codes else 0
                 self.stdout.write(
-                    self.style.WARNING(
-                        f"  🔍 FOUND {count} instances of: {rc_name}"
-                    )
+                    self.style.WARNING(f"  🔍 FOUND {count} instances of: {rc_name}")
                 )
-                self.stdout.write(
-                    f"     KEEPING: ID {keep.id} ({zip_count} ZIP codes)"
-                )
+                self.stdout.write(f"     KEEPING: ID {keep.id} ({zip_count} ZIP codes)")
 
                 # Delete duplicates
                 for dup in duplicates:
@@ -106,6 +103,10 @@ class Command(BaseCommand):
         # List the 7 remaining RCs
         self.stdout.write("")
         self.stdout.write("📋 The 7 LA County Regional Centers:")
-        for rc in RegionalCenter.objects.filter(is_la_regional_center=True).order_by('regional_center'):
+        for rc in RegionalCenter.objects.filter(is_la_regional_center=True).order_by(
+            "regional_center"
+        ):
             zip_count = len(rc.zip_codes) if rc.zip_codes else 0
-            self.stdout.write(f"  • {rc.regional_center} (ID: {rc.id}, {zip_count} ZIPs)")
+            self.stdout.write(
+                f"  • {rc.regional_center} (ID: {rc.id}, {zip_count} ZIPs)"
+            )

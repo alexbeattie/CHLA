@@ -15,21 +15,62 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='UserProfile',
+            name="UserProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('age', models.PositiveIntegerField(blank=True, null=True)),
-                ('address', models.CharField(blank=True, max_length=255)),
-                ('city', models.CharField(blank=True, max_length=100)),
-                ('state', models.CharField(blank=True, max_length=50)),
-                ('zip_code', models.CharField(blank=True, max_length=20)),
-                ('latitude', models.DecimalField(blank=True, decimal_places=7, max_digits=10, null=True)),
-                ('longitude', models.DecimalField(blank=True, decimal_places=7, max_digits=10, null=True)),
-                ('diagnosis', models.CharField(blank=True, choices=[('autism', 'Autism'), ('dup15q', 'dup15q'), ('tsc', 'TSC'), ('adhd', 'ADHD'), ('angelman', 'Angelman Syndrome'), ('rhetts', 'Rhetts'), ('anxiety_depression', 'Anxiety/Depression'), ('other', 'Other')], max_length=50)),
-                ('other_diagnosis', models.CharField(blank=True, max_length=100)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("age", models.PositiveIntegerField(blank=True, null=True)),
+                ("address", models.CharField(blank=True, max_length=255)),
+                ("city", models.CharField(blank=True, max_length=100)),
+                ("state", models.CharField(blank=True, max_length=50)),
+                ("zip_code", models.CharField(blank=True, max_length=20)),
+                (
+                    "latitude",
+                    models.DecimalField(
+                        blank=True, decimal_places=7, max_digits=10, null=True
+                    ),
+                ),
+                (
+                    "longitude",
+                    models.DecimalField(
+                        blank=True, decimal_places=7, max_digits=10, null=True
+                    ),
+                ),
+                (
+                    "diagnosis",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("autism", "Autism"),
+                            ("dup15q", "dup15q"),
+                            ("tsc", "TSC"),
+                            ("adhd", "ADHD"),
+                            ("angelman", "Angelman Syndrome"),
+                            ("rhetts", "Rhetts"),
+                            ("anxiety_depression", "Anxiety/Depression"),
+                            ("other", "Other"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                ("other_diagnosis", models.CharField(blank=True, max_length=100)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

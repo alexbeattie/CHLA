@@ -14,29 +14,33 @@ def convert_provider_relationships(apps, schema_editor):
     3. Re-establish foreign keys to ProviderV2
     """
     tables = [
-        'locations_providerfundingsource',
-        'provider_regional_centers',
-        'locations_providerservicemodel',
-        'locations_providerinsurancecarrier'
+        "locations_providerfundingsource",
+        "provider_regional_centers",
+        "locations_providerservicemodel",
+        "locations_providerinsurancecarrier",
     ]
 
     with schema_editor.connection.cursor() as cursor:
         for table in tables:
             # Check if table exists and if provider_id is bigint
-            cursor.execute(f"""
+            cursor.execute(
+                f"""
                 SELECT data_type
                 FROM information_schema.columns
                 WHERE table_name = %s
                 AND column_name = 'provider_id'
-            """, [table])
+            """,
+                [table],
+            )
 
             result = cursor.fetchone()
-            if result and result[0] in ('bigint', 'integer'):
+            if result and result[0] in ("bigint", "integer"):
                 # Table has integer/bigint provider_id, needs conversion
                 print(f"Converting {table} provider_id from {result[0]} to uuid...")
 
                 # Drop foreign key constraint if it exists
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     DO $$
                     BEGIN
                         -- Drop old foreign key constraint
@@ -56,26 +60,32 @@ def convert_provider_relationships(apps, schema_editor):
                             );
                         END IF;
                     END $$;
-                """, [table, table, table])
+                """,
+                    [table, table, table],
+                )
 
                 # Clear existing data (references old Provider model)
                 cursor.execute(f"TRUNCATE TABLE {table} CASCADE")
 
                 # Drop and recreate provider_id as uuid
                 cursor.execute(f"ALTER TABLE {table} DROP COLUMN provider_id")
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     ALTER TABLE {table}
                     ADD COLUMN provider_id uuid NOT NULL
-                """)
+                """
+                )
 
                 # Add foreign key to ProviderV2
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     ALTER TABLE {table}
                     ADD CONSTRAINT {table}_provider_id_fkey
                     FOREIGN KEY (provider_id)
                     REFERENCES providers_v2(id)
                     ON DELETE CASCADE
-                """)
+                """
+                )
 
                 print(f"✓ Converted {table}")
 
@@ -88,12 +98,14 @@ def reverse_conversion(apps, schema_editor):
 def delete_provider_model_if_exists(apps, schema_editor):
     """Delete Provider model table if it still exists (was dropped in 0021)"""
     with schema_editor.connection.cursor() as cursor:
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT EXISTS (
                 SELECT 1 FROM information_schema.tables
                 WHERE table_schema = 'public' AND table_name = 'providers'
             )
-        """)
+        """
+        )
         table_exists = cursor.fetchone()[0]
 
         if table_exists:
@@ -112,50 +124,76 @@ def reverse_delete_provider(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0021_drop_old_provider_table'),
+        ("locations", "0021_drop_old_provider_table"),
     ]
 
     operations = [
         # First, run custom SQL to convert the columns
         migrations.RunPython(convert_provider_relationships, reverse_conversion),
-
         # Then update the Django model definitions
         migrations.AlterField(
-            model_name='providerfundingsource',
-            name='provider',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='provider_funding_sources', to='locations.providerv2'),
+            model_name="providerfundingsource",
+            name="provider",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="provider_funding_sources",
+                to="locations.providerv2",
+            ),
         ),
         migrations.AlterField(
-            model_name='providerregionalcenter',
-            name='provider',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='regional_centers', to='locations.providerv2'),
+            model_name="providerregionalcenter",
+            name="provider",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="regional_centers",
+                to="locations.providerv2",
+            ),
         ),
         migrations.AlterField(
-            model_name='providerservicemodel',
-            name='provider',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='provider_service_models', to='locations.providerv2'),
+            model_name="providerservicemodel",
+            name="provider",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="provider_service_models",
+                to="locations.providerv2",
+            ),
         ),
         migrations.AlterField(
-            model_name='providerinsurancecarrier',
-            name='provider',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='provider_insurance_carriers', to='locations.providerv2'),
+            model_name="providerinsurancecarrier",
+            name="provider",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="provider_insurance_carriers",
+                to="locations.providerv2",
+            ),
         ),
         migrations.AlterField(
-            model_name='providerfundingsource',
-            name='funding_source',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='provider_links', to='locations.fundingsource'),
+            model_name="providerfundingsource",
+            name="funding_source",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="provider_links",
+                to="locations.fundingsource",
+            ),
         ),
         migrations.AlterField(
-            model_name='providerinsurancecarrier',
-            name='insurance_carrier',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='provider_links', to='locations.insurancecarrier'),
+            model_name="providerinsurancecarrier",
+            name="insurance_carrier",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="provider_links",
+                to="locations.insurancecarrier",
+            ),
         ),
         migrations.AlterField(
-            model_name='providerservicemodel',
-            name='service_model',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='provider_links', to='locations.servicedeliverymodel'),
+            model_name="providerservicemodel",
+            name="service_model",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="provider_links",
+                to="locations.servicedeliverymodel",
+            ),
         ),
-
         # Delete Provider model table if it still exists (was already dropped in 0021)
         migrations.RunPython(delete_provider_model_if_exists, reverse_delete_provider),
     ]

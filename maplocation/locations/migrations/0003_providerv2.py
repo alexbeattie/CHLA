@@ -7,33 +7,51 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0002_fix_provider_id_default'),
+        ("locations", "0002_fix_provider_id_default"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ProviderV2',
+            name="ProviderV2",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('phone', models.CharField(blank=True, max_length=100, null=True)),
-                ('address', models.TextField(blank=True, null=True)),
-                ('website_domain', models.URLField(blank=True, null=True)),
-                ('latitude', models.DecimalField(blank=True, decimal_places=6, max_digits=9, null=True)),
-                ('longitude', models.DecimalField(blank=True, decimal_places=6, max_digits=9, null=True)),
-                ('center_based_services', models.TextField(blank=True, null=True)),
-                ('areas', models.TextField(blank=True, null=True)),
-                ('specializations', models.JSONField(blank=True, default=list)),
-                ('insurance_accepted', models.JSONField(blank=True, default=list)),
-                ('services', models.JSONField(blank=True, default=list)),
-                ('coverage_areas', models.JSONField(blank=True, default=list)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("phone", models.CharField(blank=True, max_length=100, null=True)),
+                ("address", models.TextField(blank=True, null=True)),
+                ("website_domain", models.URLField(blank=True, null=True)),
+                (
+                    "latitude",
+                    models.DecimalField(
+                        blank=True, decimal_places=6, max_digits=9, null=True
+                    ),
+                ),
+                (
+                    "longitude",
+                    models.DecimalField(
+                        blank=True, decimal_places=6, max_digits=9, null=True
+                    ),
+                ),
+                ("center_based_services", models.TextField(blank=True, null=True)),
+                ("areas", models.TextField(blank=True, null=True)),
+                ("specializations", models.JSONField(blank=True, default=list)),
+                ("insurance_accepted", models.JSONField(blank=True, default=list)),
+                ("services", models.JSONField(blank=True, default=list)),
+                ("coverage_areas", models.JSONField(blank=True, default=list)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Provider V2',
-                'verbose_name_plural': 'Providers V2',
-                'db_table': 'providers_v2',
+                "verbose_name": "Provider V2",
+                "verbose_name_plural": "Providers V2",
+                "db_table": "providers_v2",
             },
         ),
     ]

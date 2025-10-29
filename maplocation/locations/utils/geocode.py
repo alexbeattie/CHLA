@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 
 USER_AGENT = "chla-maplocation/1.0 (contact: dev@localhost)"
 
+
 def geocode_address(address: str) -> Optional[Tuple[float, float]]:
     """Geocode an address via OpenStreetMap Nominatim.
 
@@ -26,5 +27,3 @@ def geocode_address(address: str) -> Optional[Tuple[float, float]]:
         return float(item["lat"]), float(item["lon"])  # lat, lon
     except Exception:
         return None
-
-

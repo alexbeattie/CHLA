@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.db import connection
 from django.db.models import Q, Avg
+
 # from django.contrib.gis.geos import Point
 # from django.contrib.gis.measure import D
 from django_filters.rest_framework import DjangoFilterBackend
@@ -60,18 +61,17 @@ def health_check(request):
         provider_count = ProviderV2.objects.count()
         rc_count = RegionalCenter.objects.count()
 
-        return JsonResponse({
-            "status": "healthy",
-            "database": "connected",
-            "providers": provider_count,
-            "regional_centers": rc_count,
-            "version": "2.0.0"
-        })
+        return JsonResponse(
+            {
+                "status": "healthy",
+                "database": "connected",
+                "providers": provider_count,
+                "regional_centers": rc_count,
+                "version": "2.0.0",
+            }
+        )
     except Exception as e:
-        return JsonResponse({
-            "status": "unhealthy",
-            "error": str(e)
-        }, status=503)
+        return JsonResponse({"status": "unhealthy", "error": str(e)}, status=503)
 
 
 class LocationCategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -239,6 +239,7 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
     2. Complete ZIP code coverage for each center
     3. Map visualization data
     """
+
     queryset = RegionalCenter.objects.all()
     serializer_class = RegionalCenterSerializer
     filter_backends = [
@@ -504,16 +505,16 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             # Get only LA regional centers
             la_centers = RegionalCenter.objects.filter(is_la_regional_center=True)
-            
+
             if not la_centers.exists():
                 return Response(
-                    {"error": "No LA regional centers found"}, 
-                    status=status.HTTP_404_NOT_FOUND
+                    {"error": "No LA regional centers found"},
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             # Create GeoJSON with real geographic boundaries
             features = []
-            
+
             for center in la_centers:
                 if center.zip_codes:
                     # Create a feature for this regional center
@@ -526,16 +527,13 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
                             "website": center.website,
                             "service_areas": center.service_areas or [],
                             "zip_codes": center.zip_codes,
-                            "center_id": center.id
+                            "center_id": center.id,
                         },
-                        "geometry": self._create_service_area_geometry(center)
+                        "geometry": self._create_service_area_geometry(center),
                     }
                     features.append(feature)
 
-            geojson = {
-                "type": "FeatureCollection",
-                "features": features
-            }
+            geojson = {"type": "FeatureCollection", "features": features}
 
             return Response(geojson)
 
@@ -551,8 +549,8 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
         """
         if center.service_areas and isinstance(center.service_areas, dict):
             # Return the stored GeoJSON geometry
-            return center.service_areas.get('geometry')
-        
+            return center.service_areas.get("geometry")
+
         # Fallback to basic geometry if no stored data
         if not center.zip_codes:
             return None
@@ -560,20 +558,17 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
         # Get the center coordinates
         center_lat = center.latitude or 34.0522  # Default to LA center
         center_lng = center.longitude or -118.2437
-        
+
         # Create a basic fallback polygon
         coordinates = [
             [center_lng - 0.1, center_lat + 0.1],
             [center_lng + 0.1, center_lat + 0.1],
             [center_lng + 0.1, center_lat - 0.1],
             [center_lng - 0.1, center_lat - 0.1],
-            [center_lng - 0.1, center_lat + 0.1]
+            [center_lng - 0.1, center_lat + 0.1],
         ]
 
-        return {
-            "type": "Polygon",
-            "coordinates": [coordinates]
-        }
+        return {"type": "Polygon", "coordinates": [coordinates]}
 
     @action(detail=False, methods=["get"])
     def zip_code_analysis(self, request):
@@ -589,7 +584,7 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
                 "total_regional_centers": la_centers.count(),
                 "centers": [],
                 "total_unique_zips": 0,
-                "zip_distribution": {}
+                "zip_distribution": {},
             }
 
             all_zips = set()
@@ -602,7 +597,7 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
                     "name": center.regional_center,
                     "id": center.id,
                     "zip_count": len(zip_codes),
-                    "sample_zips": sorted(zip_codes)[:10] if zip_codes else []
+                    "sample_zips": sorted(zip_codes)[:10] if zip_codes else [],
                 }
                 analysis["centers"].append(center_info)
 
@@ -612,17 +607,25 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
             sorted_zips = sorted(all_zips)
             analysis["zip_range"] = {
                 "min": sorted_zips[0] if sorted_zips else None,
-                "max": sorted_zips[-1] if sorted_zips else None
+                "max": sorted_zips[-1] if sorted_zips else None,
             }
 
             # Sample missing ZIPs (known problem areas)
-            known_problem_zips = ["91403", "91401", "91405", "91406", "91411", "91423", "91436"]
+            known_problem_zips = [
+                "91403",
+                "91401",
+                "91405",
+                "91406",
+                "91411",
+                "91423",
+                "91436",
+            ]
             missing_zips = [z for z in known_problem_zips if z not in all_zips]
 
             analysis["known_missing_zips"] = {
                 "count": len(missing_zips),
                 "examples": missing_zips,
-                "note": "These are known Sherman Oaks/Van Nuys area ZIPs that are missing"
+                "note": "These are known Sherman Oaks/Van Nuys area ZIPs that are missing",
             }
 
             return Response(analysis)
@@ -630,7 +633,7 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
         except Exception as e:
             return Response(
                 {"error": "Failed to analyze ZIP codes", "details": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -670,12 +673,19 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter,
     ]
     # Use real ProviderV2 fields
-    search_fields = ["name", "type", "description", "address", "insurance_accepted", "languages_spoken"]
+    search_fields = [
+        "name",
+        "type",
+        "description",
+        "address",
+        "insurance_accepted",
+        "languages_spoken",
+    ]
     ordering_fields = ["name"]
-    
+
     def get_serializer_class(self):
         """Use different serializers for different operations"""
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return ProviderV2WriteSerializer
         return ProviderV2Serializer
 
@@ -699,7 +709,8 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
 
             # Search for providers serving the area
             providers = ProviderV2.objects.filter(
-                Q(coverage_areas__contains=[area_param]) | Q(areas__icontains=area_param)
+                Q(coverage_areas__contains=[area_param])
+                | Q(areas__icontains=area_param)
             )
 
             serializer = self.get_serializer(providers, many=True)
@@ -875,7 +886,9 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             # Apply diagnosis filter using JSON field operations
             if diagnosis:
                 # Try to filter by diagnoses_treated, but if no results, fall back to no diagnosis filter
-                diagnosis_filtered = providers.filter(diagnoses_treated__contains=[diagnosis])
+                diagnosis_filtered = providers.filter(
+                    diagnoses_treated__contains=[diagnosis]
+                )
                 if diagnosis_filtered.exists():
                     providers = diagnosis_filtered
                 # If no providers match diagnosis filter, keep all providers (lenient approach)
@@ -884,7 +897,9 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             therapy_values = request.query_params.getlist("therapy")
             if therapy_values:
                 # Try to filter by therapy types, but if no results, fall back to no therapy filter
-                therapy_filtered = providers.filter(therapy_types__contains=therapy_values)
+                therapy_filtered = providers.filter(
+                    therapy_types__contains=therapy_values
+                )
                 if therapy_filtered.exists():
                     providers = therapy_filtered
                 # If no providers match therapy filter, keep all providers (lenient approach)
@@ -896,15 +911,15 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     lng_float = float(lng)
 
                     # Get IDs of already filtered providers
-                    filtered_provider_ids = list(providers.values_list('id', flat=True))
-                    
+                    filtered_provider_ids = list(providers.values_list("id", flat=True))
+
                     if filtered_provider_ids:
                         # Filter by distance using raw SQL with proper parameterization
                         from django.db import connection
 
                         # Build placeholders for the IN clause
-                        placeholders = ','.join(['%s'] * len(filtered_provider_ids))
-                        
+                        placeholders = ",".join(["%s"] * len(filtered_provider_ids))
+
                         with connection.cursor() as cursor:
                             # Use proper parameterized query
                             sql = f"""
@@ -915,7 +930,12 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                                 cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
                                 sin(radians(latitude)))) < %s
                             """
-                            params = list(filtered_provider_ids) + [lat_float, lng_float, lat_float, radius]
+                            params = list(filtered_provider_ids) + [
+                                lat_float,
+                                lng_float,
+                                lat_float,
+                                radius,
+                            ]
                             cursor.execute(sql, params)
                             nearby_ids = [row[0] for row in cursor.fetchall()]
 
@@ -931,17 +951,17 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                 coordinates = RegionalCenter.geocode_address(location)
                 if coordinates:
                     lat_coord, lng_coord = coordinates
-                    
+
                     # Get IDs of already filtered providers
-                    filtered_provider_ids = list(providers.values_list('id', flat=True))
-                    
+                    filtered_provider_ids = list(providers.values_list("id", flat=True))
+
                     if filtered_provider_ids:
                         # Filter by distance using raw SQL with proper parameterization
                         from django.db import connection
 
                         # Build placeholders for the IN clause
-                        placeholders = ','.join(['%s'] * len(filtered_provider_ids))
-                        
+                        placeholders = ",".join(["%s"] * len(filtered_provider_ids))
+
                         with connection.cursor() as cursor:
                             # Use proper parameterized query
                             sql = f"""
@@ -952,7 +972,12 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                                 cos(radians(longitude) - radians(%s)) + sin(radians(%s)) * 
                                 sin(radians(latitude)))) < %s
                             """
-                            params = list(filtered_provider_ids) + [lat_coord, lng_coord, lat_coord, radius]
+                            params = list(filtered_provider_ids) + [
+                                lat_coord,
+                                lng_coord,
+                                lat_coord,
+                                radius,
+                            ]
                             cursor.execute(sql, params)
                             nearby_ids = [row[0] for row in cursor.fetchall()]
 
@@ -978,14 +1003,15 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
         except Exception as e:
             # Log the full error for debugging
             import traceback
-            print("\n" + "="*80)
+
+            print("\n" + "=" * 80)
             print("❌ ERROR in comprehensive_search:")
             print(f"Error type: {type(e).__name__}")
             print(f"Error message: {str(e)}")
             print("Full traceback:")
             traceback.print_exc()
-            print("="*80 + "\n")
-            
+            print("=" * 80 + "\n")
+
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -1014,18 +1040,18 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                 if not regional_center:
                     return Response(
                         {"error": f"No regional center found for ZIP {zip_code}"},
-                        status=status.HTTP_404_NOT_FOUND
+                        status=status.HTTP_404_NOT_FOUND,
                     )
             else:
                 return Response(
                     {"error": "Either regional_center_id or zip_code is required"},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             if not regional_center.zip_codes:
                 return Response(
                     {"error": "Regional center has no ZIP codes defined"},
-                    status=status.HTTP_404_NOT_FOUND
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             # Get all providers
@@ -1037,10 +1063,14 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
 
             for provider in providers:
                 # Extract ZIP code from address field
-                address_str = provider.address if isinstance(provider.address, str) else str(provider.address)
+                address_str = (
+                    provider.address
+                    if isinstance(provider.address, str)
+                    else str(provider.address)
+                )
 
                 # Look for 5-digit ZIP codes in the address
-                zip_matches = re.findall(r'\b\d{5}\b', address_str)
+                zip_matches = re.findall(r"\b\d{5}\b", address_str)
 
                 # Check if any ZIP matches the regional center's ZIPs
                 if any(zip_code in rc_zip_set for zip_code in zip_matches):
@@ -1075,32 +1105,34 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             # Serialize and return
             serializer = self.get_serializer(providers, many=True)
 
-            return Response({
-                "count": providers.count(),
-                "regional_center": {
-                    "id": regional_center.id,
-                    "name": regional_center.regional_center,
-                    "zip_codes": regional_center.zip_codes
-                },
-                "results": serializer.data
-            })
+            return Response(
+                {
+                    "count": providers.count(),
+                    "regional_center": {
+                        "id": regional_center.id,
+                        "name": regional_center.regional_center,
+                        "zip_codes": regional_center.zip_codes,
+                    },
+                    "results": serializer.data,
+                }
+            )
 
         except RegionalCenter.DoesNotExist:
             return Response(
-                {"error": "Regional center not found"},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Regional center not found"}, status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             # Log the full error for debugging
             import traceback
-            print("\n" + "="*80)
+
+            print("\n" + "=" * 80)
             print("❌ ERROR in by_regional_center:")
             print(f"Error type: {type(e).__name__}")
             print(f"Error message: {str(e)}")
             print("Full traceback:")
             traceback.print_exc()
-            print("="*80 + "\n")
-            
+            print("=" * 80 + "\n")
+
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -1221,13 +1253,12 @@ def api_documentation(request):
 
     Access this at: /api/docs/
     """
-    base_url = request.build_absolute_uri('/api/')
+    base_url = request.build_absolute_uri("/api/")
 
     docs = {
         "message": "CHLA Provider Map - Complete API Reference",
         "version": "2.0",
         "base_url": base_url,
-
         "core_endpoints": {
             "regional_centers": f"{base_url}regional-centers/",
             "providers": f"{base_url}providers/",
@@ -1237,17 +1268,15 @@ def api_documentation(request):
             "insurance_carriers": f"{base_url}insurance-carriers/",
             "service_models": f"{base_url}service-models/",
         },
-
         "broken_endpoints": {
             "description": "These endpoints exist in the router but return 500 errors - they should be removed or fixed",
             "endpoints": [
                 f"{base_url}categories/",
                 f"{base_url}locations/",
                 f"{base_url}images/",
-                f"{base_url}reviews/"
-            ]
+                f"{base_url}reviews/",
+            ],
         },
-
         "regional_center_actions": {
             "description": "Extended Regional Center endpoints",
             "endpoints": {
@@ -1256,14 +1285,14 @@ def api_documentation(request):
                     "method": "GET",
                     "description": "⭐ CRITICAL - Returns GeoJSON with all LA County Regional Centers including polygon geometries AND complete ZIP code arrays",
                     "parameters": None,
-                    "example": f"{base_url}regional-centers/service_area_boundaries/"
+                    "example": f"{base_url}regional-centers/service_area_boundaries/",
                 },
                 "lookup_by_zip": {
                     "url": f"{base_url}regional-centers/lookup_by_zip/",
                     "method": "GET",
                     "description": "Find Regional Center by ZIP code",
                     "parameters": {"zip_code": "5-digit ZIP code (required)"},
-                    "example": f"{base_url}regional-centers/lookup_by_zip/?zip_code=90001"
+                    "example": f"{base_url}regional-centers/lookup_by_zip/?zip_code=90001",
                 },
                 "nearby": {
                     "url": f"{base_url}regional-centers/nearby/",
@@ -1273,9 +1302,9 @@ def api_documentation(request):
                         "lat": "Latitude (required)",
                         "lng": "Longitude (required)",
                         "radius": "Search radius in miles (default: 25)",
-                        "limit": "Max results (default: 10)"
+                        "limit": "Max results (default: 10)",
                     },
-                    "example": f"{base_url}regional-centers/nearby/?lat=34.0522&lng=-118.2437&radius=25"
+                    "example": f"{base_url}regional-centers/nearby/?lat=34.0522&lng=-118.2437&radius=25",
                 },
                 "by_location": {
                     "url": f"{base_url}regional-centers/by_location/",
@@ -1284,20 +1313,19 @@ def api_documentation(request):
                     "parameters": {
                         "location": "Address or ZIP code (required)",
                         "radius": "Search radius in miles (default: 25)",
-                        "limit": "Max results (default: 10)"
+                        "limit": "Max results (default: 10)",
                     },
-                    "example": f"{base_url}regional-centers/by_location/?location=Los+Angeles"
+                    "example": f"{base_url}regional-centers/by_location/?location=Los+Angeles",
                 },
                 "zip_code_analysis": {
                     "url": f"{base_url}regional-centers/zip_code_analysis/",
                     "method": "GET",
                     "description": "Analyze ZIP code coverage across all Regional Centers",
                     "parameters": None,
-                    "example": f"{base_url}regional-centers/zip_code_analysis/"
-                }
-            }
+                    "example": f"{base_url}regional-centers/zip_code_analysis/",
+                },
+            },
         },
-
         "provider_actions": {
             "description": "Extended Provider search endpoints",
             "endpoints": {
@@ -1310,9 +1338,9 @@ def api_documentation(request):
                         "insurance": "Insurance filter (optional)",
                         "therapy": "Therapy type filter (optional)",
                         "age": "Age group filter (optional)",
-                        "diagnosis": "Diagnosis filter (optional)"
+                        "diagnosis": "Diagnosis filter (optional)",
                     },
-                    "example": f"{base_url}providers-v2/by_regional_center/?zip_code=90001"
+                    "example": f"{base_url}providers-v2/by_regional_center/?zip_code=90001",
                 },
                 "comprehensive_search": {
                     "url": f"{base_url}providers-v2/comprehensive_search/",
@@ -1327,9 +1355,9 @@ def api_documentation(request):
                         "insurance": "Insurance filter (optional)",
                         "therapy": "Therapy type filter (optional)",
                         "age": "Age group filter (optional)",
-                        "diagnosis": "Diagnosis filter (optional)"
+                        "diagnosis": "Diagnosis filter (optional)",
                     },
-                    "example": f"{base_url}providers-v2/comprehensive_search/?lat=34.0522&lng=-118.2437&radius=25"
+                    "example": f"{base_url}providers-v2/comprehensive_search/?lat=34.0522&lng=-118.2437&radius=25",
                 },
                 "nearby": {
                     "url": f"{base_url}providers-v2/nearby/",
@@ -1338,9 +1366,9 @@ def api_documentation(request):
                     "parameters": {
                         "lat": "Latitude (required)",
                         "lng": "Longitude (required)",
-                        "radius": "Search radius in miles (default: 25)"
+                        "radius": "Search radius in miles (default: 25)",
                     },
-                    "example": f"{base_url}providers-v2/nearby/?lat=34.0522&lng=-118.2437"
+                    "example": f"{base_url}providers-v2/nearby/?lat=34.0522&lng=-118.2437",
                 },
                 "by_location": {
                     "url": f"{base_url}providers-v2/by_location/",
@@ -1348,13 +1376,12 @@ def api_documentation(request):
                     "description": "Find providers by address or ZIP (with geocoding)",
                     "parameters": {
                         "location": "Address or ZIP code (required)",
-                        "radius": "Search radius in miles (default: 25)"
+                        "radius": "Search radius in miles (default: 25)",
                     },
-                    "example": f"{base_url}providers-v2/by_location/?location=90001"
-                }
-            }
+                    "example": f"{base_url}providers-v2/by_location/?location=90001",
+                },
+            },
         },
-
         "location_actions": {
             "description": "Extended Location endpoints",
             "endpoints": {
@@ -1365,41 +1392,39 @@ def api_documentation(request):
                     "parameters": {
                         "lat": "Latitude (required)",
                         "lng": "Longitude (required)",
-                        "radius": "Search radius in kilometers (default: 5)"
+                        "radius": "Search radius in kilometers (default: 5)",
                     },
-                    "example": f"{base_url}locations/nearby/?lat=34.0522&lng=-118.2437&radius=10"
+                    "example": f"{base_url}locations/nearby/?lat=34.0522&lng=-118.2437&radius=10",
                 },
                 "by_category": {
                     "url": f"{base_url}locations/by_category/",
                     "method": "GET",
                     "description": "Get locations by category ID",
                     "parameters": {"category_id": "Category ID (required)"},
-                    "example": f"{base_url}locations/by_category/?category_id=1"
-                }
-            }
+                    "example": f"{base_url}locations/by_category/?category_id=1",
+                },
+            },
         },
-
         "utility_endpoints": {
             "california_counties": {
                 "url": f"{base_url}california-counties/",
                 "method": "GET",
                 "description": "List all California counties",
-                "example": f"{base_url}california-counties/"
+                "example": f"{base_url}california-counties/",
             },
             "api_docs": {
                 "url": f"{base_url}docs/",
                 "method": "GET",
                 "description": "This comprehensive API documentation endpoint",
-                "example": f"{base_url}docs/"
-            }
+                "example": f"{base_url}docs/",
+            },
         },
-
         "notes": [
             "⚠️ All endpoints support standard DRF features: pagination, search, filtering, ordering",
             "⚠️ Use ?format=json to get JSON responses instead of browsable API HTML",
             "⚠️ The service_area_boundaries endpoint is the primary source for Regional Center polygon data and ZIP codes",
-            "⚠️ Known issue: Some LA County ZIP codes (e.g., 914xx Sherman Oaks/Van Nuys area) are missing from Regional Center data"
-        ]
+            "⚠️ Known issue: Some LA County ZIP codes (e.g., 914xx Sherman Oaks/Van Nuys area) are missing from Regional Center data",
+        ],
     }
 
     return Response(docs)

@@ -10,7 +10,7 @@ def fix_la_regional_center_flags(apps, schema_editor):
     which broke the service_area_boundaries endpoint and prevented the legend and
     provider list from working correctly.
     """
-    RegionalCenter = apps.get_model('locations', 'RegionalCenter')
+    RegionalCenter = apps.get_model("locations", "RegionalCenter")
 
     # The official 7 LA County Regional Centers
     LA_COUNTY_REGIONAL_CENTERS = [
@@ -26,12 +26,14 @@ def fix_la_regional_center_flags(apps, schema_editor):
     updated_count = 0
     for rc_name in LA_COUNTY_REGIONAL_CENTERS:
         # Update all instances with this name (there may be duplicates)
-        updated = RegionalCenter.objects.filter(
-            regional_center=rc_name
-        ).update(is_la_regional_center=True)
+        updated = RegionalCenter.objects.filter(regional_center=rc_name).update(
+            is_la_regional_center=True
+        )
         updated_count += updated
 
-    print(f"✨ Updated {updated_count} Regional Center record(s) to is_la_regional_center=True")
+    print(
+        f"✨ Updated {updated_count} Regional Center record(s) to is_la_regional_center=True"
+    )
 
 
 def reverse_fix(apps, schema_editor):
@@ -39,7 +41,7 @@ def reverse_fix(apps, schema_editor):
     Reverse the fix by setting is_la_regional_center=False for all LA County RCs.
     This is just for migration rollback purposes.
     """
-    RegionalCenter = apps.get_model('locations', 'RegionalCenter')
+    RegionalCenter = apps.get_model("locations", "RegionalCenter")
 
     LA_COUNTY_REGIONAL_CENTERS = [
         "North Los Angeles County Regional Center",
@@ -52,15 +54,15 @@ def reverse_fix(apps, schema_editor):
     ]
 
     for rc_name in LA_COUNTY_REGIONAL_CENTERS:
-        RegionalCenter.objects.filter(
-            regional_center=rc_name
-        ).update(is_la_regional_center=False)
+        RegionalCenter.objects.filter(regional_center=rc_name).update(
+            is_la_regional_center=False
+        )
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0015_increase_coordinate_precision_final'),
+        ("locations", "0015_increase_coordinate_precision_final"),
     ]
 
     operations = [

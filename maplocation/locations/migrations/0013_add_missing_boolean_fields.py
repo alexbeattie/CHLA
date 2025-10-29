@@ -6,23 +6,29 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0012_rename_provider_fields'),
+        ("locations", "0012_rename_provider_fields"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='providerv2',
-            name='accepts_regional_center',
-            field=models.BooleanField(default=False, help_text='Accepts Regional Center funding'),
+            model_name="providerv2",
+            name="accepts_regional_center",
+            field=models.BooleanField(
+                default=False, help_text="Accepts Regional Center funding"
+            ),
         ),
         migrations.AddField(
-            model_name='providerv2',
-            name='accepts_insurance',
-            field=models.BooleanField(default=False, help_text='Accepts health insurance'),
+            model_name="providerv2",
+            name="accepts_insurance",
+            field=models.BooleanField(
+                default=False, help_text="Accepts health insurance"
+            ),
         ),
         migrations.AddField(
-            model_name='providerv2',
-            name='center_based_services',
-            field=models.BooleanField(default=True, help_text='Offers center-based services'),
+            model_name="providerv2",
+            name="center_based_services",
+            field=models.BooleanField(
+                default=True, help_text="Offers center-based services"
+            ),
         ),
     ]

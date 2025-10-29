@@ -7,14 +7,15 @@ import sys
 import json
 
 # Configure for RDS
-os.environ['DB_HOST'] = 'chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com'
-os.environ['DB_NAME'] = 'postgres'
-os.environ['DB_USER'] = 'chla_admin'
-os.environ['DB_PASSWORD'] = 'CHLASecure2024'
-os.environ['DB_SSL_REQUIRE'] = 'true'
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'maplocation.settings')
+os.environ["DB_HOST"] = "chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com"
+os.environ["DB_NAME"] = "postgres"
+os.environ["DB_USER"] = "chla_admin"
+os.environ["DB_PASSWORD"] = "CHLASecure2024"
+os.environ["DB_SSL_REQUIRE"] = "true"
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "maplocation.settings")
 
 import django
+
 django.setup()
 
 from locations.models import ProviderV2
@@ -25,14 +26,14 @@ print("=" * 80)
 print()
 
 # Load data file
-data_file = '/tmp/local_providers_export_latest.json'
+data_file = "/tmp/local_providers_export_latest.json"
 
 if not os.path.exists(data_file):
     print(f"❌ Data file not found: {data_file}")
     print("Run the export step first!")
     sys.exit(1)
 
-with open(data_file, 'r') as f:
+with open(data_file, "r") as f:
     providers_to_import = json.load(f)
 
 print(f"Loaded {len(providers_to_import)} providers from {data_file}")
@@ -58,7 +59,7 @@ skipped = 0
 for i, data in enumerate(providers_to_import):
     try:
         # Try to find existing provider by name
-        existing = ProviderV2.objects.filter(name=data['name']).first()
+        existing = ProviderV2.objects.filter(name=data["name"]).first()
 
         if existing:
             # Update existing provider

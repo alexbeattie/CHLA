@@ -1,4 +1,5 @@
 from django.db import models
+
 # from django.contrib.gis.db import models as gis_models
 # from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 # from django.contrib.gis.measure import Distance
@@ -84,18 +85,15 @@ class RegionalCenter(models.Model):
 
     # LA-specific fields
     zip_codes = models.JSONField(
-        blank=True, 
+        blank=True,
         null=True,
-        help_text="List of ZIP codes served by this regional center (LA-specific)"
+        help_text="List of ZIP codes served by this regional center (LA-specific)",
     )
     service_areas = models.JSONField(
-        blank=True, 
-        null=True,
-        help_text="List of service area names (LA-specific)"
+        blank=True, null=True, help_text="List of service area names (LA-specific)"
     )
     is_la_regional_center = models.BooleanField(
-        default=False,
-        help_text="Whether this is a Los Angeles County regional center"
+        default=False, help_text="Whether this is a Los Angeles County regional center"
     )
 
     def __str__(self):
@@ -110,14 +108,16 @@ class RegionalCenter(models.Model):
         if self.service_area:
             try:
                 from django.db import connection
+
                 with connection.cursor() as cursor:
                     cursor.execute(
                         "SELECT ST_AsGeoJSON(service_area) FROM regional_centers WHERE id = %s",
-                        [self.id]
+                        [self.id],
                     )
                     result = cursor.fetchone()
                     if result and result[0]:
                         import json
+
                         return json.loads(result[0])
             except Exception as e:
                 print(f"Error converting geometry to GeoJSON: {e}")
@@ -136,7 +136,7 @@ class RegionalCenter(models.Model):
             # First try to find by exact ZIP code match in zip_codes field
             if cls.objects.filter(zip_codes__contains=[zip_code]).exists():
                 return cls.objects.filter(zip_codes__contains=[zip_code]).first()
-            
+
             # Fallback: try to find by the center's own zip_code field
             return cls.objects.filter(zip_code=zip_code).first()
         except Exception as e:
@@ -296,72 +296,75 @@ class RegionalCenter(models.Model):
 
 class ProviderV2(models.Model):
     """New provider model with actual database structure"""
-    
+
     # Insurance choices based on actual data
     INSURANCE_CHOICES = [
-        ('None', 'None - Call for information'),
-        ('Regional Center', 'Regional Center'),
-        ('Private Pay', 'Private Pay'),
-        ('Medi-Cal', 'Medi-Cal'),
-        ('Medicaid', 'Medicaid'),
-        ('Medicare', 'Medicare'),
-        ('Blue Cross', 'Blue Cross'),
-        ('Blue Shield', 'Blue Shield'),
-        ('Anthem', 'Anthem'),
-        ('Aetna', 'Aetna'),
-        ('Cigna', 'Cigna'),
-        ('Kaiser Permanente', 'Kaiser Permanente'),
-        ('United Healthcare', 'United Healthcare'),
-        ('Health Net', 'Health Net'),
-        ('Molina', 'Molina'),
-        ('Magellan', 'Magellan'),
-        ('Beacon', 'Beacon'),
-        ('MHN', 'MHN'),
-        ('Optum', 'Optum'),
-        ('Humana', 'Humana'),
-        ('Tricare', 'Tricare'),
-        ('CalOptima', 'CalOptima'),
-        ('L.A. Care', 'L.A. Care'),
-        ('Inland Empire Health Plan', 'Inland Empire Health Plan'),
-        ('The Holman Group', 'The Holman Group'),
-        ('United Behavioral Health', 'United Behavioral Health'),
-        ('Covered California', 'Covered California'),
-        ('Self-determination programs', 'Self-determination programs'),
-        ('Kaiser/Easterseal', 'Kaiser/Easterseal'),
+        ("None", "None - Call for information"),
+        ("Regional Center", "Regional Center"),
+        ("Private Pay", "Private Pay"),
+        ("Medi-Cal", "Medi-Cal"),
+        ("Medicaid", "Medicaid"),
+        ("Medicare", "Medicare"),
+        ("Blue Cross", "Blue Cross"),
+        ("Blue Shield", "Blue Shield"),
+        ("Anthem", "Anthem"),
+        ("Aetna", "Aetna"),
+        ("Cigna", "Cigna"),
+        ("Kaiser Permanente", "Kaiser Permanente"),
+        ("United Healthcare", "United Healthcare"),
+        ("Health Net", "Health Net"),
+        ("Molina", "Molina"),
+        ("Magellan", "Magellan"),
+        ("Beacon", "Beacon"),
+        ("MHN", "MHN"),
+        ("Optum", "Optum"),
+        ("Humana", "Humana"),
+        ("Tricare", "Tricare"),
+        ("CalOptima", "CalOptima"),
+        ("L.A. Care", "L.A. Care"),
+        ("Inland Empire Health Plan", "Inland Empire Health Plan"),
+        ("The Holman Group", "The Holman Group"),
+        ("United Behavioral Health", "United Behavioral Health"),
+        ("Covered California", "Covered California"),
+        ("Self-determination programs", "Self-determination programs"),
+        ("Kaiser/Easterseal", "Kaiser/Easterseal"),
     ]
-    
+
     # Age group choices (from onboarding flow)
     AGE_GROUP_CHOICES = [
-        ('0-5', '0-5 years'),
-        ('6-12', '6-12 years'),
-        ('13-18', '13-18 years'),
-        ('19+', '19+ years'),
-        ('All Ages', 'All Ages'),
+        ("0-5", "0-5 years"),
+        ("6-12", "6-12 years"),
+        ("13-18", "13-18 years"),
+        ("19+", "19+ years"),
+        ("All Ages", "All Ages"),
     ]
-    
+
     # Diagnosis choices (from onboarding flow)
     DIAGNOSIS_CHOICES = [
-        ('Autism Spectrum Disorder', 'Autism Spectrum Disorder'),
-        ('Global Development Delay', 'Global Development Delay'),
-        ('Intellectual Disability', 'Intellectual Disability'),
-        ('Speech and Language Disorder', 'Speech and Language Disorder'),
-        ('ADHD', 'ADHD'),
-        ('Sensory Processing Disorder', 'Sensory Processing Disorder'),
-        ('Down Syndrome', 'Down Syndrome'),
-        ('Cerebral Palsy', 'Cerebral Palsy'),
-        ('Other', 'Other'),
+        ("Autism Spectrum Disorder", "Autism Spectrum Disorder"),
+        ("Global Development Delay", "Global Development Delay"),
+        ("Intellectual Disability", "Intellectual Disability"),
+        ("Speech and Language Disorder", "Speech and Language Disorder"),
+        ("ADHD", "ADHD"),
+        ("Sensory Processing Disorder", "Sensory Processing Disorder"),
+        ("Down Syndrome", "Down Syndrome"),
+        ("Cerebral Palsy", "Cerebral Palsy"),
+        ("Other", "Other"),
     ]
-    
+
     # Therapy type choices (from onboarding flow)
     THERAPY_TYPE_CHOICES = [
-        ('ABA therapy', 'ABA therapy'),
-        ('Speech therapy', 'Speech therapy'),
-        ('Occupational therapy', 'Occupational therapy'),
-        ('Physical therapy', 'Physical therapy'),
-        ('Feeding therapy', 'Feeding therapy'),
-        ('Parent child interaction therapy/parent training behavior management', 'Parent child interaction therapy/parent training behavior management'),
+        ("ABA therapy", "ABA therapy"),
+        ("Speech therapy", "Speech therapy"),
+        ("Occupational therapy", "Occupational therapy"),
+        ("Physical therapy", "Physical therapy"),
+        ("Feeding therapy", "Feeding therapy"),
+        (
+            "Parent child interaction therapy/parent training behavior management",
+            "Parent child interaction therapy/parent training behavior management",
+        ),
     ]
-    
+
     # Primary key and basic info
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -371,75 +374,123 @@ class ProviderV2(models.Model):
     website = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     verified = models.BooleanField(default=False)
-    
+
     # Geographic coordinates
     latitude = models.DecimalField(max_digits=11, decimal_places=8, default=0.0)
     longitude = models.DecimalField(max_digits=11, decimal_places=8, default=0.0)
     address = models.TextField(default="")
     hours = models.JSONField(blank=True, null=True)
-    
+
     # Service details
     insurance_accepted = models.TextField(default="")  # PostgreSQL array stored as text
-    languages_spoken = models.TextField(blank=True, null=True)  # PostgreSQL array stored as text
-    
+    languages_spoken = models.TextField(
+        blank=True, null=True
+    )  # PostgreSQL array stored as text
+
     # Age groups served (from onboarding flow)
-    age_groups = models.JSONField(blank=True, null=True, help_text="Age groups this provider serves (e.g., ['0-5', '6-12', '13-18', '19+'])")
-    
+    age_groups = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Age groups this provider serves (e.g., ['0-5', '6-12', '13-18', '19+'])",
+    )
+
     # Diagnoses/conditions treated (from onboarding flow)
-    diagnoses_treated = models.JSONField(blank=True, null=True, help_text="Diagnoses/conditions this provider treats (e.g., ['Autism Spectrum Disorder', 'ADHD'])")
-    
+    diagnoses_treated = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Diagnoses/conditions this provider treats (e.g., ['Autism Spectrum Disorder', 'ADHD'])",
+    )
+
     # Therapy types offered (from onboarding flow)
-    therapy_types = models.JSONField(blank=True, null=True, help_text="Types of therapy offered (e.g., ['ABA therapy', 'Speech therapy', 'Occupational therapy'])")
-    
+    therapy_types = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Types of therapy offered (e.g., ['ABA therapy', 'Speech therapy', 'Occupational therapy'])",
+    )
+
     # Funding sources accepted
-    funding_sources = models.JSONField(blank=True, null=True, help_text="Funding sources accepted (e.g., ['Health Insurance', 'Regional Center', 'Private Pay'])")
-    
+    funding_sources = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Funding sources accepted (e.g., ['Health Insurance', 'Regional Center', 'Private Pay'])",
+    )
+
     # Additional service details
-    accepts_private_pay = models.BooleanField(default=False, help_text="Accepts private pay clients")
-    accepts_regional_center = models.BooleanField(default=False, help_text="Accepts Regional Center funding")
-    accepts_insurance = models.BooleanField(default=False, help_text="Accepts health insurance")
-    
+    accepts_private_pay = models.BooleanField(
+        default=False, help_text="Accepts private pay clients"
+    )
+    accepts_regional_center = models.BooleanField(
+        default=False, help_text="Accepts Regional Center funding"
+    )
+    accepts_insurance = models.BooleanField(
+        default=False, help_text="Accepts health insurance"
+    )
+
     # Service delivery options
-    in_person_services = models.BooleanField(default=True, help_text="Offers in-person services")
-    virtual_services = models.BooleanField(default=False, help_text="Offers virtual/telehealth services")
-    home_based_services = models.BooleanField(default=False, help_text="Offers home-based services")
-    center_based_services = models.BooleanField(default=True, help_text="Offers center-based services")
-    
+    in_person_services = models.BooleanField(
+        default=True, help_text="Offers in-person services"
+    )
+    virtual_services = models.BooleanField(
+        default=False, help_text="Offers virtual/telehealth services"
+    )
+    home_based_services = models.BooleanField(
+        default=False, help_text="Offers home-based services"
+    )
+    center_based_services = models.BooleanField(
+        default=True, help_text="Offers center-based services"
+    )
+
     # Provider qualifications
-    license_number = models.CharField(max_length=100, blank=True, null=True, help_text="Professional license number")
-    license_type = models.CharField(max_length=100, blank=True, null=True, help_text="Type of professional license")
-    years_experience = models.IntegerField(blank=True, null=True, help_text="Years of experience")
-    
+    license_number = models.CharField(
+        max_length=100, blank=True, null=True, help_text="Professional license number"
+    )
+    license_type = models.CharField(
+        max_length=100, blank=True, null=True, help_text="Type of professional license"
+    )
+    years_experience = models.IntegerField(
+        blank=True, null=True, help_text="Years of experience"
+    )
+
     # Additional contact info
     fax = models.CharField(max_length=20, blank=True, null=True)
     emergency_phone = models.CharField(max_length=20, blank=True, null=True)
-    
+
     # Service area details
-    service_radius_miles = models.IntegerField(blank=True, null=True, help_text="Service radius in miles")
-    serves_la_county = models.BooleanField(default=True, help_text="Serves Los Angeles County")
-    specific_areas_served = models.JSONField(blank=True, null=True, help_text="Specific areas/cities served within LA County")
-    
+    service_radius_miles = models.IntegerField(
+        blank=True, null=True, help_text="Service radius in miles"
+    )
+    serves_la_county = models.BooleanField(
+        default=True, help_text="Serves Los Angeles County"
+    )
+    specific_areas_served = models.JSONField(
+        blank=True, null=True, help_text="Specific areas/cities served within LA County"
+    )
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         db_table = "providers_v2"
         verbose_name = "Provider V2"
         verbose_name_plural = "Providers V2"
-    
+
     def __str__(self):
         return self.name
-    
+
     # Helper properties for frontend compatibility
     @property
     def city(self):
         if self.address:
             parts = self.address.split(",")
             if len(parts) >= 2:
-                return parts[-2].strip().split()[-2] if len(parts[-2].strip().split()) > 1 else ""
+                return (
+                    parts[-2].strip().split()[-2]
+                    if len(parts[-2].strip().split()) > 1
+                    else ""
+                )
         return ""
-    
+
     @property
     def state(self):
         if self.address:
@@ -449,7 +500,7 @@ class ProviderV2(models.Model):
                 if " " in last_part:
                     return last_part.split()[0]
         return "CA"
-    
+
     @property
     def zip_code(self):
         if self.address:
@@ -459,43 +510,41 @@ class ProviderV2(models.Model):
                 if " " in last_part:
                     return last_part.split()[-1]
         return ""
-    
+
     # Backward compatibility properties
     @property
     def age_groups_served(self):
         return ""
-    
+
     @property
     def diagnoses_served(self):
         return self.type or ""
-    
-    
+
     @property
     def website_domain(self):
         return self.website
-    
-    
+
     @property
     def areas(self):
         return ""
-    
+
     @property
     def specializations(self):
         return [self.type] if self.type else []
-    
+
     @property
     def services(self):
         return []
-    
+
     @property
     def coverage_areas(self):
         return []
-    
+
     @classmethod
     def find_nearest(cls, latitude, longitude, radius_miles=10, limit=20):
         """Find providers within radius of given coordinates"""
         from django.db import connection
-        
+
         with connection.cursor() as cursor:
             cursor.execute(
                 """
@@ -511,9 +560,18 @@ class ProviderV2(models.Model):
                 ORDER BY distance
                 LIMIT %s
             """,
-                [latitude, longitude, latitude, latitude, longitude, latitude, radius_miles, limit],
+                [
+                    latitude,
+                    longitude,
+                    latitude,
+                    latitude,
+                    longitude,
+                    latitude,
+                    radius_miles,
+                    limit,
+                ],
             )
-            
+
             columns = [col[0] for col in cursor.description]
             results = []
             for row in cursor.fetchall():
@@ -522,7 +580,7 @@ class ProviderV2(models.Model):
                 provider.distance = provider_data["distance"]
                 results.append(provider)
             return results
-    
+
     @classmethod
     def geocode_and_search(cls, address_or_zip, radius_miles=10, limit=20):
         """Geocode an address/zip and find nearby providers"""
@@ -530,15 +588,15 @@ class ProviderV2(models.Model):
         if coordinates:
             return cls.find_nearest(coordinates[0], coordinates[1], radius_miles, limit)
         return []
-    
+
     def get_distance_to(self, latitude, longitude):
         """Calculate distance from provider to given coordinates"""
         if not self.latitude or not self.longitude:
             return None
-        
+
         lat1, lon1 = float(self.latitude), float(self.longitude)
         lat2, lon2 = float(latitude), float(longitude)
-        
+
         R = 3959  # Earth's radius in miles
         dlat = math.radians(lat2 - lat1)
         dlon = math.radians(lon2 - lon1)

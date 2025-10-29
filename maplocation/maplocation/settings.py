@@ -29,7 +29,9 @@ DEBUG = True  # Force true for local development
 DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
 
 # Comma-separated list of allowed hosts, default to all in dev
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "*").split(",") if h.strip()]
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get("ALLOWED_HOSTS", "*").split(",") if h.strip()
+]
 
 
 # Application definition
@@ -95,14 +97,18 @@ WSGI_APPLICATION = "maplocation.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",  # Regular PostgreSQL backend  
+        "ENGINE": "django.db.backends.postgresql",  # Regular PostgreSQL backend
         "NAME": os.environ.get("DB_NAME", "shafali"),
         "USER": os.environ.get("DB_USER", "alexbeattie"),
         "PASSWORD": os.environ.get("DB_PASSWORD", ""),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "5432"),
         # Enable TLS to RDS when requested via env (keeps local simple)
-        "OPTIONS": {"sslmode": "require"} if os.environ.get("DB_SSL_REQUIRE", "false").lower() == "true" else {},
+        "OPTIONS": (
+            {"sslmode": "require"}
+            if os.environ.get("DB_SSL_REQUIRE", "false").lower() == "true"
+            else {}
+        ),
     }
 }
 
@@ -173,7 +179,11 @@ default_cors = [
     "https://www.kinddhelp.com",
 ]
 
-cors_from_env = [o.strip() for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()]
+cors_from_env = [
+    o.strip()
+    for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+    if o.strip()
+]
 
 if DEBUG and not cors_from_env:
     CORS_ALLOW_ALL_ORIGINS = True
@@ -183,13 +193,17 @@ else:
     CORS_ALLOWED_ORIGINS = cors_from_env or default_cors
 
 # CSRF trusted origins (comma-separated list of https://domain)
-csrf_from_env = [o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+csrf_from_env = [
+    o.strip()
+    for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o.strip()
+]
 
 # Default CSRF trusted origins for development
 default_csrf_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://localhost:3001", 
+    "http://localhost:3001",
     "http://127.0.0.1:3001",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
@@ -222,5 +236,5 @@ REST_FRAMEWORK = {
 }
 
 # Basic Auth for Admin Portal
-BASIC_AUTH_USERNAME = os.environ.get('BASIC_AUTH_USERNAME', 'clientaccess')
-BASIC_AUTH_PASSWORD = os.environ.get('BASIC_AUTH_PASSWORD', 'changeme123!')
+BASIC_AUTH_USERNAME = os.environ.get("BASIC_AUTH_USERNAME", "clientaccess")
+BASIC_AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "changeme123!")

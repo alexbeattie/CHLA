@@ -8,188 +8,414 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='FundingSource',
+            name="FundingSource",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True)),
-                ('description', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, unique=True)),
+                ("description", models.TextField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='InsuranceCarrier',
+            name="InsuranceCarrier",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True)),
-                ('description', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, unique=True)),
+                ("description", models.TextField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='LocationCategory',
+            name="LocationCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('description', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("description", models.TextField(blank=True, null=True)),
             ],
             options={
-                'verbose_name_plural': 'Location Categories',
+                "verbose_name_plural": "Location Categories",
             },
         ),
         migrations.CreateModel(
-            name='Provider',
+            name="Provider",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('phone', models.CharField(blank=True, max_length=100, null=True)),
-                ('address', models.TextField(blank=True, null=True)),
-                ('website_domain', models.URLField(blank=True, null=True)),
-                ('latitude', models.DecimalField(blank=True, decimal_places=6, max_digits=9, null=True)),
-                ('longitude', models.DecimalField(blank=True, decimal_places=6, max_digits=9, null=True)),
-                ('center_based_services', models.TextField(blank=True, null=True)),
-                ('areas', models.TextField(blank=True, null=True)),
-                ('specializations', models.TextField(blank=True, null=True)),
-                ('insurance_accepted', models.TextField(blank=True, null=True)),
-                ('services', models.TextField(blank=True, null=True)),
-                ('coverage_areas', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("phone", models.CharField(blank=True, max_length=100, null=True)),
+                ("address", models.TextField(blank=True, null=True)),
+                ("website_domain", models.URLField(blank=True, null=True)),
+                (
+                    "latitude",
+                    models.DecimalField(
+                        blank=True, decimal_places=6, max_digits=9, null=True
+                    ),
+                ),
+                (
+                    "longitude",
+                    models.DecimalField(
+                        blank=True, decimal_places=6, max_digits=9, null=True
+                    ),
+                ),
+                ("center_based_services", models.TextField(blank=True, null=True)),
+                ("areas", models.TextField(blank=True, null=True)),
+                ("specializations", models.TextField(blank=True, null=True)),
+                ("insurance_accepted", models.TextField(blank=True, null=True)),
+                ("services", models.TextField(blank=True, null=True)),
+                ("coverage_areas", models.TextField(blank=True, null=True)),
             ],
             options={
-                'db_table': 'providers',
+                "db_table": "providers",
             },
         ),
         migrations.CreateModel(
-            name='RegionalCenter',
+            name="RegionalCenter",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('regional_center', models.CharField(max_length=200)),
-                ('office_type', models.CharField(blank=True, max_length=50, null=True)),
-                ('address', models.CharField(max_length=255)),
-                ('suite', models.CharField(blank=True, max_length=50, null=True)),
-                ('city', models.CharField(max_length=100)),
-                ('state', models.CharField(max_length=50)),
-                ('zip_code', models.CharField(max_length=20)),
-                ('telephone', models.CharField(blank=True, max_length=20, null=True)),
-                ('website', models.URLField(blank=True, null=True)),
-                ('county_served', models.CharField(blank=True, max_length=100, null=True)),
-                ('los_angeles_health_district', models.CharField(blank=True, max_length=100, null=True)),
-                ('location_coordinates', models.CharField(blank=True, max_length=255, null=True)),
-                ('latitude', models.FloatField(blank=True, null=True)),
-                ('longitude', models.FloatField(blank=True, null=True)),
-                ('location', models.CharField(blank=True, max_length=100, null=True)),
-                ('service_area', models.TextField(blank=True, help_text='Geographic service area boundary for this regional center (stored as text temporarily)', null=True)),
-                ('service_radius_miles', models.FloatField(default=15.0, help_text='Approximate service radius in miles (used when no service area polygon is available)')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("regional_center", models.CharField(max_length=200)),
+                ("office_type", models.CharField(blank=True, max_length=50, null=True)),
+                ("address", models.CharField(max_length=255)),
+                ("suite", models.CharField(blank=True, max_length=50, null=True)),
+                ("city", models.CharField(max_length=100)),
+                ("state", models.CharField(max_length=50)),
+                ("zip_code", models.CharField(max_length=20)),
+                ("telephone", models.CharField(blank=True, max_length=20, null=True)),
+                ("website", models.URLField(blank=True, null=True)),
+                (
+                    "county_served",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "los_angeles_health_district",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "location_coordinates",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                ("latitude", models.FloatField(blank=True, null=True)),
+                ("longitude", models.FloatField(blank=True, null=True)),
+                ("location", models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "service_area",
+                    models.TextField(
+                        blank=True,
+                        help_text="Geographic service area boundary for this regional center (stored as text temporarily)",
+                        null=True,
+                    ),
+                ),
+                (
+                    "service_radius_miles",
+                    models.FloatField(
+                        default=15.0,
+                        help_text="Approximate service radius in miles (used when no service area polygon is available)",
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'Regional Centers',
-                'db_table': 'regional_centers',
+                "verbose_name_plural": "Regional Centers",
+                "db_table": "regional_centers",
             },
         ),
         migrations.CreateModel(
-            name='ServiceDeliveryModel',
+            name="ServiceDeliveryModel",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True)),
-                ('description', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, unique=True)),
+                ("description", models.TextField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Location',
+            name="Location",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('address', models.CharField(max_length=255)),
-                ('city', models.CharField(max_length=100)),
-                ('state', models.CharField(max_length=50)),
-                ('zip_code', models.CharField(max_length=20)),
-                ('latitude', models.DecimalField(decimal_places=7, max_digits=10)),
-                ('longitude', models.DecimalField(decimal_places=7, max_digits=10)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('phone', models.CharField(blank=True, max_length=20, null=True)),
-                ('website', models.URLField(blank=True, null=True)),
-                ('email', models.EmailField(blank=True, max_length=254, null=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('rating', models.DecimalField(decimal_places=1, default=0.0, max_digits=3)),
-                ('price_level', models.IntegerField(choices=[(1, '$'), (2, '$$'), (3, '$$$'), (4, '$$$$')], default=1)),
-                ('hours_of_operation', models.TextField(blank=True, null=True)),
-                ('has_parking', models.BooleanField(default=False)),
-                ('is_accessible', models.BooleanField(default=False)),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='locations', to='locations.locationcategory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200)),
+                ("address", models.CharField(max_length=255)),
+                ("city", models.CharField(max_length=100)),
+                ("state", models.CharField(max_length=50)),
+                ("zip_code", models.CharField(max_length=20)),
+                ("latitude", models.DecimalField(decimal_places=7, max_digits=10)),
+                ("longitude", models.DecimalField(decimal_places=7, max_digits=10)),
+                ("description", models.TextField(blank=True, null=True)),
+                ("phone", models.CharField(blank=True, max_length=20, null=True)),
+                ("website", models.URLField(blank=True, null=True)),
+                ("email", models.EmailField(blank=True, max_length=254, null=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "rating",
+                    models.DecimalField(decimal_places=1, default=0.0, max_digits=3),
+                ),
+                (
+                    "price_level",
+                    models.IntegerField(
+                        choices=[(1, "$"), (2, "$$"), (3, "$$$"), (4, "$$$$")],
+                        default=1,
+                    ),
+                ),
+                ("hours_of_operation", models.TextField(blank=True, null=True)),
+                ("has_parking", models.BooleanField(default=False)),
+                ("is_accessible", models.BooleanField(default=False)),
+                (
+                    "category",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="locations",
+                        to="locations.locationcategory",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='LocationImage',
+            name="LocationImage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(upload_to='location_images/')),
-                ('caption', models.CharField(blank=True, max_length=255, null=True)),
-                ('is_primary', models.BooleanField(default=False)),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True)),
-                ('location', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='locations.location')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("image", models.ImageField(upload_to="location_images/")),
+                ("caption", models.CharField(blank=True, max_length=255, null=True)),
+                ("is_primary", models.BooleanField(default=False)),
+                ("uploaded_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "location",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="images",
+                        to="locations.location",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='LocationReview',
+            name="LocationReview",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('email', models.EmailField(max_length=254)),
-                ('rating', models.IntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])),
-                ('comment', models.TextField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('location', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reviews', to='locations.location')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("email", models.EmailField(max_length=254)),
+                (
+                    "rating",
+                    models.IntegerField(
+                        choices=[(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")]
+                    ),
+                ),
+                ("comment", models.TextField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "location",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reviews",
+                        to="locations.location",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ProviderFundingSource',
+            name="ProviderFundingSource",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('funding_source', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='providers', to='locations.fundingsource')),
-                ('provider', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='funding_sources', to='locations.provider')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "funding_source",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="providers",
+                        to="locations.fundingsource",
+                    ),
+                ),
+                (
+                    "provider",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="funding_sources",
+                        to="locations.provider",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('provider', 'funding_source')},
+                "unique_together": {("provider", "funding_source")},
             },
         ),
         migrations.CreateModel(
-            name='ProviderInsuranceCarrier',
+            name="ProviderInsuranceCarrier",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('insurance_carrier', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='providers', to='locations.insurancecarrier')),
-                ('provider', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='insurance_carriers', to='locations.provider')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "insurance_carrier",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="providers",
+                        to="locations.insurancecarrier",
+                    ),
+                ),
+                (
+                    "provider",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="insurance_carriers",
+                        to="locations.provider",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('provider', 'insurance_carrier')},
+                "unique_together": {("provider", "insurance_carrier")},
             },
         ),
         migrations.CreateModel(
-            name='ProviderRegionalCenter',
+            name="ProviderRegionalCenter",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_primary', models.BooleanField(default=False)),
-                ('notes', models.TextField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('provider', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='regional_centers', to='locations.provider')),
-                ('regional_center', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='providers', to='locations.regionalcenter')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("is_primary", models.BooleanField(default=False)),
+                ("notes", models.TextField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "provider",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="regional_centers",
+                        to="locations.provider",
+                    ),
+                ),
+                (
+                    "regional_center",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="providers",
+                        to="locations.regionalcenter",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'provider_regional_centers',
-                'unique_together': {('provider', 'regional_center')},
+                "db_table": "provider_regional_centers",
+                "unique_together": {("provider", "regional_center")},
             },
         ),
         migrations.CreateModel(
-            name='ProviderServiceModel',
+            name="ProviderServiceModel",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('provider', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='service_models', to='locations.provider')),
-                ('service_model', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='providers', to='locations.servicedeliverymodel')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "provider",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="service_models",
+                        to="locations.provider",
+                    ),
+                ),
+                (
+                    "service_model",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="providers",
+                        to="locations.servicedeliverymodel",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('provider', 'service_model')},
+                "unique_together": {("provider", "service_model")},
             },
         ),
     ]

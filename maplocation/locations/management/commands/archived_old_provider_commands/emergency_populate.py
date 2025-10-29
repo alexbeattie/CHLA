@@ -1,15 +1,16 @@
 from django.core.management.base import BaseCommand
 from locations.models import Provider
 
+
 class Command(BaseCommand):
-    help = 'Emergency populate database with sample providers'
+    help = "Emergency populate database with sample providers"
 
     def handle(self, *args, **options):
         # Sample provider data
         providers_data = [
             {
                 "name": "A & H BEHAVIORAL THERAPY",
-                "phone": "909-665-7070, 818-823-1515", 
+                "phone": "909-665-7070, 818-823-1515",
                 "address": "16000 Ventura Blvd #1103, Encino, CA 91436, United States",
                 "website_domain": "http://www.ahappyfam.com/",
                 "latitude": "34.155931",
@@ -18,7 +19,7 @@ class Command(BaseCommand):
                 "specializations": "Autism",
                 "insurance_accepted": "Health Net, MHN, Magellan, Blue Shield, Anthem/Blue Cross, Regional center",
                 "services": "In Home ABA Therapy, Autism Behavioral Intervention, Autism Training for Parents",
-                "coverage_areas": "SAN FERNANDO VALLEY, SAN GABRIEL VALLEY, LONG BEACH, INGLEWOOD, COMPTON"
+                "coverage_areas": "SAN FERNANDO VALLEY, SAN GABRIEL VALLEY, LONG BEACH, INGLEWOOD, COMPTON",
             },
             {
                 "name": "CHLA PEDIATRIC THERAPY",
@@ -31,7 +32,7 @@ class Command(BaseCommand):
                 "specializations": "Pediatric Therapy, Autism, Developmental Delays",
                 "insurance_accepted": "Most major insurance plans, Medi-Cal, Kaiser",
                 "services": "Physical Therapy, Occupational Therapy, Speech Therapy, ABA Therapy",
-                "coverage_areas": "LOS ANGELES COUNTY"
+                "coverage_areas": "LOS ANGELES COUNTY",
             },
             {
                 "name": "WESTSIDE ABA SERVICES",
@@ -44,22 +45,24 @@ class Command(BaseCommand):
                 "specializations": "Applied Behavior Analysis, Autism Spectrum Disorders",
                 "insurance_accepted": "Blue Cross, Aetna, Cigna, Regional Center funding",
                 "services": "1:1 ABA Therapy, Group Therapy, Parent Training, School Consultation",
-                "coverage_areas": "WESTSIDE LOS ANGELES"
-            }
+                "coverage_areas": "WESTSIDE LOS ANGELES",
+            },
         ]
-        
+
         self.stdout.write("🚨 EMERGENCY: Populating database...")
-        
+
         # Clear existing providers
         Provider.objects.all().delete()
         self.stdout.write("Cleared existing providers")
-        
+
         # Create new providers
         for provider_data in providers_data:
             provider = Provider.objects.create(**provider_data)
             self.stdout.write(f"✅ Created: {provider.name}")
-        
+
         total = Provider.objects.count()
         self.stdout.write(
-            self.style.SUCCESS(f"🎉 SUCCESS: {total} providers loaded! Database is ready!")
+            self.style.SUCCESS(
+                f"🎉 SUCCESS: {total} providers loaded! Database is ready!"
+            )
         )

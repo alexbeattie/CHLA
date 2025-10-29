@@ -1,6 +1,7 @@
 """
 Management command to add Sherman Oaks ZIP code 91403 to North LA County Regional Center
 """
+
 from django.core.management.base import BaseCommand
 from locations.models import RegionalCenter
 
@@ -33,7 +34,5 @@ class Command(BaseCommand):
             )
         else:
             self.stdout.write(
-                self.style.WARNING(
-                    f"ZIP {zip_code} already exists in {nlacrc.name}"
-                )
+                self.style.WARNING(f"ZIP {zip_code} already exists in {nlacrc.name}")
             )

@@ -7,21 +7,22 @@ import os
 import sys
 
 # Configure for RDS
-os.environ['DB_HOST'] = 'chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com'
-os.environ['DB_NAME'] = 'postgres'
-os.environ['DB_USER'] = 'chla_admin'
-os.environ['DB_PASSWORD'] = 'CHLASecure2024'
-os.environ['DB_SSL_REQUIRE'] = 'true'
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'maplocation.settings')
+os.environ["DB_HOST"] = "chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com"
+os.environ["DB_NAME"] = "postgres"
+os.environ["DB_USER"] = "chla_admin"
+os.environ["DB_PASSWORD"] = "CHLASecure2024"
+os.environ["DB_SSL_REQUIRE"] = "true"
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "maplocation.settings")
 
 import django
+
 django.setup()
 
 from locations.models import ProviderV2
 from django.db.models import Count
 
 # Check for dry-run mode
-DRY_RUN = '--dry-run' in sys.argv
+DRY_RUN = "--dry-run" in sys.argv
 
 print("=" * 80)
 print("RDS DUPLICATE CLEANUP")
@@ -43,9 +44,12 @@ except Exception as e:
     sys.exit(1)
 
 # Find duplicates
-duplicates = ProviderV2.objects.values('name').annotate(
-    count=Count('id')
-).filter(count__gt=1).order_by('-count')
+duplicates = (
+    ProviderV2.objects.values("name")
+    .annotate(count=Count("id"))
+    .filter(count__gt=1)
+    .order_by("-count")
+)
 
 if not duplicates.exists():
     print("✅ No duplicates found!")
@@ -58,11 +62,11 @@ total_to_delete = 0
 deletion_plan = []
 
 for dup in duplicates:
-    name = dup['name']
-    count = dup['count']
+    name = dup["name"]
+    count = dup["count"]
 
     # Get all entries for this provider
-    entries = ProviderV2.objects.filter(name=name).order_by('id')
+    entries = ProviderV2.objects.filter(name=name).order_by("id")
 
     print(f"📋 {name} ({count} entries)")
 
@@ -111,7 +115,7 @@ print()
 
 response = input("Are you sure you want to continue? Type 'yes' to confirm: ")
 
-if response.lower() != 'yes':
+if response.lower() != "yes":
     print("❌ Cleanup cancelled")
     sys.exit(0)
 
@@ -151,9 +155,9 @@ print(f"Removed:          {total_before - total_after}")
 print()
 
 # Verify no duplicates remain
-remaining_duplicates = ProviderV2.objects.values('name').annotate(
-    count=Count('id')
-).filter(count__gt=1)
+remaining_duplicates = (
+    ProviderV2.objects.values("name").annotate(count=Count("id")).filter(count__gt=1)
+)
 
 if remaining_duplicates.exists():
     print(f"⚠️  {remaining_duplicates.count()} duplicates still remain!")

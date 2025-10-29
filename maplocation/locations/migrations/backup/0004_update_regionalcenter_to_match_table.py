@@ -6,86 +6,86 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0003_regionalcenter'),
+        ("locations", "0003_regionalcenter"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='regionalcenter',
-            old_name='name',
-            new_name='regional_center',
+            model_name="regionalcenter",
+            old_name="name",
+            new_name="regional_center",
         ),
         migrations.RenameField(
-            model_name='regionalcenter',
-            old_name='phone',
-            new_name='telephone',
+            model_name="regionalcenter",
+            old_name="phone",
+            new_name="telephone",
         ),
         migrations.AddField(
-            model_name='regionalcenter',
-            name='office_type',
+            model_name="regionalcenter",
+            name="office_type",
             field=models.CharField(blank=True, max_length=50, null=True),
         ),
         migrations.AddField(
-            model_name='regionalcenter',
-            name='suite',
+            model_name="regionalcenter",
+            name="suite",
             field=models.CharField(blank=True, max_length=50, null=True),
         ),
         migrations.AddField(
-            model_name='regionalcenter',
-            name='county_served',
+            model_name="regionalcenter",
+            name="county_served",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AddField(
-            model_name='regionalcenter',
-            name='los_angeles_health_district',
+            model_name="regionalcenter",
+            name="los_angeles_health_district",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AddField(
-            model_name='regionalcenter',
-            name='location_coordinates',
+            model_name="regionalcenter",
+            name="location_coordinates",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionalcenter',
-            name='location',
+            model_name="regionalcenter",
+            name="location",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AlterField(
-            model_name='regionalcenter',
-            name='latitude',
+            model_name="regionalcenter",
+            name="latitude",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='regionalcenter',
-            name='longitude',
+            model_name="regionalcenter",
+            name="longitude",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.RemoveField(
-            model_name='regionalcenter',
-            name='description',
+            model_name="regionalcenter",
+            name="description",
         ),
         migrations.RemoveField(
-            model_name='regionalcenter',
-            name='email',
+            model_name="regionalcenter",
+            name="email",
         ),
         migrations.RemoveField(
-            model_name='regionalcenter',
-            name='region',
+            model_name="regionalcenter",
+            name="region",
         ),
         migrations.RemoveField(
-            model_name='regionalcenter',
-            name='service_area',
+            model_name="regionalcenter",
+            name="service_area",
         ),
         migrations.RemoveField(
-            model_name='regionalcenter',
-            name='created_at',
+            model_name="regionalcenter",
+            name="created_at",
         ),
         migrations.RemoveField(
-            model_name='regionalcenter',
-            name='updated_at',
+            model_name="regionalcenter",
+            name="updated_at",
         ),
         migrations.AlterModelTable(
-            name='regionalcenter',
-            table='regional_centers',
+            name="regionalcenter",
+            table="regional_centers",
         ),
     ]

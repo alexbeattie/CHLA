@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0013_add_missing_boolean_fields'),
+        ("locations", "0013_add_missing_boolean_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='providerv2',
-            name='latitude',
+            model_name="providerv2",
+            name="latitude",
             field=models.DecimalField(decimal_places=7, default=0.0, max_digits=10),
         ),
         migrations.AlterField(
-            model_name='providerv2',
-            name='longitude',
+            model_name="providerv2",
+            name="longitude",
             field=models.DecimalField(decimal_places=7, default=0.0, max_digits=10),
         ),
     ]

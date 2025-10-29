@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0014_increase_coordinate_precision'),
+        ("locations", "0014_increase_coordinate_precision"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='providerv2',
-            name='latitude',
+            model_name="providerv2",
+            name="latitude",
             field=models.DecimalField(decimal_places=8, default=0.0, max_digits=11),
         ),
         migrations.AlterField(
-            model_name='providerv2',
-            name='longitude',
+            model_name="providerv2",
+            name="longitude",
             field=models.DecimalField(decimal_places=8, default=0.0, max_digits=11),
         ),
     ]

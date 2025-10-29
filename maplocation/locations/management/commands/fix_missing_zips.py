@@ -1,6 +1,7 @@
 """
 Management command to add missing Sherman Oaks/Van Nuys area ZIP codes to regional centers
 """
+
 from django.core.management.base import BaseCommand
 from locations.models import RegionalCenter
 
@@ -29,13 +30,13 @@ class Command(BaseCommand):
 
             if not north_la:
                 self.stdout.write(
-                    self.style.ERROR("North Los Angeles County Regional Center not found!")
+                    self.style.ERROR(
+                        "North Los Angeles County Regional Center not found!"
+                    )
                 )
                 return
 
-            self.stdout.write(
-                f"Found: {north_la.regional_center} (ID: {north_la.id})"
-            )
+            self.stdout.write(f"Found: {north_la.regional_center} (ID: {north_la.id})")
 
             # Get current ZIP codes
             current_zips = set(north_la.zip_codes or [])
@@ -49,9 +50,7 @@ class Command(BaseCommand):
                 if zip_code not in current_zips:
                     current_zips.add(zip_code)
                     added_count += 1
-                    self.stdout.write(
-                        self.style.SUCCESS(f"  ✅ Added: {zip_code}")
-                    )
+                    self.stdout.write(self.style.SUCCESS(f"  ✅ Added: {zip_code}"))
                 else:
                     self.stdout.write(f"  ℹ️  Already has: {zip_code}")
 
@@ -64,16 +63,11 @@ class Command(BaseCommand):
                         f"\n✅ Successfully added {added_count} ZIP codes!"
                     )
                 )
-                self.stdout.write(
-                    f"Total ZIPs now: {len(north_la.zip_codes)}"
-                )
+                self.stdout.write(f"Total ZIPs now: {len(north_la.zip_codes)}")
             else:
                 self.stdout.write(
                     self.style.WARNING("\nNo new ZIP codes needed to be added.")
                 )
 
         except Exception as e:
-            self.stdout.write(
-                self.style.ERROR(f"Error: {str(e)}")
-            )
-
+            self.stdout.write(self.style.ERROR(f"Error: {str(e)}"))

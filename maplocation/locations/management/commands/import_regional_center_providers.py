@@ -70,31 +70,60 @@ class Command(BaseCommand):
         regional_center = None
         if regional_center_name:
             try:
-                regional_center = RegionalCenter.objects.get(regional_center__icontains=regional_center_name)
-                self.stdout.write(self.style.SUCCESS(f"Found regional center: {regional_center.regional_center}"))
+                regional_center = RegionalCenter.objects.get(
+                    regional_center__icontains=regional_center_name
+                )
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"Found regional center: {regional_center.regional_center}"
+                    )
+                )
             except RegionalCenter.DoesNotExist:
-                self.stdout.write(self.style.ERROR(f"Regional center not found: {regional_center_name}"))
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"Regional center not found: {regional_center_name}"
+                    )
+                )
                 self.stdout.write("Available regional centers:")
-                for rc in RegionalCenter.objects.all().distinct('regional_center'):
+                for rc in RegionalCenter.objects.all().distinct("regional_center"):
                     self.stdout.write(f"  - {rc.regional_center}")
                 return
             except RegionalCenter.MultipleObjectsReturned:
-                regional_center = RegionalCenter.objects.filter(regional_center__icontains=regional_center_name).first()
-                self.stdout.write(self.style.WARNING(f"Multiple matches found, using: {regional_center.regional_center}"))
+                regional_center = RegionalCenter.objects.filter(
+                    regional_center__icontains=regional_center_name
+                ).first()
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Multiple matches found, using: {regional_center.regional_center}"
+                    )
+                )
 
         # Use area name if provided
         if area_name and not regional_center_name:
-            self.stdout.write(self.style.SUCCESS(f"Importing providers for area: {area_name}"))
+            self.stdout.write(
+                self.style.SUCCESS(f"Importing providers for area: {area_name}")
+            )
         elif not regional_center and not area_name:
-            self.stdout.write(self.style.ERROR("Please provide either --regional-center or --area"))
+            self.stdout.write(
+                self.style.ERROR("Please provide either --regional-center or --area")
+            )
             return
 
         if options["clear_existing"]:
             # Note: We don't have a direct FK to regional center, so we'd need to identify by area
-            self.stdout.write(self.style.WARNING("Clear existing is not implemented yet for providers"))
+            self.stdout.write(
+                self.style.WARNING(
+                    "Clear existing is not implemented yet for providers"
+                )
+            )
 
         # Import the providers
-        self.import_providers(file_path, regional_center, area_name or (regional_center.city if regional_center else ""), options)
+        self.import_providers(
+            file_path,
+            regional_center,
+            area_name or (regional_center.city if regional_center else ""),
+            options,
+        )
 
     def import_providers(self, file_path, regional_center, area_name, options):
         """Import providers from Excel file"""
@@ -115,7 +144,9 @@ class Command(BaseCommand):
             try:
                 sheet = workbook[options["sheet"]]
             except KeyError:
-                self.stdout.write(self.style.ERROR(f"Sheet not found: {options['sheet']}"))
+                self.stdout.write(
+                    self.style.ERROR(f"Sheet not found: {options['sheet']}")
+                )
                 self.stdout.write(f"Available sheets: {', '.join(workbook.sheetnames)}")
                 return
         else:
@@ -138,7 +169,9 @@ class Command(BaseCommand):
         error_count = 0
 
         # Process each row (skip header)
-        for row_num, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+        for row_num, row in enumerate(
+            sheet.iter_rows(min_row=2, values_only=True), start=2
+        ):
             try:
                 # Build a dict from the row
                 row_data = {}
@@ -154,7 +187,9 @@ class Command(BaseCommand):
                     continue
 
                 # Parse the data
-                provider_data = self.parse_provider_data(row_data, column_map, area_name)
+                provider_data = self.parse_provider_data(
+                    row_data, column_map, area_name
+                )
 
                 # Geocode if requested
                 if options["geocode"] and provider_data.get("address"):
@@ -168,7 +203,7 @@ class Command(BaseCommand):
                 provider, created = ProviderV2.objects.update_or_create(
                     name=provider_data["name"],
                     address=provider_data.get("address", ""),
-                    defaults=provider_data
+                    defaults=provider_data,
                 )
 
                 if created:
@@ -183,12 +218,12 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f"  ✗ Error on row {row_num}: {e}"))
 
         # Summary
-        self.stdout.write("\n" + "="*50)
+        self.stdout.write("\n" + "=" * 50)
         self.stdout.write(self.style.SUCCESS(f"Import complete!"))
         self.stdout.write(f"  Created: {created_count}")
         self.stdout.write(f"  Updated: {updated_count}")
         self.stdout.write(f"  Errors:  {error_count}")
-        self.stdout.write("="*50 + "\n")
+        self.stdout.write("=" * 50 + "\n")
 
     def map_columns(self, headers):
         """Map Excel columns to provider fields"""
@@ -322,7 +357,11 @@ class Command(BaseCommand):
         insurance_lower = insurance_text.lower()
 
         # Check for Private Pay
-        if "private" in insurance_lower or "self pay" in insurance_lower or "cash" in insurance_lower:
+        if (
+            "private" in insurance_lower
+            or "self pay" in insurance_lower
+            or "cash" in insurance_lower
+        ):
             insurance_list.append("Private Pay")
             accepts_flags["accepts_private_pay"] = True
 
@@ -356,7 +395,9 @@ class Command(BaseCommand):
         mapbox_token = os.environ.get("MAPBOX_ACCESS_TOKEN")
 
         if not mapbox_token:
-            self.stdout.write(self.style.WARNING("MAPBOX_ACCESS_TOKEN not set, skipping geocoding"))
+            self.stdout.write(
+                self.style.WARNING("MAPBOX_ACCESS_TOKEN not set, skipping geocoding")
+            )
             return None
 
         # Clean up address
@@ -383,6 +424,8 @@ class Command(BaseCommand):
                     "longitude": Decimal(str(longitude)),
                 }
         except Exception as e:
-            self.stdout.write(self.style.WARNING(f"Geocoding failed for {address}: {e}"))
+            self.stdout.write(
+                self.style.WARNING(f"Geocoding failed for {address}: {e}")
+            )
 
         return None

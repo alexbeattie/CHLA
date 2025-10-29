@@ -18,7 +18,11 @@ def copy_providers(apps, schema_editor):
                 website=getattr(p, "website_domain", None),
                 description=getattr(p, "specializations", None),
                 insurance_accepted=getattr(p, "insurance_accepted", None),
-                type="" if not getattr(p, "specializations", None) else str(p.specializations).split(",")[0].strip(),
+                type=(
+                    ""
+                    if not getattr(p, "specializations", None)
+                    else str(p.specializations).split(",")[0].strip()
+                ),
                 languages_spoken=None,
             )
         )
@@ -41,19 +45,14 @@ class Migration(migrations.Migration):
                 "ALTER TABLE providers_v2 "
                 "ADD COLUMN IF NOT EXISTS website varchar(200);"
             ),
-            reverse_sql=(
-                "ALTER TABLE providers_v2 "
-                "DROP COLUMN IF EXISTS website;"
-            ),
+            reverse_sql=("ALTER TABLE providers_v2 " "DROP COLUMN IF EXISTS website;"),
         ),
         migrations.RunSQL(
             sql=(
-                "ALTER TABLE providers_v2 "
-                "ADD COLUMN IF NOT EXISTS description text;"
+                "ALTER TABLE providers_v2 " "ADD COLUMN IF NOT EXISTS description text;"
             ),
             reverse_sql=(
-                "ALTER TABLE providers_v2 "
-                "DROP COLUMN IF EXISTS description;"
+                "ALTER TABLE providers_v2 " "DROP COLUMN IF EXISTS description;"
             ),
         ),
         migrations.RunSQL(
@@ -68,12 +67,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             sql=(
-                "ALTER TABLE providers_v2 "
-                "ALTER COLUMN insurance_accepted TYPE text"
+                "ALTER TABLE providers_v2 " "ALTER COLUMN insurance_accepted TYPE text"
             ),
             reverse_sql=(
-                "ALTER TABLE providers_v2 "
-                "ALTER COLUMN insurance_accepted TYPE text"
+                "ALTER TABLE providers_v2 " "ALTER COLUMN insurance_accepted TYPE text"
             ),
         ),
         migrations.RunSQL(
@@ -101,5 +98,3 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(copy_providers, migrations.RunPython.noop),
     ]
-
-

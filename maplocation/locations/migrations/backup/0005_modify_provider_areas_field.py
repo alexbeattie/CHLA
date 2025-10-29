@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0004_update_regionalcenter_to_match_table'),
+        ("locations", "0004_update_regionalcenter_to_match_table"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='provider',
-            name='areas',
+            model_name="provider",
+            name="areas",
             field=models.TextField(blank=True, null=True),
         ),
     ]

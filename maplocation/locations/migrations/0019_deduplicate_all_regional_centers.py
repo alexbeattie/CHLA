@@ -8,19 +8,23 @@ def deduplicate_all_rcs(apps, schema_editor):
     Remove ALL duplicates - keep EXACTLY 21 Regional Centers (one per unique name).
     For duplicates, keeps the one with the most ZIP codes.
     """
-    RegionalCenter = apps.get_model('locations', 'RegionalCenter')
+    RegionalCenter = apps.get_model("locations", "RegionalCenter")
 
     total_deleted = 0
 
     # Get all unique RC names
-    unique_names = RegionalCenter.objects.values_list('regional_center', flat=True).distinct()
+    unique_names = RegionalCenter.objects.values_list(
+        "regional_center", flat=True
+    ).distinct()
 
     for rc_name in unique_names:
         rcs = list(RegionalCenter.objects.filter(regional_center=rc_name))
 
         if len(rcs) > 1:
             # Keep the one with the MOST ZIP codes
-            rcs_with_zips = [(rc, len(rc.zip_codes) if rc.zip_codes else 0) for rc in rcs]
+            rcs_with_zips = [
+                (rc, len(rc.zip_codes) if rc.zip_codes else 0) for rc in rcs
+            ]
             rcs_with_zips.sort(key=lambda x: (-x[1], x[0].id))
             keep = rcs_with_zips[0][0]
             duplicates = [rc for rc, _ in rcs_with_zips[1:]]
@@ -48,7 +52,7 @@ def reverse_dedup(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('locations', '0018_deduplicate_la_regional_centers'),
+        ("locations", "0018_deduplicate_la_regional_centers"),
     ]
 
     operations = [
