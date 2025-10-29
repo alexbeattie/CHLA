@@ -1,0 +1,75 @@
+Final Migration Test - 2025-10-29 11:23:54.657913
+============================================================
+
+Setting up Django...
+✓ Django setup complete
+
+============================================================
+APPLYING MIGRATIONS
+============================================================
+
+
+❌ ERROR: column "location" of relation "providers_v2" already exists
+
+
+Full traceback:
+Traceback (most recent call last):
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.DuplicateColumn: column "location" of relation "providers_v2" already exists
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/final_migrate_test.py", line 37, in <module>
+    call_command('migrate', stdout=output, stderr=output, no_color=True)
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/core/management/__init__.py", line 194, in call_command
+    return command.execute(*args, **defaults)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/core/management/base.py", line 460, in execute
+    output = self.handle(*args, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/core/management/base.py", line 107, in wrapper
+    res = handle_func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/core/management/commands/migrate.py", line 353, in handle
+    post_migrate_state = executor.migrate(
+                         ^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/migrations/executor.py", line 135, in migrate
+    state = self._migrate_all_forwards(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/migrations/executor.py", line 167, in _migrate_all_forwards
+    state = self.apply_migration(
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/migrations/executor.py", line 255, in apply_migration
+    state = migration.apply(state, schema_editor)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/migrations/migration.py", line 132, in apply
+    operation.database_forwards(
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/migrations/operations/fields.py", line 110, in database_forwards
+    schema_editor.add_field(
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/backends/base/schema.py", line 775, in add_field
+    self.execute(sql, params or None)
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/backends/postgresql/schema.py", line 45, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/backends/base/schema.py", line 204, in execute
+    cursor.execute(sql, params)
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/alexbeattie/Developer/CHLA/maplocation/venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: column "location" of relation "providers_v2" already exists
+
+

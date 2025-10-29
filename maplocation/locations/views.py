@@ -121,56 +121,18 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
                     {"error": "lat, lng, and radius must be valid numbers"}, status=400
                 )
 
-            # Earth's radius in miles (use 3959 for miles, 6371 for kilometers)
-            earth_radius = 3959
-
-            # Get all active locations
-            locations = Location.objects.filter(is_active=True)
-
-            # Filter locations based on distance
-            nearby_locations = []
-            for location in locations:
-                try:
-                    # Ensure latitude and longitude are valid numbers
-                    loc_lat = float(location.latitude)
-                    loc_lng = float(location.longitude)
-
-                    # Convert to radians
-                    lat1, lng1 = math.radians(lat), math.radians(lng)
-                    lat2, lng2 = math.radians(loc_lat), math.radians(loc_lng)
-
-                # Haversine formula
-                dlng = lng2 - lng1
-                dlat = lat2 - lat1
-                a = (
-                    math.sin(dlat / 2) ** 2
-                    + math.cos(lat1) * math.cos(lat2) * math.sin(dlng / 2) ** 2
-                )
-                c = 2 * math.asin(math.sqrt(a))
-                distance = earth_radius * c  # in miles
-
-                if distance <= radius:
-                        # Add distance to location object
-                        location.distance = round(distance, 2)
-                        nearby_locations.append(location)
-                except (ValueError, TypeError):
-                    # Skip locations with invalid coordinates
-                    continue
-
-            # Sort by distance
-            nearby_locations.sort(key=lambda x: getattr(x, "distance", float("inf")))
+            # Use PostGIS for efficient spatial queries
+            nearby_locations = Location.find_nearest(lat, lng, radius, limit=100)
 
             # Serialize the data
             serializer = self.get_serializer(nearby_locations, many=True)
 
-            # Add distance to serialized data, ensuring we're working with mutable data
+            # Add distance to serialized data
             serializer_data = list(serializer.data)
             for i, location in enumerate(nearby_locations):
-                if i < len(serializer_data):  # Safety check
-                    serializer_data[i] = dict(
-                        serializer_data[i]
-                    )  # Make mutable if it's not
-                    serializer_data[i]["distance"] = location.distance
+                if i < len(serializer_data) and hasattr(location, 'distance'):
+                    serializer_data[i] = dict(serializer_data[i])
+                    serializer_data[i]["distance"] = round(location.distance, 2)
 
             return Response(serializer_data)
 
