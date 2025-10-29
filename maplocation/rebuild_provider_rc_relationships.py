@@ -7,14 +7,15 @@ create the relationship.
 import os
 import sys
 
-os.environ['DB_HOST'] = 'chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com'
-os.environ['DB_NAME'] = 'postgres'
-os.environ['DB_USER'] = 'chla_admin'
-os.environ['DB_PASSWORD'] = 'CHLASecure2024'
-os.environ['DB_SSL_REQUIRE'] = 'true'
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'maplocation.settings')
+os.environ["DB_HOST"] = "chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com"
+os.environ["DB_NAME"] = "postgres"
+os.environ["DB_USER"] = "chla_admin"
+os.environ["DB_PASSWORD"] = "CHLASecure2024"
+os.environ["DB_SSL_REQUIRE"] = "true"
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "maplocation.settings")
 
 import django
+
 django.setup()
 
 from locations.models import ProviderV2, RegionalCenter, ProviderRegionalCenter
@@ -53,28 +54,32 @@ for provider in providers:
     zip_code = None
     if provider.address:
         try:
-            addr = json.loads(provider.address) if isinstance(provider.address, str) else provider.address
-            zip_code = addr.get('zip')
+            addr = (
+                json.loads(provider.address)
+                if isinstance(provider.address, str)
+                else provider.address
+            )
+            zip_code = addr.get("zip")
         except:
             pass
-    
+
     if not zip_code:
         no_match.append(f"{provider.name} - no ZIP code")
         continue
-    
+
     # Find regional centers for this ZIP
     rcs = zip_to_rc.get(zip_code, [])
-    
+
     if not rcs:
         no_match.append(f"{provider.name} - ZIP {zip_code} not in any RC")
         continue
-    
+
     # Create relationships
     for rc in rcs:
         ProviderRegionalCenter.objects.get_or_create(
             provider=provider,
             regional_center=rc,
-            defaults={'is_primary': True, 'notes': 'Auto-linked by ZIP code'}
+            defaults={"is_primary": True, "notes": "Auto-linked by ZIP code"},
         )
         created += 1
 

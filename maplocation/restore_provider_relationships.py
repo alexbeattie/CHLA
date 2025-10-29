@@ -13,27 +13,32 @@ print()
 
 # First, get data from LOCAL database
 print("Step 1: Reading relationships from LOCAL database...")
-os.environ.pop('DB_HOST', None)
-os.environ.pop('DB_NAME', None)
-os.environ.pop('DB_USER', None)
-os.environ.pop('DB_PASSWORD', None)
-os.environ.pop('DB_SSL_REQUIRE', None)
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'maplocation.settings')
+os.environ.pop("DB_HOST", None)
+os.environ.pop("DB_NAME", None)
+os.environ.pop("DB_USER", None)
+os.environ.pop("DB_PASSWORD", None)
+os.environ.pop("DB_SSL_REQUIRE", None)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "maplocation.settings")
 
 import django
+
 django.setup()
 
 from locations.models import ProviderV2, RegionalCenter, ProviderRegionalCenter
 
 # Get all local relationships (using ProviderV2 which exists locally)
 local_relationships = []
-for rel in ProviderRegionalCenter.objects.select_related('provider', 'regional_center').all():
-    local_relationships.append({
-        'provider_name': rel.provider.name,
-        'regional_center_name': rel.regional_center.name,
-        'is_primary': rel.is_primary,
-        'notes': rel.notes or '',
-    })
+for rel in ProviderRegionalCenter.objects.select_related(
+    "provider", "regional_center"
+).all():
+    local_relationships.append(
+        {
+            "provider_name": rel.provider.name,
+            "regional_center_name": rel.regional_center.name,
+            "is_primary": rel.is_primary,
+            "notes": rel.notes or "",
+        }
+    )
 
 print(f"Found {len(local_relationships)} relationships in LOCAL database")
 print()
@@ -44,15 +49,16 @@ if not local_relationships:
 
 # Now configure for RDS
 print("Step 2: Connecting to RDS...")
-os.environ['DB_HOST'] = 'chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com'
-os.environ['DB_NAME'] = 'postgres'
-os.environ['DB_USER'] = 'chla_admin'
-os.environ['DB_PASSWORD'] = 'CHLASecure2024'
-os.environ['DB_SSL_REQUIRE'] = 'true'
+os.environ["DB_HOST"] = "chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com"
+os.environ["DB_NAME"] = "postgres"
+os.environ["DB_USER"] = "chla_admin"
+os.environ["DB_PASSWORD"] = "CHLASecure2024"
+os.environ["DB_SSL_REQUIRE"] = "true"
 
 # Force Django to reconnect
 from django.db import connections
-connections['default'].close()
+
+connections["default"].close()
 django.setup()
 
 from locations.models import ProviderV2, RegionalCenter, ProviderRegionalCenter
@@ -70,28 +76,30 @@ errors = []
 for rel_data in local_relationships:
     try:
         # Find provider by name
-        provider = ProviderV2.objects.get(name=rel_data['provider_name'])
-        
+        provider = ProviderV2.objects.get(name=rel_data["provider_name"])
+
         # Find regional center by name
-        rc = RegionalCenter.objects.get(name=rel_data['regional_center_name'])
-        
+        rc = RegionalCenter.objects.get(name=rel_data["regional_center_name"])
+
         # Create relationship
         ProviderRegionalCenter.objects.get_or_create(
             provider=provider,
             regional_center=rc,
             defaults={
-                'is_primary': rel_data['is_primary'],
-                'notes': rel_data['notes'],
-            }
+                "is_primary": rel_data["is_primary"],
+                "notes": rel_data["notes"],
+            },
         )
         created += 1
         if created % 50 == 0:
             print(f"  Created {created} relationships...")
-            
+
     except ProviderV2.DoesNotExist:
         errors.append(f"Provider not found in RDS: {rel_data['provider_name']}")
     except RegionalCenter.DoesNotExist:
-        errors.append(f"Regional Center not found in RDS: {rel_data['regional_center_name']}")
+        errors.append(
+            f"Regional Center not found in RDS: {rel_data['regional_center_name']}"
+        )
     except Exception as e:
         errors.append(f"Error for {rel_data['provider_name']}: {str(e)}")
 
