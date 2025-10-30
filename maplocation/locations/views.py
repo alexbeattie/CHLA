@@ -822,24 +822,11 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     | Q(insurance_accepted__icontains=query)
                 )
 
-            # Apply insurance filters - use boolean fields for reliability
-            if insurance_filters:
-                insurance_q = Q()
-                for insurance_type in insurance_filters:
-                    if insurance_type.lower() == "insurance":
-                        # Use accepts_insurance boolean field for reliable filtering
-                        insurance_q |= Q(accepts_insurance=True)
-                    elif insurance_type.lower() == "private pay":
-                        insurance_q |= Q(accepts_private_pay=True)
-                    elif insurance_type.lower() == "regional center":
-                        insurance_q |= Q(accepts_regional_center=True)
-                    else:
-                        # Fallback to text search for specific carrier names
-                        insurance_q |= Q(insurance_accepted__icontains=insurance_type)
-
-                # Debug: Log the filter
-                print(f"DEBUG: Insurance filter query: {insurance_q}")
-                providers = providers.filter(insurance_q)
+            # Insurance filtering disabled - fields dropped in migration 0030
+            # TODO: Re-implement using ProviderInsuranceCarrier relationship table
+            # if insurance_filters:
+            #     # Filter using ProviderInsuranceCarrier relationship
+            #     pass
 
             # Apply specialization filter (diagnosis) using text field operations
             if specialization:
