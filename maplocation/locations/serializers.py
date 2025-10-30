@@ -281,7 +281,10 @@ class ProviderV2Serializer(serializers.ModelSerializer):
     specializations = serializers.ReadOnlyField()
     services = serializers.ReadOnlyField()
     coverage_areas = serializers.ReadOnlyField()
-    
+
+    # New normalized insurance field
+    insurance_carriers = serializers.ReadOnlyField(source='insurance_carriers_list')
+
     # Distance field (dynamically added when using PostGIS queries)
     distance = serializers.SerializerMethodField()
 
@@ -303,7 +306,8 @@ class ProviderV2Serializer(serializers.ModelSerializer):
             "longitude",
             "address",
             "hours",
-            "insurance_accepted",
+            "insurance_accepted",  # Legacy field (kept for backward compatibility)
+            "insurance_carriers",  # NEW: Normalized insurance from relationships
             "languages_spoken",
             "created_at",
             "updated_at",

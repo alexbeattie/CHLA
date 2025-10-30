@@ -595,6 +595,17 @@ class ProviderV2(models.Model):
     def coverage_areas(self):
         return []
 
+    @property
+    def insurance_carriers_list(self):
+        """
+        Get list of insurance carrier names from relationships
+        Computed property for API serialization
+        """
+        return [
+            rel.insurance_carrier.name
+            for rel in self.provider_insurance_carriers.select_related('insurance_carrier')
+        ]
+
     @classmethod
     def find_nearest(cls, latitude, longitude, radius_miles=10, limit=20):
         """Find providers within radius of given coordinates using PostGIS"""
