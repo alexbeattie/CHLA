@@ -5,6 +5,7 @@
 
 export interface RegionalCenterInfo {
   name: string;
+  abbreviation: string;
   color: string;
   center: {
     lat: number;
@@ -19,38 +20,45 @@ export interface RegionalCenterInfo {
 export const LA_REGIONAL_CENTERS: Record<string, RegionalCenterInfo> = {
   "North Los Angeles County Regional Center": {
     name: "North Los Angeles County Regional Center",
-    color: "#f1c40f",
-    center: { lat: 34.2523, lng: -118.4085 },
-  },
-  "South Central Los Angeles Regional Center": {
-    name: "South Central Los Angeles Regional Center",
-    color: "#3498db",
-    center: { lat: 33.9416, lng: -118.2085 },
-  },
-  "Eastern Los Angeles Regional Center": {
-    name: "Eastern Los Angeles Regional Center",
-    color: "#e74c3c",
-    center: { lat: 34.0658, lng: -118.0967 },
-  },
-  "Westside Regional Center": {
-    name: "Westside Regional Center",
-    color: "#9b59b6",
-    center: { lat: 34.0195, lng: -118.4912 },
-  },
-  "Harbor Regional Center": {
-    name: "Harbor Regional Center",
-    color: "#1abc9c",
-    center: { lat: 33.8303, lng: -118.2923 },
+    abbreviation: "NLACRC",
+    color: "#f1c40f", // Yellow
+    center: { lat: 34.2523, lng: -118.4085 }, // Van Nuys
   },
   "San Gabriel/Pomona Regional Center": {
     name: "San Gabriel/Pomona Regional Center",
-    color: "#e67e22",
-    center: { lat: 34.0555, lng: -117.9001 },
+    abbreviation: "SGPRC",
+    color: "#4caf50", // Green
+    center: { lat: 34.0522, lng: -117.7499 }, // Pomona
+  },
+  "Eastern Los Angeles Regional Center": {
+    name: "Eastern Los Angeles Regional Center",
+    abbreviation: "ELARC",
+    color: "#ff9800", // Orange
+    center: { lat: 33.9425, lng: -118.0353 }, // Whittier
+  },
+  "Westside Regional Center": {
+    name: "Westside Regional Center",
+    abbreviation: "WRC",
+    color: "#e91e63", // Pink
+    center: { lat: 34.0239, lng: -118.3897 }, // Culver City
   },
   "Frank D. Lanterman Regional Center": {
     name: "Frank D. Lanterman Regional Center",
-    color: "#2ecc71",
-    center: { lat: 34.1478, lng: -118.1445 },
+    abbreviation: "FDLRC",
+    color: "#9c27b0", // Purple
+    center: { lat: 34.0689, lng: -118.1228 }, // Alhambra
+  },
+  "South Central Los Angeles Regional Center": {
+    name: "South Central Los Angeles Regional Center",
+    abbreviation: "SCLARC",
+    color: "#f44336", // Red
+    center: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+  },
+  "Harbor Regional Center": {
+    name: "Harbor Regional Center",
+    abbreviation: "HRC",
+    color: "#2196f3", // Blue
+    center: { lat: 33.7905, lng: -118.2923 }, // Torrance
   },
 };
 
@@ -73,6 +81,26 @@ export function getRegionalCenterCoordinates(name: string): { lat: number; lng: 
  */
 export function getRegionalCenterNames(): string[] {
   return Object.keys(LA_REGIONAL_CENTERS);
+}
+
+/**
+ * Get regional centers as an array
+ * Returns array of { name, abbreviation, color } objects
+ */
+export function getRegionalCentersList(): Array<{name: string; abbreviation: string; color: string}> {
+  return Object.values(LA_REGIONAL_CENTERS).map(rc => ({
+    name: rc.name,
+    abbreviation: rc.abbreviation,
+    color: rc.color
+  }));
+}
+
+/**
+ * Get coordinates in [lng, lat] format for Mapbox
+ */
+export function getRegionalCenterMapboxCoords(name: string): [number, number] | null {
+  const center = LA_REGIONAL_CENTERS[name]?.center;
+  return center ? [center.lng, center.lat] : null;
 }
 
 /**

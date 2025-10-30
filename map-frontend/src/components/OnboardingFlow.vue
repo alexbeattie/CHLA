@@ -432,10 +432,17 @@ export default {
           await this.validateLocation();
           return; // validateLocation will handle moving to next step
         }
-        
-        this.currentStep++;
-        if (this.currentStep === 4) {
+
+        // If moving from step 3 to step 4, regenerate results with latest therapy selections
+        if (this.currentStep === 3) {
+          this.currentStep++;
+          await this.$nextTick(); // Wait for DOM update
+          console.log('[Onboarding] Moving to results step, regenerating with therapies:', this.userProfile.therapies);
           await this.generateResults();
+          await this.$nextTick(); // Wait for results to update in DOM
+          console.log('[Onboarding] Results updated, count:', this.resultsCount);
+        } else {
+          this.currentStep++;
         }
       }
     },

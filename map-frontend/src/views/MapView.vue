@@ -517,7 +517,14 @@ import { useGeolocation } from "@/composables/useGeolocation";
 import { useRegionalCenterData } from "@/composables/useRegionalCenterData";
 
 // Constants and utilities
-import { LA_COUNTY_CENTER, LA_COUNTY_BOUNDS } from "@/constants/regionalCenters";
+import {
+  LA_COUNTY_CENTER,
+  LA_COUNTY_BOUNDS,
+  getRegionalCentersList,
+  getRegionalCenterColor,
+  getRegionalCenterCoordinates,
+  getRegionalCenterMapboxCoords
+} from "@/constants/regionalCenters";
 import {
   calculateDistance,
   extractZipCode,
@@ -808,15 +815,7 @@ export default {
 
     // LA Regional Centers list with colors and abbreviations
     laRegionalCentersList() {
-      return [
-        { name: "North Los Angeles County Regional Center", abbreviation: "NLACRC", color: "#f1c40f" }, // Yellow
-        { name: "San Gabriel/Pomona Regional Center", abbreviation: "SGPRC", color: "#4caf50" }, // Green
-        { name: "Eastern Los Angeles Regional Center", abbreviation: "ELARC", color: "#ff9800" }, // Orange
-        { name: "Westside Regional Center", abbreviation: "WRC", color: "#e91e63" }, // Pink
-        { name: "Frank D. Lanterman Regional Center", abbreviation: "FDLRC", color: "#9c27b0" }, // Purple
-        { name: "South Central Los Angeles Regional Center", abbreviation: "SCLARC", color: "#f44336" }, // Red
-        { name: "Harbor Regional Center", abbreviation: "HRC", color: "#2196f3" }, // Blue
-      ];
+      return getRegionalCentersList();
     },
 
     // Calculate nearest regional centers based on user location
@@ -825,21 +824,10 @@ export default {
         return [];
       }
 
-      // Define center coordinates for each regional center
-      const centerCoordinates = {
-        "North Los Angeles County Regional Center": { lat: 34.2523, lng: -118.4085 }, // Van Nuys
-        "San Gabriel/Pomona Regional Center": { lat: 34.0522, lng: -117.7499 }, // Pomona
-        "Eastern Los Angeles Regional Center": { lat: 33.9425, lng: -118.0353 }, // Whittier
-        "Westside Regional Center": { lat: 34.0239, lng: -118.3897 }, // Culver City
-        "Frank D. Lanterman Regional Center": { lat: 34.0689, lng: -118.1228 }, // Alhambra
-        "South Central Los Angeles Regional Center": { lat: 34.0522, lng: -118.2437 }, // Los Angeles
-        "Harbor Regional Center": { lat: 33.7905, lng: -118.2923 }, // Torrance
-      };
-
       // Calculate distances and sort
       const centersWithDistance = this.laRegionalCentersList
         .map((center) => {
-          const coords = centerCoordinates[center.name];
+          const coords = getRegionalCenterCoordinates(center.name);
           if (!coords) return null;
 
           // Calculate distance using Haversine formula
@@ -1606,18 +1594,7 @@ export default {
     },
 
     zoomToRegionalCenter(name) {
-      // Define center coordinates for each regional center
-      const centerCoordinates = {
-        "North Los Angeles County Regional Center": [-118.4085, 34.2523], // Van Nuys
-        "San Gabriel/Pomona Regional Center": [-117.7499, 34.0522], // Pomona
-        "Eastern Los Angeles Regional Center": [-118.0353, 33.9425], // Whittier
-        "Westside Regional Center": [-118.3897, 34.0239], // Culver City
-        "Frank D. Lanterman Regional Center": [-118.1228, 34.0689], // Alhambra
-        "South Central Los Angeles Regional Center": [-118.2437, 34.0522], // Los Angeles
-        "Harbor Regional Center": [-118.2923, 33.7905], // Torrance
-      };
-
-      const coords = centerCoordinates[name];
+      const coords = getRegionalCenterMapboxCoords(name);
       if (coords && this.map && !this.isMapMoving) {
         this.isMapMoving = true;
         this.map.flyTo({
@@ -1644,15 +1621,7 @@ export default {
       if (currentFilter) {
         // Update the visibility by modifying the paint opacity
         // This is a simpler approach than complex filters
-        const centerColors = {
-          "North Los Angeles County Regional Center": "#f1c40f", // Yellow
-          "San Gabriel/Pomona Regional Center": "#4caf50", // Green
-          "Eastern Los Angeles Regional Center": "#ff9800", // Orange
-          "Westside Regional Center": "#e91e63", // Pink
-          "Frank D. Lanterman Regional Center": "#9c27b0", // Purple
-          "South Central Los Angeles Regional Center": "#f44336", // Red
-          "Harbor Regional Center": "#2196f3", // Blue
-        };
+        const centerColor = getRegionalCenterColor(centerName);
 
         // For now, we'll just log the change - full implementation would require
         // more complex filter manipulation
@@ -1920,17 +1889,6 @@ export default {
         // Ensure we have ZIP → Regional Center mapping
         await this.ensureZipToCenterMap();
 
-        // Center color palette (per request: North LA = Yellow)
-        const centerColors = {
-          "North Los Angeles Regional Center": "#f1c40f", // Yellow
-          "San Gabriel/Pomona Regional Center": "#4caf50",
-          "Eastern Los Angeles Regional Center": "#ff9800",
-          "Westside Regional Center": "#e91e63",
-          "Frank D. Lanterman Regional Center": "#9c27b0",
-          "South Central Los Angeles Regional Center": "#f44336",
-          "Harbor Regional Center": "#2196f3", // Blue
-        };
-
         // Assign color by regional center; fallback to ZIP-hash if missing
         const colorized = {
           type: "FeatureCollection",
@@ -1938,8 +1896,9 @@ export default {
             const raw = f?.properties?.[zipKey];
             const zip = String(raw || "").padStart(5, "0");
             const rcName = this.zipToCenter[zip] || null;
-            let color = centerColors[rcName] || null;
-            if (!color) {
+            let color = getRegionalCenterColor(rcName);
+            // If no regional center color, use fallback ZIP-hash color
+            if (color === "#95a5a6") {
               let hue = 0;
               for (let i = 0; i < zip.length; i++)
                 hue = (hue * 31 + zip.charCodeAt(i)) % 360;
@@ -4236,36 +4195,13 @@ export default {
           data: rcGeoJson,
         });
 
-        // Color palette keyed by REGIONALCENTER property
-        const centerColors = {
-          "North Los Angeles County Regional Center": "#f1c40f", // Yellow
-          "San Gabriel/Pomona Regional Center": "#4caf50", // Green
-          "Eastern Los Angeles Regional Center": "#ff9800", // Orange
-          "Westside Regional Center": "#e91e63", // Pink
-          "Frank D. Lanterman Regional Center": "#9c27b0", // Purple
-          "South Central Los Angeles Regional Center": "#f44336", // Red
-          "Harbor Regional Center": "#2196f3", // Blue
-        };
-
-        // Build a match expression for fill-color
+        // Build a match expression for fill-color using imported constants
+        const centerNames = getRegionalCentersList();
         const colorMatch = [
           "match",
           ["get", "REGIONALCENTER"],
-          "North Los Angeles County Regional Center",
-          centerColors["North Los Angeles County Regional Center"],
-          "San Gabriel/Pomona Regional Center",
-          centerColors["San Gabriel/Pomona Regional Center"],
-          "Eastern Los Angeles Regional Center",
-          centerColors["Eastern Los Angeles Regional Center"],
-          "Westside Regional Center",
-          centerColors["Westside Regional Center"],
-          "Frank D. Lanterman Regional Center",
-          centerColors["Frank D. Lanterman Regional Center"],
-          "South Central Los Angeles Regional Center",
-          centerColors["South Central Los Angeles Regional Center"],
-          "Harbor Regional Center",
-          centerColors["Harbor Regional Center"],
-          "#9e9e9e",
+          ...centerNames.flatMap(rc => [rc.name, rc.color]),
+          "#9e9e9e", // Default color for unknown centers
         ];
 
         // Build opacity expression based on user's RC
@@ -4322,33 +4258,35 @@ export default {
         this.map.on("mouseleave", "rc-static-fill", () => {
           this.map.getCanvas().style.cursor = "";
         });
-        this.map.on("click", "rc-static-fill", (e) => {
-          // Check if the click was on a marker (not on the polygon)
-          const target = e.originalEvent.target;
-          if (target.closest('.mapboxgl-marker')) {
-            // Click was on a marker, don't show regional center popup
-            return;
-          }
 
-          // Always show polygon popups when clicked on colored regions
-          const feature = e.features && e.features[0];
-          const centerName = feature?.properties?.REGIONALCENTER || "Regional Center";
+        // Regional center polygon popup disabled per user request
+        // this.map.on("click", "rc-static-fill", (e) => {
+        //   // Check if the click was on a marker (not on the polygon)
+        //   const target = e.originalEvent.target;
+        //   if (target.closest('.mapboxgl-marker')) {
+        //     // Click was on a marker, don't show regional center popup
+        //     return;
+        //   }
 
-          console.log("Clicked on regional center polygon:", centerName);
+        //   // Always show polygon popups when clicked on colored regions
+        //   const feature = e.features && e.features[0];
+        //   const centerName = feature?.properties?.REGIONALCENTER || "Regional Center";
 
-          // Use the rich regional center popup
-          const html = this.createRegionalCenterPopup(centerName);
+        //   console.log("Clicked on regional center polygon:", centerName);
 
-          new mapboxgl.Popup({
-            closeOnClick: true,
-            offset: 25,
-            maxWidth: "360px",
-            className: "provider-popup-container",
-          })
-            .setLngLat(e.lngLat)
-            .setHTML(html)
-            .addTo(this.map);
-        });
+        //   // Use the rich regional center popup
+        //   const html = this.createRegionalCenterPopup(centerName);
+
+        //   new mapboxgl.Popup({
+        //     closeOnClick: true,
+        //     offset: 25,
+        //     maxWidth: "360px",
+        //     className: "provider-popup-container",
+        //   })
+        //     .setLngLat(e.lngLat)
+        //     .setHTML(html)
+        //     .addTo(this.map);
+        // });
 
         // Hide ZIP layers entirely to avoid visual conflict
         try {

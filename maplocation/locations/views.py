@@ -1042,15 +1042,9 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             providers = ProviderV2.objects.filter(id__in=filtered_providers)
 
             # Apply additional filters
-            # Apply insurance filter using boolean fields for reliability
-            insurance = request.query_params.get("insurance")
-            if insurance:
-                if insurance.lower() == "regional center":
-                    providers = providers.filter(accepts_regional_center=True)
-                elif insurance.lower() == "insurance":
-                    providers = providers.filter(accepts_insurance=True)
-                elif insurance.lower() == "private pay":
-                    providers = providers.filter(accepts_private_pay=True)
+            # Note: Insurance boolean fields (accepts_insurance, accepts_regional_center, accepts_private_pay)
+            # were dropped in migration 0030. Insurance filtering now uses ProviderInsuranceCarrier relationships.
+            # For now, skip insurance filtering here - it can be added back using the relationship table if needed.
 
             age = request.query_params.get("age")
             if age:
