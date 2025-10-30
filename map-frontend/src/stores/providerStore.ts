@@ -111,7 +111,7 @@ export const useProviderStore = defineStore('provider', () => {
         if (params.lat && params.lng) {
           queryParams.append('lat', params.lat.toString());
           queryParams.append('lng', params.lng.toString());
-          queryParams.append('radius', (params.radius || 25).toString());
+          queryParams.append('radius', (params.radius || 50).toString());
         }
 
         if (params.searchText) {

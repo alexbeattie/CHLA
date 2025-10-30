@@ -356,6 +356,7 @@ export default {
       locationDetecting: false,
       locationError: null,
       userLocation: "",
+      userCoordinates: null, // Store lat/lng for fallback searches
       userProfile: {
         age: "",
         diagnosis: "",
@@ -460,6 +461,9 @@ export default {
       try {
         const position = await this.getCurrentPosition();
         const { latitude, longitude } = position.coords;
+
+        // Store coordinates for fallback searches
+        this.userCoordinates = { latitude, longitude };
 
         // Reverse geocode to get address
         const address = await this.reverseGeocode(latitude, longitude);
@@ -678,6 +682,7 @@ export default {
         
         console.log('=== GENERATE RESULTS DEBUG ===');
         console.log('User location:', this.userLocation);
+        console.log('User coordinates:', this.userCoordinates);
         console.log('User profile:', this.userProfile);
         console.log('Local regional center:', this.localRegionalCenter);
         console.log('API base URL:', apiBaseUrl);
@@ -695,31 +700,33 @@ export default {
         console.log('Search ZIP:', searchZip);
         
         let providerData = [];
-        
+        let triedZipSearch = false;
+
         if (searchZip) {
           // Use by_regional_center endpoint with ZIP code
+          triedZipSearch = true;
           const providerParams = new URLSearchParams();
           providerParams.append('zip_code', searchZip);
-          
+
           // Apply user's filters to make their selections meaningful
           if (this.userProfile.age) {
             providerParams.append('age', this.userProfile.age);
           }
-          
+
           if (this.userProfile.diagnosis) {
             providerParams.append('diagnosis', this.userProfile.diagnosis);
           }
-          
+
           if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
             this.userProfile.therapies.forEach(therapy => {
               providerParams.append('therapy', therapy);
             });
           }
-          
+
           if (this.userProfile.hasInsurance) {
             providerParams.append('insurance', 'insurance');
           }
-          
+
           const filteredUrl = `${apiBaseUrl}/api/providers-v2/by_regional_center/?${providerParams.toString()}`;
           console.log('✅ Filtered provider API URL:', filteredUrl);
           console.log('Applied filters:', {
@@ -729,7 +736,7 @@ export default {
             therapies: this.userProfile.therapies,
             hasInsurance: this.userProfile.hasInsurance
           });
-          
+
           try {
             const filteredResponse = await fetch(filteredUrl);
             if (filteredResponse.ok) {
@@ -738,7 +745,7 @@ export default {
               providerData = responseData.results || responseData.providers || [];
               console.log('✅ Filtered provider data received:', providerData.length, 'providers');
               console.log('Response data:', responseData);
-              
+
               // If no results with filters, try again WITHOUT filters to show something
               if (providerData.length === 0) {
                 console.log('⚠️ No providers match all filters, fetching unfiltered results...');
@@ -756,8 +763,93 @@ export default {
           } catch (error) {
             console.error('Filtered search failed:', error);
           }
-        } else {
-          console.warn('No ZIP code available for provider search');
+        }
+
+        // If ZIP search returned nothing OR no ZIP available, try coordinate search
+        console.log('🔍 Checking coordinate fallback:', {
+          triedZipSearch,
+          providerDataLength: providerData.length,
+          hasCoordinates: !!this.userCoordinates,
+          searchZip,
+          shouldTriggerFallback: (triedZipSearch && providerData.length === 0 && this.userCoordinates) || (!searchZip && this.userCoordinates)
+        });
+
+        if ((triedZipSearch && providerData.length === 0 && this.userCoordinates) || (!searchZip && this.userCoordinates)) {
+          // Fallback: Use coordinate-based search
+          console.log('⚠️ ZIP search failed or unavailable, falling back to coordinate-based search');
+          const providerParams = new URLSearchParams();
+          providerParams.append('lat', this.userCoordinates.latitude.toString());
+          providerParams.append('lng', this.userCoordinates.longitude.toString());
+          providerParams.append('radius', '50'); // 50-mile radius for edge cases
+
+          // Apply user's filters
+          if (this.userProfile.age) {
+            providerParams.append('age', this.userProfile.age);
+          }
+
+          if (this.userProfile.diagnosis) {
+            providerParams.append('diagnosis', this.userProfile.diagnosis);
+          }
+
+          if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
+            this.userProfile.therapies.forEach(therapy => {
+              providerParams.append('therapy', therapy);
+            });
+          }
+
+          if (this.userProfile.hasInsurance) {
+            providerParams.append('insurance', 'insurance');
+          }
+
+          const coordUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${providerParams.toString()}`;
+          console.log('✅ Coordinate-based search URL:', coordUrl);
+          console.log('Applied filters to coordinate search:', {
+            lat: this.userCoordinates.latitude,
+            lng: this.userCoordinates.longitude,
+            radius: 50,
+            age: this.userProfile.age,
+            diagnosis: this.userProfile.diagnosis,
+            therapies: this.userProfile.therapies,
+            hasInsurance: this.userProfile.hasInsurance
+          });
+
+          try {
+            const coordResponse = await fetch(coordUrl);
+            if (coordResponse.ok) {
+              const responseData = await coordResponse.json();
+              // Handle both array and object responses
+              providerData = Array.isArray(responseData) ? responseData : (responseData.results || responseData.providers || []);
+              console.log('✅ Coordinate-based search returned:', providerData.length, 'providers');
+
+              // If we got very few results with filters, try without filters to show nearest providers
+              if (providerData.length < 5) {
+                console.log('⚠️ Only found', providerData.length, 'providers with filters, fetching nearest unfiltered providers...');
+                const unfilteredParams = new URLSearchParams();
+                unfilteredParams.append('lat', this.userCoordinates.latitude.toString());
+                unfilteredParams.append('lng', this.userCoordinates.longitude.toString());
+                unfilteredParams.append('radius', '50');
+
+                const unfilteredUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${unfilteredParams.toString()}`;
+                console.log('🔍 Fetching unfiltered nearest providers:', unfilteredUrl);
+
+                try {
+                  const unfilteredResponse = await fetch(unfilteredUrl);
+                  if (unfilteredResponse.ok) {
+                    const unfilteredData = await unfilteredResponse.json();
+                    const unfilteredProviders = Array.isArray(unfilteredData) ? unfilteredData : (unfilteredData.results || unfilteredData.providers || []);
+                    console.log('✅ Unfiltered search returned:', unfilteredProviders.length, 'providers');
+                    providerData = unfilteredProviders;
+                  }
+                } catch (error) {
+                  console.error('Unfiltered search failed:', error);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Coordinate-based search failed:', error);
+          }
+        } else if (!this.userCoordinates) {
+          console.warn('No coordinates available for provider search');
         }
         
         // Set the results count and store the actual provider data
