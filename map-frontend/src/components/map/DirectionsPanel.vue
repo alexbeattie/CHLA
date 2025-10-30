@@ -52,7 +52,7 @@
           <strong>{{ destination.name }}</strong>
         </div>
         <div v-if="destination.address" class="destination-address">
-          {{ destination.address }}
+          {{ formattedAddress }}
         </div>
       </div>
 
@@ -119,6 +119,42 @@ const props = defineProps({
 });
 
 defineEmits(['close', 'retry']);
+
+/**
+ * Format the destination address
+ */
+const formattedAddress = computed(() => {
+  if (!props.destination?.address) return '';
+
+  let addressObj = props.destination.address;
+
+  // If address is a JSON string, parse it
+  if (typeof addressObj === 'string') {
+    try {
+      if (addressObj.trim().startsWith('{')) {
+        addressObj = JSON.parse(addressObj);
+      } else {
+        // Already a formatted string
+        return addressObj;
+      }
+    } catch (e) {
+      // Not valid JSON, return as is
+      return addressObj;
+    }
+  }
+
+  // If it's an object, format it as "street, city, state zip"
+  if (typeof addressObj === 'object' && addressObj !== null) {
+    const parts = [];
+    if (addressObj.street) parts.push(addressObj.street);
+    if (addressObj.city) parts.push(addressObj.city);
+    if (addressObj.state) parts.push(addressObj.state);
+    if (addressObj.zip) parts.push(addressObj.zip);
+    return parts.join(', ');
+  }
+
+  return String(addressObj);
+});
 
 /**
  * Format step distance
