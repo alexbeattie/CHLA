@@ -822,11 +822,42 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     | Q(insurance_accepted__icontains=query)
                 )
 
-            # Insurance filtering disabled - fields dropped in migration 0030
-            # TODO: Re-implement using ProviderInsuranceCarrier relationship table
-            # if insurance_filters:
-            #     # Filter using ProviderInsuranceCarrier relationship
-            #     pass
+            # Apply insurance filters using ProviderInsuranceCarrier relationship
+            if insurance_filters:
+                from locations.models import ProviderInsuranceCarrier, InsuranceCarrier
+
+                insurance_q = Q()
+                for insurance_type in insurance_filters:
+                    insurance_lower = insurance_type.lower()
+
+                    # Map common insurance type names to carriers in the database
+                    if insurance_lower in ["insurance", "accepts insurance", "private insurance"]:
+                        # Get all providers that accept ANY insurance
+                        # This returns providers that have at least one insurance carrier relationship
+                        insurance_provider_ids = ProviderInsuranceCarrier.objects.values_list('provider_id', flat=True).distinct()
+                        insurance_q |= Q(id__in=insurance_provider_ids)
+                    elif insurance_lower in ["private pay", "private payment", "self pay"]:
+                        # Private pay is implicit - all providers accept it
+                        # For now, don't filter out any providers for private pay
+                        pass
+                    elif insurance_lower in ["regional center", "regional center funding"]:
+                        # Regional center funding - for now, don't filter
+                        # TODO: Add regional center acceptance field if needed
+                        pass
+                    else:
+                        # Try to match specific insurance carrier names
+                        try:
+                            carrier = InsuranceCarrier.objects.get(name__iexact=insurance_type)
+                            carrier_provider_ids = ProviderInsuranceCarrier.objects.filter(
+                                insurance_carrier=carrier
+                            ).values_list('provider_id', flat=True)
+                            insurance_q |= Q(id__in=carrier_provider_ids)
+                        except InsuranceCarrier.DoesNotExist:
+                            # Fallback: search in legacy insurance_accepted text field
+                            insurance_q |= Q(insurance_accepted__icontains=insurance_type)
+
+                if insurance_q:
+                    providers = providers.filter(insurance_q)
 
             # Apply specialization filter (diagnosis) using text field operations
             if specialization:
@@ -1029,9 +1060,33 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             providers = ProviderV2.objects.filter(id__in=filtered_providers)
 
             # Apply additional filters
-            # Note: Insurance boolean fields (accepts_insurance, accepts_regional_center, accepts_private_pay)
-            # were dropped in migration 0030. Insurance filtering now uses ProviderInsuranceCarrier relationships.
-            # For now, skip insurance filtering here - it can be added back using the relationship table if needed.
+            # Apply insurance filter using ProviderInsuranceCarrier relationship
+            insurance = request.query_params.get("insurance")
+            if insurance:
+                from locations.models import ProviderInsuranceCarrier, InsuranceCarrier
+
+                insurance_lower = insurance.lower()
+                if insurance_lower in ["insurance", "accepts insurance", "private insurance"]:
+                    # Get all providers that accept ANY insurance
+                    insurance_provider_ids = ProviderInsuranceCarrier.objects.values_list('provider_id', flat=True).distinct()
+                    providers = providers.filter(id__in=insurance_provider_ids)
+                elif insurance_lower in ["private pay", "private payment", "self pay"]:
+                    # Private pay - all providers implicitly accept it, no filtering needed
+                    pass
+                elif insurance_lower in ["regional center", "regional center funding"]:
+                    # Regional center funding - no filtering for now
+                    pass
+                else:
+                    # Try to match specific insurance carrier name
+                    try:
+                        carrier = InsuranceCarrier.objects.get(name__iexact=insurance)
+                        carrier_provider_ids = ProviderInsuranceCarrier.objects.filter(
+                            insurance_carrier=carrier
+                        ).values_list('provider_id', flat=True)
+                        providers = providers.filter(id__in=carrier_provider_ids)
+                    except InsuranceCarrier.DoesNotExist:
+                        # No matching carrier found, return empty results
+                        providers = providers.none()
 
             age = request.query_params.get("age")
             if age:
