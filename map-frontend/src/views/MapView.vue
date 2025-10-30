@@ -1071,9 +1071,8 @@ export default {
               filterParams
             );
           }
-          
-          // Update map markers with filtered results
-          this.updateMarkers();
+
+          // MapCanvas watches providerStore and updates markers automatically
           console.log(`✅ Filters applied: ${this.providerStore.providers.length} providers found`);
         }
       } catch (error) {
@@ -1094,7 +1093,7 @@ export default {
           const zipMatch = this.userData.address.match(/\d{5}/);
           if (zipMatch) {
             await this.providerStore.searchByZipCode(zipMatch[0]);
-            this.updateMarkers();
+            // MapCanvas handles marker updates automatically
             console.log(`✅ Filters reset: ${this.providerStore.providers.length} providers shown`);
           }
         } else if (this.userLocation?.latitude) {
@@ -1103,7 +1102,7 @@ export default {
             this.userLocation.longitude,
             this.radius || 25
           );
-          this.updateMarkers();
+          // MapCanvas handles marker updates automatically
           console.log(`✅ Filters reset: ${this.providerStore.providers.length} providers shown`);
         }
       } catch (error) {
@@ -1585,7 +1584,7 @@ export default {
       this.updateRegionalCenterVisibility(name);
 
       // Update markers if needed
-      this.updateMarkers();
+      // MapCanvas handles marker updates automatically
 
       // Zoom to the regional center when toggling it on
       if (this.selectedRegionalCenters[name] !== false) {
@@ -2205,7 +2204,7 @@ export default {
       } else {
         // For other types, just update markers
         this.$nextTick(() => {
-          this.updateMarkers();
+          // MapCanvas handles marker updates automatically
         });
       }
     },
@@ -2289,7 +2288,7 @@ export default {
           }
 
           // Update map markers
-          this.updateMarkers();
+          // MapCanvas handles marker updates automatically
           console.log(`✅ Updated providers with ${this.providerStore.providers.length} results within ${this.radius} miles`);
         } catch (error) {
           console.error('[MapView] Error updating radius:', error);
@@ -2494,7 +2493,7 @@ export default {
 
       // Update markers
       this.$nextTick(() => {
-        this.updateMarkers();
+        // MapCanvas handles marker updates automatically
       });
 
       // When switching to regional centers, center on LA Regional Centers
@@ -3005,7 +3004,7 @@ export default {
       // When map loads, update markers
       this.map.on("load", () => {
         console.log("✅ Map loaded successfully");
-        this.updateMarkers();
+        // MapCanvas handles marker updates automatically
 
         // If service areas are already enabled, add them now
         if (this.showServiceAreas && this.serviceAreasLoaded) {
@@ -3578,7 +3577,7 @@ export default {
         })));
         
         this.$nextTick(() => {
-          this.updateMarkers();
+          // MapCanvas handles marker updates automatically
           console.log(`🗺️ Markers updated for ${this.providers.length} providers`);
         });
       }
@@ -3665,7 +3664,7 @@ export default {
           );
           this.addServiceAreasToMap();
           // Update markers to hide redundant regional center markers
-          this.updateMarkers();
+          // MapCanvas handles marker updates automatically
         } else {
           console.error("No service areas data available");
           console.error("serviceAreas exists:", !!this.serviceAreas);
@@ -3679,7 +3678,7 @@ export default {
         console.log("Hiding service areas...");
         this.removeServiceAreasFromMap();
         // Update markers to show regional center markers again if needed
-        this.updateMarkers();
+        // MapCanvas handles marker updates automatically
       }
     },
 
@@ -3744,7 +3743,7 @@ export default {
         await this.addLARegionalCentersToMap();
         // Ensure markers/list reflect current state without needing a second click
         try {
-          this.updateMarkers();
+          // MapCanvas handles marker updates automatically
         } catch (_) {}
         // While showing ZIP-section overlay, fade county choropleth to avoid confusion
         try {
@@ -4518,9 +4517,9 @@ export default {
 
     // Update map markers
     // DEPRECATED: Marker management is now handled by MapCanvas component
-    // This method is kept as a no-op to avoid breaking existing code
+    // This method is kept as a no-op stub for backward compatibility
     updateMarkers() {
-      console.log("⚠️ [MapView] updateMarkers() called but disabled - MapCanvas handles markers now");
+      // All marker updates are handled automatically by MapCanvas
       return;
 
       // IMPROVED APPROACH: Create markers all at once without delays to prevent animation artifacts
@@ -5491,7 +5490,7 @@ export default {
         }
 
         // providerStore is now the source of truth, no need for separate assignment
-        this.updateMarkers(); // Update markers with filtered providers
+        // MapCanvas handles marker updates automatically // Update markers with filtered providers
       }
 
       // Set regional center if provided
@@ -5852,7 +5851,7 @@ export default {
       // Force marker update after data is loaded
       console.log("🎯 Updating markers after onboarding...");
       this.$nextTick(() => {
-        this.updateMarkers();
+        // MapCanvas handles marker updates automatically
         console.log("✅ Markers updated after onboarding");
       });
     },
