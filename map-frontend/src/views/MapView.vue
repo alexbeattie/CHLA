@@ -1199,8 +1199,10 @@ export default {
       console.log("🗺️ [MapView] User location:", this.userLocation);
       console.log("🗺️ [MapView] MapStore location:", this.mapStore?.userLocation);
 
-      // Clear existing directions and wait for route removal
-      this.closeDirections();
+      // Clear existing route from map (but keep panel open)
+      this.removeRouteFromMap();
+      this.currentDirections = null;
+      this.directionsError = null;
 
       // Small delay to ensure route is removed from map before drawing new one
       await new Promise(resolve => setTimeout(resolve, 100));
