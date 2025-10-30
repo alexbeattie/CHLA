@@ -887,10 +887,9 @@ export default {
     // Load saved user data if available (including regional center)
     await this.loadUserData();
 
-    // Detect user location first, then fetch providers (only if not showing onboarding)
-    if (!this.showOnboarding) {
-      this.detectUserLocation();
-    }
+    // Location detection is now handled in mounted() hook through getUserZipCode()
+    // which is called when loading initial providers. This avoids duplicate geolocation calls.
+    // The detectUserLocation() method is still available for manual location refresh.
   },
 
   mounted() {
