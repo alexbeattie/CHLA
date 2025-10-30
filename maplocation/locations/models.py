@@ -533,6 +533,24 @@ class ProviderV2(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        """
+        Auto-sync between PostGIS location field and latitude/longitude
+        PostGIS location is the source of truth
+        """
+        from django.contrib.gis.geos import Point
+        from decimal import Decimal
+
+        # If location (PostGIS) exists, sync to lat/lng fields
+        if self.location:
+            self.latitude = Decimal(str(self.location.y))
+            self.longitude = Decimal(str(self.location.x))
+        # If lat/lng set but no location, create PostGIS point
+        elif self.latitude and self.longitude and (self.latitude != Decimal('0.0') or self.longitude != Decimal('0.0')):
+            self.location = Point(float(self.longitude), float(self.latitude), srid=4326)
+
+        super().save(*args, **kwargs)
+
     # Helper properties for frontend compatibility
     @property
     def city(self):
