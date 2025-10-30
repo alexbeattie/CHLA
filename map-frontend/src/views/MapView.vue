@@ -786,20 +786,13 @@ export default {
 
     // Filtered providers - since we use API-level filtering, just return the providers
     filteredProviders() {
-      console.log(`🔍 filteredProviders computed: providers.length = ${this.providers.length}`);
-      console.log(`🔍 filteredProviders computed: providers =`, this.providers);
-      
       if (!this.providers.length) {
-        console.log(`⚠️ No providers available for filtering`);
         return [];
       }
 
       // Since we're using API-level filtering in fetchProviders(),
       // the this.providers array already contains the correctly filtered results
       // No need for additional client-side filtering
-      console.log(
-        `✅ Returning ${this.providers.length} providers from API (already filtered)`
-      );
       return this.providers;
     },
 
