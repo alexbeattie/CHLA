@@ -272,11 +272,7 @@ class ProviderV2Serializer(serializers.ModelSerializer):
     zip_code = serializers.ReadOnlyField()
     age_groups_served = serializers.ReadOnlyField()
     diagnoses_served = serializers.ReadOnlyField()
-    accepts_insurance = serializers.ReadOnlyField()
-    accepts_private_pay = serializers.ReadOnlyField()
-    accepts_regional_center = serializers.ReadOnlyField()
     website_domain = serializers.ReadOnlyField()
-    center_based_services = serializers.ReadOnlyField()
     areas = serializers.ReadOnlyField()
     specializations = serializers.ReadOnlyField()
     services = serializers.ReadOnlyField()
@@ -301,14 +297,14 @@ class ProviderV2Serializer(serializers.ModelSerializer):
             "email",
             "website",
             "description",
-            "verified",
             "latitude",
             "longitude",
             "address",
-            "hours",
             "insurance_accepted",  # Legacy field (kept for backward compatibility)
             "insurance_carriers",  # NEW: Normalized insurance from relationships
-            "languages_spoken",
+            "age_groups",  # NEW: Direct JSON field
+            "diagnoses_treated",  # NEW: Direct JSON field
+            "therapy_types",  # NEW: Direct JSON field
             "created_at",
             "updated_at",
             # Computed fields for frontend compatibility
@@ -317,11 +313,7 @@ class ProviderV2Serializer(serializers.ModelSerializer):
             "zip_code",
             "age_groups_served",
             "diagnoses_served",
-            "accepts_insurance",
-            "accepts_private_pay",
-            "accepts_regional_center",
             "website_domain",
-            "center_based_services",
             "areas",
             "specializations",
             "services",
@@ -401,13 +393,13 @@ class ProviderV2WriteSerializer(serializers.ModelSerializer):
             "email",
             "website",
             "description",
-            "verified",
             "address",
             "latitude",
             "longitude",
-            "hours",
             "insurance_accepted",
-            "languages_spoken",
+            "age_groups",
+            "diagnoses_treated",
+            "therapy_types",
         ]
 
 

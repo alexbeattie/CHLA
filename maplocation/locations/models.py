@@ -425,22 +425,17 @@ class ProviderV2(models.Model):
     email = models.EmailField(blank=True, null=True)
     website = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    verified = models.BooleanField(default=False)
 
-    # Geographic coordinates (keep for backward compatibility)
+    # Geographic coordinates (synced with PostGIS location field)
     latitude = models.DecimalField(max_digits=11, decimal_places=8, default=0.0)
     longitude = models.DecimalField(max_digits=11, decimal_places=8, default=0.0)
     address = models.TextField(default="")
 
-    # PostGIS spatial field
+    # PostGIS spatial field (single source of truth for coordinates)
     location = gis_models.PointField(geography=True, srid=4326, blank=True, null=True)
-    hours = models.JSONField(blank=True, null=True)
 
-    # Service details
-    insurance_accepted = models.TextField(default="")  # PostgreSQL array stored as text
-    languages_spoken = models.TextField(
-        blank=True, null=True
-    )  # PostgreSQL array stored as text
+    # Service details (legacy field - use insurance_carriers relationship instead)
+    insurance_accepted = models.TextField(default="")
 
     # Age groups served (from onboarding flow)
     age_groups = models.JSONField(
@@ -461,64 +456,6 @@ class ProviderV2(models.Model):
         blank=True,
         null=True,
         help_text="Types of therapy offered (e.g., ['ABA therapy', 'Speech therapy', 'Occupational therapy'])",
-    )
-
-    # Funding sources accepted
-    funding_sources = models.JSONField(
-        blank=True,
-        null=True,
-        help_text="Funding sources accepted (e.g., ['Health Insurance', 'Regional Center', 'Private Pay'])",
-    )
-
-    # Additional service details
-    accepts_private_pay = models.BooleanField(
-        default=False, help_text="Accepts private pay clients"
-    )
-    accepts_regional_center = models.BooleanField(
-        default=False, help_text="Accepts Regional Center funding"
-    )
-    accepts_insurance = models.BooleanField(
-        default=False, help_text="Accepts health insurance"
-    )
-
-    # Service delivery options
-    in_person_services = models.BooleanField(
-        default=True, help_text="Offers in-person services"
-    )
-    virtual_services = models.BooleanField(
-        default=False, help_text="Offers virtual/telehealth services"
-    )
-    home_based_services = models.BooleanField(
-        default=False, help_text="Offers home-based services"
-    )
-    center_based_services = models.BooleanField(
-        default=True, help_text="Offers center-based services"
-    )
-
-    # Provider qualifications
-    license_number = models.CharField(
-        max_length=100, blank=True, null=True, help_text="Professional license number"
-    )
-    license_type = models.CharField(
-        max_length=100, blank=True, null=True, help_text="Type of professional license"
-    )
-    years_experience = models.IntegerField(
-        blank=True, null=True, help_text="Years of experience"
-    )
-
-    # Additional contact info
-    fax = models.CharField(max_length=20, blank=True, null=True)
-    emergency_phone = models.CharField(max_length=20, blank=True, null=True)
-
-    # Service area details
-    service_radius_miles = models.IntegerField(
-        blank=True, null=True, help_text="Service radius in miles"
-    )
-    serves_la_county = models.BooleanField(
-        default=True, help_text="Serves Los Angeles County"
-    )
-    specific_areas_served = models.JSONField(
-        blank=True, null=True, help_text="Specific areas/cities served within LA County"
     )
 
     # Timestamps

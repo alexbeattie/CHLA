@@ -295,18 +295,16 @@ class ProviderV2Admin(admin.ModelAdmin):
         "name",
         "type",
         "phone",
-        "verified",
         "get_age_groups",
         "get_diagnoses",
         "get_therapy_types",
     ]
-    list_filter = ["verified", "type"]
+    list_filter = ["type"]
     search_fields = [
         "name",
         "address",
         "type",
         "insurance_accepted",
-        "languages_spoken",
     ]
     list_per_page = 50  # Paginate to avoid loading all records at once
     actions = ["import_pasadena_providers", "import_san_gabriel_providers"]
@@ -336,10 +334,10 @@ class ProviderV2Admin(admin.ModelAdmin):
     get_therapy_types.short_description = "Therapy Types"
 
     fieldsets = (
-        ("Basic Information", {"fields": ("name", "type", "description", "verified")}),
+        ("Basic Information", {"fields": ("name", "type", "description")}),
         (
             "Contact Information",
-            {"fields": ("phone", "email", "website", "fax", "emergency_phone")},
+            {"fields": ("phone", "email", "website")},
         ),
         (
             "Address & Location",
