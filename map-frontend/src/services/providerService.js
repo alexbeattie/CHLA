@@ -132,3 +132,30 @@ export function filterValidProviders(providers) {
   return providers.filter(validateProvider);
 }
 
+/**
+ * Check if providers are in LA County
+ */
+export function filterProvidersInLACounty(providers) {
+  const laCountyBounds = {
+    west: -118.7,
+    east: -118.0,
+    south: 33.7,
+    north: 34.4
+  };
+
+  return providers.filter(provider => {
+    const lng = parseFloat(provider.longitude);
+    const lat = parseFloat(provider.latitude);
+    return lng >= laCountyBounds.west && lng <= laCountyBounds.east &&
+           lat >= laCountyBounds.south && lat <= laCountyBounds.north;
+  });
+}
+
+/**
+ * LA County bounds for fallback
+ */
+export const LA_COUNTY_MAP_BOUNDS = [
+  [-118.7, 33.7], // Southwest
+  [-118.0, 34.4]  // Northeast
+];
+

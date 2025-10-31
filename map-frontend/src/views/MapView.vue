@@ -515,7 +515,7 @@ import { sampleProviders } from "@/utils/sampleData.js";
 import { hslToHex, stringToColor } from "@/utils/colors.js";
 import { geocodeAddress } from "@/utils/map/geocoding";
 import { DIAGNOSIS_OPTIONS, THERAPY_OPTIONS, LA_COUNTY_CENTER, LA_COUNTY_BOUNDS } from "@/constants/filters.js";
-import { buildProviderQueryParams, buildProviderUrl, hasActiveFilters, filterValidProviders } from "@/services/providerService.js";
+import { buildProviderQueryParams, buildProviderUrl, hasActiveFilters, filterValidProviders, filterProvidersInLACounty, LA_COUNTY_MAP_BOUNDS } from "@/services/providerService.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -3199,20 +3199,7 @@ export default {
               
               // Debug: Check if providers are in LA County area
               if (this.providers.length > 0) {
-                const laCountyBounds = {
-                  west: -118.7,
-                  east: -118.0,
-                  south: 33.7,
-                  north: 34.4
-                };
-                
-                const providersInLA = this.providers.filter(provider => {
-                  const lng = parseFloat(provider.longitude);
-                  const lat = parseFloat(provider.latitude);
-                  return lng >= laCountyBounds.west && lng <= laCountyBounds.east &&
-                         lat >= laCountyBounds.south && lat <= laCountyBounds.north;
-                });
-                
+                const providersInLA = filterProvidersInLACounty(this.providers);
                 console.log(`🔍 Providers in LA County: ${providersInLA.length}/${this.providers.length}`);
                 if (providersInLA.length === 0) {
                   console.log("⚠️ No providers found in LA County area - search may be too broad");
@@ -3268,14 +3255,11 @@ export default {
               } else {
                 // Fallback to LA County area if no valid coordinates
                 console.log("🔍 No valid coordinates, using LA County fallback");
-                this.map.fitBounds([
-                  [-118.7, 33.7], // Southwest corner of LA County
-                  [-118.0, 34.4]  // Northeast corner of LA County
-                ], {
+                this.map.fitBounds(LA_COUNTY_MAP_BOUNDS, {
                   padding: 50,
                   maxZoom: 10,
-                  duration: 1500, // Slightly longer for smoother movement
-                  essential: true // This movement is considered essential
+                  duration: 1500,
+                  essential: true
                 });
               }
               
