@@ -505,6 +505,7 @@ import OnboardingFlow from "@/components/OnboardingFlow.vue";
 import { authService } from "@/services/auth.js";
 import { getApiRoot } from "@/utils/api.js";
 import { getLACountyBounds, isPointInBounds } from "@/utils/geo.js";
+import { formatDescription, formatInsurance, formatLanguages, formatHours, formatHoursObject } from "@/utils/formatting.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -4783,58 +4784,6 @@ export default {
       }
     },
 
-    // Format hours data for display
-    formatHours(hours) {
-      if (!hours) return "Hours not available";
-      
-      // If it's already a string, return it
-      if (typeof hours === 'string') {
-        return hours;
-      }
-      
-      // If it's an object, try to format it nicely
-      if (typeof hours === 'object') {
-        try {
-          // Try to parse as JSON if it's a stringified object
-          if (typeof hours === 'string') {
-            const parsed = JSON.parse(hours);
-            return this.formatHoursObject(parsed);
-          }
-          
-          // If it's already an object, format it
-          return this.formatHoursObject(hours);
-        } catch (e) {
-          console.warn("Could not parse hours object:", hours);
-          return "Hours not available";
-        }
-      }
-      
-      return "Hours not available";
-    },
-
-    // Format hours object into readable text
-    formatHoursObject(hoursObj) {
-      if (!hoursObj || typeof hoursObj !== 'object') {
-        return "Hours not available";
-      }
-      
-      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-      const formattedHours = [];
-      
-      days.forEach(day => {
-        const dayHours = hoursObj[day.toLowerCase()] || hoursObj[day];
-        if (dayHours && dayHours !== 'Closed' && dayHours !== '') {
-          formattedHours.push(`${day}: ${dayHours}`);
-        }
-      });
-      
-      if (formattedHours.length === 0) {
-        return "Hours not available";
-      }
-      
-      return formattedHours.join('\n');
-    },
-
     // Create simple popup content
     createSimplePopup(item) {
       console.log("Creating simple popup for item:", item);
@@ -4999,7 +4948,7 @@ export default {
                   text-transform: uppercase;
                   letter-spacing: 0.3px;
                 ">Hours</span>
-                <div style="color: #212529; font-size: 14px; line-height: 1.4; white-space: pre-wrap;">${this.formatHours(item.hours)}</div>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4; white-space: pre-wrap;">${formatHours(item.hours)}</div>
               </div>
             ` : ""}
 
@@ -5019,7 +4968,7 @@ export default {
                   text-transform: uppercase;
                   letter-spacing: 0.3px;
                 ">Services</span>
-                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${this.formatDescription(item.description)}</div>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${formatDescription(item.description)}</div>
               </div>
             ` : ""}
 
@@ -5039,7 +4988,7 @@ export default {
                   text-transform: uppercase;
                   letter-spacing: 0.3px;
                 ">Insurance</span>
-                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${this.formatInsurance(item.insurance_accepted)}</div>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${formatInsurance(item.insurance_accepted)}</div>
               </div>
             ` : ""}
 
@@ -5059,7 +5008,7 @@ export default {
                   text-transform: uppercase;
                   letter-spacing: 0.3px;
                 ">Languages</span>
-                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${this.formatLanguages(item.languages_spoken)}</div>
+                <div style="color: #212529; font-size: 14px; line-height: 1.4;">${formatLanguages(item.languages_spoken)}</div>
               </div>
             ` : ""}
 
@@ -5933,87 +5882,6 @@ export default {
 
       console.log(`🔍 Final bounds from ${validCoords.length} providers:`, bounds);
       return bounds;
-    },
-
-    // Format description text for better readability
-    formatDescription(description) {
-      if (!description) return "";
-
-      // Clean up the description text
-      let cleanDescription = description;
-
-      // Clean up formatting without removing directional words
-      cleanDescription = cleanDescription
-        .replace(/,/g, ", ") // Add space after commas
-        .replace(/\s+/g, " ") // Normalize whitespace
-        .trim();
-
-      // Convert to proper title case (capitalize first letter of each word)
-      cleanDescription = cleanDescription
-        .toLowerCase()
-        .replace(/\b\w/g, (l) => l.toUpperCase());
-
-      return cleanDescription;
-    },
-
-    // Format insurance information for better readability
-    formatInsurance(insurance) {
-      if (!insurance) return "";
-
-      try {
-        // Try to parse as JSON first
-        const parsed = JSON.parse(insurance);
-        if (Array.isArray(parsed)) {
-          return parsed.join(", ");
-        } else if (typeof parsed === "object") {
-          return Object.values(parsed).join(", ");
-        }
-      } catch (e) {
-        // If not JSON, treat as string
-      }
-
-      // Clean up insurance text
-      let cleanInsurance = insurance;
-
-      // Remove all brackets, braces and quotes
-      cleanInsurance = cleanInsurance
-        .replace(/[\[\]{}]/g, "") // Remove all brackets and braces
-        .replace(/['"]/g, "") // Remove all quotes
-        .replace(/\s*,\s*/g, ", ") // Normalize comma spacing
-        .replace(/\s+/g, " ") // Normalize whitespace
-        .trim();
-
-      return cleanInsurance;
-    },
-
-    // Format languages information for better readability
-    formatLanguages(languages) {
-      if (!languages) return "";
-
-      try {
-        // Try to parse as JSON first
-        const parsed = JSON.parse(languages);
-        if (Array.isArray(parsed)) {
-          return parsed.join(", ");
-        } else if (typeof parsed === "object") {
-          return Object.values(parsed).join(", ");
-        }
-      } catch (e) {
-        // If not JSON, treat as string
-      }
-
-      // Clean up languages text
-      let cleanLanguages = languages;
-
-      // Remove all brackets, braces and quotes
-      cleanLanguages = cleanLanguages
-        .replace(/[\[\]{}]/g, "") // Remove all brackets and braces
-        .replace(/['"]/g, "") // Remove all quotes
-        .replace(/\s*,\s*/g, ", ") // Normalize comma spacing
-        .replace(/\s+/g, " ") // Normalize whitespace
-        .trim();
-
-      return cleanLanguages;
     },
   },
 };
