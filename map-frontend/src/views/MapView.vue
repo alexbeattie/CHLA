@@ -509,6 +509,7 @@ import { formatDescription, formatInsurance, formatLanguages, formatHours, forma
 import { createSimplePopup } from "@/utils/popup.js";
 import { isLACountyZip, isInLACounty, extractZipCode as detectStandaloneZip, extractZipFromAddress, looksLikeAddress, isValidCaliforniaCoordinate } from "@/utils/validation.js";
 import { sampleProviders } from "@/utils/sampleData.js";
+import { hslToHex, stringToColor } from "@/utils/colors.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -1851,21 +1852,6 @@ export default {
       } catch (_) {}
     },
 
-    // Convert HSL to hex color string
-    hslToHex(h, s, l) {
-      const sNorm = s / 100;
-      const lNorm = l / 100;
-      const k = (n) => (n + h / 30) % 12;
-      const a = sNorm * Math.min(lNorm, 1 - lNorm);
-      const f = (n) =>
-        lNorm - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-      const toHex = (x) =>
-        Math.round(x * 255)
-          .toString(16)
-          .padStart(2, "0");
-      return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
-    },
-
     // Add a single colored ZIP layer inside LA County, coloring each ZIP differently
     async addColoredLAZipsLayer(laCounty) {
       try {
@@ -1907,10 +1893,7 @@ export default {
             let color = getRegionalCenterColor(rcName);
             // If no regional center color, use fallback ZIP-hash color
             if (color === "#95a5a6") {
-              let hue = 0;
-              for (let i = 0; i < zip.length; i++)
-                hue = (hue * 31 + zip.charCodeAt(i)) % 360;
-              color = this.hslToHex(hue, 45, 65);
+              color = stringToColor(zip, 45, 65);
             }
             return {
               ...f,
