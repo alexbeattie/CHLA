@@ -4864,6 +4864,214 @@ export default {
     // Now using proper Mapbox geocoding API via geocodeAddress() from utils/map/geocoding
 
     // Get coordinates for a search location (simpler version of basicGeocode for search)
+        91362: { lat: 34.1678, lng: -118.5946 }, // Westlake Village
+        91377: { lat: 34.1678, lng: -118.5946 }, // Westlake Village
+        90210: { lat: 34.103, lng: -118.4104 }, // Beverly Hills
+        90211: { lat: 34.0901, lng: -118.4065 }, // Beverly Hills
+        90028: { lat: 34.1016, lng: -118.3267 }, // Hollywood
+        90046: { lat: 34.1056, lng: -118.3632 }, // West Hollywood
+        91436: { lat: 34.1559, lng: -118.4818 }, // Encino
+        91301: { lat: 34.2209, lng: -118.601 }, // Agoura Hills
+        90405: { lat: 34.0195, lng: -118.4912 }, // Santa Monica
+        90401: { lat: 34.0194, lng: -118.4912 }, // Santa Monica
+        91505: { lat: 34.1808, lng: -118.309 }, // Burbank
+        91304: { lat: 34.2703, lng: -118.737 }, // Canoga Park
+        91302: { lat: 34.1678, lng: -118.5946 }, // Calabasas
+        91307: { lat: 34.1984, lng: -118.612 }, // West Hills
+        91316: { lat: 34.161, lng: -118.5079 }, // Encino
+        91324: { lat: 34.2386, lng: -118.5645 }, // Northridge
+        91325: { lat: 34.2386, lng: -118.5645 }, // Northridge
+        91326: { lat: 34.2386, lng: -118.5645 }, // Northridge
+        91356: { lat: 34.1713, lng: -118.5358 }, // Tarzana
+        91357: { lat: 34.1713, lng: -118.5358 }, // Tarzana
+        91364: { lat: 34.1678, lng: -118.5946 }, // Woodland Hills
+        91365: { lat: 34.1678, lng: -118.5946 }, // Woodland Hills
+        91367: { lat: 34.1699, lng: -118.6078 }, // Woodland Hills
+        91401: { lat: 34.1716, lng: -118.4192 }, // Van Nuys
+        91403: { lat: 34.1611, lng: -118.4678 }, // Sherman Oaks
+        91406: { lat: 34.2008, lng: -118.503 }, // Van Nuys
+        91423: { lat: 34.1869, lng: -118.4456 }, // Sherman Oaks
+        91601: { lat: 34.1808, lng: -118.309 }, // North Hollywood
+        91604: { lat: 34.1446, lng: -118.4112 }, // Studio City
+        91607: { lat: 34.1508, lng: -118.3912 }, // Valley Village
+        92660: { lat: 33.6189, lng: -117.9298 }, // Newport Beach
+        92661: { lat: 33.6189, lng: -117.9298 }, // Newport Beach
+        92625: { lat: 33.6, lng: -117.672 }, // Mission Viejo
+        92688: { lat: 33.5225, lng: -117.7075 }, // Laguna Niguel
+        92630: { lat: 33.5225, lng: -117.7075 }, // Lake Forest
+        92614: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92602: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92603: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92604: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92606: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92612: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92618: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        92620: { lat: 33.6846, lng: -117.8265 }, // Irvine
+        90019: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        90020: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        90036: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        90048: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+        // San Diego area ZIP codes
+        92101: { lat: 32.7157, lng: -117.1611 }, // Downtown San Diego
+        92102: { lat: 32.7066, lng: -117.1364 }, // Golden Hill
+        92103: { lat: 32.7284, lng: -117.1712 }, // Balboa Park
+        92104: { lat: 32.7023, lng: -117.1364 }, // North Park
+        92105: { lat: 32.7081, lng: -117.1059 }, // City Heights
+        92106: { lat: 32.7461, lng: -117.2186 }, // Point Loma
+        92107: { lat: 32.7572, lng: -117.2316 }, // Ocean Beach
+        92108: { lat: 32.7672, lng: -117.1978 }, // Mission Bay
+        92109: { lat: 32.7959, lng: -117.2348 }, // Pacific Beach
+        92110: { lat: 32.7831, lng: -117.1994 }, // Bay Park
+        92111: { lat: 32.8067, lng: -117.1661 }, // Clairemont
+        92113: { lat: 32.6958, lng: -117.1059 }, // Southeast San Diego
+        92114: { lat: 32.7031, lng: -117.0364 }, // Encanto
+        92115: { lat: 32.7267, lng: -117.0364 }, // College Area
+        92116: { lat: 32.7592, lng: -117.135 }, // Normal Heights (AUTISM RESEARCH INSTITUTE)
+        92117: { lat: 32.8256, lng: -117.1661 }, // Clairemont Mesa
+        92119: { lat: 32.7892, lng: -117.0442 }, // San Carlos
+        92120: { lat: 32.7831, lng: -117.0981 }, // Del Cerro
+        92121: { lat: 32.9, lng: -117.25 }, // Sorrento Valley (CORTICA)
+        92122: { lat: 32.8667, lng: -117.2081 }, // University City
+        92123: { lat: 32.8172, lng: -117.1428 }, // Serra Mesa
+        92124: { lat: 32.8172, lng: -117.0817 }, // Tierrasanta
+        92126: { lat: 32.9067, lng: -117.1383 }, // Mira Mesa
+        92127: { lat: 32.9714, lng: -117.0795 }, // Rancho Bernardo
+        92128: { lat: 32.9481, lng: -117.0242 }, // Rancho Peñasquitos
+      };
+
+      // Basic geocoding for common CA locations
+      const locations = {
+        "los angeles": { lat: 34.0522, lng: -118.2437 },
+        "san francisco": { lat: 37.7749, lng: -122.4194 },
+        "san diego": { lat: 32.7157, lng: -117.1611 },
+        sacramento: { lat: 38.5816, lng: -121.4944 },
+        fresno: { lat: 36.7468, lng: -119.7725 },
+        oakland: { lat: 37.8044, lng: -122.2712 },
+        "long beach": { lat: 33.7701, lng: -118.1937 },
+        "santa monica": { lat: 34.0195, lng: -118.4912 },
+        "beverly hills": { lat: 34.0736, lng: -118.4004 },
+        pasadena: { lat: 34.1478, lng: -118.1445 },
+        "westlake village": { lat: 34.1678, lng: -118.5946 },
+        "thousand oaks": { lat: 34.1706, lng: -118.8376 },
+        "agoura hills": { lat: 34.2209, lng: -118.601 },
+        calabasas: { lat: 34.1678, lng: -118.5946 },
+        "woodland hills": { lat: 34.1678, lng: -118.5946 },
+        encino: { lat: 34.1559, lng: -118.4818 },
+        tarzana: { lat: 34.1713, lng: -118.5358 },
+        "van nuys": { lat: 34.2008, lng: -118.503 },
+        "sherman oaks": { lat: 34.1869, lng: -118.4456 },
+        "studio city": { lat: 34.1446, lng: -118.4112 },
+        "north hollywood": { lat: 34.1808, lng: -118.309 },
+        burbank: { lat: 34.1808, lng: -118.309 },
+        "west hills": { lat: 34.1984, lng: -118.612 },
+        "canoga park": { lat: 34.2703, lng: -118.737 },
+        northridge: { lat: 34.2386, lng: -118.5645 },
+        irvine: { lat: 33.6846, lng: -117.8265 },
+        "newport beach": { lat: 33.6189, lng: -117.9298 },
+        "mission viejo": { lat: 33.6, lng: -117.672 },
+        "laguna niguel": { lat: 33.5225, lng: -117.7075 },
+      };
+
+      const addressLower = address.toLowerCase();
+
+      // Check for exact ZIP code match first - use service area boundaries endpoint
+      const zipMatch = address.match(/\b\d{5}\b/);
+      if (zipMatch) {
+        const zipCode = zipMatch[0];
+        console.log(`🔍 Looking up ZIP code: ${zipCode}`);
+        
+        try {
+          // Use the service area boundaries endpoint to find regional center and get coordinates
+          const apiRoot = getApiRoot();
+          const url = `${apiRoot}/api/regional-centers/service_area_boundaries/`;
+          
+          const response = await fetch(url, { headers: { Accept: "application/json" } });
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (data && data.features && Array.isArray(data.features)) {
+              // Find regional center by ZIP code
+              const matchingCenter = data.features.find(feature => 
+                feature.properties.zip_codes && 
+                feature.properties.zip_codes.includes(zipCode)
+              );
+              
+              if (matchingCenter) {
+                console.log(`✅ Found ZIP code ${zipCode} in: ${matchingCenter.properties.name}`);
+                
+                // Extract coordinates from the geometry or use center coordinates
+                const geometry = matchingCenter.geometry;
+                if (geometry && geometry.coordinates) {
+                  // For polygon geometry, calculate centroid
+                  if (geometry.type === 'Polygon' && geometry.coordinates[0]) {
+                    const coords = geometry.coordinates[0];
+                    let sumLat = 0, sumLng = 0;
+                    for (const coord of coords) {
+                      sumLng += coord[0];
+                      sumLat += coord[1];
+                    }
+                    const avgLat = sumLat / coords.length;
+                    const avgLng = sumLng / coords.length;
+                    console.log(`✅ Calculated coordinates for ZIP ${zipCode}:`, { lat: avgLat, lng: avgLng });
+                    return { lat: avgLat, lng: avgLng };
+                  }
+                }
+                
+                // Fallback: use approximate coordinates based on regional center
+                const centerName = matchingCenter.properties.name.toLowerCase();
+                if (centerName.includes('lanterman')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // Central LA
+                } else if (centerName.includes('north')) {
+                  return { lat: 34.2386, lng: -118.5645 }; // Northridge area
+                } else if (centerName.includes('eastern')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // Eastern LA
+                } else if (centerName.includes('harbor')) {
+                  return { lat: 33.7701, lng: -118.1937 }; // Harbor area
+                } else if (centerName.includes('westside')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // Westside LA
+                } else if (centerName.includes('south central')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // South Central LA
+                } else if (centerName.includes('san gabriel')) {
+                  return { lat: 34.0522, lng: -118.2437 }; // San Gabriel area
+                }
+              } else {
+                console.log(`❌ ZIP code ${zipCode} not found in service area boundaries`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error looking up ZIP code in service area boundaries:', error);
+        }
+
+        // If ZIP code not found in service areas, try to infer from first digits
+        const firstTwo = zipCode.substring(0, 2);
+        if (firstTwo === "91" || firstTwo === "90") {
+          // LA area ZIP codes
+          return { lat: 34.0522, lng: -118.2437 };
+        } else if (firstTwo === "92") {
+          // Orange County ZIP codes
+          return { lat: 33.6846, lng: -117.8265 };
+        } else if (firstTwo === "93") {
+          // Central Valley ZIP codes
+          return { lat: 36.7468, lng: -119.7725 };
+        } else if (firstTwo === "94" || firstTwo === "95") {
+          // Bay Area ZIP codes
+          return { lat: 37.7749, lng: -122.4194 };
+        }
+      }
+
+      // Check for city names
+      for (const [city, coords] of Object.entries(locations)) {
+        if (addressLower.includes(city)) {
+          console.log(`Found city ${city} coordinates:`, coords);
+          return coords;
+        }
+      }
+
+      return null;
+    },
+    */
+
     // Get coordinates for a search location (simpler version of basicGeocode for search)
     async getLocationFromSearch(searchText) {
       // Use proper Mapbox geocoding
