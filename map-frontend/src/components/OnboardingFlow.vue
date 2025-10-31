@@ -78,8 +78,8 @@
               <i class="bi bi-building"></i>
               <div class="rc-content">
                 <div class="rc-name">
-                  <a 
-                    v-if="effectiveRegionalCenter.website" 
+                  <a
+                    v-if="effectiveRegionalCenter.website"
                     :href="effectiveRegionalCenter.website.startsWith('http') ? effectiveRegionalCenter.website : 'https://' + effectiveRegionalCenter.website"
                     target="_blank"
                     class="rc-link"
@@ -335,6 +335,8 @@
 </template>
 
 <script>
+import { useProviderStore } from '@/stores/providerStore';
+
 export default {
   name: "OnboardingFlow",
 
@@ -355,6 +357,7 @@ export default {
       totalSteps: 4,
       locationDetecting: false,
       locationError: null,
+      loading: false,
       userLocation: "",
       userCoordinates: null, // Store lat/lng for fallback searches
       userProfile: {
@@ -426,6 +429,27 @@ export default {
   },
 
   methods: {
+    async viewAllProviders() {
+      this.loading = true;
+      try {
+        const providerStore = useProviderStore();
+        await providerStore.loadAllProviders();
+        console.log(`✅ Loaded all ${providerStore.providerCount} providers`);
+
+        // Emit with minimal data structure - no user profile needed for "view all"
+        this.$emit('onboarding-complete', {
+          userProfile: {},
+          userLocation: null,
+          skipFilters: true
+        });
+      } catch (error) {
+        console.error('Error loading all providers:', error);
+        this.locationError = 'Failed to load providers. Please try again.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async nextStep() {
       if (this.currentStep < this.totalSteps) {
         // On step 1, validate location before proceeding
@@ -1799,5 +1823,74 @@ export default {
   .results-actions {
     flex-direction: column;
   }
+}
+
+/* Skip Section */
+.skip-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  text-align: center;
+}
+
+.skip-divider {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.skip-divider::before,
+.skip-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.skip-divider span {
+  padding: 0 1rem;
+}
+
+.skip-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: auto;
+}
+
+.skip-btn i {
+  font-size: 1.1rem;
+}
+
+.skip-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
+  background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+}
+
+.skip-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.skip-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.skip-text {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 0;
 }
 </style>

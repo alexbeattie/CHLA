@@ -322,6 +322,17 @@
                 @filter-change="handleFilterChange"
                 @reset="handleFilterReset"
               />
+
+              <!-- Browse All Providers Link -->
+              <div class="mt-3 text-center">
+                <a
+                  href="#"
+                  class="browse-all-link"
+                  @click.prevent="loadAllProviders"
+                >
+                  Browse all providers without filters
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -2316,8 +2327,31 @@ export default {
       this.isMapMoving = true; // Prevent any map bounds changes
       await this.fetchProviders();
       this.isMapMoving = false;
-      
+
       console.log("✅ Initial load complete - LA County view with providers");
+    },
+
+    /**
+     * Load all providers without any filters
+     */
+    async loadAllProviders() {
+      try {
+        console.log('🌍 Loading all providers without filters...');
+        await this.providerStore.loadAllProviders();
+        console.log(`✅ Loaded all ${this.providerStore.providerCount} providers`);
+
+        // Reset any active filters
+        if (this.filterStore) {
+          this.filterStore.resetFilters();
+        }
+
+        // Clear user location/address to indicate we're viewing all providers
+        this.userData.address = '';
+        this.userData.zipCode = '';
+      } catch (error) {
+        console.error('❌ Error loading all providers:', error);
+        this.error = 'Failed to load providers. Please try again.';
+      }
     },
     clearSearch() {
       this.searchText = "";
@@ -7393,5 +7427,18 @@ h6 {
   font-weight: 600;
   display: flex;
   align-items: center;
+}
+
+/* Browse All Providers Link */
+.browse-all-link {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.browse-all-link:hover {
+  color: #374151;
+  text-decoration: underline;
 }
 </style>

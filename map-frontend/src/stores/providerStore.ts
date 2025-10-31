@@ -267,6 +267,41 @@ export const useProviderStore = defineStore('provider', () => {
   }
 
   /**
+   * Load ALL providers from database (no filters)
+   */
+  async function loadAllProviders(): Promise<ProviderSearchResult | null> {
+    loading.value = true;
+    error.value = null;
+    regionalCenterInfo.value = null;
+
+    try {
+      const url = `${apiBaseUrl.value}/api/providers-v2/`;
+      console.log(`🌍 [Store] Loading ALL providers from: ${url}`);
+
+      const response = await axios.get(url);
+
+      // Handle response
+      const allProviders = Array.isArray(response.data) ? response.data : response.data.results || [];
+      providers.value = allProviders;
+
+      console.log(`✅ [Store] Loaded ${allProviders.length} total providers`);
+
+      const result: ProviderSearchResult = {
+        providers: allProviders,
+        count: allProviders.length
+      };
+
+      return result;
+    } catch (err: any) {
+      error.value = err.response?.data?.message || err.message || 'Failed to load providers';
+      console.error('❌ [Store] Error loading all providers:', err);
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
    * Clear all provider data and state
    */
   function clearProviders() {
@@ -311,6 +346,7 @@ export const useProviderStore = defineStore('provider', () => {
     searchByZipCode,
     searchByLocation,
     searchWithFilters,
+    loadAllProviders,
     selectProvider,
     getProviderById,
     filterProviders,
