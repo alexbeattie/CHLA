@@ -506,7 +506,7 @@ import { authService } from "@/services/auth.js";
 import { getApiRoot } from "@/utils/api.js";
 import { getLACountyBounds, isPointInBounds, calculateProviderBounds } from "@/utils/geo.js";
 import { formatDescription, formatInsurance, formatLanguages, formatHours, formatHoursObject } from "@/utils/formatting.js";
-import { createSimplePopup, createRegionalCenterPopup } from "@/utils/popup.js";
+import { createSimplePopup } from "@/utils/popup.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -4734,21 +4734,9 @@ export default {
         let popupClass;
 
         // For markers, always use simple popups
-        // The polygon clicks already show the detailed regional center info
-        const isRegionalCenter = false;
-
-        if (isRegionalCenter) {
-          // Use rich popup for regional centers
-          popupHTML = createRegionalCenterPopup(item.regional_center || item.name, {
-            serviceAreas: this.serviceAreas,
-            regionalCenters: this.regionalCenters
-          });
-          popupClass = "provider-popup-container";
-        } else {
-          // Use simple popup for providers and other locations
-          popupHTML = createSimplePopup(item);
-          popupClass = "simple-popup";
-        }
+        // Use simple popup for providers and other locations
+        popupHTML = createSimplePopup(item);
+        popupClass = "simple-popup";
 
         const popup = new mapboxgl.Popup({
           offset: 25, // Simple offset to keep popup away from marker
