@@ -515,6 +515,7 @@ import { sampleProviders } from "@/utils/sampleData.js";
 import { hslToHex, stringToColor } from "@/utils/colors.js";
 import { geocodeAddress } from "@/utils/map/geocoding";
 import { DIAGNOSIS_OPTIONS, THERAPY_OPTIONS, LA_COUNTY_CENTER, LA_COUNTY_BOUNDS } from "@/constants/filters.js";
+import { buildProviderQueryParams, buildProviderUrl, hasActiveFilters, filterValidProviders } from "@/services/providerService.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -3026,40 +3027,18 @@ export default {
           }
           console.log(`Loaded ${this.providers.length} sample providers`);
         } else {
-          // Use the comprehensive search endpoint for better filtering capabilities
-          let queryParams = new URLSearchParams();
-
-          // Check if we're doing specific filtering (beyond location)
-          const hasSpecificFilters =
-            this.filterOptions.acceptsInsurance ||
-            this.filterOptions.acceptsRegionalCenter ||
-            this.filterOptions.acceptsPrivatePay ||
-            this.filterOptions.matchesDiagnosis ||
-            this.filterOptions.matchesAge;
-
-          // Add search text if available
-          if (this.searchText && this.searchText.trim() !== "") {
-            queryParams.append("q", this.searchText.trim());
-            console.log(`🔍 Adding search query: "${this.searchText.trim()}"`);
-          }
-
-          // Add location/radius - prefer client-side geocode of searchText if we can
+          // Geocode search text if needed
           let searchLat = this.userLocation.latitude;
           let searchLng = this.userLocation.longitude;
 
-          // Check if search text is a known city/location
           if (this.searchText && this.searchText.trim() !== "") {
-            // 1) Try our quick local table
             let searchLocation = this.getLocationFromSearch(this.searchText.trim());
             
-            // 2) If it's a ZIP code that needs geocoding, try Nominatim
             if (searchLocation && searchLocation.needsGeocoding) {
               console.log(`🔍 Geocoding ZIP code: ${searchLocation.zipCode}`);
               const nom = await this.geocodeTextToCoords(searchLocation.zipCode);
               if (nom) searchLocation = nom;
-            }
-            // 3) If that fails, try Nominatim for any other text
-            else if (!searchLocation) {
+            } else if (!searchLocation) {
               const nom = await this.geocodeTextToCoords(this.searchText.trim());
               if (nom) searchLocation = nom;
             }
@@ -3067,71 +3046,38 @@ export default {
             if (searchLocation && searchLocation.lat && searchLocation.lng) {
               searchLat = searchLocation.lat;
               searchLng = searchLocation.lng;
-              console.log(
-                `🔍 Using geocoded location for "${this.searchText}": ${searchLat}, ${searchLng}`
-              );
-            } else {
-              console.log(`⚠️ Could not geocode "${this.searchText}", using user location`);
+              console.log(`🔍 Using geocoded location for "${this.searchText}": ${searchLat}, ${searchLng}`);
             }
           }
 
-          // Always pass location text to backend so it can geocode precisely
+          // Build query parameters using service
+          const queryParams = buildProviderQueryParams({
+            searchText: this.searchText,
+            userLocation: this.userLocation,
+            radius: this.radius,
+            filterOptions: this.filterOptions,
+            userData: this.userData,
+            searchLat,
+            searchLng
+          });
+
+          const hasSpecificFilters = hasActiveFilters(this.filterOptions);
+
           if (this.searchText && this.searchText.trim() !== "") {
-            queryParams.append("location", this.searchText.trim());
+            console.log(`🔍 Adding search query: "${this.searchText.trim()}"`);
           }
 
-          // Add location/radius if available (using search location or user location)
           if (searchLat && searchLng) {
-            queryParams.append("lat", searchLat);
-            queryParams.append("lng", searchLng);
-            // Increase radius for search to find more providers
-            const searchRadius = this.radius || 25; // Increased from 15 to 25 miles
-            queryParams.append("radius", searchRadius);
+            const searchRadius = this.radius || 25;
             console.log(`🔍 Using search radius: ${searchRadius} miles`);
           }
 
-          // Only add user profile filters if specific filters are enabled
-          if (this.filterOptions.matchesAge && this.userData.age) {
-            queryParams.append("age", this.userData.age);
-          }
-
-          if (this.filterOptions.matchesDiagnosis && this.userData.diagnosis) {
-            queryParams.append("diagnosis", this.userData.diagnosis);
-          }
-
-          // Add enum-based filters
-          (this.filterOptions.diagnoses || []).forEach((d) =>
-            queryParams.append("diagnosis", d)
-          );
-          (this.filterOptions.therapies || []).forEach((t) =>
-            queryParams.append("therapy", t)
-          );
-
-          // Add insurance filter options only when explicitly checked
-          if (this.filterOptions.acceptsInsurance) {
-            queryParams.append("insurance", "insurance");
-          }
-
-          if (this.filterOptions.acceptsRegionalCenter) {
-            queryParams.append("insurance", "regional center");
-          }
-
-          // Add specialization filter for diagnosis matching only when enabled
-          if (this.filterOptions.matchesDiagnosis && this.userData.diagnosis) {
-            queryParams.append("specialization", this.userData.diagnosis);
-          }
-
-          // Use regional center filtering for ZIP code searches, fallback to comprehensive search
+          // Build URL using service
+          const url = buildProviderUrl(this.searchText, queryParams);
           const isZipSearch = this.searchText && /^\d{5}$/.test(this.searchText.trim());
-          let url;
-
+          
           if (isZipSearch) {
-            // Use regional center-based filtering for ZIP searches
-            url = `${getApiRoot()}/api/providers-v2/by_regional_center/?zip_code=${this.searchText.trim()}&${queryParams.toString()}`;
             console.log(`🎯 Using REGIONAL CENTER filtering for ZIP: ${this.searchText.trim()}`);
-          } else {
-            // Use comprehensive search endpoint for address/city searches
-            url = `${getApiRoot()}/api/providers-v2/comprehensive_search/?${queryParams.toString()}`;
           }
 
           if (hasSpecificFilters) {
