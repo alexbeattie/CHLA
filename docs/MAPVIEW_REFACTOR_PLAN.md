@@ -1,766 +1,424 @@
-# MapView.vue Refactoring Plan
+# MapView.vue Refactoring Plan - Safe & Incremental
 
 ## Current State Analysis
 
-**File:** `/Users/alexbeattie/Developer/CHLA/map-frontend/src/views/MapView.vue`
-- **Total lines:** 6,681
-- **Template:** Lines 1-578
-- **Script:** Lines 579-6,500+
-- **Methods:** ~78 methods
-- **Data properties:** 60+ reactive properties
+**File:** `MapView.vue` (7,444 lines)
+- Template: 498 lines (reasonable)
+- Script: 5,538 lines (THE PROBLEM)
+- Style: 1,406 lines (can be extracted to Tailwind later)
+- Imports: 20 components
 
-**Problems:**
-1. ❌ Too large to understand or maintain
-2. ❌ Difficult to test individual features
-3. ❌ Performance issues (large reactive state)
-4. ❌ Hard to debug
-5. ❌ Risky to make changes
+## The Problem
 
----
+A 7,444-line file is:
+- Hard to understand
+- Difficult to test
+- Slow to load in editor
+- Easy to break
+- Impossible to collaborate on
 
-## Refactoring Strategy: Incremental & Safe
+## Core Principle: **ONE SMALL CHANGE AT A TIME**
 
-We'll use a **strangler fig pattern** - gradually extract functionality while keeping the original working.
+Each step:
+1. Extract ONE piece
+2. Test it works
+3. Commit
+4. Move to next piece
 
-### Principles:
-1. ✅ **One change at a time** - test after each step
-2. ✅ **No breaking changes** - original file works throughout
-3. ✅ **TypeScript composables** - better type safety
-4. ✅ **Pinia stores** - centralized state management
-5. ✅ **Component extraction** - UI into smaller pieces
+If anything breaks, rollback is ONE commit away.
 
 ---
 
-## Phase 1: Extract Utility Functions (Week 1)
+## Phase 1: Analysis (Week 1, Day 1-2)
 
-### Step 1.1: Create Utils Directory
+### Step 1.1: Map the Territory (2 hours)
+**Goal:** Understand what's in the file without changing anything
 
-**Create:** `src/utils/map/`
+**Tasks:**
+- [ ] List all methods (how many?)
+- [ ] List all computed properties
+- [ ] List all data properties
+- [ ] Identify dependencies between them
+- [ ] Find which methods are only used once vs reused
 
-```
-src/utils/map/
-├── geocoding.ts          # Address/ZIP geocoding
-├── coordinates.ts        # Coordinate validation & bounds checking
-├── distance.ts           # Distance calculations
-└── formatters.ts         # Data formatting utilities
-```
+**Output:** A map of what's in the file
 
-**Files to create:**
+**Command:**
+```bash
+# Count methods
+grep -c "^    [a-zA-Z].*() {" src/views/MapView.vue
 
-#### `src/utils/map/geocoding.ts`
-```typescript
-export interface GeocodeResult {
-  lat: number;
-  lng: number;
-  formatted_address: string;
-  zip_code?: string;
-}
+# List method names
+grep "^    [a-zA-Z].*() {" src/views/MapView.vue | head -20
 
-export async function geocodeAddress(
-  address: string,
-  mapboxToken: string
-): Promise<GeocodeResult | null> {
-  // Extract geocoding logic from MapView
-  // Currently around line 2400-2500
-}
-
-export async function geocodeZip(
-  zipCode: string,
-  mapboxToken: string
-): Promise<GeocodeResult | null> {
-  // Extract ZIP geocoding
-}
-
-export function isValidZipCode(zip: string): boolean {
-  return /^\d{5}$/.test(zip);
-}
+# Find computed properties
+sed -n '/computed: {/,/^  }/p' src/views/MapView.vue | grep "^    [a-zA-Z]" | wc -l
 ```
 
-#### `src/utils/map/coordinates.ts`
-```typescript
-export interface CoordinateBounds {
-  minLat: number;
-  maxLat: number;
-  minLng: number;
-  maxLng: number;
-}
+### Step 1.2: Identify Safe Extraction Candidates (1 hour)
+**Goal:** Find methods that can be extracted without breaking things
 
-export const CA_BOUNDS: CoordinateBounds = {
-  minLat: 32,
-  maxLat: 42,
-  minLng: -125,
-  maxLng: -114
-};
+**Safe candidates are methods that:**
+- ✅ Don't use `this.$refs` (DOM-dependent)
+- ✅ Don't use `this.$router` or `this.$route` (routing-dependent)
+- ✅ Are pure functions (input → output)
+- ✅ Are utility functions (formatPhone, formatAddress, etc.)
 
-export function isWithinBounds(
-  lat: number,
-  lng: number,
-  bounds: CoordinateBounds = CA_BOUNDS
-): boolean {
-  return (
-    lat >= bounds.minLat &&
-    lat <= bounds.maxLat &&
-    lng >= bounds.minLng &&
-    lng <= bounds.maxLng
-  );
-}
+**Unsafe candidates:**
+- ❌ Methods using lifecycle hooks
+- ❌ Methods accessing DOM directly
+- ❌ Methods with complex component state dependencies
 
-export function validateCoordinates(lat: any, lng: any): {
-  lat: number;
-  lng: number;
-} | null {
-  // Extract coordinate validation logic
-  // Currently scattered throughout MapView
-}
+### Step 1.3: Create Test File (30 min)
+**Goal:** Ensure we can test that the app still works
+
+**Create:** `scripts/test-mapview.sh`
+```bash
+#!/bin/bash
+echo "Testing MapView..."
+
+# Test 1: File compiles
+cd map-frontend && npm run build 2>&1 | grep -q "built in" && echo "✅ Build passes" || echo "❌ Build fails"
+
+# Test 2: No linter errors
+npx eslint src/views/MapView.vue 2>&1 | grep -q "0 problems" && echo "✅ No lint errors" || echo "⚠️ Has lint errors"
+
+# Test 3: Dev server starts
+timeout 30 npm run dev > /tmp/test.log 2>&1 &
+sleep 10
+curl -s http://localhost:3000 | grep -q "Map Location Finder" && echo "✅ App loads" || echo "❌ App fails to load"
+pkill -f "vite.*development"
+
+echo "Testing complete!"
 ```
 
-**Benefits:**
-- Easy to test
-- Reusable across components
-- No breaking changes (just extracted, not removed yet)
+**DON'T EXTRACT ANYTHING YET** - Just prepare.
 
 ---
 
-## Phase 2: Create Composables (Week 2)
+## Phase 2: Extract Utilities (Week 1, Day 3-5)
 
-### Step 2.1: Map State Composable
+### Step 2.1: Extract Format Functions (2 hours)
+**Goal:** Move simple formatting functions to utils
 
-**Create:** `src/composables/useMapState.ts`
+**Target methods (EXAMPLES - we'll identify real ones):**
+- `formatPhone(phone)` - Format phone numbers
+- `formatAddress(address)` - Format addresses
+- `formatDistance(distance)` - Format distances
 
-```typescript
-import { ref, computed } from 'vue';
-import type { Map as MapboxMap } from 'mapbox-gl';
+**Process:**
+1. Create `src/utils/formatting.js`
+2. Copy ONE function
+3. Export it
+4. Import it in MapView
+5. Replace usage
+6. Test with `./scripts/test-mapview.sh`
+7. Commit: "refactor: Extract formatPhone to utils"
+8. Repeat for next function
 
-export function useMapState() {
-  const map = ref<MapboxMap | null>(null);
-  const mapLoaded = ref(false);
-  const mapCenter = ref<[number, number]>([-118.2437, 34.0522]); // LA
-  const mapZoom = ref(10);
-
-  const isMapReady = computed(() => map.value !== null && mapLoaded.value);
-
-  function setMap(mapInstance: MapboxMap) {
-    map.value = mapInstance;
+**Example:**
+```javascript
+// src/utils/formatting.js
+export function formatPhone(phone) {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
   }
-
-  function setMapLoaded(loaded: boolean) {
-    mapLoaded.value = loaded;
-  }
-
-  function updateMapView(center: [number, number], zoom: number) {
-    if (!map.value) return;
-    map.value.flyTo({ center, zoom });
-    mapCenter.value = center;
-    mapZoom.value = zoom;
-  }
-
-  return {
-    map,
-    mapLoaded,
-    mapCenter,
-    mapZoom,
-    isMapReady,
-    setMap,
-    setMapLoaded,
-    updateMapView
-  };
+  return phone;
 }
+
+// In MapView.vue
+import { formatPhone } from '@/utils/formatting'
+
+// Replace: this.formatPhone(phone)
+// With: formatPhone(phone)
 ```
 
-### Step 2.2: Provider Search Composable
-
-**Create:** `src/composables/useProviderSearch.ts`
-
-```typescript
-import { ref, computed } from 'vue';
-import axios from 'axios';
-import type { Provider } from '@/types/provider';
-
-export function useProviderSearch(apiBaseUrl: string) {
-  const providers = ref<Provider[]>([]);
-  const loading = ref(false);
-  const error = ref<string | null>(null);
-  const searchLocation = ref('');
-  const searchCoordinates = ref<{ lat: number; lng: number } | null>(null);
-
-  const providerCount = computed(() => providers.value.length);
-
-  async function searchProviders(params: {
-    zipCode?: string;
-    lat?: number;
-    lng?: number;
-    radius?: number;
-    insurance?: string;
-    therapy?: string;
-  }) {
-    loading.value = true;
-    error.value = null;
-
-    try {
-      const queryParams = new URLSearchParams();
-
-      // Use regional center filtering for ZIP searches
-      if (params.zipCode && /^\d{5}$/.test(params.zipCode)) {
-        queryParams.append('zip_code', params.zipCode);
-
-        if (params.insurance) {
-          queryParams.append('insurance', params.insurance);
-        }
-
-        const url = `${apiBaseUrl}/api/providers-v2/by_regional_center/?${queryParams}`;
-        const response = await axios.get(url);
-
-        providers.value = response.data.results || [];
-        return response.data;
-      }
-
-      // Fall back to radius search for lat/lng
-      if (params.lat && params.lng) {
-        queryParams.append('lat', params.lat.toString());
-        queryParams.append('lng', params.lng.toString());
-        queryParams.append('radius', (params.radius || 25).toString());
-      }
-
-      if (params.insurance) {
-        queryParams.append('insurance', params.insurance);
-      }
-
-      const url = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${queryParams}`;
-      const response = await axios.get(url);
-
-      providers.value = response.data.results || response.data || [];
-      return response.data;
-
-    } catch (err: any) {
-      error.value = err.message;
-      providers.value = [];
-      return null;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  function clearSearch() {
-    providers.value = [];
-    searchLocation.value = '';
-    searchCoordinates.value = null;
-    error.value = null;
-  }
-
-  return {
-    providers,
-    loading,
-    error,
-    searchLocation,
-    searchCoordinates,
-    providerCount,
-    searchProviders,
-    clearSearch
-  };
-}
+**Testing after each:**
+```bash
+./scripts/test-mapview.sh
+# If passes: git commit
+# If fails: git reset --hard
 ```
 
-### Step 2.3: Filter State Composable
+### Step 2.2: Extract Validation Functions (2 hours)
+**Goal:** Move validation logic to utils
 
-**Create:** `src/composables/useFilterState.ts`
+**Target methods:**
+- ZIP code validation
+- Email validation
+- Phone validation
 
-```typescript
-import { ref, reactive, computed } from 'vue';
+**Same process as 2.1**
 
-export interface FilterOptions {
-  acceptsInsurance: boolean;
-  acceptsRegionalCenter: boolean;
-  acceptsPrivatePay: boolean;
-  matchesAge: boolean;
-  matchesDiagnosis: boolean;
-  therapyTypes: string[];
-  ageGroups: string[];
-}
+### Step 2.3: Extract Calculation Functions (2 hours)
+**Goal:** Move pure calculations to utils
 
-export function useFilterState() {
-  const filterOptions = reactive<FilterOptions>({
-    acceptsInsurance: false,
-    acceptsRegionalCenter: false,
-    acceptsPrivatePay: false,
-    matchesAge: false,
-    matchesDiagnosis: false,
-    therapyTypes: [],
-    ageGroups: []
-  });
-
-  const hasActiveFilters = computed(() => {
-    return (
-      filterOptions.acceptsInsurance ||
-      filterOptions.acceptsRegionalCenter ||
-      filterOptions.acceptsPrivatePay ||
-      filterOptions.matchesAge ||
-      filterOptions.matchesDiagnosis ||
-      filterOptions.therapyTypes.length > 0 ||
-      filterOptions.ageGroups.length > 0
-    );
-  });
-
-  function resetFilters() {
-    filterOptions.acceptsInsurance = false;
-    filterOptions.acceptsRegionalCenter = false;
-    filterOptions.acceptsPrivatePay = false;
-    filterOptions.matchesAge = false;
-    filterOptions.matchesDiagnosis = false;
-    filterOptions.therapyTypes = [];
-    filterOptions.ageGroups = [];
-  }
-
-  function toggleFilter(filterName: keyof FilterOptions) {
-    if (typeof filterOptions[filterName] === 'boolean') {
-      (filterOptions[filterName] as boolean) = !(filterOptions[filterName] as boolean);
-    }
-  }
-
-  return {
-    filterOptions,
-    hasActiveFilters,
-    resetFilters,
-    toggleFilter
-  };
-}
-```
+**Target methods:**
+- Distance calculations
+- Coordinate transformations
+- Data filtering logic
 
 ---
 
-## Phase 3: Create Pinia Stores (Week 3)
+## Phase 3: Extract Composables (Week 2)
 
-### Step 3.1: Provider Store
+### Step 3.1: Extract Geolocation Logic (4 hours)
+**Goal:** Move geolocation into composable
 
-**Create:** `src/stores/providerStore.ts`
+**Target:** All `geolocation` related code
 
-```typescript
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import axios from 'axios';
-import type { Provider } from '@/types/provider';
+**Create:** `src/composables/useGeolocation.js` (probably already exists - check first!)
 
-export const useProviderStore = defineStore('provider', () => {
-  // State
-  const providers = ref<Provider[]>([]);
-  const selectedProvider = ref<Provider | null>(null);
-  const loading = ref(false);
-  const error = ref<string | null>(null);
+**Process:**
+1. Check if `useGeolocation` exists
+2. If yes, ensure MapView uses it properly
+3. If no, create it with ONE piece at a time
+4. Test after each piece
 
-  // Getters
-  const providerCount = computed(() => providers.value.length);
-  const providersWithCoordinates = computed(() =>
-    providers.value.filter(p => p.latitude && p.longitude)
-  );
+### Step 3.2: Extract Filter Logic (4 hours)
+**Goal:** Move filter state and logic to composable/store
 
-  // Actions
-  async function fetchProviders(params: {
-    zipCode?: string;
-    regionalCenterId?: number;
-    filters?: any;
-  }) {
-    loading.value = true;
-    error.value = null;
+**Current:** Filter logic scattered in MapView
+**Target:** `src/composables/useFilters.js` or use existing Pinia store
 
-    try {
-      let url = '';
-      const queryParams = new URLSearchParams();
-
-      if (params.zipCode) {
-        url = `${import.meta.env.VITE_API_BASE_URL}/api/providers-v2/by_regional_center/`;
-        queryParams.append('zip_code', params.zipCode);
-      } else if (params.regionalCenterId) {
-        url = `${import.meta.env.VITE_API_BASE_URL}/api/providers-v2/by_regional_center/`;
-        queryParams.append('regional_center_id', params.regionalCenterId.toString());
-      }
-
-      // Add filters
-      if (params.filters) {
-        Object.entries(params.filters).forEach(([key, value]) => {
-          if (value) queryParams.append(key, value as string);
-        });
-      }
-
-      const response = await axios.get(`${url}?${queryParams}`);
-      providers.value = response.data.results || response.data || [];
-
-      return response.data;
-    } catch (err: any) {
-      error.value = err.message;
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  function selectProvider(provider: Provider | null) {
-    selectedProvider.value = provider;
-  }
-
-  function clearProviders() {
-    providers.value = [];
-    selectedProvider.value = null;
-    error.value = null;
-  }
-
-  return {
-    providers,
-    selectedProvider,
-    loading,
-    error,
-    providerCount,
-    providersWithCoordinates,
-    fetchProviders,
-    selectProvider,
-    clearProviders
-  };
-});
-```
-
-### Step 3.2: Map Store
-
-**Create:** `src/stores/mapStore.ts`
-
-```typescript
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import type { Map as MapboxMap } from 'mapbox-gl';
-
-export const useMapStore = defineStore('map', () => {
-  const map = ref<MapboxMap | null>(null);
-  const mapLoaded = ref(false);
-  const mapCenter = ref<[number, number]>([-118.2437, 34.0522]);
-  const mapZoom = ref(10);
-  const showRegionalCenters = ref(false);
-  const highlightedRegionalCenter = ref<number | null>(null);
-
-  const isReady = computed(() => map.value !== null && mapLoaded.value);
-
-  function setMap(mapInstance: MapboxMap) {
-    map.value = mapInstance;
-  }
-
-  function setLoaded() {
-    mapLoaded.value = true;
-  }
-
-  function flyTo(center: [number, number], zoom: number) {
-    if (!map.value) return;
-    map.value.flyTo({ center, zoom, duration: 1000 });
-    mapCenter.value = center;
-    mapZoom.value = zoom;
-  }
-
-  function toggleRegionalCenters() {
-    showRegionalCenters.value = !showRegionalCenters.value;
-  }
-
-  function highlightRegionalCenter(id: number | null) {
-    highlightedRegionalCenter.value = id;
-  }
-
-  return {
-    map,
-    mapLoaded,
-    mapCenter,
-    mapZoom,
-    showRegionalCenters,
-    highlightedRegionalCenter,
-    isReady,
-    setMap,
-    setLoaded,
-    flyTo,
-    toggleRegionalCenters,
-    highlightRegionalCenter
-  };
-});
-```
+### Step 3.3: Extract Search Logic (4 hours)
+**Goal:** Consolidate search functionality
 
 ---
 
-## Phase 4: Extract Components (Week 4)
+## Phase 4: Extract UI Components (Week 3)
 
-### Step 4.1: Component Structure
+### Step 4.1: Extract Individual Sections (1 hour each)
+**Goal:** Turn large template sections into components
 
-```
-src/components/map/
-├── MapContainer.vue           # Main map display
-├── MapControls.vue            # Zoom, pan controls
-├── MapMarkers.vue             # Provider markers
-├── RegionalCenterLayer.vue    # RC polygon overlay
-└── MapPopup.vue               # Marker popup
+**IMPORTANT:** Don't extract everything at once!
 
-src/components/search/
-├── SearchBar.vue              # Search input
-├── FilterPanel.vue            # All filters
-├── FilterPills.vue            # Quick filter pills
-└── SearchResults.vue          # Results list
+**One section at a time:**
 
-src/components/provider/
-├── ProviderCard.vue           # Provider detail card
-├── ProviderList.vue           # List view
-└── ProviderPopup.vue          # Map popup content
+1. **UserProfileSection.vue** (if not already component)
+   - The profile card at top of sidebar
+   - Test: Does profile still display?
+   - Commit
 
-src/components/onboarding/
-└── OnboardingFlow.vue         # Already extracted!
-```
+2. **LocationNotice.vue** 
+   - The "no location detected" notice
+   - Test: Does notice still show?
+   - Commit
 
-### Step 4.2: MapContainer Component
+3. **FilterSection.vue** (if not FilterPanel)
+   - Filter checkboxes and controls
+   - Test: Do filters still work?
+   - Commit
 
-**Create:** `src/components/map/MapContainer.vue`
-
+**Each extraction:**
 ```vue
+<!-- Before in MapView.vue -->
+<div class="profile-section">
+  <!-- 50 lines of profile UI -->
+</div>
+
+<!-- After in MapView.vue -->
+<user-profile-section 
+  :profile="userData" 
+  @edit="handleEditProfile" 
+/>
+
+<!-- New file: UserProfileSection.vue -->
 <template>
-  <div ref="mapContainer" class="map-container"></div>
+  <div class="profile-section">
+    <!-- same 50 lines -->
+  </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import mapboxgl from 'mapbox-gl';
-import { useMapStore } from '@/stores/mapStore';
-
-const props = defineProps<{
-  accessToken: string;
-  center?: [number, number];
-  zoom?: number;
-}>();
-
-const emit = defineEmits<{
-  mapLoaded: [];
-  mapClick: [{ lat: number; lng: number }];
-}>();
-
-const mapContainer = ref<HTMLDivElement | null>(null);
-const mapStore = useMapStore();
-
-onMounted(() => {
-  if (!mapContainer.value) return;
-
-  mapboxgl.accessToken = props.accessToken;
-
-  const map = new mapboxgl.Map({
-    container: mapContainer.value,
-    style: 'mapbox://styles/mapbox/streets-v12',
-    center: props.center || [-118.2437, 34.0522],
-    zoom: props.zoom || 10
-  });
-
-  map.on('load', () => {
-    mapStore.setMap(map);
-    mapStore.setLoaded();
-    emit('mapLoaded');
-  });
-
-  map.on('click', (e) => {
-    emit('mapClick', { lat: e.lngLat.lat, lng: e.lngLat.lng });
-  });
-});
-
-// Watch for center/zoom changes
-watch(() => [props.center, props.zoom], ([newCenter, newZoom]) => {
-  if (newCenter && newZoom && mapStore.isReady) {
-    mapStore.flyTo(newCenter as [number, number], newZoom as number);
-  }
-});
-</script>
-
-<style scoped>
-.map-container {
-  width: 100%;
-  height: 100%;
-}
-</style>
 ```
 
 ---
 
-## Phase 5: Gradual Integration (Week 5)
+## Phase 5: Reduce CSS (Week 4)
 
-### Step 5.1: Update MapView to Use Composables
+### Step 5.1: Audit Current CSS (2 hours)
+**Goal:** Understand what CSS is actually used
 
-**In MapView.vue, replace data properties:**
-
-```vue
-<script>
-import { useProviderSearch } from '@/composables/useProviderSearch';
-import { useFilterState } from '@/composables/useFilterState';
-import { useMapState } from '@/composables/useMapState';
-
-export default {
-  setup() {
-    const { providers, searchProviders, loading } = useProviderSearch(
-      import.meta.env.VITE_API_BASE_URL
-    );
-
-    const { filterOptions, hasActiveFilters, resetFilters } = useFilterState();
-
-    const { map, mapLoaded, updateMapView } = useMapState();
-
-    return {
-      providers,
-      searchProviders,
-      loading,
-      filterOptions,
-      hasActiveFilters,
-      resetFilters,
-      map,
-      mapLoaded,
-      updateMapView
-    };
-  },
-
-  // Keep existing data() for now, gradually remove as we migrate
-  data() {
-    // ... existing data, but commented out what's moved to composables
-  }
-}
-</script>
+```bash
+# Find unused CSS classes
+grep -o "class=\"[^\"]*\"" src/views/MapView.vue | sort -u > /tmp/classes-used.txt
+grep -o "\.[a-z-]*" src/views/MapView.vue | sort -u > /tmp/classes-defined.txt
 ```
 
-### Step 5.2: Test Each Migration
+### Step 5.2: Extract Common Styles (2 hours)
+**Goal:** Move reusable styles to global or component files
 
-After each change:
-1. Run dev server
-2. Test all functionality
-3. Fix any issues
-4. Commit with clear message
-5. Move to next piece
+### Step 5.3: Remove Duplicate Styles (2 hours)
+**Goal:** Consolidate repeated styles
 
 ---
 
 ## Testing Strategy
 
-### Unit Tests (New)
+### After EVERY Change:
 
-Create tests for extracted utilities:
+1. **Visual Test** (30 seconds)
+   ```bash
+   npm run dev
+   # Open http://localhost:3000
+   # Click around, test basic features
+   ```
 
-```typescript
-// src/utils/map/__tests__/coordinates.test.ts
-import { describe, it, expect } from 'vitest';
-import { isWithinBounds, CA_BOUNDS } from '../coordinates';
+2. **Build Test** (1 minute)
+   ```bash
+   npm run build
+   # Should succeed
+   ```
 
-describe('isWithinBounds', () => {
-  it('should return true for LA coordinates', () => {
-    expect(isWithinBounds(34.0522, -118.2437, CA_BOUNDS)).toBe(true);
-  });
+3. **Quick Test Script** (1 minute)
+   ```bash
+   ./scripts/test-mapview.sh
+   ```
 
-  it('should return false for coordinates outside CA', () => {
-    expect(isWithinBounds(40.7128, -74.0060, CA_BOUNDS)).toBe(false); // NYC
-  });
-});
+### Before Committing:
+
+```bash
+# 1. Check linter
+npm run lint src/views/MapView.vue
+
+# 2. Check types (if using TypeScript)
+# npm run type-check
+
+# 3. Test in browser manually
+
+# 4. Commit with clear message
+git add .
+git commit -m "refactor: Extract formatPhone utility
+
+- Move formatPhone from MapView to utils/formatting.js
+- No functional changes
+- All tests passing
+- Lines reduced: 7444 → 7430"
 ```
 
-### Integration Tests
+---
 
-Test composables with Vue Test Utils:
+## Success Metrics
 
-```typescript
-// src/composables/__tests__/useProviderSearch.test.ts
-import { describe, it, expect, vi } from 'vitest';
-import { useProviderSearch } from '../useProviderSearch';
+### After Phase 2 (Utilities):
+- **Target:** 7,444 → 7,200 lines (-244)
+- **Benefit:** Testable utility functions
+- **Risk:** Low (pure functions)
 
-describe('useProviderSearch', () => {
-  it('should search by ZIP code', async () => {
-    const { searchProviders, providers } = useProviderSearch('http://localhost');
+### After Phase 3 (Composables):
+- **Target:** 7,200 → 6,500 lines (-700)
+- **Benefit:** Reusable logic
+- **Risk:** Medium (state management)
 
-    await searchProviders({ zipCode: '91769' });
+### After Phase 4 (Components):
+- **Target:** 6,500 → 4,500 lines (-2,000)
+- **Benefit:** Maintainable UI pieces
+- **Risk:** Medium (component boundaries)
 
-    expect(providers.value.length).toBeGreaterThan(0);
-  });
-});
+### After Phase 5 (CSS):
+- **Target:** 4,500 → 3,500 lines (-1,000)
+- **Benefit:** Cleaner styles
+- **Risk:** Low (visual only)
+
+**Final Target:** 3,500 lines (53% reduction)
+
+---
+
+## Emergency Procedures
+
+### If Something Breaks:
+
+1. **Don't panic** - You have git!
+
+2. **Check what changed:**
+   ```bash
+   git diff
+   ```
+
+3. **Rollback the last change:**
+   ```bash
+   git reset --hard HEAD~1
+   ```
+
+4. **Restart server:**
+   ```bash
+   pkill node
+   cd map-frontend && npm run dev
+   ```
+
+5. **Test again:**
+   - Open http://localhost:3000
+   - If works: you rolled back successfully
+   - If broken: roll back one more: `git reset --hard HEAD~2`
+
+### If Completely Lost:
+
+```bash
+# Nuclear option - go back to known good state
+git log --oneline -20
+# Find the commit BEFORE you started refactoring
+git reset --hard <commit-hash>
 ```
 
 ---
 
-## Migration Checklist
+## Rules of Engagement
 
-### Week 1: Utils ✅ COMPLETE
-- [x] Create `src/utils/map/` directory
-- [x] Extract geocoding.ts
-- [x] Extract coordinates.ts
-- [x] Extract distance.ts
-- [x] Extract formatters.ts
-- [x] Write unit tests (72 tests passing)
-- [x] Update MapView to import utils (but keep existing code)
+### DO:
+✅ Extract ONE thing at a time
+✅ Test after EVERY change
+✅ Commit after EVERY successful extraction
+✅ Write clear commit messages
+✅ Keep changes small (<100 lines per commit)
+✅ Document what you're doing
 
-### Week 2: Composables ✅ COMPLETE
-- [x] Create `src/composables/` directory
-- [x] Create useMapState.ts
-- [x] Create useProviderSearch.ts
-- [x] Create useFilterState.ts
-- [x] Create useRegionalCenter.ts
-- [x] Write composable tests (88 tests passing)
-- [x] Start using in MapView (hybrid approach)
-
-### Week 3: Stores ✅ COMPLETE
-- [x] Set up Pinia
-- [x] Create providerStore.ts (311 lines)
-- [x] Create mapStore.ts (308 lines)
-- [x] Create filterStore.ts (269 lines)
-- [x] Migrate state management (composables delegate to stores)
-- [x] Test store integration (221 tests passing - 107 store + 114 composable)
-
-### Week 4: Components
-- [ ] Create MapContainer.vue
-- [ ] Create SearchBar.vue
-- [ ] Create FilterPanel.vue
-- [ ] Create ProviderCard.vue
-- [ ] Test each component
-- [ ] Integrate into MapView
-
-### Week 5: Final Migration
-- [ ] Remove old code from MapView
-- [ ] Update all imports
-- [ ] Final testing
-- [ ] Performance check
-- [ ] Deploy
+### DON'T:
+❌ Extract multiple things at once
+❌ Change logic while extracting
+❌ Refactor + add features at same time
+❌ Skip testing
+❌ Make commits with "WIP" or "fix stuff"
+❌ Touch working code unless extracting it
 
 ---
 
-## Benefits After Refactoring
+## Starting Point Checklist
 
-1. **Maintainability**
-   - 6,681 lines → ~300 lines per file
-   - Clear separation of concerns
-   - Easy to find code
+Before you start ANY extraction:
 
-2. **Testability**
-   - Unit tests for utilities
-   - Component tests
-   - Store tests
-   - Integration tests
+- [ ] App works perfectly right now
+- [ ] Server runs without errors
+- [ ] You can load the map
+- [ ] You can search for providers
+- [ ] All features work
+- [ ] Git status is clean (`git status`)
+- [ ] You've committed current working state
 
-3. **Performance**
-   - Smaller reactive state
-   - Better code splitting
-   - Lazy-loaded components
-
-4. **Developer Experience**
-   - TypeScript autocomplete
-   - Better error messages
-   - Easier onboarding
-
-5. **Reusability**
-   - Composables can be used elsewhere
-   - Components are standalone
-   - Stores are global
+**If ANY of above is NO, fix it FIRST before refactoring!**
 
 ---
 
-## Rollback Plan
+## Timeline Estimate
 
-If something breaks:
-1. Each phase is in a separate branch
-2. Original MapView.vue is never deleted until the end
-3. Can run old and new side-by-side
-4. Feature flags for gradual rollout
+- **Phase 1 (Analysis):** 2 days
+- **Phase 2 (Utilities):** 3 days
+- **Phase 3 (Composables):** 5 days
+- **Phase 4 (Components):** 5 days
+- **Phase 5 (CSS):** 3 days
+
+**Total:** ~18 days of actual work (3-4 weeks calendar time)
+
+**But:** You can stop after ANY phase and still have improvements!
 
 ---
 
 ## Next Steps
 
-1. **Review this plan** - Make sure you're comfortable with the approach
-2. **Set up TypeScript** - If not already configured
-3. **Create Week 1 branch** - `git checkout -b refactor/week1-utils`
-4. **Start with utils extraction** - Lowest risk, high value
+1. **Review this plan** - Does it make sense?
+2. **Run Phase 1.1** - Map what's in the file
+3. **Identify first extraction target** - Start small!
+4. **Create test script** - Ensure you can verify changes
+5. **Start with ONE utility function** - The simplest one
 
-Let me know when you're ready to start, and I'll help implement each phase! 🚀
+**Want to proceed?** Let's start with Phase 1.1 - mapping what's actually in MapView.vue

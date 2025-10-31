@@ -503,6 +503,7 @@ import mapboxgl from "mapbox-gl";
 import FundingInfoPanel from "@/components/FundingInfoPanel.vue";
 import OnboardingFlow from "@/components/OnboardingFlow.vue";
 import { authService } from "@/services/auth.js";
+import { getApiRoot } from "@/utils/api.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -1730,7 +1731,7 @@ export default {
     async showLAZipColorsOnly() {
       try {
         const countiesResponse = await fetch(
-          `${this.getApiRoot()}/api/california-counties/`
+          `${getApiRoot()}/api/california-counties/`
         );
         if (!countiesResponse.ok) return;
         const countiesData = await countiesResponse.json();
@@ -1781,7 +1782,7 @@ export default {
       if (this.zipToCenter && Object.keys(this.zipToCenter).length > 0) return;
       try {
         const response = await fetch(
-          `${this.getApiRoot()}/api/regional-centers/service_area_boundaries/`
+          `${getApiRoot()}/api/regional-centers/service_area_boundaries/`
         );
         if (!response.ok) {
           console.warn("ZIP→Center map fetch failed:", response.status);
@@ -1875,7 +1876,7 @@ export default {
               "Local ZIP GeoJSON load failed; trying backend /api/la-zip-codes/",
               e
             );
-            const res2 = await fetch(`${this.getApiRoot()}/api/la-zip-codes/`);
+            const res2 = await fetch(`${getApiRoot()}/api/la-zip-codes/`);
             if (res2.ok) {
               geo = await res2.json();
               this.coloredZipsData = geo;
@@ -2398,11 +2399,6 @@ export default {
       }
     },
 
-    getApiRoot() {
-      // Use the API base URL from environment variable
-      return import.meta.env.VITE_API_BASE_URL || "";
-    },
-
     // Find regional center for user's ZIP code
     async findUserRegionalCenter() {
       console.log("Finding regional center for user address:", this.userData?.address);
@@ -2773,7 +2769,7 @@ export default {
           this.laZipError = "Enter a valid 5-digit ZIP";
           return;
         }
-        const apiRoot = this.getApiRoot();
+        const apiRoot = getApiRoot();
         const url = `${apiRoot}/api/regional-centers/by_location/?location=${zip}&radius=60&limit=5`;
 
         let center = null;
@@ -3229,11 +3225,11 @@ export default {
 
           if (isZipSearch) {
             // Use regional center-based filtering for ZIP searches
-            url = `${this.getApiRoot()}/api/providers-v2/by_regional_center/?zip_code=${this.searchText.trim()}&${queryParams.toString()}`;
+            url = `${getApiRoot()}/api/providers-v2/by_regional_center/?zip_code=${this.searchText.trim()}&${queryParams.toString()}`;
             console.log(`🎯 Using REGIONAL CENTER filtering for ZIP: ${this.searchText.trim()}`);
           } else {
             // Use comprehensive search endpoint for address/city searches
-            url = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?${queryParams.toString()}`;
+            url = `${getApiRoot()}/api/providers-v2/comprehensive_search/?${queryParams.toString()}`;
           }
 
           if (hasSpecificFilters) {
@@ -3286,7 +3282,7 @@ export default {
               if (this.searchText && this.searchText.trim() !== "") {
                 // Try broader search with just the search term
                 console.log("🔍 Trying broader search with search term...");
-                const broadUrl = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?q=${this.searchText}`;
+                const broadUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?q=${this.searchText}`;
                 console.log("🔍 Trying broader search URL:", broadUrl);
                 try {
                   const broadResponse = await axios.get(broadUrl);
@@ -3308,7 +3304,7 @@ export default {
                 
                 // Try to get providers within a larger radius (50 miles) of the search location
                 if (searchLat && searchLng) {
-                  const nearbyUrl = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${searchLat}&lng=${searchLng}&radius=50`;
+                  const nearbyUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${searchLat}&lng=${searchLng}&radius=50`;
                   console.log("🔍 Trying nearby providers URL:", nearbyUrl);
                   try {
                     const nearbyResponse = await axios.get(nearbyUrl);
@@ -3328,7 +3324,7 @@ export default {
                 // If still no results, try getting LA County providers only as last resort
                 if (this.providers.length === 0) {
                   console.log("🔍 No nearby providers found, trying to get LA County providers only...");
-                  const laCountyUrl = `${this.getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${LA_COUNTY_CENTER.lat}&lng=${LA_COUNTY_CENTER.lng}&radius=50`;
+                  const laCountyUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${LA_COUNTY_CENTER.lat}&lng=${LA_COUNTY_CENTER.lng}&radius=50`;
                   try {
                     const laResponse = await axios.get(laCountyUrl);
                     console.log("🔍 LA County providers response:", laResponse.data);
@@ -3621,7 +3617,7 @@ export default {
 
       try {
         console.log("Fetching service areas from API...");
-        const apiRoot = this.getApiRoot();
+        const apiRoot = getApiRoot();
         const url = `${apiRoot}/api/regional-centers/service_areas/`;
 
         const response = await axios.get(url);
@@ -3749,7 +3745,7 @@ export default {
           try {
             console.log("Fetching service area data from API...");
             const response = await fetch(
-              `${this.getApiRoot()}/api/regional-centers/service_area_boundaries/`
+              `${getApiRoot()}/api/regional-centers/service_area_boundaries/`
             );
             if (response.ok) {
               this.laRegionalCentersData = await response.json();
@@ -3866,7 +3862,7 @@ export default {
 
         // Add California counties source using our production API
         const countiesResponse = await fetch(
-          `${this.getApiRoot()}/api/california-counties/`
+          `${getApiRoot()}/api/california-counties/`
         );
         const countiesData = await countiesResponse.json();
 
@@ -5730,7 +5726,7 @@ export default {
         
         try {
           // Use the service area boundaries endpoint to find regional center and get coordinates
-          const apiRoot = this.getApiRoot();
+          const apiRoot = getApiRoot();
           const url = `${apiRoot}/api/regional-centers/service_area_boundaries/`;
           
           const response = await fetch(url, { headers: { Accept: "application/json" } });
