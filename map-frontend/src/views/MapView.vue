@@ -507,6 +507,7 @@ import { getApiRoot } from "@/utils/api.js";
 import { getLACountyBounds, isPointInBounds, calculateProviderBounds } from "@/utils/geo.js";
 import { formatDescription, formatInsurance, formatLanguages, formatHours, formatHoursObject } from "@/utils/formatting.js";
 import { createSimplePopup } from "@/utils/popup.js";
+import { isLACountyZip, isInLACounty, extractZipCode as detectStandaloneZip, extractZipFromAddress, looksLikeAddress, isValidCaliforniaCoordinate } from "@/utils/validation.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -2061,13 +2062,12 @@ export default {
           const query = this.searchText.trim();
           
           // Detect if it's a standalone ZIP code (5 digits)
-          const zipMatch = query.match(/^\d{5}$/);
-          if (zipMatch) {
-            const zipCode = zipMatch[0];
+          const zipCode = detectStandaloneZip(query);
+          if (zipCode) {
             console.log("📮 ZIP code detected:", zipCode);
             
             // Validate ZIP is in LA County (9xxxx range)
-            if (!zipCode.startsWith('9')) {
+            if (!isLACountyZip(zipCode)) {
               console.warn("⚠️ ZIP code is outside LA County service area");
               this.error = `ZIP code ${zipCode} is outside our Los Angeles County service area. Please use an LA County ZIP code (90xxx-93xxx).`;
               this.loading = false;
@@ -2098,17 +2098,15 @@ export default {
           
           // Check if it looks like an address (contains comma, or street number, or city/state)
           // This catches: "123 Main St", "Main St, LA", "Los Angeles, CA", etc.
-          const isAddress = query.match(/,/) || query.match(/^\d+\s+\w/) || query.match(/\b(ca|california|los angeles|la)\b/i);
-          
-          if (isAddress) {
+          if (looksLikeAddress(query)) {
             console.log("📍 Address detected:", query);
             
             // Only check for ZIP code if it appears AFTER "CA" or at the end
             // This prevents street numbers (15767 Main St) from being mistaken as ZIP codes
-            const addressZipMatch = query.match(/\b(?:CA|California)\s+(\d{5})\b/i) || query.match(/,\s*(\d{5})$/);
-            if (addressZipMatch && !addressZipMatch[1].startsWith('9')) {
+            const addressZip = extractZipFromAddress(query);
+            if (addressZip && !isLACountyZip(addressZip)) {
               console.warn("⚠️ ZIP code in address is outside LA County");
-              this.error = `ZIP code ${addressZipMatch[1]} is outside our Los Angeles County service area. Please use an LA County address (90xxx-93xxx ZIP codes).`;
+              this.error = `ZIP code ${addressZip} is outside our Los Angeles County service area. Please use an LA County address (90xxx-93xxx ZIP codes).`;
               this.loading = false;
               return;
             }
@@ -2117,12 +2115,7 @@ export default {
             const coords = await this.geocodeTextToCoords(query);
             if (coords) {
               // Validate that location is in LA County area
-              // LA County bounds: roughly 33.7-34.8 N, -118.9--117.6 W
-              const isInLACounty = 
-                coords.lat >= 33.7 && coords.lat <= 34.8 &&
-                coords.lng >= -118.9 && coords.lng <= -117.6;
-              
-              if (!isInLACounty) {
+              if (!isInLACounty(coords.lat, coords.lng)) {
                 console.warn("⚠️ Location is outside LA County service area");
                 this.error = "This location is outside our Los Angeles County service area. Please search for an LA County address.";
                 this.loading = false;
@@ -3516,12 +3509,7 @@ export default {
             }
 
             // Validate converted coordinates are within reasonable California bounds
-            const isValidLatitude =
-              lat !== null && !isNaN(lat) && lat >= 32.0 && lat <= 42.0;
-            const isValidLongitude =
-              lng !== null && !isNaN(lng) && lng >= -125.0 && lng <= -114.0;
-
-            if (isValidLatitude && isValidLongitude) {
+            if (isValidCaliforniaCoordinate(lat, lng)) {
               provider.latitude = lat;
               provider.longitude = lng;
               provider._coordinatesInvalid = false;
