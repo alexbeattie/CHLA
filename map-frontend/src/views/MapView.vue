@@ -1253,6 +1253,15 @@ export default {
       this.lastDirectionsProvider = provider;
 
       try {
+        // Calculate straight-line distance (same as shown in sidebar)
+        const straightLineDistance = haversineDistance(
+          originLat,
+          originLng,
+          providerLat,
+          providerLng
+        );
+        console.log("🗺️ [MapView] Straight-line distance:", straightLineDistance.toFixed(1), "mi");
+
         // Fetch directions
         console.log("🗺️ [MapView] Calling getDrivingDirections...");
         const directions = await getDrivingDirections(
@@ -1261,6 +1270,9 @@ export default {
         );
 
         console.log("🗺️ [MapView] Received directions:", directions);
+
+        // Override distance with sidebar distance for consistency
+        directions.distance = straightLineDistance;
 
         this.currentDirections = directions;
         this.directionsRoute = directions.route;
