@@ -126,7 +126,7 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   min-width: 400px;
-  z-index: 2000;
+  z-index: 9999; /* Above everything including map markers */
 }
 
 .legend-item-compact {

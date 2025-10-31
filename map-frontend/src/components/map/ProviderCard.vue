@@ -34,12 +34,13 @@
     <div v-if="distance !== null" class="provider-distance-section">
       <div class="provider-distance">
         <i class="bi bi-signpost-2"></i>
-        <span>{{ formattedDistance }} driving</span>
+        <span>{{ formattedDistance }} away</span>
       </div>
       <button
         class="btn-get-directions"
         @click.stop="handleGetDirections"
         :aria-label="`Get driving directions to ${provider.name}`"
+        title="Get turn-by-turn driving directions"
       >
         <i class="bi bi-pin-map-fill"></i>
         <span>Directions</span>
