@@ -504,7 +504,7 @@ import FundingInfoPanel from "@/components/FundingInfoPanel.vue";
 import OnboardingFlow from "@/components/OnboardingFlow.vue";
 import { authService } from "@/services/auth.js";
 import { getApiRoot } from "@/utils/api.js";
-import { getLACountyBounds, isPointInBounds, calculateProviderBounds } from "@/utils/geo.js";
+import { getLACountyBounds, isPointInBounds, calculateProviderBounds, calculateDistance as haversineDistance } from "@/utils/geo.js";
 import { formatDescription, formatInsurance, formatLanguages, formatHours, formatHoursObject } from "@/utils/formatting.js";
 import { createSimplePopup } from "@/utils/popup.js";
 import { isLACountyZip, isInLACounty, extractZipCode as detectStandaloneZip, extractZipFromAddress, looksLikeAddress, isValidCaliforniaCoordinate } from "@/utils/validation.js";
@@ -842,20 +842,12 @@ export default {
           if (!coords) return null;
 
           // Calculate distance using Haversine formula
-          const R = 3959; // Earth's radius in miles
-          const lat1 = (this.userLocation.latitude * Math.PI) / 180;
-          const lat2 = (coords.lat * Math.PI) / 180;
-          const deltaLat = ((coords.lat - this.userLocation.latitude) * Math.PI) / 180;
-          const deltaLng = ((coords.lng - this.userLocation.longitude) * Math.PI) / 180;
-
-          const a =
-            Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-            Math.cos(lat1) *
-              Math.cos(lat2) *
-              Math.sin(deltaLng / 2) *
-              Math.sin(deltaLng / 2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          const distance = R * c;
+          const distance = haversineDistance(
+            this.userLocation.latitude,
+            this.userLocation.longitude,
+            coords.lat,
+            coords.lng
+          );
 
           return {
             ...center,
