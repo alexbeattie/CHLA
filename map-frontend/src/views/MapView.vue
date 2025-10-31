@@ -504,6 +504,7 @@ import FundingInfoPanel from "@/components/FundingInfoPanel.vue";
 import OnboardingFlow from "@/components/OnboardingFlow.vue";
 import { authService } from "@/services/auth.js";
 import { getApiRoot } from "@/utils/api.js";
+import { getLACountyBounds, isPointInBounds } from "@/utils/geo.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -2540,8 +2541,8 @@ export default {
       } else if (type === "providers") {
         // When switching back to providers, check if we should refocus
         if (this.map && this.userLocation?.latitude && this.userLocation?.longitude) {
-          const laBounds = this.getLACountyBounds();
-          const inLA = this.isPointInBounds(
+          const laBounds = getLACountyBounds();
+          const inLA = isPointInBounds(
             this.userLocation.longitude,
             this.userLocation.latitude,
             laBounds
@@ -2747,20 +2748,6 @@ export default {
       }
     },
 
-    getLACountyBounds() {
-      // Approximate LA County bounds
-      return [
-        [-119.1, 33.3],
-        [-117.5, 34.9],
-      ];
-    },
-
-    isPointInBounds(lng, lat, bounds) {
-      if (!Array.isArray(bounds) || bounds.length !== 2) return false;
-      const [[minLng, minLat], [maxLng, maxLat]] = bounds;
-      return lng >= minLng && lng <= maxLng && lat >= minLat && lat <= maxLat;
-    },
-
     async findRegionalCenterByZip() {
       try {
         this.laZipError = "";
@@ -2817,7 +2804,7 @@ export default {
         const lat = parseFloat(center.latitude);
         if (this.map && !isNaN(lat) && !isNaN(lng)) {
           if (this.focusLACounty) {
-            this.map.fitBounds(this.getLACountyBounds(), { padding: 40, duration: 0 });
+            this.map.fitBounds(getLACountyBounds(), { padding: 40, duration: 0 });
           }
           this.map.flyTo({ center: [lng, lat], zoom: 11, duration: 600 });
           const el = document.createElement("div");
