@@ -514,6 +514,7 @@ import { isLACountyZip, isInLACounty, extractZipCode as detectStandaloneZip, ext
 import { sampleProviders } from "@/utils/sampleData.js";
 import { hslToHex, stringToColor } from "@/utils/colors.js";
 import { geocodeAddress } from "@/utils/map/geocoding";
+import { DIAGNOSIS_OPTIONS, THERAPY_OPTIONS, LA_COUNTY_CENTER, LA_COUNTY_BOUNDS } from "@/constants/filters.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -540,8 +541,6 @@ import { useRegionalCenterData } from "@/composables/useRegionalCenterData";
 
 // Constants and utilities
 import {
-  LA_COUNTY_CENTER,
-  LA_COUNTY_BOUNDS,
   getRegionalCentersList,
   getRegionalCenterColor,
   getRegionalCenterCoordinates,
@@ -598,8 +597,6 @@ export default {
       geolocation: null,
       regionalCenterData: null,
 
-      // Constants
-      LA_COUNTY_CENTER,
 
       // Mapbox token for MapCanvas component
       mapboxAccessToken:
@@ -672,21 +669,8 @@ export default {
         diagnoses: [],
         therapies: [],
       },
-      diagnosisOptions: [
-        "Global Development Delay",
-        "Autism Spectrum Disorder",
-        "Intellectual Disability",
-        "Speech and Language Disorder",
-        "ADHD",
-      ],
-      therapyOptions: [
-        "ABA therapy",
-        "Speech therapy",
-        "Occupational therapy",
-        "Physical therapy",
-        "Feeding therapy",
-        "Parent child interaction therapy/parent training behavior management",
-      ],
+      diagnosisOptions: DIAGNOSIS_OPTIONS,
+      therapyOptions: THERAPY_OPTIONS,
 
       // Search debounce
       searchDebounce: null,
