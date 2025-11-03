@@ -41,6 +41,10 @@
         </div>
 
         <div class="navbar-actions">
+          <button class="btn-start-over" @click="handleStartOver" title="Start Over">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span class="d-none d-md-inline">Start Over</span>
+          </button>
           <button class="btn-icon d-md-none" @click="toggleSearch">
             <i class="bi bi-search"></i>
           </button>
@@ -672,6 +676,10 @@ export default {
       },
       diagnosisOptions: DIAGNOSIS_OPTIONS,
       therapyOptions: THERAPY_OPTIONS,
+      
+      // LA County constants (exposed for template access)
+      LA_COUNTY_CENTER: LA_COUNTY_CENTER,
+      LA_COUNTY_BOUNDS: LA_COUNTY_BOUNDS,
 
       // Search debounce
       searchDebounce: null,
@@ -986,6 +994,56 @@ export default {
       this.showRCLegend = !this.showRCLegend;
     },
 
+    /**
+     * Start Over - Reset and restart onboarding
+     */
+    handleStartOver() {
+      console.log("🔄 Starting over - resetting application state");
+
+      // Clear user data
+      this.userData = {
+        age: null,
+        diagnosis: null,
+        therapies: [],
+        hasInsurance: null,
+        hasRegionalCenter: null,
+        address: null
+      };
+
+      // Clear location data
+      this.userLocation = {
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        detected: false,
+        error: null
+      };
+
+      // Clear search and filters
+      if (this.providerStore) {
+        this.providerStore.clearSearch();
+      }
+      if (this.filterStore) {
+        this.filterStore.resetFilters();
+      }
+
+      // Clear map markers
+      if (this.mapStore) {
+        this.mapStore.clearUserLocation();
+      }
+
+      // Clear directions
+      this.closeDirections();
+
+      // Reset display to regional centers
+      this.displayType = 'regionalCenters';
+
+      // Show onboarding
+      this.showOnboarding = true;
+
+      console.log("✅ Application state reset - showing onboarding");
+    },
+
     // ============================================
     // WEEK 5: NEW COMPONENT ORCHESTRATION METHODS
     // ============================================
@@ -1253,16 +1311,7 @@ export default {
       this.lastDirectionsProvider = provider;
 
       try {
-        // Calculate straight-line distance (same as shown in sidebar)
-        const straightLineDistance = haversineDistance(
-          originLat,
-          originLng,
-          providerLat,
-          providerLng
-        );
-        console.log("🗺️ [MapView] Straight-line distance:", straightLineDistance.toFixed(1), "mi");
-
-        // Fetch directions
+        // Fetch directions with actual driving distance
         console.log("🗺️ [MapView] Calling getDrivingDirections...");
         const directions = await getDrivingDirections(
           [originLng, originLat],
@@ -1270,9 +1319,7 @@ export default {
         );
 
         console.log("🗺️ [MapView] Received directions:", directions);
-
-        // Override distance with sidebar distance for consistency
-        directions.distance = straightLineDistance;
+        console.log("🗺️ [MapView] Driving distance:", directions.distance.toFixed(1), "mi");
 
         this.currentDirections = directions;
         this.directionsRoute = directions.route;
@@ -3440,8 +3487,63 @@ export default {
         this.$nextTick(() => {
           // MapCanvas handles marker updates automatically
           console.log(`🗺️ Markers updated for ${this.providers.length} providers`);
+          
+          // Fetch driving distances asynchronously after providers are loaded
+          this.updateProviderDrivingDistances();
         });
       }
+    },
+
+    /**
+     * Update driving distances for all providers
+     * This is done asynchronously after providers are loaded to avoid blocking the UI
+     */
+    async updateProviderDrivingDistances() {
+      // Check if we have a user location
+      if (!this.userLocation || !this.userLocation.latitude || !this.userLocation.longitude) {
+        console.log("⚠️ No user location, skipping driving distance updates");
+        return;
+      }
+
+      console.log(`🚗 Fetching driving distances for ${this.providers.length} providers...`);
+
+      // Fetch distances for all providers in parallel (limited to first 50 for performance)
+      const providersToUpdate = this.providers
+        .filter(p => p.latitude && p.longitude && !isNaN(p.latitude) && !isNaN(p.longitude))
+        .slice(0, 50); // Limit to first 50 to avoid rate limits
+
+      console.log(`🚗 Updating ${providersToUpdate.length} providers with driving distances`);
+
+      // Batch update with a small delay between requests to avoid rate limiting
+      for (let i = 0; i < providersToUpdate.length; i++) {
+        const provider = providersToUpdate[i];
+        try {
+          const distance = await getDrivingDistance(
+            [this.userLocation.longitude, this.userLocation.latitude],
+            [provider.longitude, provider.latitude]
+          );
+          
+          // Update the provider in the store to trigger reactivity
+          const providerIndex = this.providers.findIndex(p => p.id === provider.id);
+          if (providerIndex !== -1) {
+            // In Vue 3, direct assignment works with Proxy reactivity
+            // Replace the entire provider object to ensure reactivity
+            this.providerStore.providers[providerIndex] = {
+              ...this.providers[providerIndex],
+              drivingDistance: distance
+            };
+            console.log(`✅ Updated ${provider.name}: ${distance.toFixed(1)} mi driving`);
+          }
+          
+          // Small delay to avoid rate limiting (50ms between requests)
+          await new Promise(resolve => setTimeout(resolve, 50));
+        } catch (error) {
+          console.warn(`⚠️ Failed to fetch driving distance for ${provider.name}:`, error.message);
+          // Keep the Haversine distance as fallback (already calculated in ProviderList)
+        }
+      }
+
+      console.log(`✅ Finished updating driving distances for ${providersToUpdate.length} providers`);
     },
 
     // Fetch regional centers

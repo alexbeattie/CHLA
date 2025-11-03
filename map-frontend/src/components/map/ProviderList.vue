@@ -569,7 +569,7 @@ export default {
 }
 
 .provider-items {
-  padding: 16px;
+  padding: 8px;
 }
 
 /* Scroll to Top Button */

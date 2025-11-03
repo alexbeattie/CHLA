@@ -171,6 +171,31 @@
   gap: 8px;
 }
 
+.btn-start-over {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-start-over:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  color: #1f2937;
+}
+
+.btn-start-over i {
+  font-size: 16px;
+}
+
 .btn-icon {
   background: none;
   border: none;
@@ -552,9 +577,9 @@
   padding: 0;
 }
 
-/* Override ProviderList padding to match profile cards */
+/* Override ProviderList padding - reduced for edge-to-edge feel */
 .results-content :deep(.provider-items) {
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 .chla-logo-container {
