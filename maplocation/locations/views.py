@@ -865,13 +865,21 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
 
             # Apply diagnosis filter using JSON field operations
             if diagnosis:
-                # Try to filter by diagnoses_treated, but if no results, fall back to no diagnosis filter
-                diagnosis_filtered = providers.filter(
-                    diagnoses_treated__contains=[diagnosis]
-                )
-                if diagnosis_filtered.exists():
-                    providers = diagnosis_filtered
-                # If no providers match diagnosis filter, keep all providers (lenient approach)
+                # Count how many providers have diagnosis data
+                providers_with_diagnosis_data = providers.exclude(
+                    diagnoses_treated__isnull=True
+                ).exclude(diagnoses_treated=[]).count()
+                total_providers = providers.count()
+
+                # Only apply diagnosis filter if at least 10% of providers have diagnosis data
+                # This prevents filtering to 2-3 providers when the field is rarely populated
+                if total_providers > 0 and (providers_with_diagnosis_data / total_providers) >= 0.1:
+                    diagnosis_filtered = providers.filter(
+                        diagnoses_treated__contains=[diagnosis]
+                    )
+                    if diagnosis_filtered.exists():
+                        providers = diagnosis_filtered
+                # Otherwise skip diagnosis filter (field not widely populated yet)
 
             # Apply therapy filters (multiple allowed) using JSON field operations
             therapy_values = request.query_params.getlist("therapy")
@@ -1094,7 +1102,14 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
 
             diagnosis = request.query_params.get("diagnosis")
             if diagnosis:
-                providers = providers.filter(diagnoses_treated__contains=[diagnosis])
+                # Only filter by diagnosis if field is widely populated (10%+ of providers)
+                providers_with_diagnosis_data = providers.exclude(
+                    diagnoses_treated__isnull=True
+                ).exclude(diagnoses_treated=[]).count()
+                total_providers = providers.count()
+
+                if total_providers > 0 and (providers_with_diagnosis_data / total_providers) >= 0.1:
+                    providers = providers.filter(diagnoses_treated__contains=[diagnosis])
 
             therapy = request.query_params.get("therapy")
             if therapy:
