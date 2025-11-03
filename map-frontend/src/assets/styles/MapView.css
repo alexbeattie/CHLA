@@ -1034,11 +1034,8 @@
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 .rc-header {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  text-align: center;
 }
 .rc-badge {
   width: 40px;
