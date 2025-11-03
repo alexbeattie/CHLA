@@ -21,9 +21,6 @@
         <!-- Name -->
         <div class="rc-header">
           <h3 class="rc-name">{{ regionalCenter.regional_center || regionalCenter.name }}</h3>
-          <div v-if="regionalCenter.office_type" class="office-type-badge">
-            {{ regionalCenter.office_type }}
-          </div>
         </div>
 
         <!-- Distance -->
