@@ -170,6 +170,40 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
+/* Highlight Your Regional Center Card */
+.regional-center-card {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 2px solid #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.regional-center-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.regional-center-card:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+  transform: translateY(-2px);
+}
+
+.regional-center-card .header-left i {
+  color: #3b82f6;
+  font-size: 1.5rem;
+}
+
+.regional-center-card .card-header h3 {
+  color: #1e40af;
+  font-weight: 700;
+}
+
 /* Card Header */
 .card-header {
   display: flex;

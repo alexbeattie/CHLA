@@ -582,6 +582,76 @@
   padding: 0.5rem;
 }
 
+/* Regional Centers section in Regional Centers tab */
+.regional-centers-section {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  margin-bottom: 1rem;
+}
+
+.regional-centers-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 11;
+  background: #3b82f6; /* Blue for Regional Centers */
+  padding: 0.75rem 1rem;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.regional-centers-sticky-header .info-card-header {
+  display: flex;
+  align-items: center;
+  color: white;
+  margin: 0;
+}
+
+.regional-centers-sticky-header .info-card-header i {
+  color: white !important;
+}
+
+.regional-centers-list-content {
+  background: white;
+  padding: 1rem;
+}
+
+/* Providers section in Regional Centers tab */
+.providers-section-regional-centers {
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.providers-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #10b981;
+  padding: 0.75rem 1rem;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.providers-sticky-header .info-card-header {
+  display: flex;
+  align-items: center;
+  color: white;
+  margin: 0;
+}
+
+.providers-sticky-header .info-card-header i {
+  color: white !important;
+}
+
+.providers-sticky-header .badge {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+.providers-list-content {
+  background: #f9fafb;
+}
+
 .chla-logo-container {
   display: flex;
   justify-content: center;

@@ -157,14 +157,15 @@
         </div>
 
         <!-- Simple Search (Collapsible) -->
-        <div class="collapsible-section mb-3">
+        <!-- Search Section (only show for providers) -->
+        <div v-if="displayType === 'providers'" class="collapsible-section mb-3">
           <div
             class="collapsible-header"
             @click="toggleSection('search')"
           >
             <div class="d-flex align-items-center">
               <i class="bi bi-search text-secondary me-2"></i>
-              <strong>Search {{ displayType === "providers" ? "Services" : "Regional Centers" }}</strong>
+              <strong>Search Services</strong>
             </div>
             <i
               class="bi toggle-icon"
@@ -178,11 +179,7 @@
                   type="text"
                   class="form-control"
                   v-model.trim="searchText"
-                  :placeholder="
-                    displayType === 'providers'
-                      ? 'ZIP, address, provider, service...'
-                      : 'Search locations...'
-                  "
+                  placeholder="ZIP, address, provider, service..."
                   @keyup.enter="updateFilteredLocations"
                   @input="debounceSearch"
                   @focus="console.log('Search input focused')"
@@ -242,32 +239,6 @@
           </div>
         </div>
 
-        <!-- Map View Options - Contextual based on display type -->
-        <div class="info-card-section mb-3" v-if="displayType === 'regionalCenters'">
-          <div class="form-control info-card border-dark bg-dark bg-opacity-5">
-            <div class="info-card-header mb-2">
-              <i class="bi bi-layers text-dark me-2"></i>
-              <strong>Map Options</strong>
-            </div>
-            <div class="info-card-content">
-              <div class="btn-group-vertical w-100">
-                <button
-                  class="btn sidebar-action-btn"
-                  @click="toggleLARegionalCenters"
-                  :class="showLARegionalCenters ? 'btn-chla-primary' : 'btn-chla-outline'"
-                >
-                  <i
-                    class="bi"
-                    :class="showLARegionalCenters ? 'bi-building-fill' : 'bi-building'"
-                  ></i>
-                  <span class="ms-2">
-                    {{ showLARegionalCenters ? "Hide" : "Show" }} LA Centers
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- Filter Section (Collapsible) -->
         <div class="collapsible-section mb-3">
@@ -309,7 +280,7 @@
                   min="5"
                   max="50"
                   step="5"
-                  @change="onRadiusChange"
+                  @input="onRadiusChange"
                 />
                 <div class="d-flex justify-content-between small text-muted">
                   <span>5 miles</span>
@@ -346,7 +317,9 @@
           <!-- Sticky Header -->
           <div class="results-sticky-header">
             <div class="info-card-header">
-                <i class="bi bi-list-ul text-success me-2"></i>
+                <i
+                  :class="displayType === 'regionalCenters' ? 'bi bi-building-fill text-info me-2' : 'bi bi-list-ul text-success me-2'"
+                ></i>
                 <strong>
                   {{
                     displayType === "locations"
@@ -356,12 +329,14 @@
                       : "Providers"
                   }}
                 </strong>
-                <span class="badge bg-success ms-2">
+                <span
+                  :class="displayType === 'regionalCenters' ? 'badge bg-info ms-2' : 'badge bg-success ms-2'"
+                >
                   {{
                     displayType === "locations"
                       ? filteredLocations.length
                       : displayType === "regionalCenters"
-                      ? filteredRegionalCenters.length
+                      ? (regionalCenterData?.regionalCenters?.length || 0)
                       : filteredProviders.length
                   }}
                 </span>
@@ -370,72 +345,38 @@
 
           <!-- Scrollable Results Content -->
           <div class="results-content">
-            <!-- Regional Centers Toggle List -->
+            <!-- Nearest Regional Centers -->
           <div
-            v-if="displayType === 'regionalCenters' && showLARegionalCenters"
-            class="info-card-section mb-3"
+            v-if="displayType === 'regionalCenters' && nearestRegionalCenters.length > 0"
+            class="regional-centers-section"
           >
-            <div class="form-control info-card border-info bg-info bg-opacity-5">
-              <div class="info-card-header mb-2">
-                <i class="bi bi-building-fill text-info me-2"></i>
-                <strong>LA Regional Centers</strong>
+            <!-- Sticky Regional Centers Header -->
+            <div class="regional-centers-sticky-header">
+              <div class="info-card-header">
+                <i class="bi bi-geo-alt-fill text-white me-2"></i>
+                <strong>Nearest Regional Centers</strong>
               </div>
-              <div class="info-card-content">
-                <div class="regional-center-toggles">
-                  <div
-                    v-for="center in laRegionalCentersList"
-                    :key="center.name"
-                    class="form-check mb-2"
-                  >
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      :id="`rc-toggle-${center.name.replace(/\s+/g, '-')}`"
-                      :checked="selectedRegionalCenters[center.name] !== false"
-                      @change="toggleCenterSelection(center.name)"
-                    />
-                    <label
-                      class="form-check-label d-flex align-items-center"
-                      :for="`rc-toggle-${center.name.replace(/\s+/g, '-')}`"
-                    >
+            </div>
+
+            <!-- Regional Centers List -->
+            <div class="regional-centers-list-content">
+              <div class="nearest-centers-list">
+                <div
+                  v-for="(center, index) in nearestRegionalCenters"
+                  :key="`nearest-${center.name}-${index}`"
+                  class="nearest-center-item clickable"
+                  @click="openRegionalCenterDetails(center)"
+                >
+                  <div class="d-flex align-items-center justify-content-between w-100">
+                    <div class="d-flex align-items-center">
                       <span
                         class="color-indicator me-2"
                         :style="`background-color: ${center.color}; width: 12px; height: 12px; border-radius: 50%; display: inline-block;`"
                       ></span>
-                      <span class="flex-grow-1">{{ center.name }}</span>
-                    </label>
-                  </div>
-                </div>
-
-                <!-- Nearest Regional Centers -->
-                <div
-                  v-if="nearestRegionalCenters.length > 0"
-                  class="mt-3 pt-3"
-                  style="border-top: 1px solid rgba(0, 0, 0, 0.08)"
-                >
-                  <div class="info-card-subtitle mb-2">
-                    <i class="bi bi-geo-alt-fill text-primary me-1"></i>
-                    <span class="text-muted small">Nearest Regional Centers</span>
-                  </div>
-                  <div class="nearest-centers-list">
-                    <div
-                      v-for="(center, index) in nearestRegionalCenters"
-                      :key="`nearest-${center.name}-${index}`"
-                      class="nearest-center-item clickable"
-                      @click="openRegionalCenterDetails(center)"
-                    >
-                      <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                          <span
-                            class="color-indicator me-2"
-                            :style="`background-color: ${center.color}; width: 8px; height: 8px; border-radius: 50%; display: inline-block;`"
-                          ></span>
-                          <span class="small">{{ center.name }}</span>
-                        </div>
-                        <span class="badge bg-secondary small"
-                          >{{ center.distance }} mi</span
-                        >
-                      </div>
+                      <span>{{ center.name }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge bg-secondary">{{ center.distance }} mi</span>
                       <i class="bi bi-chevron-right text-muted"></i>
                     </div>
                   </div>
@@ -446,7 +387,7 @@
 
           <!-- Provider List -->
           <provider-list
-            v-if="providerStore"
+            v-if="providerStore && displayType === 'providers'"
             :providers="paginatedProviders"
             :selected-id="providerStore.selectedProviderId"
             :loading="providerStore.loading"
@@ -458,6 +399,37 @@
             @get-directions="handleGetDirections"
             @load-more="loadMoreProviders"
           />
+
+          <!-- Providers section in Regional Centers tab -->
+          <div
+            v-if="displayType === 'regionalCenters' && providerStore && providerStore.providers.length > 0"
+            class="providers-section-regional-centers"
+          >
+            <!-- Sticky Providers Header -->
+            <div class="providers-sticky-header">
+              <div class="info-card-header">
+                <i class="bi bi-hospital-fill text-success me-2"></i>
+                <strong>Providers</strong>
+                <span class="badge bg-success ms-2">{{ providerStore.providers.length }}</span>
+              </div>
+            </div>
+
+            <!-- Providers List -->
+            <div class="providers-list-content">
+              <provider-list
+                :providers="paginatedProviders"
+                :selected-id="providerStore.selectedProviderId"
+                :loading="providerStore.loading"
+                :show-distance="true"
+                :auto-scroll-to-selected="true"
+                :show-load-more="true"
+                :has-more="hasMoreProviders"
+                @provider-select="handleProviderSelect"
+                @get-directions="handleGetDirections"
+                @load-more="loadMoreProviders"
+              />
+            </div>
+          </div>
           </div>
           <!-- End results-content -->
         </div>
@@ -468,7 +440,7 @@
     <!-- End Sidebar Container -->
 
     <!-- Map Container -->
-    <div class="map-container-wrapper" :class="{ 'with-search': showMobileSearch }">
+    <div class="map-container-wrapper" :class="{ 'with-search': showMobileSearch }" @click="handleMapClick">
       <!-- Map Canvas -->
       <map-canvas
         :mapbox-token="mapboxAccessToken"
@@ -822,7 +794,8 @@ export default {
       if (this.displayType === "providers") {
         return this.filteredProviders.length;
       } else if (this.displayType === "regionalCenters") {
-        return this.filteredRegionalCenters.length;
+        // When viewing regional centers, still show provider count since radius filters providers
+        return this.providerStore?.providers?.length || 0;
       } else {
         return this.filteredLocations.length;
       }
@@ -1450,6 +1423,16 @@ export default {
     },
 
     /**
+     * Handle clicks on the map area to close panels
+     */
+    handleMapClick() {
+      // Close regional center details if open
+      if (this.showRegionalCenterDetails) {
+        this.closeRegionalCenterDetails();
+      }
+    },
+
+    /**
      * Handle regional center click/selection
      */
     handleRegionalCenterClick(regionalCenter) {
@@ -1564,7 +1547,8 @@ export default {
           .addTo(this.mapInstance);
 
         // Click handler
-        el.addEventListener('click', () => {
+        el.addEventListener('click', (event) => {
+          event.stopPropagation(); // Prevent map click from closing the panel
           console.log(`[MapView] Regional center marker clicked: ${center.name}`);
           this.openRegionalCenterDetails(center);
         });

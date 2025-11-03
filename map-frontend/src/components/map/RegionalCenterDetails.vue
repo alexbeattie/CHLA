@@ -1,6 +1,10 @@
 <template>
   <transition name="slide">
-    <div v-if="isVisible && regionalCenter" class="regional-center-details-panel">
+    <div
+      v-if="isVisible && regionalCenter"
+      class="regional-center-details-panel"
+      @click.stop
+    >
       <!-- Header -->
       <div class="panel-header">
         <div class="header-title">
@@ -161,6 +165,8 @@ const handleGetDirections = () => {
       lng: props.regionalCenter.longitude
     }
   });
+  // Close the panel after getting directions
+  emit('close');
 };
 </script>
 
@@ -249,6 +255,9 @@ const handleGetDirections = () => {
 /* Regional Center Header */
 .rc-header {
   margin-bottom: 16px;
+  text-align: center;
+  display: block; /* Override any grid layout from parent */
+  grid-template-columns: unset; /* Remove grid columns if inherited */
 }
 
 .rc-name {
@@ -256,6 +265,7 @@ const handleGetDirections = () => {
   font-weight: 700;
   color: #1f2937;
   margin: 0 0 8px 0;
+  text-align: center;
 }
 
 .office-type-badge {
@@ -266,6 +276,7 @@ const handleGetDirections = () => {
   border-radius: 12px;
   font-size: 13px;
   font-weight: 500;
+  margin-top: 8px;
 }
 
 /* Distance */
