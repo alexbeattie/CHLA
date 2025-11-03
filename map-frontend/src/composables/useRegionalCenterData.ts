@@ -24,6 +24,15 @@ export interface RegionalCenter {
   website?: string;
   service_areas?: string[];
   zip_codes?: string[];
+  office_type?: string;
+  county_served?: string;
+  suite?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  address_street?: string;
+  latitude?: number;
+  longitude?: number;
   lat?: number;
   lng?: number;
   coordinates?: {
@@ -86,10 +95,19 @@ export function useRegionalCenterData() {
           website: feature.properties.website,
           service_areas: feature.properties.service_areas,
           zip_codes: feature.properties.zip_codes,
-          coordinates: feature.geometry?.coordinates
+          office_type: feature.properties.office_type,
+          county_served: feature.properties.county_served,
+          suite: feature.properties.suite,
+          city: feature.properties.city,
+          state: feature.properties.state,
+          zip_code: feature.properties.zip_code,
+          address_street: feature.properties.address_street,
+          latitude: feature.properties.latitude,
+          longitude: feature.properties.longitude,
+          coordinates: feature.properties.latitude && feature.properties.longitude
             ? {
-                lng: feature.geometry.coordinates[0],
-                lat: feature.geometry.coordinates[1],
+                lat: feature.properties.latitude,
+                lng: feature.properties.longitude,
               }
             : getRegionalCenterCoordinates(feature.properties.name),
         }));

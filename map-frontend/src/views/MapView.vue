@@ -421,7 +421,8 @@
                     <div
                       v-for="(center, index) in nearestRegionalCenters"
                       :key="`nearest-${center.name}-${index}`"
-                      class="nearest-center-item"
+                      class="nearest-center-item clickable"
+                      @click="openRegionalCenterDetails(center)"
                     >
                       <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center">
@@ -435,6 +436,7 @@
                           >{{ center.distance }} mi</span
                         >
                       </div>
+                      <i class="bi bi-chevron-right text-muted"></i>
                     </div>
                   </div>
                 </div>
@@ -711,6 +713,7 @@ export default {
       // Locations
       locations: [],
       regionalCenters: [], // Array to store regional centers (TODO: move to store)
+      regionalCenterMarkers: [], // Array to store regional center map markers
 
       // Categories and filters
       categories: [],
@@ -1264,6 +1267,11 @@ export default {
       // Users should ALWAYS see LA County properly centered and zoomed
       // They can use "Focus on LA County" button if needed
 
+      // Add regional center markers
+      if (this.regionalCenterData?.regionalCenters?.length > 0) {
+        this.addRegionalCenterMarkers();
+      }
+
       // Show LA Regional Centers polygons by default
       if (!this.showLARegionalCenters) {
         this.toggleLARegionalCenters();
@@ -1472,6 +1480,99 @@ export default {
           duration: 1500
         });
       }
+    },
+
+    /**
+     * Open regional center details panel from sidebar click
+     * Fetches full regional center data and displays it
+     */
+    async openRegionalCenterDetails(centerBasicInfo) {
+      console.log('[MapView] Opening regional center details for:', centerBasicInfo.name);
+
+      // Fetch full regional center data using the composable
+      const fullRegionalCenter = this.regionalCenterData.findByName(centerBasicInfo.name);
+
+      if (!fullRegionalCenter) {
+        console.error('[MapView] Could not find full data for regional center:', centerBasicInfo.name);
+        return;
+      }
+
+      console.log('[MapView] Full regional center data:', fullRegionalCenter);
+
+      // Convert to format expected by handleRegionalCenterClick
+      const regionalCenter = {
+        id: fullRegionalCenter.id,
+        name: fullRegionalCenter.name,
+        regional_center: fullRegionalCenter.regional_center || fullRegionalCenter.name,
+        office_type: fullRegionalCenter.office_type,
+        address: fullRegionalCenter.address,
+        telephone: fullRegionalCenter.phone,
+        website: fullRegionalCenter.website,
+        county_served: fullRegionalCenter.county_served,
+        latitude: fullRegionalCenter.coordinates?.lat || fullRegionalCenter.lat,
+        longitude: fullRegionalCenter.coordinates?.lng || fullRegionalCenter.lng,
+      };
+
+      // Call the handler with full data
+      this.handleRegionalCenterClick(regionalCenter);
+    },
+
+    /**
+     * Add regional center markers to the map
+     */
+    addRegionalCenterMarkers() {
+      if (!this.mapInstance) {
+        console.log('[MapView] Map not ready, skipping regional center markers');
+        return;
+      }
+
+      // Remove existing regional center markers
+      if (this.regionalCenterMarkers) {
+        this.regionalCenterMarkers.forEach(marker => marker.remove());
+      }
+      this.regionalCenterMarkers = [];
+
+      // Get regional centers from composable
+      const regionalCenters = this.regionalCenterData?.regionalCenters || [];
+
+      console.log(`[MapView] Adding ${regionalCenters.length} regional center markers`);
+
+      regionalCenters.forEach(center => {
+        const lat = center.latitude || center.coordinates?.lat;
+        const lng = center.longitude || center.coordinates?.lng;
+
+        if (!lat || !lng) {
+          console.warn(`[MapView] Skipping ${center.name} - no coordinates`);
+          return;
+        }
+
+        // Create marker element
+        const el = document.createElement('div');
+        el.className = 'regional-center-marker';
+        el.style.width = '24px';
+        el.style.height = '24px';
+        el.style.borderRadius = '50%';
+        el.style.backgroundColor = '#10b981'; // Green for regional centers
+        el.style.border = '3px solid white';
+        el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.4)';
+        el.style.cursor = 'pointer';
+        el.style.zIndex = '100';
+
+        // Create marker
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([lng, lat])
+          .addTo(this.mapInstance);
+
+        // Click handler
+        el.addEventListener('click', () => {
+          console.log(`[MapView] Regional center marker clicked: ${center.name}`);
+          this.openRegionalCenterDetails(center);
+        });
+
+        this.regionalCenterMarkers.push(marker);
+      });
+
+      console.log(`[MapView] Added ${this.regionalCenterMarkers.length} regional center markers`);
     },
 
     /**

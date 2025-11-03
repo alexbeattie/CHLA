@@ -35,9 +35,19 @@
             <h4>Address</h4>
           </div>
           <div class="section-content">
-            <p class="address-text">
-              {{ fullAddress }}
-            </p>
+            <div class="address-lines">
+              <div v-if="regionalCenter.address" class="address-line">
+                {{ regionalCenter.address }}
+              </div>
+              <div v-if="regionalCenter.suite" class="address-line">
+                Suite {{ regionalCenter.suite }}
+              </div>
+              <div class="address-line">
+                <span v-if="regionalCenter.city">{{ regionalCenter.city }}, </span>
+                <span v-if="regionalCenter.state">{{ regionalCenter.state }} </span>
+                <span v-if="regionalCenter.zip_code">{{ regionalCenter.zip_code }}</span>
+              </div>
+            </div>
             <button
               v-if="hasCoordinates"
               class="btn-directions"
@@ -119,23 +129,6 @@ const hasCoordinates = computed(() => {
   return props.regionalCenter?.latitude && props.regionalCenter?.longitude;
 });
 
-/**
- * Full formatted address
- */
-const fullAddress = computed(() => {
-  if (!props.regionalCenter) return '';
-
-  const rc = props.regionalCenter;
-  const parts = [];
-
-  if (rc.address) parts.push(rc.address);
-  if (rc.suite) parts.push(`Suite ${rc.suite}`);
-  if (rc.city) parts.push(rc.city);
-  if (rc.state) parts.push(rc.state);
-  if (rc.zip_code) parts.push(rc.zip_code);
-
-  return parts.join(', ');
-});
 
 /**
  * Format distance
@@ -195,7 +188,7 @@ const handleGetDirections = () => {
   width: 400px;
   background: white;
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
-  z-index: 900; /* Below navbar, above map */
+  z-index: 1000; /* Above map markers */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -327,6 +320,17 @@ const handleGetDirections = () => {
 }
 
 /* Address */
+.address-lines {
+  margin-bottom: 16px;
+}
+
+.address-line {
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
 .address-text {
   color: #4b5563;
   line-height: 1.6;

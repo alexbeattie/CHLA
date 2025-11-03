@@ -183,7 +183,7 @@ const formatStepDistance = (meters) => {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  z-index: 1000;
+  z-index: 10000; /* Above everything including map markers and legend */
   overflow: hidden;
 }
 

@@ -6,15 +6,15 @@ Usage:
     python manage.py import_regional_center_providers --file data/Pasadena_Provider_List.xlsx --regional-center "Pasadena"
     python manage.py import_regional_center_providers --file data/San_Gabriel_Pomona_Provider_List.xlsx --regional-center "San Gabriel/Pomona"
 """
+# pylint: disable=no-member
 
-import openpyxl
 import os
-from decimal import Decimal
 from django.core.management.base import BaseCommand
-from django.conf import settings
 from locations.models import ProviderV2, RegionalCenter
-import requests
-import time
+
+from .utils.excel_parser import ExcelParser, ColumnMapper
+from .utils.geocoding import GeocodingService
+from .utils.provider_parser import ProviderDataParser
 
 
 class Command(BaseCommand):
@@ -61,143 +61,159 @@ class Command(BaseCommand):
         regional_center_name = options.get("regional_center")
         area_name = options.get("area")
 
-        # Check if file exists
+        # Validate file exists
         if not os.path.exists(file_path):
             self.stdout.write(self.style.ERROR(f"File not found: {file_path}"))
             return
 
-        # Find or get the regional center (optional now)
-        regional_center = None
-        if regional_center_name:
-            try:
-                regional_center = RegionalCenter.objects.get(
-                    regional_center__icontains=regional_center_name
-                )
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"Found regional center: {regional_center.regional_center}"
-                    )
-                )
-            except RegionalCenter.DoesNotExist:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"Regional center not found: {regional_center_name}"
-                    )
-                )
-                self.stdout.write("Available regional centers:")
-                for rc in RegionalCenter.objects.all().distinct("regional_center"):
-                    self.stdout.write(f"  - {rc.regional_center}")
-                return
-            except RegionalCenter.MultipleObjectsReturned:
-                regional_center = RegionalCenter.objects.filter(
-                    regional_center__icontains=regional_center_name
-                ).first()
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Multiple matches found, using: {regional_center.regional_center}"
-                    )
-                )
+        # Get regional center if specified
+        regional_center = self._get_regional_center(regional_center_name)
+        if regional_center_name and not regional_center:
+            return  # Error already printed
 
-        # Use area name if provided
-        if area_name and not regional_center_name:
-            self.stdout.write(
-                self.style.SUCCESS(f"Importing providers for area: {area_name}")
-            )
-        elif not regional_center and not area_name:
-            self.stdout.write(
-                self.style.ERROR("Please provide either --regional-center or --area")
-            )
+        # Validate area/regional center
+        if not self._validate_location(area_name, regional_center_name, regional_center):
             return
 
+        # Handle clear existing flag
         if options["clear_existing"]:
-            # Note: We don't have a direct FK to regional center, so we'd need to identify by area
             self.stdout.write(
                 self.style.WARNING(
                     "Clear existing is not implemented yet for providers"
                 )
             )
 
-        # Import the providers
-        self.import_providers(
+        # Import providers
+        self._import_providers(
             file_path,
             regional_center,
             area_name or (regional_center.city if regional_center else ""),
             options,
         )
 
-    def import_providers(self, file_path, regional_center, area_name, options):
-        """Import providers from Excel file"""
+    def _get_regional_center(self, regional_center_name):
+        """Find and return regional center by name."""
+        if not regional_center_name:
+            return None
+
+        try:
+            regional_center = RegionalCenter.objects.get(
+                regional_center__icontains=regional_center_name
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Found regional center: {regional_center.regional_center}"
+                )
+            )
+            return regional_center
+
+        except RegionalCenter.DoesNotExist:
+            self.stdout.write(
+                self.style.ERROR(
+                    f"Regional center not found: {regional_center_name}"
+                )
+            )
+            self.stdout.write("Available regional centers:")
+            for rc in RegionalCenter.objects.all().distinct("regional_center"):
+                self.stdout.write(f"  - {rc.regional_center}")
+            return None
+
+        except RegionalCenter.MultipleObjectsReturned:
+            regional_center = RegionalCenter.objects.filter(
+                regional_center__icontains=regional_center_name
+            ).first()
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Multiple matches found, using: {regional_center.regional_center}"
+                )
+            )
+            return regional_center
+
+    def _validate_location(self, area_name, regional_center_name, regional_center):
+        """Validate that either area or regional center is provided."""
+        if area_name and not regional_center_name:
+            self.stdout.write(
+                self.style.SUCCESS(f"Importing providers for area: {area_name}")
+            )
+            return True
+        elif not regional_center and not area_name:
+            self.stdout.write(
+                self.style.ERROR("Please provide either --regional-center or --area")
+            )
+            return False
+        return True
+
+    def _import_providers(self, file_path, regional_center, area_name, options):
+        """Import providers from Excel file."""
         self.stdout.write(f"\nImporting providers from {file_path}...")
         if regional_center:
             self.stdout.write(f"Regional Center: {regional_center.regional_center}")
         self.stdout.write(f"Area: {area_name}\n")
 
-        # Open workbook
+        # Initialize services
+        excel_parser = ExcelParser(file_path, options["sheet"])
+        geocoding_service = GeocodingService(self.stdout) if options["geocode"] else None
+
+        # Open Excel file
         try:
-            workbook = openpyxl.load_workbook(file_path)
-        except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Error opening Excel file: {e}"))
+            excel_parser.open()
+        except Exception as e:  # pylint: disable=broad-except
+            self.stdout.write(self.style.ERROR(str(e)))
             return
 
-        # Get the sheet
-        if options["sheet"]:
-            try:
-                sheet = workbook[options["sheet"]]
-            except KeyError:
-                self.stdout.write(
-                    self.style.ERROR(f"Sheet not found: {options['sheet']}")
-                )
-                self.stdout.write(f"Available sheets: {', '.join(workbook.sheetnames)}")
-                return
-        else:
-            sheet = workbook.active
-            self.stdout.write(f"Using sheet: {sheet.title}\n")
+        self.stdout.write(f"Using sheet: {excel_parser.get_sheet_name()}\n")
 
-        # Read the header row to understand the columns
-        headers = []
-        for cell in sheet[1]:
-            headers.append(cell.value.strip() if cell.value else "")
-
+        # Get headers and column mapping
+        headers = excel_parser.get_headers()
         self.stdout.write(f"Columns found: {', '.join(headers)}\n")
 
-        # Map common column names (case-insensitive)
-        column_map = self.map_columns(headers)
+        column_map = ColumnMapper.map_columns(headers)
         self.stdout.write(f"Column mapping: {column_map}\n")
 
-        created_count = 0
-        updated_count = 0
-        error_count = 0
+        # Process rows
+        stats = self._process_rows(
+            excel_parser,
+            column_map,
+            area_name,
+            geocoding_service,
+        )
 
-        # Process each row (skip header)
-        for row_num, row in enumerate(
-            sheet.iter_rows(min_row=2, values_only=True), start=2
-        ):
+        # Close parser
+        excel_parser.close()
+
+        # Print summary
+        self._print_summary(stats)
+
+    def _process_rows(self, excel_parser, column_map, area_name, geocoding_service):
+        """Process all rows from Excel file."""
+        stats = {"created": 0, "updated": 0, "errors": 0}
+
+        for row_num, row_data in excel_parser.iter_rows():
             try:
-                # Build a dict from the row
-                row_data = {}
-                for idx, value in enumerate(row):
-                    if idx < len(headers):
-                        row_data[headers[idx]] = value
-
-                # Extract provider data
-                provider_name = self.get_value(row_data, column_map.get("name"))
+                # Get provider name
+                provider_name = ColumnMapper.get_value(
+                    row_data,
+                    column_map.get("name")
+                )
 
                 # Skip empty rows
                 if not provider_name or provider_name.strip() == "":
                     continue
 
-                # Parse the data
-                provider_data = self.parse_provider_data(
-                    row_data, column_map, area_name
+                # Parse provider data
+                provider_data = ProviderDataParser.parse(
+                    row_data,
+                    column_map,
+                    area_name,
+                    ColumnMapper.get_value
                 )
 
                 # Geocode if requested
-                if options["geocode"] and provider_data.get("address"):
-                    coords = self.geocode_address(provider_data["address"])
+                if geocoding_service and provider_data.get("address"):
+                    coords = geocoding_service.geocode_address(provider_data["address"])
                     if coords:
                         provider_data["latitude"] = coords["latitude"]
                         provider_data["longitude"] = coords["longitude"]
-                        time.sleep(0.2)  # Rate limiting for Mapbox API
 
                 # Create or update provider
                 provider, created = ProviderV2.objects.update_or_create(
@@ -207,225 +223,25 @@ class Command(BaseCommand):
                 )
 
                 if created:
-                    created_count += 1
+                    stats["created"] += 1
                     self.stdout.write(f"  ✓ Created: {provider.name}")
                 else:
-                    updated_count += 1
+                    stats["updated"] += 1
                     self.stdout.write(f"  ↻ Updated: {provider.name}")
 
-            except Exception as e:
-                error_count += 1
-                self.stdout.write(self.style.ERROR(f"  ✗ Error on row {row_num}: {e}"))
+            except Exception as e:  # pylint: disable=broad-except
+                stats["errors"] += 1
+                self.stdout.write(
+                    self.style.ERROR(f"  ✗ Error on row {row_num}: {e}")
+                )
 
-        # Summary
+        return stats
+
+    def _print_summary(self, stats):
+        """Print import summary statistics."""
         self.stdout.write("\n" + "=" * 50)
-        self.stdout.write(self.style.SUCCESS(f"Import complete!"))
-        self.stdout.write(f"  Created: {created_count}")
-        self.stdout.write(f"  Updated: {updated_count}")
-        self.stdout.write(f"  Errors:  {error_count}")
+        self.stdout.write(self.style.SUCCESS("Import complete!"))
+        self.stdout.write(f"  Created: {stats['created']}")
+        self.stdout.write(f"  Updated: {stats['updated']}")
+        self.stdout.write(f"  Errors:  {stats['errors']}")
         self.stdout.write("=" * 50 + "\n")
-
-    def map_columns(self, headers):
-        """Map Excel columns to provider fields"""
-        column_map = {}
-
-        for idx, header in enumerate(headers):
-            header_lower = header.lower() if header else ""
-
-            # Provider Name
-            if any(x in header_lower for x in ["provider", "name", "organization"]):
-                column_map["name"] = header
-
-            # Address
-            elif any(x in header_lower for x in ["address", "location", "street"]):
-                column_map["address"] = header
-
-            # Phone
-            elif any(x in header_lower for x in ["phone", "telephone", "tel"]):
-                column_map["phone"] = header
-
-            # Services
-            elif any(x in header_lower for x in ["service", "therapy", "treatment"]):
-                column_map["services"] = header
-
-            # Insurance
-            elif any(x in header_lower for x in ["insurance", "payment", "funding"]):
-                column_map["insurance"] = header
-
-            # Notes
-            elif any(x in header_lower for x in ["note", "comment", "description"]):
-                column_map["notes"] = header
-
-            # Email
-            elif any(x in header_lower for x in ["email", "e-mail"]):
-                column_map["email"] = header
-
-            # Website
-            elif any(x in header_lower for x in ["website", "web", "url"]):
-                column_map["website"] = header
-
-        return column_map
-
-    def get_value(self, row_data, column_name):
-        """Safely get value from row data"""
-        if not column_name:
-            return None
-        value = row_data.get(column_name)
-        if value is None or (isinstance(value, str) and value.strip() == ""):
-            return None
-        return str(value).strip() if value else None
-
-    def parse_provider_data(self, row_data, column_map, area_name):
-        """Parse provider data from row"""
-        data = {
-            "name": self.get_value(row_data, column_map.get("name", "")),
-            "phone": self.get_value(row_data, column_map.get("phone")),
-            "email": self.get_value(row_data, column_map.get("email")),
-            "website": self.get_value(row_data, column_map.get("website")),
-            "address": self.get_value(row_data, column_map.get("address", "")),
-            "verified": False,
-        }
-
-        # Parse services into therapy_types
-        services_text = self.get_value(row_data, column_map.get("services"))
-        if services_text:
-            therapy_types = self.parse_therapy_types(services_text)
-            if therapy_types:
-                data["therapy_types"] = therapy_types
-
-        # Parse insurance
-        insurance_text = self.get_value(row_data, column_map.get("insurance"))
-        # Always parse insurance (even if empty) to add "Regional Center" text
-        insurance_list, accepts_flags = self.parse_insurance(insurance_text or "")
-        if insurance_list:
-            data["insurance_accepted"] = ", ".join(insurance_list)
-        data.update(accepts_flags)
-
-        # Parse notes into description
-        notes = self.get_value(row_data, column_map.get("notes"))
-        if notes:
-            data["description"] = notes
-
-        # Set area-specific data
-        # Store in specific_areas_served
-        if area_name:
-            data["specific_areas_served"] = [area_name]
-
-        # Default to LA County
-        data["serves_la_county"] = True
-        data["center_based_services"] = True
-
-        return data
-
-    def parse_therapy_types(self, services_text):
-        """Parse services text into therapy types array"""
-        therapy_types = []
-        services_lower = services_text.lower()
-
-        # Map service keywords to therapy types
-        therapy_mapping = {
-            "aba": "ABA therapy",
-            "applied behavior": "ABA therapy",
-            "speech": "Speech therapy",
-            "occupational": "Occupational therapy",
-            "ot": "Occupational therapy",
-            "physical": "Physical therapy",
-            "pt": "Physical therapy",
-            "feeding": "Feeding therapy",
-            "parent": "Parent child interaction therapy/parent training behavior management",
-        }
-
-        for keyword, therapy_type in therapy_mapping.items():
-            if keyword in services_lower and therapy_type not in therapy_types:
-                therapy_types.append(therapy_type)
-
-        return therapy_types if therapy_types else None
-
-    def parse_insurance(self, insurance_text):
-        """Parse insurance text into list and acceptance flags"""
-        insurance_list = []
-        accepts_flags = {
-            "accepts_insurance": False,
-            "accepts_regional_center": True,  # Default to True since these are regional center provider lists
-            "accepts_private_pay": False,
-        }
-
-        # ALWAYS add Regional Center since these are regional center provider lists
-        # This is needed for text-based filtering in the API (insurance_accepted field)
-        insurance_list.append("Regional Center")
-
-        insurance_lower = insurance_text.lower()
-
-        # Check for Private Pay
-        if (
-            "private" in insurance_lower
-            or "self pay" in insurance_lower
-            or "cash" in insurance_lower
-        ):
-            insurance_list.append("Private Pay")
-            accepts_flags["accepts_private_pay"] = True
-
-        # Check for common insurance types
-        insurance_keywords = {
-            "medi-cal": "Medi-Cal",
-            "medicaid": "Medicaid",
-            "medicare": "Medicare",
-            "blue cross": "Blue Cross",
-            "blue shield": "Blue Shield",
-            "anthem": "Anthem",
-            "aetna": "Aetna",
-            "cigna": "Cigna",
-            "kaiser": "Kaiser Permanente",
-            "united": "United Healthcare",
-            "health net": "Health Net",
-            "molina": "Molina",
-            "la care": "L.A. Care",
-            "l.a. care": "L.A. Care",
-        }
-
-        for keyword, insurance_name in insurance_keywords.items():
-            if keyword in insurance_lower and insurance_name not in insurance_list:
-                insurance_list.append(insurance_name)
-                accepts_flags["accepts_insurance"] = True
-
-        return insurance_list, accepts_flags
-
-    def geocode_address(self, address):
-        """Geocode address using Mapbox Geocoding API"""
-        mapbox_token = os.environ.get("MAPBOX_ACCESS_TOKEN")
-
-        if not mapbox_token:
-            self.stdout.write(
-                self.style.WARNING("MAPBOX_ACCESS_TOKEN not set, skipping geocoding")
-            )
-            return None
-
-        # Clean up address
-        address = address.replace("\n", ", ").strip()
-
-        # Mapbox Geocoding API
-        url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json"
-        params = {
-            "access_token": mapbox_token,
-            "country": "US",
-            "limit": 1,
-        }
-
-        try:
-            response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
-            data = response.json()
-
-            if data.get("features"):
-                feature = data["features"][0]
-                longitude, latitude = feature["geometry"]["coordinates"]
-                return {
-                    "latitude": Decimal(str(latitude)),
-                    "longitude": Decimal(str(longitude)),
-                }
-        except Exception as e:
-            self.stdout.write(
-                self.style.WARNING(f"Geocoding failed for {address}: {e}")
-            )
-
-        return None
