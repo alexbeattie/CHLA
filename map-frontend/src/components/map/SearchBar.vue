@@ -199,13 +199,22 @@ export default {
           resultsCount.value = results.count || results.providers.length;
 
           // Update map to show regional center area
-          if (results.providers.length > 0) {
+          if (results.center) {
+            // CRITICAL FIX: Set user location so directions work from ZIP search location
+            mapStore.setUserLocation(results.center);
+            mapStore.centerOn(results.center, 11);
+            console.log('✅ SearchBar: Set user location from ZIP search:', results.center);
+          } else if (results.providers.length > 0) {
             const firstProvider = results.providers[0];
             if (firstProvider.latitude && firstProvider.longitude) {
-              mapStore.centerOn({
+              const center = {
                 lat: firstProvider.latitude,
                 lng: firstProvider.longitude
-              }, 11);
+              };
+              // CRITICAL FIX: Set user location so directions work
+              mapStore.setUserLocation(center);
+              mapStore.centerOn(center, 11);
+              console.log('✅ SearchBar: Set user location from first provider:', center);
             }
           }
         } else {

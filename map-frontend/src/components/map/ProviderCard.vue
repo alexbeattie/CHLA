@@ -175,7 +175,7 @@ export default {
     // Show age groups
     showAgeGroups: {
       type: Boolean,
-      default: false
+      default: true
     },
     // Maximum therapies to display
     maxTherapiesToShow: {

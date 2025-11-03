@@ -136,7 +136,7 @@ export default {
     // Show age groups on cards
     showAgeGroups: {
       type: Boolean,
-      default: false
+      default: true
     },
     // Max therapies to show on each card
     maxTherapiesToShow: {
@@ -210,8 +210,15 @@ export default {
 
     /**
      * Calculate distance from user to provider
+     * Prefers actual driving distance if available
      */
     const getProviderDistance = (provider) => {
+      // Use driving distance if we've fetched it
+      if (provider.drivingDistance !== undefined && provider.drivingDistance !== null) {
+        return provider.drivingDistance;
+      }
+      
+      // Fallback to straight-line distance
       if (!userLocation.value || !provider.latitude || !provider.longitude) {
         return null;
       }
