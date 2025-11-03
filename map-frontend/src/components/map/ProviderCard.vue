@@ -367,8 +367,8 @@ export default {
   background: white;
   border: 2px solid #e5e7eb;
   border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;

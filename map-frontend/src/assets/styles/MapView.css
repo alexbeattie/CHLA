@@ -492,9 +492,9 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-/* Sidebar content sections spacing */
+/* Sidebar content sections spacing - reduced for edge-to-edge feel */
 .sidebar-content > * {
-  padding: 0 1rem;
+  padding: 0 0.5rem;
 }
 
 .sidebar-content > .chla-header {
@@ -519,7 +519,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 0.5rem;
   background: white;
   cursor: pointer;
   user-select: none;
@@ -537,7 +537,7 @@
 }
 
 .collapsible-content {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.5rem;
   border-top: 1px solid #e5e7eb;
 }
 
