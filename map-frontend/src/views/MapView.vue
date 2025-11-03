@@ -445,13 +445,16 @@
           <!-- Provider List -->
           <provider-list
             v-if="providerStore"
-            :providers="providerStore.providers"
+            :providers="paginatedProviders"
             :selected-id="providerStore.selectedProviderId"
             :loading="providerStore.loading"
             :show-distance="true"
             :auto-scroll-to-selected="true"
+            :show-load-more="true"
+            :has-more="hasMoreProviders"
             @provider-select="handleProviderSelect"
             @get-directions="handleGetDirections"
+            @load-more="loadMoreProviders"
           />
           </div>
           <!-- End results-content -->
@@ -468,7 +471,7 @@
       <map-canvas
         :mapbox-token="mapboxAccessToken"
         :center="LA_COUNTY_CENTER"
-        :zoom="9.5"
+        :zoom="10.5"
         class="map-container"
         @map-ready="handleMapReady"
         @marker-click="handleMarkerClick"
@@ -711,6 +714,10 @@ export default {
       isAdjustingRadius: false, // flag to track radius slider adjustments
       isMapMoving: false, // flag to prevent conflicting map movements
 
+      // Pagination for provider list
+      providersPerPage: 20, // Show 20 providers initially
+      currentProviderPage: 1, // Current page for providers
+
       // User information
       userData: {
         age: "",
@@ -856,6 +863,25 @@ export default {
         .slice(0, 3); // Show top 3 nearest
 
       return centersWithDistance;
+    },
+
+    // Paginated providers for display
+    paginatedProviders() {
+      if (!this.providerStore || !this.providerStore.providers) {
+        return [];
+      }
+      const providers = this.providerStore.providers;
+      const endIndex = this.currentProviderPage * this.providersPerPage;
+      return providers.slice(0, endIndex);
+    },
+
+    // Check if there are more providers to load
+    hasMoreProviders() {
+      if (!this.providerStore || !this.providerStore.providers) {
+        return false;
+      }
+      const providers = this.providerStore.providers;
+      return providers.length > this.paginatedProviders.length;
     },
   },
 
@@ -1157,6 +1183,23 @@ export default {
       } catch (error) {
         console.error("[MapView] Error re-fetching providers after reset:", error);
       }
+    },
+
+    /**
+     * Load more providers (pagination)
+     */
+    loadMoreProviders() {
+      console.log("[MapView] Loading more providers");
+      this.currentProviderPage += 1;
+      console.log(`📄 Now showing page ${this.currentProviderPage} (${this.paginatedProviders.length} of ${this.providerStore.providers.length} providers)`);
+    },
+
+    /**
+     * Reset pagination when providers change
+     */
+    resetPagination() {
+      this.currentProviderPage = 1;
+      console.log("📄 Pagination reset to page 1");
     },
 
     /**
