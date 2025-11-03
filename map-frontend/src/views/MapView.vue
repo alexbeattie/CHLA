@@ -500,6 +500,15 @@
         @retry="retryDirections"
       />
 
+      <!-- Regional Center Details Flyout Panel -->
+      <regional-center-details
+        :regional-center="selectedRegionalCenter"
+        :is-visible="showRegionalCenterDetails"
+        :distance="selectedRegionalCenterDistance"
+        @close="closeRegionalCenterDetails"
+        @get-directions="handleGetDirections"
+      />
+
     </div>
   </div>
 </template>
@@ -530,6 +539,7 @@ import SearchBar from "@/components/map/SearchBar.vue";
 import ProviderList from "@/components/map/ProviderList.vue";
 import ProviderCard from "@/components/map/ProviderCard.vue";
 import ProviderDetails from "@/components/map/ProviderDetails.vue";
+import RegionalCenterDetails from "@/components/map/RegionalCenterDetails.vue";
 import DirectionsPanel from "@/components/map/DirectionsPanel.vue";
 import FilterPanel from "@/components/map/FilterPanel.vue";
 import SidebarPanel from "@/components/SidebarPanel.vue";
@@ -585,6 +595,7 @@ export default {
     ProviderList,
     ProviderCard,
     ProviderDetails,
+    RegionalCenterDetails,
     DirectionsPanel,
     FilterPanel,
     SidebarPanel,
@@ -626,6 +637,11 @@ export default {
       directionsError: null,
       directionsRoute: null,
       lastDirectionsProvider: null,
+
+      // Regional Center Details panel state
+      showRegionalCenterDetails: false,
+      selectedRegionalCenter: null,
+      selectedRegionalCenterDistance: null,
 
       // Display type
       displayType: "providers", // 'regionalCenters' or 'providers'
@@ -717,6 +733,9 @@ export default {
       // Pagination for provider list
       providersPerPage: 20, // Show 20 providers initially
       currentProviderPage: 1, // Current page for providers
+
+      // Map initialization flags
+      isInitialPageLoad: true, // Track if this is the first page load
 
       // User information
       userData: {
@@ -981,6 +1000,12 @@ export default {
           console.log("[MapView] Initialization complete with new components!");
           // Stop initial loading spinner
           this.loading = false;
+
+          // Mark initial page load as complete after a short delay to prevent zoom flicker
+          setTimeout(() => {
+            this.isInitialPageLoad = false;
+            console.log("✅ Initial page load complete - map auto-zoom now enabled");
+          }, 2000);
         } else {
           console.log("[MapView] Onboarding showing, skipping data load");
           this.loading = false;
@@ -1404,6 +1429,48 @@ export default {
     retryDirections() {
       if (this.lastDirectionsProvider) {
         this.handleGetDirections(this.lastDirectionsProvider);
+      }
+    },
+
+    /**
+     * Close regional center details panel
+     */
+    closeRegionalCenterDetails() {
+      this.showRegionalCenterDetails = false;
+      this.selectedRegionalCenter = null;
+      this.selectedRegionalCenterDistance = null;
+    },
+
+    /**
+     * Handle regional center click/selection
+     */
+    handleRegionalCenterClick(regionalCenter) {
+      console.log('[MapView] Regional center selected:', regionalCenter);
+
+      // Calculate distance if user location available
+      let distance = null;
+      if (this.userLocation?.latitude && this.userLocation?.longitude &&
+          regionalCenter.latitude && regionalCenter.longitude) {
+        distance = haversineDistance(
+          this.userLocation.latitude,
+          this.userLocation.longitude,
+          regionalCenter.latitude,
+          regionalCenter.longitude
+        );
+      }
+
+      // Set selected regional center and show panel
+      this.selectedRegionalCenter = regionalCenter;
+      this.selectedRegionalCenterDistance = distance;
+      this.showRegionalCenterDetails = true;
+
+      // Center map on regional center
+      if (this.mapInstance && regionalCenter.latitude && regionalCenter.longitude) {
+        this.mapInstance.easeTo({
+          center: [regionalCenter.longitude, regionalCenter.latitude],
+          zoom: 13,
+          duration: 1500
+        });
       }
     },
 
@@ -3311,9 +3378,9 @@ export default {
 
             // If we're showing providers (especially after fallback), set reasonable map bounds
             // Skip map bounds changes during initial load to prevent jankiness
-            if (this.providers.length > 0 && !this.isMapMoving) {
+            if (this.providers.length > 0 && !this.isMapMoving && !this.isInitialPageLoad) {
               console.log("🔍 Setting reasonable map bounds for providers...");
-              
+
               // Set flag to prevent conflicting movements
               this.isMapMoving = true;
               
