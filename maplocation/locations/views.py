@@ -122,7 +122,8 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
                 )
 
             # Use PostGIS for efficient spatial queries
-            nearby_locations = Location.find_nearest(lat, lng, radius, limit=100)
+            # No limit - return all providers within radius to support accurate filtering
+            nearby_locations = Location.find_nearest(lat, lng, radius, limit=1000)
 
             # Serialize the data
             serializer = self.get_serializer(nearby_locations, many=True)
@@ -909,6 +910,7 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
 
                     # Get IDs of already filtered providers
                     filtered_provider_ids = list(providers.values_list("id", flat=True))
+                    print(f"🔍 [comprehensive_search] Radius: {radius} miles, Providers before distance filter: {len(filtered_provider_ids)}")
 
                     if filtered_provider_ids:
                         # Filter by distance using raw SQL with proper parameterization
@@ -936,6 +938,7 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                             cursor.execute(sql, params)
                             nearby_ids = [row[0] for row in cursor.fetchall()]
 
+                        print(f"🎯 [comprehensive_search] Providers after {radius} mile radius filter: {len(nearby_ids)}")
                         providers = providers.filter(id__in=nearby_ids)
                     else:
                         # If no providers match the non-geographic filters, return empty queryset
@@ -991,8 +994,10 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     providers = age_filtered
                 # If no providers match age filter, keep all providers (lenient approach)
 
-            # Apply limit
-            providers = providers[:100]  # Reasonable limit
+            # Apply limit - increased to support larger radius searches
+            providers = providers[:1000]  # Support large radius searches
+
+            print(f"✅ [comprehensive_search] Final provider count after all filters: {len(providers)}")
 
             serializer = self.get_serializer(providers, many=True)
             return Response(serializer.data)
