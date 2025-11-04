@@ -103,19 +103,25 @@ class Command(BaseCommand):
                     # Convert therapy_types array to JSONB
                     therapy_types_json = json.dumps(provider.therapy_types) if provider.therapy_types else json.dumps([])
 
+                    # Prepare location geometry (PostGIS)
+                    location_wkt = None
+                    if provider.location:
+                        location_wkt = f'SRID=4326;POINT({provider.location.x} {provider.location.y})'
+                    
                     cursor.execute('''
                         INSERT INTO providers_v2 (
-                            id, name, address, latitude, longitude,
+                            id, name, address, latitude, longitude, location,
                             phone, email, website, therapy_types,
                             insurance_accepted,
                             created_at, updated_at
                         )
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s)
+                        VALUES (%s, %s, %s, %s, %s, ST_GeomFromEWKT(%s), %s, %s, %s, %s::jsonb, %s, %s, %s)
                         ON CONFLICT (id) DO UPDATE SET
                             name = EXCLUDED.name,
                             address = EXCLUDED.address,
                             latitude = EXCLUDED.latitude,
                             longitude = EXCLUDED.longitude,
+                            location = EXCLUDED.location,
                             phone = EXCLUDED.phone,
                             email = EXCLUDED.email,
                             website = EXCLUDED.website,
@@ -124,7 +130,7 @@ class Command(BaseCommand):
                             updated_at = EXCLUDED.updated_at
                     ''', [
                         provider.id, provider.name, provider.address,
-                        provider.latitude, provider.longitude,
+                        provider.latitude, provider.longitude, location_wkt,
                         provider.phone, provider.email, provider.website,
                         therapy_types_json,
                         insurance_accepted,

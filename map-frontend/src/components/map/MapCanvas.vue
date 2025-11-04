@@ -8,6 +8,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useMapStore } from '@/stores/mapStore';
 import { useProviderStore } from '@/stores/providerStore';
+import { createMinimalPopup } from '@/utils/popup-minimal.js';
 
 /**
  * MapCanvas Component
@@ -209,20 +210,44 @@ export default {
             el.style.backgroundColor = '#ef4444'; // Red for unselected
           }
 
+          // Create popup for this marker
+          const popupHTML = createMinimalPopup(provider);
+          
+          const popup = new mapboxgl.Popup({
+            offset: 25,
+            maxWidth: '300px',
+            closeButton: true,
+            closeOnClick: true,  // Close when clicking elsewhere on map
+            className: 'minimal-popup'
+          }).setHTML(popupHTML);
+
           // Create marker (convert coordinates to numbers)
           const marker = new mapboxgl.Marker(el)
             .setLngLat([parseFloat(provider.longitude), parseFloat(provider.latitude)])
+            .setPopup(popup)
             .addTo(map.value);
 
           // Store provider ID on marker for tracking
           marker._providerId = provider.id;
 
           // Click handler
-          el.addEventListener('click', () => {
+          el.addEventListener('click', (e) => {
+            e.stopPropagation();
             console.log(`📍 MapCanvas: Marker clicked for provider ${provider.id}`);
+            
+            // Close all other popups first
+            markers.value.forEach(m => {
+              if (m !== marker && m.getPopup().isOpen()) {
+                m.getPopup().remove();
+              }
+            });
+            
             providerStore.selectProvider(provider.id);
             mapStore.selectProvider(provider.id);
             emit('marker-click', provider);
+            
+            // Toggle the popup for this marker
+            marker.togglePopup();
           });
 
           newMarkers.push(marker);
@@ -513,6 +538,33 @@ export default {
 /* User location marker styles */
 :deep(.user-location-marker) {
   animation: pulse 2s infinite;
+}
+
+/* Popup styles - ensure they appear above markers */
+:deep(.mapboxgl-popup) {
+  z-index: 2000 !important;
+}
+
+:deep(.mapboxgl-popup-content) {
+  padding: 0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+:deep(.mapboxgl-popup-close-button) {
+  font-size: 20px;
+  padding: 4px 8px;
+  color: #6c757d;
+  z-index: 2001;
+}
+
+:deep(.mapboxgl-popup-close-button:hover) {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+:deep(.mapboxgl-popup-tip) {
+  z-index: 1999;
 }
 
 @keyframes pulse {

@@ -17,29 +17,6 @@
           <span class="brand-subtitle d-none d-md-inline">ABA Provider Map</span>
         </div>
 
-        <!-- Regional Center Legend (Horizontal) - Always visible -->
-        <div class="navbar-legend d-none d-lg-flex">
-          <div class="legend-compact">
-            <button class="legend-toggle-btn" @click="toggleRCLegend">
-              <i class="bi bi-map-fill"></i>
-              <span>Regional Centers</span>
-              <i :class="showRCLegend ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
-            </button>
-            <div v-if="showRCLegend" class="legend-dropdown">
-              <div
-                v-for="rc in laRegionalCentersList"
-                :key="rc.name"
-                class="legend-item-compact"
-                :class="{ 'is-active': selectedRegionalCenterName === rc.name }"
-                @click="handleRegionalCenterSelect(rc)"
-              >
-                <div class="color-dot" :style="{ backgroundColor: rc.color }"></div>
-                <span class="rc-name-short">{{ rc.abbreviation || rc.name }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="navbar-actions">
           <button class="btn-start-over" @click="handleStartOver" title="Start Over">
             <i class="bi bi-arrow-counterclockwise"></i>
@@ -499,7 +476,7 @@ import { authService } from "@/services/auth.js";
 import { getApiRoot } from "@/utils/api.js";
 import { getLACountyBounds, isPointInBounds, calculateProviderBounds, calculateDistance as haversineDistance } from "@/utils/geo.js";
 import { formatDescription, formatInsurance, formatLanguages, formatHours, formatHoursObject } from "@/utils/formatting.js";
-import { createSimplePopup } from "@/utils/popup.js";
+import { createMinimalPopup } from "@/utils/popup-minimal.js";
 import { isLACountyZip, isInLACounty, extractZipCode as detectStandaloneZip, extractZipFromAddress, looksLikeAddress, isValidCaliforniaCoordinate } from "@/utils/validation.js";
 import { sampleProviders } from "@/utils/sampleData.js";
 import { hslToHex, stringToColor } from "@/utils/colors.js";
@@ -4876,21 +4853,15 @@ export default {
         // Use default Mapbox marker to avoid CSS interference
         const markerColor = this.displayType === "providers" ? "#007bff" : "#28a745";
 
-        // Create popup - use rich format for regional centers, simple for providers
-        let popupHTML;
-        let popupClass;
-
-        // For markers, always use simple popups
-        // Use simple popup for providers and other locations
-        popupHTML = createSimplePopup(item);
-        popupClass = "simple-popup";
+        // Create minimal popup
+        const popupHTML = createMinimalPopup(item);
 
         const popup = new mapboxgl.Popup({
-          offset: 25, // Simple offset to keep popup away from marker
-          maxWidth: this.displayType === "regionalCenters" ? "360px" : "320px",
+          offset: 25,
+          maxWidth: "300px",
           closeOnClick: true,
           closeButton: true,
-          className: popupClass,
+          className: "minimal-popup",
         }).setHTML(popupHTML);
 
         // Create and add marker to map
@@ -4903,6 +4874,12 @@ export default {
           .setLngLat([finalLng, finalLat])
           .setPopup(popup)
           .addTo(this.map);
+
+        // Add click handler to toggle popup
+        marker.getElement().addEventListener('click', () => {
+          console.log(`🖱️ Marker clicked: ${item.name}`);
+          marker.togglePopup();
+        });
 
         // Immediate position verification
         const markerLngLat = marker.getLngLat();
