@@ -136,12 +136,12 @@ class RegionalCenter(models.Model):
         default=False, help_text="Whether this is a Los Angeles County regional center"
     )
 
-    def __str__(self):
-        return self.regional_center
-
     class Meta:
         verbose_name_plural = "Regional Centers"
-        db_table = "regional_centers"  # Match the existing table name
+        db_table = "regional_centers"  # Match the existing RDS table name
+    
+    def __str__(self):
+        return self.regional_center
 
     def get_service_area_as_geojson(self):
         """Return the service area as GeoJSON"""
