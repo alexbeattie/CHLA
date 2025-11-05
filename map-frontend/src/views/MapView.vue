@@ -13,7 +13,7 @@
 
         <div class="navbar-brand">
           <router-link to="/" class="kindd-text-logo-link">
-            <span class="kindd-text-logo">KINDD</span>
+          <span class="kindd-text-logo">KINDD</span>
           </router-link>
           <span class="brand-separator d-none d-md-inline">|</span>
           <span class="brand-subtitle d-none d-md-inline">ABA Provider Map</span>
@@ -53,9 +53,9 @@
                 <i class="bi bi-info-circle me-2"></i>
                 About
               </router-link>
-            </div>
           </div>
-          
+        </div>
+
           <button class="btn-start-over" @click="handleStartOver" title="Start Over">
             <i class="bi bi-arrow-counterclockwise"></i>
             <span class="d-none d-md-inline">Start Over</span>

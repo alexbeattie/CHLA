@@ -20,7 +20,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         csv_file = options['csv_file']
         dry_run = options.get('dry_run', False)
-        
+
         self.stdout.write(f"Importing providers from: {csv_file}")
         if dry_run:
             self.stdout.write(self.style.WARNING("DRY RUN MODE - No changes will be saved"))
@@ -42,7 +42,7 @@ class Command(BaseCommand):
                 
                 # Check if provider exists
                 existing = ProviderV2.objects.filter(id=provider_id).first()
-                
+
                 # Parse coordinates
                 lat = Decimal(str(row['latitude'])) if row['latitude'] else Decimal('0.0')
                 lng = Decimal(str(row['longitude'])) if row['longitude'] else Decimal('0.0')
@@ -69,7 +69,7 @@ class Command(BaseCommand):
                 
                 diagnoses_treated = []
                 if row.get('diagnoses_treated'):
-                    try:
+                try:
                         diagnoses_treated = json.loads(row['diagnoses_treated'])
                     except:
                         diagnoses_treated = []
@@ -122,16 +122,16 @@ class Command(BaseCommand):
                     if existing:
                         self.stdout.write(f"  [DRY] Would update: {row['name'][:50]}")
                         updated += 1
-                    else:
+                        else:
                         self.stdout.write(f"  [DRY] Would create: {row['name'][:50]}")
                         created += 1
-                
-            except Exception as e:
+
+                except Exception as e:
                 error_msg = f"Row {i} ({row.get('name', 'Unknown')[:30]}): {str(e)}"
                 errors.append(error_msg)
                 self.stdout.write(self.style.ERROR(f"  ❌ {error_msg}"))
                 skipped += 1
-        
+
         # Summary
         self.stdout.write("\n" + "="*60)
         self.stdout.write(self.style.SUCCESS(f"✅ Created: {created}"))

@@ -2,23 +2,71 @@
   <div class="filter-panel">
     <!-- Insurance Types (Multi-Select) -->
     <div class="filter-section" v-if="availableInsuranceTypes.length > 0">
-      <div class="section-header">
-        <i class="bi bi-credit-card"></i>
-        <h4>Insurance Accepted</h4>
+      <div class="section-header" @click="toggleInsuranceSection" style="cursor: pointer;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="bi bi-credit-card"></i>
+          <h4>Insurance Accepted</h4>
+          <span v-if="filterStore.filterOptions.insuranceTypes.length > 0" class="selected-count">
+            ({{ filterStore.filterOptions.insuranceTypes.length }})
+          </span>
+        </div>
+        <i class="bi" :class="showInsuranceSection ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
       </div>
-      <div class="filter-options">
-        <label 
-          class="filter-option" 
-          v-for="insurance in availableInsuranceTypes" 
-          :key="insurance"
-        >
-          <input
-            type="checkbox"
-            :checked="isInsuranceSelected(insurance)"
-            @change="handleInsuranceToggle(insurance)"
+      
+      <div v-if="showInsuranceSection" class="filter-options">
+        <!-- Search Box -->
+        <div class="insurance-search">
+          <input 
+            type="text" 
+            v-model="insuranceSearchQuery"
+            placeholder="Search insurance..."
+            class="form-control form-control-sm"
           />
-          <span class="filter-label">{{ insurance }}</span>
-        </label>
+        </div>
+        
+        <!-- Most Common (Always Visible) -->
+        <div class="insurance-group">
+          <div class="group-label">Most Common</div>
+          <label 
+            class="filter-option" 
+            v-for="insurance in topInsuranceTypes" 
+            :key="insurance"
+            v-show="insuranceMatchesSearch(insurance)"
+          >
+            <input
+              type="checkbox"
+              :checked="isInsuranceSelected(insurance)"
+              @change="handleInsuranceToggle(insurance)"
+            />
+            <span class="filter-label">{{ insurance }}</span>
+          </label>
+        </div>
+        
+        <!-- Other Insurance Types (Collapsible) -->
+        <div class="insurance-group">
+          <div 
+            class="group-label clickable" 
+            @click="showAllInsurance = !showAllInsurance"
+          >
+            Other Insurance Types
+            <i class="bi" :class="showAllInsurance ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          </div>
+          <div v-if="showAllInsurance || insuranceSearchQuery">
+            <label 
+              class="filter-option" 
+              v-for="insurance in otherInsuranceTypes" 
+              :key="insurance"
+              v-show="insuranceMatchesSearch(insurance)"
+            >
+              <input
+                type="checkbox"
+                :checked="isInsuranceSelected(insurance)"
+                @change="handleInsuranceToggle(insurance)"
+              />
+              <span class="filter-label">{{ insurance }}</span>
+            </label>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -238,6 +286,9 @@ export default {
   setup(props, { emit }) {
     const filterStore = useFilterStore();
     const showInfoModal = ref(false);
+    const showInsuranceSection = ref(false);
+    const showAllInsurance = ref(false);
+    const insuranceSearchQuery = ref('');
 
     // Local copy of filters
     const localFilters = ref({
@@ -255,6 +306,16 @@ export default {
     // Available options from store
     const availableTherapyTypes = computed(() => filterStore.availableTherapyTypes);
     const availableInsuranceTypes = computed(() => filterStore.availableInsuranceTypes);
+    
+    // Split insurance into top (most common) and others
+    const topInsuranceTypes = computed(() => {
+      // Top 8 most common for developmental services
+      return availableInsuranceTypes.value.slice(0, 8);
+    });
+    
+    const otherInsuranceTypes = computed(() => {
+      return availableInsuranceTypes.value.slice(8);
+    });
     
     // Check if user has profile data
     const hasUserProfile = computed(() => {
@@ -394,6 +455,21 @@ export default {
       emit('filter-change', localFilters.value);
     };
 
+    /**
+     * Toggle insurance section visibility
+     */
+    const toggleInsuranceSection = () => {
+      showInsuranceSection.value = !showInsuranceSection.value;
+    };
+
+    /**
+     * Check if insurance matches search query
+     */
+    const insuranceMatchesSearch = (insurance) => {
+      if (!insuranceSearchQuery.value) return true;
+      return insurance.toLowerCase().includes(insuranceSearchQuery.value.toLowerCase());
+    };
+
     // Sync with store when store changes
     watch(
       () => filterStore.filterOptions,
@@ -409,10 +485,15 @@ export default {
       userData,
       availableTherapyTypes,
       availableInsuranceTypes,
+      topInsuranceTypes,
+      otherInsuranceTypes,
       hasUserProfile,
       activeFilterCount,
       hasActiveFilters,
       showInfoModal,
+      showInsuranceSection,
+      showAllInsurance,
+      insuranceSearchQuery,
       formatAge,
       formatDiagnosis,
       handleFilterChange,
@@ -421,7 +502,9 @@ export default {
       isTherapySelected,
       handleTherapyToggle,
       isInsuranceSelected,
-      handleInsuranceToggle
+      handleInsuranceToggle,
+      toggleInsuranceSection,
+      insuranceMatchesSearch
     };
   }
 };
@@ -521,6 +604,81 @@ export default {
 
 .filter-label {
   font-weight: 400;
+}
+
+/* Insurance Section Specific */
+.section-header {
+  justify-content: space-between;
+}
+
+.section-header .bi-chevron-up,
+.section-header .bi-chevron-down {
+  font-size: 1rem;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.selected-count {
+  font-size: 0.875rem;
+  color: #004877;
+  font-weight: 600;
+  background: #e0f2fe;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.insurance-search {
+  margin-bottom: 12px;
+}
+
+.insurance-search .form-control {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+}
+
+.insurance-search .form-control:focus {
+  border-color: #004877;
+  box-shadow: 0 0 0 3px rgba(0, 72, 119, 0.1);
+  outline: none;
+}
+
+.insurance-group {
+  margin-bottom: 12px;
+}
+
+.insurance-group:last-child {
+  margin-bottom: 0;
+}
+
+.group-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.group-label.clickable {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.2s ease;
+}
+
+.group-label.clickable:hover {
+  background: #f3f4f6;
+}
+
+.group-label i {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
 }
 
 /* No Profile Hint */
