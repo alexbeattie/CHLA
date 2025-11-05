@@ -117,12 +117,12 @@
               <label>Diagnosis (Optional)</label>
               <select v-model="userProfile.diagnosis" class="form-control">
                 <option value="">Select diagnosis</option>
-                <option value="Autism Spectrum Disorder">Autism</option>
-                <option value="Global Development Delay">Development Delay</option>
+                <option value="Autism Spectrum Disorder">Autism Spectrum Disorder</option>
+                <option value="Global Development Delay">Global Development Delay</option>
                 <option value="Intellectual Disability">Intellectual Disability</option>
-                <option value="Speech and Language Disorder">Speech/Language</option>
+                <option value="Speech and Language Disorder">Speech and Language Disorder</option>
                 <option value="ADHD">ADHD</option>
-                <option value="Sensory Processing Disorder">Sensory Processing</option>
+                <option value="Sensory Processing Disorder">Sensory Processing Disorder</option>
                 <option value="Down Syndrome">Down Syndrome</option>
                 <option value="Cerebral Palsy">Cerebral Palsy</option>
                 <option value="Other">Other</option>
