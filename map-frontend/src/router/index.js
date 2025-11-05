@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 // Import the views
 import MapView from '../views/MapView.vue'
+import FaqView from '../views/FaqView.vue'
+import AboutView from '../views/AboutView.vue'
 import ProviderManagement from '../components/ProviderManagement.vue'
 import Login from '../components/Login.vue'
 import OnboardingFlowTest from '../components/OnboardingFlowTest.vue'
@@ -13,6 +15,16 @@ const routes = [
     path: '/',
     name: 'home',
     component: MapView
+  },
+  {
+    path: '/faq',
+    name: 'faq',
+    component: FaqView
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: AboutView
   },
   {
     path: '/login',
