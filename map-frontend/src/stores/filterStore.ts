@@ -14,6 +14,8 @@ export interface FilterOptions {
   matchesDiagnosis: boolean;
   matchesTherapy: boolean;
   showOnlyFavorites: boolean;
+  therapies: string[];  // Added: Array of selected therapy types
+  diagnoses: string[];  // Added: Array of selected diagnoses
 }
 
 export interface UserData {
@@ -21,6 +23,7 @@ export interface UserData {
   age?: string;
   diagnosis?: string;
   therapy?: string;
+  therapies?: string[];  // Added: Support for multiple therapies from onboarding
 }
 
 export const useFilterStore = defineStore('filter', () => {
@@ -33,7 +36,9 @@ export const useFilterStore = defineStore('filter', () => {
     matchesAge: false,
     matchesDiagnosis: false,
     matchesTherapy: false,
-    showOnlyFavorites: false
+    showOnlyFavorites: false,
+    therapies: [],
+    diagnoses: []
   });
 
   // User onboarding data
@@ -59,7 +64,9 @@ export const useFilterStore = defineStore('filter', () => {
       filterOptions.matchesAge ||
       filterOptions.matchesDiagnosis ||
       filterOptions.matchesTherapy ||
-      filterOptions.showOnlyFavorites
+      filterOptions.showOnlyFavorites ||
+      (filterOptions.therapies && filterOptions.therapies.length > 0) ||
+      (filterOptions.diagnoses && filterOptions.diagnoses.length > 0)
     );
   });
 
@@ -71,6 +78,10 @@ export const useFilterStore = defineStore('filter', () => {
     if (filterOptions.matchesDiagnosis) count++;
     if (filterOptions.matchesTherapy) count++;
     if (filterOptions.showOnlyFavorites) count++;
+    // Add count for each therapy type selected
+    if (filterOptions.therapies) count += filterOptions.therapies.length;
+    // Add count for each diagnosis selected
+    if (filterOptions.diagnoses) count += filterOptions.diagnoses.length;
     return count;
   });
 
@@ -88,7 +99,7 @@ export const useFilterStore = defineStore('filter', () => {
    * Used for API requests
    */
   const filterParams = computed(() => {
-    const params: Record<string, string> = {};
+    const params: Record<string, string | string[]> = {};
 
     // Insurance filters
     if (filterOptions.acceptsInsurance) {
@@ -108,6 +119,16 @@ export const useFilterStore = defineStore('filter', () => {
 
     if (filterOptions.matchesTherapy && userData.therapy) {
       params.therapy = userData.therapy;
+    }
+
+    // NEW: Multi-select therapy filter
+    if (filterOptions.therapies && filterOptions.therapies.length > 0) {
+      params.therapies = filterOptions.therapies;
+    }
+
+    // NEW: Multi-select diagnosis filter
+    if (filterOptions.diagnoses && filterOptions.diagnoses.length > 0) {
+      params.diagnoses = filterOptions.diagnoses;
     }
 
     return params;
@@ -133,6 +154,8 @@ export const useFilterStore = defineStore('filter', () => {
     filterOptions.matchesDiagnosis = false;
     filterOptions.matchesTherapy = false;
     filterOptions.showOnlyFavorites = false;
+    filterOptions.therapies = [];
+    filterOptions.diagnoses = [];
     console.log('🧹 [Store] Reset all filters');
   }
 
@@ -144,15 +167,17 @@ export const useFilterStore = defineStore('filter', () => {
     userData.age = undefined;
     userData.diagnosis = undefined;
     userData.therapy = undefined;
+    userData.therapies = undefined;
     console.log('🧹 [Store] Reset user data');
   }
 
   /**
-   * Toggle a specific filter on/off
+   * Toggle a specific filter on/off (for boolean filters only)
    */
   function toggleFilter(filterName: keyof FilterOptions) {
-    if (typeof filterOptions[filterName] === 'boolean') {
-      filterOptions[filterName] = !filterOptions[filterName];
+    const currentValue = filterOptions[filterName];
+    if (typeof currentValue === 'boolean') {
+      (filterOptions[filterName] as boolean) = !currentValue;
 
       // Handle mutual exclusivity for insurance filters
       if (filterName === 'acceptsInsurance' && filterOptions[filterName]) {
@@ -166,12 +191,40 @@ export const useFilterStore = defineStore('filter', () => {
   }
 
   /**
-   * Set filter from external source (e.g., onboarding flow)
+   * Set filter from external source (e.g., onboarding flow) - for boolean filters only
    */
   function setFilter(filterName: keyof FilterOptions, value: boolean) {
     if (typeof filterOptions[filterName] === 'boolean') {
-      filterOptions[filterName] = value;
+      (filterOptions[filterName] as boolean) = value;
       console.log(`🎛️ [Store] Set filter ${filterName}: ${value}`);
+    }
+  }
+
+  /**
+   * Toggle a therapy type in the therapies filter array
+   */
+  function toggleTherapyType(therapyType: string) {
+    const index = filterOptions.therapies.indexOf(therapyType);
+    if (index > -1) {
+      filterOptions.therapies.splice(index, 1);
+      console.log(`🎛️ [Store] Removed therapy filter: ${therapyType}`);
+    } else {
+      filterOptions.therapies.push(therapyType);
+      console.log(`🎛️ [Store] Added therapy filter: ${therapyType}`);
+    }
+  }
+
+  /**
+   * Toggle a diagnosis in the diagnoses filter array
+   */
+  function toggleDiagnosisType(diagnosisType: string) {
+    const index = filterOptions.diagnoses.indexOf(diagnosisType);
+    if (index > -1) {
+      filterOptions.diagnoses.splice(index, 1);
+      console.log(`🎛️ [Store] Removed diagnosis filter: ${diagnosisType}`);
+    } else {
+      filterOptions.diagnoses.push(diagnosisType);
+      console.log(`🎛️ [Store] Added diagnosis filter: ${diagnosisType}`);
     }
   }
 
@@ -268,6 +321,8 @@ export const useFilterStore = defineStore('filter', () => {
     resetUserData,
     toggleFilter,
     setFilter,
+    toggleTherapyType,
+    toggleDiagnosisType,
     updateUserData,
     setAvailableOptions,
     applyOnboardingFilters,
