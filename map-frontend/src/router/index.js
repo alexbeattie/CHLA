@@ -4,6 +4,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import MapView from '../views/MapView.vue'
 import FaqView from '../views/FaqView.vue'
 import AboutView from '../views/AboutView.vue'
+import RegionalCentersIndexView from '../views/RegionalCentersIndexView.vue'
+import RegionalCenterView from '../views/RegionalCenterView.vue'
 import ProviderManagement from '../components/ProviderManagement.vue'
 import Login from '../components/Login.vue'
 import OnboardingFlowTest from '../components/OnboardingFlowTest.vue'
@@ -25,6 +27,16 @@ const routes = [
     path: '/about',
     name: 'about',
     component: AboutView
+  },
+  {
+    path: '/regional-centers',
+    name: 'regional-centers-index',
+    component: RegionalCentersIndexView
+  },
+  {
+    path: '/regional-centers/:slug',
+    name: 'regional-center',
+    component: RegionalCenterView
   },
   {
     path: '/login',

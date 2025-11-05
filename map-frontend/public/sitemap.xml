@@ -28,5 +28,69 @@
     <priority>0.9</priority>
   </url>
   
+  <!-- Regional Centers Overview -->
+  <url>
+    <loc>https://kinddhelp.com/regional-centers</loc>
+    <lastmod>2025-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- San Gabriel/Pomona Regional Center -->
+  <url>
+    <loc>https://kinddhelp.com/regional-centers/san-gabriel-pomona</loc>
+    <lastmod>2025-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Harbor Regional Center -->
+  <url>
+    <loc>https://kinddhelp.com/regional-centers/harbor</loc>
+    <lastmod>2025-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- North LA County Regional Center -->
+  <url>
+    <loc>https://kinddhelp.com/regional-centers/north-la-county</loc>
+    <lastmod>2025-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Eastern LA Regional Center -->
+  <url>
+    <loc>https://kinddhelp.com/regional-centers/eastern-la</loc>
+    <lastmod>2025-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- South Central LA Regional Center -->
+  <url>
+    <loc>https://kinddhelp.com/regional-centers/south-central-la</loc>
+    <lastmod>2025-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Westside Regional Center -->
+  <url>
+    <loc>https://kinddhelp.com/regional-centers/westside</loc>
+    <lastmod>2025-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Frank D. Lanterman Regional Center -->
+  <url>
+    <loc>https://kinddhelp.com/regional-centers/lanterman</loc>
+    <lastmod>2025-11-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
 </urlset>
 
