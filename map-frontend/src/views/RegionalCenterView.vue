@@ -297,7 +297,10 @@ export default {
       try {
         loading.value = true;
         const response = await fetch(`${API_BASE_URL}/api/regional-centers/`);
-        const regionalCenters = await response.json();
+        const data = await response.json();
+        
+        // API returns paginated response with results array
+        const regionalCenters = data.results || data;
         
         // Find the matching regional center by name
         const matchingRC = regionalCenters.find(rc => 
