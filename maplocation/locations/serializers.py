@@ -332,6 +332,23 @@ class ProviderV2Serializer(serializers.ModelSerializer):
     def get_serving_regional_centers(self, obj):
         """Get regional centers serving this provider"""
         return []  # Temporarily simplified
+    
+    def to_representation(self, instance):
+        """
+        Override to add default values for NULL diagnoses_treated and age_groups.
+        This allows the interface to work while admin fills in real data.
+        """
+        data = super().to_representation(instance)
+        
+        # Default diagnoses_treated to ["Other"] if NULL or empty
+        if not data.get('diagnoses_treated'):
+            data['diagnoses_treated'] = ["Other"]
+        
+        # Default age_groups to ["All Ages"] if NULL or empty
+        if not data.get('age_groups'):
+            data['age_groups'] = ["All Ages"]
+        
+        return data
 
 
 # ProviderV2 write serializer
