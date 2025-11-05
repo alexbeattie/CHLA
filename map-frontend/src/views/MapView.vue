@@ -12,12 +12,50 @@
         </button>
 
         <div class="navbar-brand">
-          <span class="kindd-text-logo">KINDD</span>
+          <router-link to="/" class="kindd-text-logo-link">
+            <span class="kindd-text-logo">KINDD</span>
+          </router-link>
           <span class="brand-separator d-none d-md-inline">|</span>
           <span class="brand-subtitle d-none d-md-inline">ABA Provider Map</span>
         </div>
 
+        <nav class="navbar-links d-none d-md-flex">
+          <router-link to="/regional-centers" class="nav-link">
+            <i class="bi bi-building me-1"></i>
+            Regional Centers
+          </router-link>
+          <router-link to="/faq" class="nav-link">
+            <i class="bi bi-question-circle me-1"></i>
+            FAQ
+          </router-link>
+          <router-link to="/about" class="nav-link">
+            <i class="bi bi-info-circle me-1"></i>
+            About
+          </router-link>
+        </nav>
+
         <div class="navbar-actions">
+          <!-- Mobile Navigation Menu -->
+          <div class="mobile-nav-menu d-md-none">
+            <button class="btn-icon" @click="toggleMobileNav" :class="{ active: showMobileNav }">
+              <i class="bi bi-three-dots-vertical"></i>
+            </button>
+            <div v-if="showMobileNav" class="mobile-nav-dropdown">
+              <router-link to="/regional-centers" class="mobile-nav-item" @click="showMobileNav = false">
+                <i class="bi bi-building me-2"></i>
+                Regional Centers
+              </router-link>
+              <router-link to="/faq" class="mobile-nav-item" @click="showMobileNav = false">
+                <i class="bi bi-question-circle me-2"></i>
+                FAQ
+              </router-link>
+              <router-link to="/about" class="mobile-nav-item" @click="showMobileNav = false">
+                <i class="bi bi-info-circle me-2"></i>
+                About
+              </router-link>
+            </div>
+          </div>
+          
           <button class="btn-start-over" @click="handleStartOver" title="Start Over">
             <i class="bi bi-arrow-counterclockwise"></i>
             <span class="d-none d-md-inline">Start Over</span>
@@ -579,6 +617,7 @@ export default {
       showMobileSidebar: false,
       showMobileSearch: false,
       showUserMenu: false,
+      showMobileNav: false,
 
       // Directions panel state
       showDirections: false,
@@ -2286,6 +2325,16 @@ export default {
       // Close other mobile menus
       this.showMobileSidebar = false;
       this.showMobileSearch = false;
+      this.showMobileNav = false;
+    },
+    
+    // Toggle mobile navigation menu
+    toggleMobileNav() {
+      this.showMobileNav = !this.showMobileNav;
+      // Close other mobile menus
+      this.showMobileSidebar = false;
+      this.showMobileSearch = false;
+      this.showUserMenu = false;
     },
 
     // Perform search
