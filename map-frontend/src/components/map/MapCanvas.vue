@@ -501,6 +501,31 @@ export default {
       console.log('🗺️ MapCanvas: Cleaned up map and markers');
     });
 
+    /**
+     * Open popup for a specific provider (for mobile sidebar interaction)
+     */
+    const openProviderPopup = (providerId) => {
+      console.log(`🗺️ MapCanvas: Opening popup for provider ${providerId}`);
+      
+      // Find the marker for this provider
+      const marker = markers.value.find(m => m._providerId === providerId);
+      
+      if (marker) {
+        // Close all other popups first
+        markers.value.forEach(m => {
+          if (m !== marker && m.getPopup().isOpen()) {
+            m.getPopup().remove();
+          }
+        });
+        
+        // Open this marker's popup
+        marker.togglePopup();
+        console.log(`✅ MapCanvas: Opened popup for provider ${providerId}`);
+      } else {
+        console.warn(`⚠️ MapCanvas: Could not find marker for provider ${providerId}`);
+      }
+    };
+
     // Expose methods for parent component
     return {
       mapContainer,
@@ -509,7 +534,8 @@ export default {
       fitBounds,
       updateMarkers,
       updateUserLocation,
-      updateDirections
+      updateDirections,
+      openProviderPopup
     };
   }
 };

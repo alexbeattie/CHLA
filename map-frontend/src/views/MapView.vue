@@ -22,9 +22,6 @@
             <i class="bi bi-arrow-counterclockwise"></i>
             <span class="d-none d-md-inline">Start Over</span>
           </button>
-          <button class="btn-icon d-md-none" @click="toggleSearch">
-            <i class="bi bi-search"></i>
-          </button>
           <button class="btn-icon" @click="toggleUserMenu" v-if="isAuthenticated">
             <i class="bi bi-person-circle"></i>
           </button>
@@ -420,6 +417,7 @@
     <div class="map-container-wrapper" :class="{ 'with-search': showMobileSearch }" @click="handleMapClick">
       <!-- Map Canvas -->
       <map-canvas
+        ref="mapCanvas"
         :mapbox-token="mapboxAccessToken"
         :center="LA_COUNTY_CENTER"
         :zoom="10.5"
@@ -1184,15 +1182,37 @@ export default {
 
     /**
      * Handle provider selection from ProviderList
+     * @param {string} providerId - The provider ID
+     * @param {boolean} fromMarker - Whether this was triggered by a marker click (popup already open)
      */
-    handleProviderSelect(providerId) {
-      console.log("[MapView] Provider selected", providerId);
+    handleProviderSelect(providerId, fromMarker = false) {
+      console.log("[MapView] Provider selected", providerId, fromMarker ? "(from marker)" : "(from sidebar)");
 
       // Update provider store selection
       this.providerStore.selectProvider(providerId);
 
       // Ensure selected provider is visible in paginated list
       this.ensureProviderInPaginatedList(providerId);
+
+      // On mobile: hide sidebar and show marker popup (only if not from marker click)
+      const isMobile = window.innerWidth < 768;
+      if (isMobile && this.showMobileSidebar) {
+        console.log("[MapView] Mobile: Closing sidebar to show map");
+        this.showMobileSidebar = false;
+        
+        // Only open popup if this wasn't triggered by a marker click
+        // (marker clicks already open the popup in MapCanvas)
+        if (!fromMarker) {
+          // Wait a bit for sidebar to close, then open popup
+          this.$nextTick(() => {
+            setTimeout(() => {
+              if (this.$refs.mapCanvas) {
+                this.$refs.mapCanvas.openProviderPopup(providerId);
+              }
+            }, 300); // Wait for sidebar animation
+          });
+        }
+      }
 
       // Center map on selected provider with smooth animation
       const provider = this.providerStore.providers.find(p => p.id === providerId);
@@ -1264,7 +1284,15 @@ export default {
      */
     handleMarkerClick(provider) {
       console.log("[MapView] Marker clicked", provider.id);
-      this.handleProviderSelect(provider.id);
+      
+      // On mobile, close sidebar to reveal map and popup
+      const isMobile = window.innerWidth < 768;
+      if (isMobile && this.showMobileSidebar) {
+        this.showMobileSidebar = false;
+      }
+      
+      // Pass true for fromMarker to avoid re-opening popup (already open from MapCanvas)
+      this.handleProviderSelect(provider.id, true);
     },
 
     /**
