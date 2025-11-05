@@ -65,28 +65,58 @@ export function generateProviderPDF(providers, searchInfo = {}) {
   
   // Provider table
   const tableData = providers.map((provider, index) => {
-    // Format address
-    let address = provider.address || 'Address not available';
-    if (address.length > 60) {
-      address = address.substring(0, 57) + '...';
+    // Format address - handle JSON format
+    let address = 'Address not available';
+    if (provider.address) {
+      // Check if address is JSON string
+      if (provider.address.startsWith('{') || provider.address.startsWith('[')) {
+        try {
+          const addressObj = JSON.parse(provider.address);
+          // Build address from JSON parts
+          const parts = [];
+          if (addressObj.street) parts.push(addressObj.street);
+          if (addressObj.city) parts.push(addressObj.city);
+          if (addressObj.state) parts.push(addressObj.state);
+          if (addressObj.zip) parts.push(addressObj.zip);
+          address = parts.join(', ');
+        } catch (e) {
+          // If JSON parse fails, use as-is
+          address = provider.address;
+        }
+      } else {
+        address = provider.address;
+      }
+      
+      // Truncate if too long
+      if (address.length > 45) {
+        address = address.substring(0, 42) + '...';
+      }
     }
     
     // Format phone
     const phone = provider.phone || 'N/A';
+    
+    // Format website - extract domain
+    let website = 'N/A';
+    if (provider.website) {
+      try {
+        const url = new URL(provider.website.startsWith('http') ? provider.website : `https://${provider.website}`);
+        website = url.hostname.replace('www.', '');
+        if (website.length > 20) {
+          website = website.substring(0, 17) + '...';
+        }
+      } catch (e) {
+        website = provider.website.substring(0, 20);
+      }
+    }
     
     // Format therapies
     let therapies = 'N/A';
     if (provider.therapy_types && provider.therapy_types.length > 0) {
       therapies = provider.therapy_types.slice(0, 2).join(', ');
       if (provider.therapy_types.length > 2) {
-        therapies += ` +${provider.therapy_types.length - 2} more`;
+        therapies += ` +${provider.therapy_types.length - 2}`;
       }
-    }
-    
-    // Format distance
-    let distance = '';
-    if (provider.distance !== null && provider.distance !== undefined) {
-      distance = `${provider.distance.toFixed(1)} mi`;
     }
     
     return [
@@ -94,14 +124,14 @@ export function generateProviderPDF(providers, searchInfo = {}) {
       provider.name || 'Unknown',
       address,
       phone,
-      therapies,
-      distance
+      website,
+      therapies
     ];
   });
   
   autoTable(doc, {
     startY: yPos,
-    head: [['#', 'Provider Name', 'Address', 'Phone', 'Services', 'Distance']],
+    head: [['#', 'Provider Name', 'Address', 'Phone', 'Website', 'Services']],
     body: tableData,
     styles: {
       fontSize: 8,
@@ -117,11 +147,11 @@ export function generateProviderPDF(providers, searchInfo = {}) {
     },
     columnStyles: {
       0: { cellWidth: 10 },  // #
-      1: { cellWidth: 45 },  // Name
-      2: { cellWidth: 50 },  // Address
-      3: { cellWidth: 25 },  // Phone
-      4: { cellWidth: 35 },  // Services
-      5: { cellWidth: 15 },  // Distance
+      1: { cellWidth: 40 },  // Name
+      2: { cellWidth: 45 },  // Address
+      3: { cellWidth: 22 },  // Phone
+      4: { cellWidth: 28 },  // Website
+      5: { cellWidth: 35 },  // Services
     },
     margin: { left: 10, right: 10 },
   });
