@@ -40,11 +40,11 @@
               type="text" 
               v-model="zipCode" 
               placeholder="Enter ZIP code (e.g., 91789)"
-              @keyup.enter="searchProviders"
+              @keyup.enter="searchByZip"
               maxlength="5"
               class="zip-input"
             />
-            <button @click="searchProviders" class="btn btn-primary">
+            <button @click="searchByZip" class="btn btn-primary">
               <i class="bi bi-search me-2"></i>
               Search Providers
             </button>
@@ -220,11 +220,11 @@
         <!-- CTA Section -->
         <div class="cta-section">
           <h2>Find ABA Therapy Providers in {{ rcData.shortName }}</h2>
-          <p>Search our interactive map to find providers near you that accept {{ rcData.shortName }} funding.</p>
+          <p>View all providers on our interactive map that serve {{ rcData.shortName }} areas.</p>
           <div class="cta-buttons">
             <button @click="searchProviders" class="btn btn-primary btn-lg">
               <i class="bi bi-map me-2"></i>
-              View {{ rcData.shortName }} Providers
+              View All {{ rcData.shortName }} Providers
             </button>
             <router-link to="/faq" class="btn btn-outline-light btn-lg">
               <i class="bi bi-question-circle me-2"></i>
@@ -319,13 +319,25 @@ export default {
     });
     
     const searchProviders = () => {
-      // Navigate to map with search text
-      // Use ZIP code if provided, otherwise use regional center name for API query
-      const searchQuery = zipCode.value || rcData.value.name;
+      // Navigate to map and show all providers for this regional center
+      // Use regional center name for API query to show all relevant providers
       router.push({
         path: '/',
-        query: { q: searchQuery }
+        query: { 
+          q: rcData.value.name,  // Search by regional center name
+          regionalCenter: rcData.value.name  // Explicit regional center filter
+        }
       });
+    };
+    
+    const searchByZip = () => {
+      // Navigate to map with specific ZIP code search
+      if (zipCode.value && zipCode.value.length === 5) {
+        router.push({
+          path: '/',
+          query: { q: zipCode.value }
+        });
+      }
     };
     
     const fetchActualData = async () => {
@@ -404,6 +416,7 @@ export default {
       otherRegionalCenters,
       zipCode,
       searchProviders,
+      searchByZip,
       loading,
       displayedCities,
       displayedZips,
