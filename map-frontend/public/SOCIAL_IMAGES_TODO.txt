@@ -1,0 +1,23 @@
+
+SOCIAL MEDIA IMAGES NEEDED
+===========================
+
+Required Files:
+1. og-image.jpg (1200x630px) - Facebook, LinkedIn sharing
+2. twitter-card.jpg (1200x675px) - Twitter sharing
+
+Quick Download (2 minutes):
+1. Open: https://placehold.co/1200x630/004877/FFFFFF?text=KINDD%0AFind+ABA+Therapy+Providers+in+Los+Angeles%0APowered+by+Children's+Hospital+LA&font=raleway
+2. Right-click > Save Image As > og-image.jpg
+3. Open: https://placehold.co/1200x675/004877/FFFFFF?text=KINDD%0AFind+ABA+Therapy+in+LA+County%0AFree+Interactive+Map&font=raleway  
+4. Right-click > Save Image As > twitter-card.jpg
+5. Move both files to: map-frontend/public/
+
+Better Version (30 minutes):
+Use Canva.com to create professional images
+See: docs/SOCIAL_IMAGES_GUIDE.md
+
+Current Status: Using SVG placeholder (og-image.svg)
+Note: Some social platforms require JPG/PNG, not SVG
+
+Last Updated: 2025-11-05T06:25:51.611Z
