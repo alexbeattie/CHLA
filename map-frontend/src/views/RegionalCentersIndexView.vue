@@ -24,10 +24,15 @@
               @keyup.enter="findRegionalCenter"
               maxlength="5"
               class="zip-input"
+              :disabled="detectingLocation"
             />
-            <button @click="findRegionalCenter" class="btn btn-primary">
+            <button @click="findRegionalCenter" class="btn btn-primary" :disabled="loading || detectingLocation">
               <i class="bi bi-search me-2"></i>
               Find My RC
+            </button>
+            <button @click="useMyLocation" class="btn btn-outline-primary" :disabled="loading || detectingLocation">
+              <i :class="detectingLocation ? 'bi bi-arrow-clockwise spin' : 'bi bi-geo-alt-fill'" class="me-2"></i>
+              {{ detectingLocation ? 'Detecting...' : 'Use My Location' }}
             </button>
           </div>
           <div v-if="foundRC" class="found-result">
@@ -201,6 +206,7 @@ export default {
     const foundRC = ref(null);
     const notFound = ref(false);
     const loading = ref(false);
+    const detectingLocation = ref(false);
     
     const regionalCenters = computed(() => getAllRegionalCenters());
     
@@ -250,13 +256,72 @@ export default {
       }
     };
     
+    const useMyLocation = async () => {
+      foundRC.value = null;
+      notFound.value = false;
+      detectingLocation.value = true;
+      
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser');
+        detectingLocation.value = false;
+        return;
+      }
+      
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            console.log(`📍 Location detected: ${latitude}, ${longitude}`);
+            
+            // Reverse geocode to get ZIP code using Mapbox
+            const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiY200ZHcwaTc0MDJjcjJscTE3emxhM2xvZCJ9.VnoxlGaFkGT7qKSgJLU_mQ';
+            const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&types=postcode`;
+            
+            const response = await fetch(geocodeUrl);
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+              const zip = data.features[0].text;
+              console.log(`✅ ZIP code detected: ${zip}`);
+              zipCode.value = zip;
+              
+              // Automatically find the regional center
+              await findRegionalCenter();
+            } else {
+              alert('Could not determine your ZIP code. Please enter it manually.');
+              notFound.value = true;
+            }
+          } catch (error) {
+            console.error('Error reverse geocoding:', error);
+            alert('Error detecting your location. Please enter your ZIP code manually.');
+            notFound.value = true;
+          } finally {
+            detectingLocation.value = false;
+          }
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          alert('Unable to detect your location. Please enter your ZIP code manually.');
+          detectingLocation.value = false;
+          notFound.value = true;
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    };
+    
     return {
       zipCode,
       foundRC,
       notFound,
       loading,
+      detectingLocation,
       regionalCenters,
-      findRegionalCenter
+      findRegionalCenter,
+      useMyLocation
     };
   }
 };
@@ -317,9 +382,16 @@ export default {
 .zip-finder {
   display: flex;
   gap: 1rem;
-  max-width: 500px;
+  max-width: 700px;
   margin: 0 auto;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .zip-finder {
+    flex-direction: column;
+  }
 }
 
 .zip-input {
@@ -334,6 +406,24 @@ export default {
 .zip-input:focus {
   outline: none;
   border-color: #004877;
+}
+
+.zip-input:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .found-result, .not-found-result {
