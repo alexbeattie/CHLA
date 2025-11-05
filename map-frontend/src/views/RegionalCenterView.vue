@@ -98,17 +98,29 @@
           <h2>Cities & Communities Served</h2>
           <p>{{ rcData.name }} serves the following areas in Los Angeles County:</p>
           <div class="cities-grid">
-            <div v-for="city in rcData.cities" :key="city" class="city-chip">
+            <div v-for="city in displayedCities" :key="city" class="city-chip">
               <i class="bi bi-geo-alt"></i>
               <span>{{ city }}</span>
             </div>
+          </div>
+          <div v-if="rcData.cities.length > 15" class="text-center mt-3">
+            <button @click="toggleCities" class="btn btn-outline-secondary btn-sm">
+              <i :class="showAllCities ? 'bi bi-chevron-up' : 'bi bi-chevron-down'" class="me-1"></i>
+              {{ showAllCities ? 'Show Less' : `Show All ${rcData.cities.length} Cities` }}
+            </button>
           </div>
           
           <div class="zip-section">
             <h3>ZIP Codes in {{ rcData.shortName }}</h3>
             <p class="text-muted">The following ZIP codes are served by {{ rcData.name }}:</p>
             <div class="zip-codes">
-              <span v-for="zip in rcData.zipCodes" :key="zip" class="zip-badge">{{ zip }}</span>
+              <span v-for="zip in displayedZips" :key="zip" class="zip-badge">{{ zip }}</span>
+            </div>
+            <div v-if="rcData.zipCodes.length > 30" class="text-center mt-3">
+              <button @click="toggleZips" class="btn btn-outline-secondary btn-sm">
+                <i :class="showAllZips ? 'bi bi-chevron-up' : 'bi bi-chevron-down'" class="me-1"></i>
+                {{ showAllZips ? 'Show Less' : `Show All ${rcData.zipCodes.length} ZIP Codes` }}
+              </button>
             </div>
           </div>
         </div>
@@ -261,6 +273,8 @@ export default {
     const actualZipCodes = ref([]);
     const actualCities = ref([]);
     const loading = ref(true);
+    const showAllCities = ref(false);
+    const showAllZips = ref(false);
     
     const rcSlug = computed(() => route.params.slug);
     const rcData = computed(() => {
@@ -272,6 +286,27 @@ export default {
         cities: actualCities.value.length > 0 ? actualCities.value : baseData.cities || []
       };
     });
+    
+    // Display limited items initially (approximately 3 rows)
+    const displayedCities = computed(() => {
+      const cities = rcData.value.cities || [];
+      if (showAllCities.value || cities.length <= 15) return cities;
+      return cities.slice(0, 15); // Show first 15 (approx 3 rows)
+    });
+    
+    const displayedZips = computed(() => {
+      const zips = rcData.value.zipCodes || [];
+      if (showAllZips.value || zips.length <= 30) return zips;
+      return zips.slice(0, 30); // Show first 30 (approx 3 rows)
+    });
+    
+    const toggleCities = () => {
+      showAllCities.value = !showAllCities.value;
+    };
+    
+    const toggleZips = () => {
+      showAllZips.value = !showAllZips.value;
+    };
     
     const otherRegionalCenters = computed(() => {
       return Object.values(REGIONAL_CENTERS)
@@ -345,7 +380,13 @@ export default {
       otherRegionalCenters,
       zipCode,
       searchProviders,
-      loading
+      loading,
+      displayedCities,
+      displayedZips,
+      showAllCities,
+      showAllZips,
+      toggleCities,
+      toggleZips
     };
   }
 };
