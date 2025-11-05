@@ -83,6 +83,36 @@ BASIC_AUTH_USERNAME=clientaccess
 BASIC_AUTH_PASSWORD=changeme123!
 ```
 
+### 🎨 Frontend Environment Variables (Vue/Vite)
+```bash
+# API Configuration
+VITE_API_BASE_URL=https://api.kinddhelp.com/api  # Production
+# VITE_API_BASE_URL=http://localhost:8000/api   # Local Development
+
+# Mapbox API (for map rendering)
+VITE_MAPBOX_TOKEN=your_mapbox_public_token_here
+
+# Google Analytics 4 (Optional - SEO tracking)
+VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX  # Get from analytics.google.com
+
+# Environment
+VITE_APP_ENV=production  # or 'development'
+```
+
+**Frontend .env Files:**
+- `.env.local` - Local development (not committed to git)
+- `.env.production` - Production (not committed to git)
+- `.env.example` - Template with placeholder values (committed to git)
+
+**Switch Environment:**
+```bash
+cd map-frontend
+./switch-env.sh dev   # Use local backend
+./switch-env.sh prod  # Use production backend
+```
+
+**Note:** All VITE_ variables are exposed to the client-side code. Never put secrets here!
+
 ---
 
 ## Django Admin Users
