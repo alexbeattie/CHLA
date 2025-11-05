@@ -2,8 +2,8 @@
  * PDF Generator for Provider Search Results
  * Generates a formatted PDF document with provider information
  */
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 /**
  * Generate a PDF of provider search results
@@ -99,7 +99,7 @@ export function generateProviderPDF(providers, searchInfo = {}) {
     ];
   });
   
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPos,
     head: [['#', 'Provider Name', 'Address', 'Phone', 'Services', 'Distance']],
     body: tableData,
