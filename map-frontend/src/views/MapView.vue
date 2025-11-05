@@ -915,7 +915,7 @@ export default {
     console.log("[MapView] Stores and composables initialized");
 
     // Initialize available filter options (therapy types, diagnoses, etc.)
-    // IMPORTANT: These MUST match ProviderV2.THERAPY_TYPE_CHOICES in models.py
+    // IMPORTANT: These MUST match ProviderV2 choices in models.py
     this.filterStore.setAvailableOptions({
       therapyTypes: [
         'ABA therapy',
@@ -935,6 +935,35 @@ export default {
         'Down Syndrome',
         'Cerebral Palsy',
         'Other'
+      ],
+      insuranceTypes: [
+        'Medi-Cal',
+        'Regional Center',
+        'Blue Cross',
+        'Blue Shield',
+        'Anthem',
+        'Aetna',
+        'Cigna',
+        'Kaiser Permanente',
+        'United Healthcare',
+        'Health Net',
+        'L.A. Care',
+        'CalOptima',
+        'Molina',
+        'Magellan',
+        'Medicaid',
+        'Medicare',
+        'Beacon',
+        'MHN',
+        'Optum',
+        'Humana',
+        'Tricare',
+        'Inland Empire Health Plan',
+        'The Holman Group',
+        'United Behavioral Health',
+        'Covered California',
+        'Self-determination programs',
+        'Kaiser/Easterseal'
       ]
     });
     console.log("[MapView] Available filter options initialized");

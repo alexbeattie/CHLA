@@ -31,7 +31,8 @@ export interface SearchParams {
   lat?: number;
   lng?: number;
   radius?: number;
-  insurance?: string;
+  insurance?: string;  // Single insurance (legacy from onboarding)
+  insuranceTypes?: string[];  // Multiple insurance types (multi-select: Medi-Cal, Blue Cross, etc.)
   therapy?: string;  // Single therapy (legacy from onboarding)
   therapies?: string[];  // Multiple therapies (multi-select filter)
   age?: string;
@@ -123,8 +124,16 @@ export const useProviderStore = defineStore('provider', () => {
       }
 
       // Add common filters
+      // Handle single insurance (from onboarding legacy)
       if (params.insurance) {
         queryParams.append('insurance', params.insurance);
+      }
+
+      // Handle multiple insurance types (from multi-select filter)
+      if (params.insuranceTypes && Array.isArray(params.insuranceTypes)) {
+        params.insuranceTypes.forEach((insuranceType: string) => {
+          queryParams.append('insurance', insuranceType);
+        });
       }
 
       // Handle single therapy (from onboarding legacy)

@@ -25,6 +25,39 @@ export const THERAPY_OPTIONS = [
   "Parent child interaction therapy/parent training behavior management",
 ];
 
+// IMPORTANT: Must match ProviderV2.INSURANCE_CHOICES in models.py
+// Ordered by most common for developmental services in LA County
+export const INSURANCE_OPTIONS = [
+  "Medi-Cal",
+  "Regional Center",
+  "Blue Cross",
+  "Blue Shield",
+  "Anthem",
+  "Aetna",
+  "Cigna",
+  "Kaiser Permanente",
+  "United Healthcare",
+  "Health Net",
+  "L.A. Care",
+  "CalOptima",
+  "Molina",
+  "Magellan",
+  "Medicaid",
+  "Medicare",
+  "Beacon",
+  "MHN",
+  "Optum",
+  "Humana",
+  "Tricare",
+  "Inland Empire Health Plan",
+  "The Holman Group",
+  "United Behavioral Health",
+  "Covered California",
+  "Self-determination programs",
+  "Kaiser/Easterseal",
+  // Note: "Private Pay" and "None" excluded - all providers accept private pay
+];
+
 export const LA_COUNTY_CENTER = {
   lat: 34.0522,
   lng: -118.2437,

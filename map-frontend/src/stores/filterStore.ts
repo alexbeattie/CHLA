@@ -8,14 +8,15 @@ import { defineStore } from 'pinia';
 import { ref, computed, reactive } from 'vue';
 
 export interface FilterOptions {
-  acceptsInsurance: boolean;
-  acceptsPrivatePay: boolean;
+  acceptsInsurance: boolean;  // Legacy: generic "has insurance" toggle
+  acceptsPrivatePay: boolean;  // DEPRECATED: Will be removed (all providers accept)
   matchesAge: boolean;
   matchesDiagnosis: boolean;
   matchesTherapy: boolean;
   showOnlyFavorites: boolean;
-  therapies: string[];  // Added: Array of selected therapy types
-  diagnoses: string[];  // Added: Array of selected diagnoses
+  therapies: string[];  // Multi-select therapy types
+  diagnoses: string[];  // Multi-select diagnoses
+  insuranceTypes: string[];  // NEW: Multi-select specific insurance types (Medi-Cal, Blue Cross, etc.)
 }
 
 export interface UserData {
@@ -38,7 +39,8 @@ export const useFilterStore = defineStore('filter', () => {
     matchesTherapy: false,
     showOnlyFavorites: false,
     therapies: [],
-    diagnoses: []
+    diagnoses: [],
+    insuranceTypes: []
   });
 
   // User onboarding data
@@ -53,7 +55,7 @@ export const useFilterStore = defineStore('filter', () => {
   const availableTherapyTypes = ref<string[]>([]);
   const availableAgeGroups = ref<string[]>([]);
   const availableDiagnoses = ref<string[]>([]);
-  const availableInsuranceTypes = ref<string[]>([]);
+  const availableInsuranceTypes = ref<string[]>([]);  // Updated: Now populated from INSURANCE_OPTIONS
 
   // ==================== GETTERS ====================
 
@@ -66,7 +68,8 @@ export const useFilterStore = defineStore('filter', () => {
       filterOptions.matchesTherapy ||
       filterOptions.showOnlyFavorites ||
       (filterOptions.therapies && filterOptions.therapies.length > 0) ||
-      (filterOptions.diagnoses && filterOptions.diagnoses.length > 0)
+      (filterOptions.diagnoses && filterOptions.diagnoses.length > 0) ||
+      (filterOptions.insuranceTypes && filterOptions.insuranceTypes.length > 0)
     );
   });
 
@@ -82,6 +85,8 @@ export const useFilterStore = defineStore('filter', () => {
     if (filterOptions.therapies) count += filterOptions.therapies.length;
     // Add count for each diagnosis selected
     if (filterOptions.diagnoses) count += filterOptions.diagnoses.length;
+    // Add count for each insurance type selected
+    if (filterOptions.insuranceTypes) count += filterOptions.insuranceTypes.length;
     return count;
   });
 
@@ -131,6 +136,11 @@ export const useFilterStore = defineStore('filter', () => {
       params.diagnoses = filterOptions.diagnoses;
     }
 
+    // NEW: Multi-select insurance types filter
+    if (filterOptions.insuranceTypes && filterOptions.insuranceTypes.length > 0) {
+      params.insuranceTypes = filterOptions.insuranceTypes;
+    }
+
     return params;
   });
 
@@ -156,6 +166,7 @@ export const useFilterStore = defineStore('filter', () => {
     filterOptions.showOnlyFavorites = false;
     filterOptions.therapies = [];
     filterOptions.diagnoses = [];
+    filterOptions.insuranceTypes = [];
     console.log('🧹 [Store] Reset all filters');
   }
 
@@ -225,6 +236,20 @@ export const useFilterStore = defineStore('filter', () => {
     } else {
       filterOptions.diagnoses.push(diagnosisType);
       console.log(`🎛️ [Store] Added diagnosis filter: ${diagnosisType}`);
+    }
+  }
+
+  /**
+   * Toggle an insurance type in the insuranceTypes filter array
+   */
+  function toggleInsuranceType(insuranceType: string) {
+    const index = filterOptions.insuranceTypes.indexOf(insuranceType);
+    if (index > -1) {
+      filterOptions.insuranceTypes.splice(index, 1);
+      console.log(`🎛️ [Store] Removed insurance filter: ${insuranceType}`);
+    } else {
+      filterOptions.insuranceTypes.push(insuranceType);
+      console.log(`🎛️ [Store] Added insurance filter: ${insuranceType}`);
     }
   }
 
@@ -323,6 +348,7 @@ export const useFilterStore = defineStore('filter', () => {
     setFilter,
     toggleTherapyType,
     toggleDiagnosisType,
+    toggleInsuranceType,
     updateUserData,
     setAvailableOptions,
     applyOnboardingFilters,
