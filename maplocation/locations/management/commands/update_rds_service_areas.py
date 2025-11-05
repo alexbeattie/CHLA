@@ -105,7 +105,7 @@ class Command(BaseCommand):
                     # Update the regional center
                     cursor.execute(
                         """
-                        UPDATE locations_regionalcenter
+                        UPDATE regional_centers
                         SET zip_codes = %s, service_areas = %s
                         WHERE regional_center = %s
                         """,
