@@ -722,33 +722,33 @@ export default {
           const providerParams = new URLSearchParams();
           providerParams.append('zip_code', searchZip);
 
+          // TEMPORARY: Disable filters to show all providers until backend supports age/diagnosis
           // Apply user's filters to make their selections meaningful
-          if (this.userProfile.age) {
-            providerParams.append('age', this.userProfile.age);
-          }
+          // if (this.userProfile.age) {
+          //   providerParams.append('age', this.userProfile.age);
+          // }
 
-          if (this.userProfile.diagnosis) {
-            providerParams.append('diagnosis', this.userProfile.diagnosis);
-          }
+          // if (this.userProfile.diagnosis) {
+          //   providerParams.append('diagnosis', this.userProfile.diagnosis);
+          // }
 
+          // Only apply therapy filters (these work in backend)
           if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
             this.userProfile.therapies.forEach(therapy => {
               providerParams.append('therapy', therapy);
             });
           }
 
-          if (this.userProfile.hasInsurance) {
-            providerParams.append('insurance', 'insurance');
-          }
+          // if (this.userProfile.hasInsurance) {
+          //   providerParams.append('insurance', 'insurance');
+          // }
 
           const filteredUrl = `${apiBaseUrl}/api/providers-v2/by_regional_center/?${providerParams.toString()}`;
-          console.log('✅ Filtered provider API URL:', filteredUrl);
-          console.log('Applied filters:', {
+          console.log('✅ Provider search URL (showing all providers in area):', filteredUrl);
+          console.log('Location-based search (age/diagnosis filters temporarily disabled):', {
             zip_code: searchZip,
-            age: this.userProfile.age,
-            diagnosis: this.userProfile.diagnosis,
             therapies: this.userProfile.therapies,
-            hasInsurance: this.userProfile.hasInsurance
+            note: 'Age and diagnosis filters disabled until backend support is added'
           });
 
           try {
@@ -790,35 +790,35 @@ export default {
           providerParams.append('lng', this.userCoordinates.longitude.toString());
           providerParams.append('radius', '50'); // 50-mile radius for edge cases
 
+          // TEMPORARY: Disable filters to show all providers until backend supports age/diagnosis
           // Apply user's filters
-          if (this.userProfile.age) {
-            providerParams.append('age', this.userProfile.age);
-          }
+          // if (this.userProfile.age) {
+          //   providerParams.append('age', this.userProfile.age);
+          // }
 
-          if (this.userProfile.diagnosis) {
-            providerParams.append('diagnosis', this.userProfile.diagnosis);
-          }
+          // if (this.userProfile.diagnosis) {
+          //   providerParams.append('diagnosis', this.userProfile.diagnosis);
+          // }
 
+          // Only apply therapy filters (these work in backend)
           if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
             this.userProfile.therapies.forEach(therapy => {
               providerParams.append('therapy', therapy);
             });
           }
 
-          if (this.userProfile.hasInsurance) {
-            providerParams.append('insurance', 'insurance');
-          }
+          // if (this.userProfile.hasInsurance) {
+          //   providerParams.append('insurance', 'insurance');
+          // }
 
           const coordUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${providerParams.toString()}`;
-          console.log('✅ Coordinate-based search URL:', coordUrl);
-          console.log('Applied filters to coordinate search:', {
+          console.log('✅ Coordinate-based search URL (showing all providers in area):', coordUrl);
+          console.log('Coordinate search (age/diagnosis filters temporarily disabled):', {
             lat: this.userCoordinates.latitude,
             lng: this.userCoordinates.longitude,
             radius: 50,
-            age: this.userProfile.age,
-            diagnosis: this.userProfile.diagnosis,
             therapies: this.userProfile.therapies,
-            hasInsurance: this.userProfile.hasInsurance
+            note: 'Age and diagnosis filters disabled until backend support is added'
           });
 
           try {
