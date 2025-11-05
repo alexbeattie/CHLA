@@ -121,10 +121,7 @@
                 <option value="Global Development Delay">Global Development Delay</option>
                 <option value="Intellectual Disability">Intellectual Disability</option>
                 <option value="Speech and Language Disorder">Speech and Language Disorder</option>
-                <option value="ADHD">ADHD</option>
                 <option value="Sensory Processing Disorder">Sensory Processing Disorder</option>
-                <option value="Down Syndrome">Down Syndrome</option>
-                <option value="Cerebral Palsy">Cerebral Palsy</option>
                 <option value="Other">Other</option>
               </select>
             </div>

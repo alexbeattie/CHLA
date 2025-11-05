@@ -3,15 +3,13 @@
  */
 
 // IMPORTANT: Must match ProviderV2.DIAGNOSIS_CHOICES in models.py
+// Note: Removed ADHD, Down Syndrome, Cerebral Palsy per user request
 export const DIAGNOSIS_OPTIONS = [
   "Autism Spectrum Disorder",
   "Global Development Delay",
   "Intellectual Disability",
   "Speech and Language Disorder",
-  "ADHD",
   "Sensory Processing Disorder",
-  "Down Syndrome",
-  "Cerebral Palsy",
   "Other",
 ];
 
