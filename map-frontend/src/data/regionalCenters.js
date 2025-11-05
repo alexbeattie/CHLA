@@ -276,10 +276,13 @@ export const getRegionalCenterBySlug = (slug) => {
   return REGIONAL_CENTERS[slug];
 };
 
-export const getRegionalCenterByZip = (zipCode) => {
-  const rc = Object.values(REGIONAL_CENTERS).find(rc => 
-    rc.zipCodes.includes(zipCode)
-  );
-  return rc || null;
-};
+// DEPRECATED: Use API query instead
+// GET /api/regional-centers/by_zip_code/?zip_code={zip}
+// This function uses hardcoded ZIP codes which may be out of date
+// export const getRegionalCenterByZip = (zipCode) => {
+//   const rc = Object.values(REGIONAL_CENTERS).find(rc => 
+//     rc.zipCodes.includes(zipCode)
+//   );
+//   return rc || null;
+// };
 

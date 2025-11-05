@@ -189,7 +189,9 @@
 
 <script>
 import { ref, computed } from 'vue';
-import { getAllRegionalCenters, getRegionalCenterByZip } from '@/data/regionalCenters';
+import { getAllRegionalCenters } from '@/data/regionalCenters';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.kinddhelp.com';
 
 export default {
   name: 'RegionalCentersIndexView',
@@ -198,23 +200,53 @@ export default {
     const zipCode = ref('');
     const foundRC = ref(null);
     const notFound = ref(false);
+    const loading = ref(false);
     
     const regionalCenters = computed(() => getAllRegionalCenters());
     
-    const findRegionalCenter = () => {
+    const findRegionalCenter = async () => {
       foundRC.value = null;
       notFound.value = false;
+      loading.value = true;
       
       if (!zipCode.value || zipCode.value.length !== 5) {
         notFound.value = true;
+        loading.value = false;
         return;
       }
       
-      const rc = getRegionalCenterByZip(zipCode.value);
-      if (rc) {
-        foundRC.value = rc;
-      } else {
+      try {
+        // Query API for the regional center by ZIP code
+        const response = await fetch(`${API_BASE_URL}/api/regional-centers/by_zip_code/?zip_code=${zipCode.value}`);
+        
+        if (response.ok) {
+          const rcData = await response.json();
+          console.log(`✅ API returned RC for ZIP ${zipCode.value}:`, rcData.regional_center);
+          
+          // Find matching RC in our local data for display
+          const localRC = getAllRegionalCenters().find(rc => 
+            rc.name === rcData.regional_center
+          );
+          
+          if (localRC) {
+            foundRC.value = localRC;
+          } else {
+            // If not found in local data, create a basic object
+            foundRC.value = {
+              name: rcData.regional_center,
+              shortName: rcData.regional_center,
+              slug: rcData.regional_center.toLowerCase().replace(/\s+/g, '-')
+            };
+          }
+        } else {
+          console.warn(`⚠️ No RC found for ZIP ${zipCode.value}`);
+          notFound.value = true;
+        }
+      } catch (error) {
+        console.error('Error finding regional center:', error);
         notFound.value = true;
+      } finally {
+        loading.value = false;
       }
     };
     
@@ -222,6 +254,7 @@ export default {
       zipCode,
       foundRC,
       notFound,
+      loading,
       regionalCenters,
       findRegionalCenter
     };
