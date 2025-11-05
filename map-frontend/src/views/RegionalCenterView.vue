@@ -26,6 +26,14 @@
             <span>{{ rcData.population }} Residents</span>
           </div>
         </div>
+        
+        <!-- Hero CTA Button -->
+        <div class="hero-cta">
+          <button @click="searchProviders" class="btn btn-primary btn-lg btn-hero">
+            <i class="bi bi-map me-2"></i>
+            View All {{ rcData.shortName }} Providers
+          </button>
+        </div>
       </div>
     </section>
 
@@ -89,6 +97,23 @@
                   <span>{{ highlight }}</span>
                 </li>
               </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick CTA After About Section -->
+        <div class="content-block cta-inline">
+          <div class="cta-card">
+            <div class="cta-icon">
+              <i class="bi bi-map"></i>
+            </div>
+            <div class="cta-content">
+              <h3>Ready to Find Providers?</h3>
+              <p>View all ABA therapy providers serving {{ rcData.shortName }} areas on our interactive map.</p>
+              <button @click="searchProviders" class="btn btn-primary">
+                <i class="bi bi-map me-2"></i>
+                View All {{ rcData.shortName }} Providers
+              </button>
             </div>
           </div>
         </div>
@@ -528,6 +553,31 @@ export default {
   opacity: 0.9;
 }
 
+/* Hero CTA Button */
+.hero-cta {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.btn-hero {
+  background-color: #FFC923 !important;
+  border-color: #FFC923 !important;
+  color: #004877 !important;
+  font-weight: 600;
+  padding: 1rem 2.5rem;
+  font-size: 1.15rem;
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(255, 201, 35, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-hero:hover {
+  background-color: #ffb700 !important;
+  border-color: #ffb700 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 201, 35, 0.4);
+}
+
 /* Quick Search */
 .quick-search-section {
   margin-top: -2rem;
@@ -844,6 +894,70 @@ export default {
 }
 
 /* CTA Section */
+/* Inline CTA Card */
+.cta-inline {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #0D9DDB;
+  border-radius: 12px;
+  padding: 0;
+  margin: 2rem 0;
+}
+
+.cta-card {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.cta-icon {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2.5rem;
+}
+
+.cta-content {
+  flex: 1;
+}
+
+.cta-content h3 {
+  color: #004877;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.cta-content p {
+  color: #6c757d;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.cta-content .btn {
+  background-color: #0D9DDB;
+  border-color: #0D9DDB;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.cta-content .btn:hover {
+  background-color: #004877;
+  border-color: #004877;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 72, 119, 0.3);
+}
+
 .cta-section {
   background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%);
   color: white;
@@ -1015,6 +1129,24 @@ export default {
 
   .btn {
     width: 100%;
+  }
+
+  .cta-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .cta-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+
+  .btn-hero {
+    width: 100%;
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
   }
 }
 </style>

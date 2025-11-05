@@ -1021,39 +1021,82 @@ export default {
             await this.regionalCenterData.fetchRegionalCenters();
           }
 
-          // Load initial providers based on user location
-          if (this.providerStore && this.providerStore.providers.length === 0) {
-            console.log("[MapView] Loading initial providers...");
-
+          // Check for URL query parameters (e.g., from "View All RC Providers" button)
+          const queryParams = this.$route.query;
+          const hasRegionalCenterQuery = queryParams.regionalCenter || (queryParams.q && queryParams.q.includes('Regional Center'));
+          
+          if (hasRegionalCenterQuery) {
+            // User clicked "View All [Regional Center] Providers" button
+            const rcName = queryParams.regionalCenter || queryParams.q;
+            console.log(`[MapView] Loading providers for Regional Center: ${rcName}`);
+            
             try {
-              // Try to detect user's ZIP first
-              const userZipCode = await this.getUserZipCode();
-              
-              if (userZipCode) {
-                // Use user's actual ZIP
-                console.log(`[MapView] Loading providers for user's ZIP: ${userZipCode}`);
-                await this.providerStore.searchByZipCode(userZipCode);
-                // Update address with user's ZIP
-                this.userData.address = `Los Angeles, CA ${userZipCode}`;
-                await this.findUserRegionalCenter();
-                
-                // Geocode ZIP to enable radius filtering
-                await this.ensureZipCodeCoordinates(userZipCode);
-              } else {
-                // Fall back to default LA County ZIP if detection fails
-                const defaultZip = "90001";
-                console.log(`[MapView] No user location detected, using default ZIP: ${defaultZip}`);
-                await this.providerStore.searchByZipCode(defaultZip);
-                // Geocode default ZIP too
-                await this.ensureZipCodeCoordinates(defaultZip);
+              // Ensure regional centers are loaded first
+              if (!this.regionalCenterData.regionalCenters || this.regionalCenterData.regionalCenters.length === 0) {
+                console.log('[MapView] Regional centers not loaded yet, waiting...');
+                await this.regionalCenterData.fetchRegionalCenters();
               }
               
-              console.log(`[MapView] Loaded ${this.providerStore.providers.length} providers`);
+              console.log(`[MapView] Available regional centers:`, this.regionalCenterData.regionalCenters.map(rc => rc.name || rc.regional_center));
+              
+              // Find the regional center data to get its coordinates
+              const regionalCenter = this.regionalCenterData.findByName(rcName);
+              console.log(`[MapView] Found regional center:`, regionalCenter);
+              
+              if (regionalCenter) {
+                // Update user location to the regional center's coordinates for map centering
+                if (regionalCenter.latitude && regionalCenter.longitude) {
+                  this.userLocation.latitude = regionalCenter.latitude;
+                  this.userLocation.longitude = regionalCenter.longitude;
+                }
+                
+                // Search providers using the regional center's ZIP codes
+                // The backend's by_regional_center endpoint filters by ZIP codes, not coordinates
+                if (regionalCenter.zip_codes && regionalCenter.zip_codes.length > 0) {
+                  // Use the first ZIP code to trigger regional center filtering
+                  const firstZip = regionalCenter.zip_codes[0];
+                  console.log(`[MapView] Searching by regional center ZIP: ${firstZip}`);
+                  await this.providerStore.searchByZipCode(firstZip);
+                } else if (regionalCenter.id || regionalCenter.center_id) {
+                  // Alternative: search by regional center ID if available
+                  const rcId = regionalCenter.id || regionalCenter.center_id;
+                  console.log(`[MapView] Searching by regional center ID: ${rcId}`);
+                  // Use searchProviders with regional center ID parameter
+                  await this.providerStore.searchProviders({ 
+                    regionalCenterId: rcId 
+                  });
+                } else {
+                  console.warn('[MapView] Regional center has no ZIP codes or ID, using coordinate search');
+                  await this.providerStore.searchByLocation(
+                    regionalCenter.latitude,
+                    regionalCenter.longitude,
+                    50
+                  );
+                }
+                
+                // Set the search text to show what we're filtering by (display only)
+                this.searchText = rcName;
+                
+                // Update user address to reflect the regional center context
+                this.userData.address = `${rcName} Service Area`;
+                
+                // Optionally filter to only show providers that accept regional center funding
+                this.filterOptions.acceptsRegionalCenter = true;
+                
+                console.log(`[MapView] Loaded ${this.providerStore.providers.length} providers for ${rcName}`);
+              } else {
+                console.warn(`[MapView] Regional center not found: ${rcName}`);
+                // Fallback to default behavior
+                await this.loadDefaultProviders();
+              }
             } catch (error) {
-              console.error("[MapView] Error loading initial providers:", error);
-              // Fallback to comprehensive search
-              await this.providerStore.searchByLocation(LA_COUNTY_CENTER.lat, LA_COUNTY_CENTER.lng, 25);
+              console.error(`[MapView] Error loading providers for Regional Center ${rcName}:`, error);
+              // Fallback to default behavior
+              await this.loadDefaultProviders();
             }
+          } else {
+            // Normal initialization: Load providers based on user location
+            await this.loadDefaultProviders();
           }
 
           console.log("[MapView] Initialization complete with new components!");
@@ -2777,6 +2820,46 @@ export default {
         this.error = 'Failed to load providers. Please try again.';
       }
     },
+
+    /**
+     * Load providers based on user location (default behavior)
+     */
+    async loadDefaultProviders() {
+      if (this.providerStore && this.providerStore.providers.length === 0) {
+        console.log("[MapView] Loading initial providers...");
+
+        try {
+          // Try to detect user's ZIP first
+          const userZipCode = await this.getUserZipCode();
+          
+          if (userZipCode) {
+            // Use user's actual ZIP
+            console.log(`[MapView] Loading providers for user's ZIP: ${userZipCode}`);
+            await this.providerStore.searchByZipCode(userZipCode);
+            // Update address with user's ZIP
+            this.userData.address = `Los Angeles, CA ${userZipCode}`;
+            await this.findUserRegionalCenter();
+            
+            // Geocode ZIP to enable radius filtering
+            await this.ensureZipCodeCoordinates(userZipCode);
+          } else {
+            // Fall back to default LA County ZIP if detection fails
+            const defaultZip = "90001";
+            console.log(`[MapView] No user location detected, using default ZIP: ${defaultZip}`);
+            await this.providerStore.searchByZipCode(defaultZip);
+            // Geocode default ZIP too
+            await this.ensureZipCodeCoordinates(defaultZip);
+          }
+          
+          console.log(`[MapView] Loaded ${this.providerStore.providers.length} providers`);
+        } catch (error) {
+          console.error("[MapView] Error loading initial providers:", error);
+          // Fallback to comprehensive search
+          await this.providerStore.searchByLocation(LA_COUNTY_CENTER.lat, LA_COUNTY_CENTER.lng, 25);
+        }
+      }
+    },
+
     clearSearch() {
       this.searchText = "";
       this.updateFilteredLocations();

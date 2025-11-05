@@ -125,20 +125,6 @@
                 <option value="Other">Other</option>
               </select>
             </div>
-
-            <div class="funding-row">
-              <label>Funding Sources</label>
-              <div class="funding-options">
-                <label class="funding-option">
-                  <input type="checkbox" v-model="userProfile.hasInsurance" />
-                  <span>Health Insurance</span>
-                </label>
-                <label class="funding-option">
-                  <input type="checkbox" v-model="userProfile.hasRegionalCenter" />
-                  <span>Regional Center</span>
-                </label>
-              </div>
-            </div>
           </div>
 
           <!-- Regional Center Display -->

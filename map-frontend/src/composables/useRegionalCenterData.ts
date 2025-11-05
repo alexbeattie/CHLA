@@ -147,7 +147,9 @@ export function useRegionalCenterData() {
    * Find regional center by name
    */
   function findByName(name: string): RegionalCenter | null {
-    return regionalCenters.value.find((center) => center.name === name) || null;
+    return regionalCenters.value.find((center) => 
+      center.name === name || center.regional_center === name
+    ) || null;
   }
 
   /**
