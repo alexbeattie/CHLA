@@ -249,6 +249,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { REGIONAL_CENTERS } from '@/data/regionalCenters';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.kinddhelp.com';
+
 export default {
   name: 'RegionalCenterView',
   
@@ -256,9 +258,18 @@ export default {
     const route = useRoute();
     const router = useRouter();
     const zipCode = ref('');
+    const actualZipCodes = ref([]);
+    const loading = ref(true);
     
     const rcSlug = computed(() => route.params.slug);
-    const rcData = computed(() => REGIONAL_CENTERS[rcSlug.value] || {});
+    const rcData = computed(() => {
+      const baseData = REGIONAL_CENTERS[rcSlug.value] || {};
+      // Replace hardcoded ZIP codes with actual ones from API
+      return {
+        ...baseData,
+        zipCodes: actualZipCodes.value.length > 0 ? actualZipCodes.value : baseData.zipCodes || []
+      };
+    });
     
     const otherRegionalCenters = computed(() => {
       return Object.values(REGIONAL_CENTERS)
@@ -280,7 +291,32 @@ export default {
       });
     };
     
-    onMounted(() => {
+    const fetchActualZipCodes = async () => {
+      try {
+        loading.value = true;
+        const response = await fetch(`${API_BASE_URL}/api/regional-centers/`);
+        const regionalCenters = await response.json();
+        
+        // Find the matching regional center by name
+        const matchingRC = regionalCenters.find(rc => 
+          rc.regional_center === rcData.value.name
+        );
+        
+        if (matchingRC && matchingRC.zip_codes) {
+          actualZipCodes.value = matchingRC.zip_codes;
+          console.log(`✅ Loaded ${actualZipCodes.value.length} ZIP codes for ${matchingRC.regional_center} from API`);
+        }
+      } catch (error) {
+        console.error('Error fetching ZIP codes from API:', error);
+      } finally {
+        loading.value = false;
+      }
+    };
+    
+    onMounted(async () => {
+      // Fetch actual ZIP codes from API
+      await fetchActualZipCodes();
+      
       // Track page view
       if (window.gtag) {
         window.gtag('event', 'page_view', {
@@ -294,7 +330,8 @@ export default {
       rcData,
       otherRegionalCenters,
       zipCode,
-      searchProviders
+      searchProviders,
+      loading
     };
   }
 };
