@@ -1,27 +1,23 @@
 <template>
   <div class="filter-panel">
-    <!-- Payment Options -->
-    <div class="filter-section">
+    <!-- Insurance Types (Multi-Select) -->
+    <div class="filter-section" v-if="availableInsuranceTypes.length > 0">
       <div class="section-header">
         <i class="bi bi-credit-card"></i>
-        <h4>Payment</h4>
+        <h4>Insurance Accepted</h4>
       </div>
       <div class="filter-options">
-        <label class="filter-option">
+        <label 
+          class="filter-option" 
+          v-for="insurance in availableInsuranceTypes" 
+          :key="insurance"
+        >
           <input
             type="checkbox"
-            v-model="localFilters.acceptsInsurance"
-            @change="handleFilterChange"
+            :checked="isInsuranceSelected(insurance)"
+            @change="handleInsuranceToggle(insurance)"
           />
-          <span>Accepts Insurance</span>
-        </label>
-        <label class="filter-option">
-          <input
-            type="checkbox"
-            v-model="localFilters.acceptsPrivatePay"
-            @change="handleFilterChange"
-          />
-          <span>Accepts Private Pay</span>
+          <span class="filter-label">{{ insurance }}</span>
         </label>
       </div>
     </div>
@@ -166,6 +162,16 @@
           {{ therapy }}
           <i class="bi bi-x"></i>
         </button>
+        <!-- Insurance Type Chips -->
+        <button
+          v-for="insurance in filterStore.filterOptions.insuranceTypes"
+          :key="insurance"
+          class="filter-chip insurance-chip"
+          @click="handleInsuranceToggle(insurance)"
+        >
+          {{ insurance }}
+          <i class="bi bi-x"></i>
+        </button>
       </div>
     </div>
 
@@ -246,8 +252,9 @@ export default {
     // User data from store
     const userData = computed(() => filterStore.userData);
     
-    // Available therapy types from store
+    // Available options from store
     const availableTherapyTypes = computed(() => filterStore.availableTherapyTypes);
+    const availableInsuranceTypes = computed(() => filterStore.availableInsuranceTypes);
     
     // Check if user has profile data
     const hasUserProfile = computed(() => {
@@ -337,9 +344,10 @@ export default {
         showOnlyFavorites: false
       };
 
-      // Clear therapy types and diagnoses arrays in store
+      // Clear therapy types, diagnoses, and insurance types arrays in store
       filterStore.filterOptions.therapies = [];
       filterStore.filterOptions.diagnoses = [];
+      filterStore.filterOptions.insuranceTypes = [];
 
       applyFiltersToStore();
       emit('reset');
@@ -370,6 +378,22 @@ export default {
       emit('filter-change', localFilters.value);
     };
 
+    /**
+     * Check if an insurance type is selected
+     */
+    const isInsuranceSelected = (insurance) => {
+      return filterStore.filterOptions.insuranceTypes.includes(insurance);
+    };
+
+    /**
+     * Handle insurance type toggle
+     */
+    const handleInsuranceToggle = (insurance) => {
+      console.log(`💳 FilterPanel: Toggling insurance type: ${insurance}`);
+      filterStore.toggleInsuranceType(insurance);
+      emit('filter-change', localFilters.value);
+    };
+
     // Sync with store when store changes
     watch(
       () => filterStore.filterOptions,
@@ -384,6 +408,7 @@ export default {
       localFilters,
       userData,
       availableTherapyTypes,
+      availableInsuranceTypes,
       hasUserProfile,
       activeFilterCount,
       hasActiveFilters,
@@ -394,7 +419,9 @@ export default {
       handleReset,
       toggleFilter,
       isTherapySelected,
-      handleTherapyToggle
+      handleTherapyToggle,
+      isInsuranceSelected,
+      handleInsuranceToggle
     };
   }
 };
