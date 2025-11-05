@@ -112,6 +112,8 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
             "service_area_geojson",
             "served_providers",
             "distance",  # Distance in miles (when using PostGIS queries)
+            "zip_codes",  # Array of ZIP codes served
+            "service_areas",  # Array of cities/communities served
         ]
 
     def get_served_providers(self, obj):

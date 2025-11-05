@@ -69,7 +69,7 @@ class Command(BaseCommand):
                 
                 diagnoses_treated = []
                 if row.get('diagnoses_treated'):
-                try:
+                    try:
                         diagnoses_treated = json.loads(row['diagnoses_treated'])
                     except:
                         diagnoses_treated = []
