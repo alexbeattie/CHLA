@@ -440,7 +440,8 @@
         @get-directions="handleGetDirections"
       />
 
-      <!-- Directions Panel -->
+      <!-- Directions Panel - TEMPORARILY HIDDEN (route line still shows) -->
+      <!--
       <directions-panel
         :visible="showDirections"
         :directions="currentDirections"
@@ -450,6 +451,7 @@
         @close="closeDirections"
         @retry="retryDirections"
       />
+      -->
 
       <!-- Regional Center Details Flyout Panel -->
       <regional-center-details
