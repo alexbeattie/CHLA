@@ -25,19 +25,9 @@ export const REGIONAL_CENTERS = {
       'Transition services for young adults',
       'Respite care programs'
     ],
-    cities: [
-      'Pomona', 'Claremont', 'La Verne', 'San Dimas', 'Glendora', 
-      'Azusa', 'Covina', 'West Covina', 'Baldwin Park', 'Irwindale',
-      'Duarte', 'Monrovia', 'Arcadia', 'Temple City', 'Rosemead',
-      'San Gabriel', 'Alhambra', 'Monterey Park', 'Montebello', 'Pico Rivera',
-      'South El Monte', 'El Monte', 'La Puente', 'Walnut', 'Diamond Bar'
-    ],
-    zipCodes: [
-      '91001', '91006', '91007', '91010', '91016', '91024', '91030', '91731',
-      '91732', '91733', '91740', '91741', '91744', '91745', '91746', '91748',
-      '91750', '91754', '91755', '91759', '91766', '91767', '91768', '91773',
-      '91775', '91776', '91780', '91789', '91790', '91791', '91792'
-    ]
+    // cities and zipCodes now fetched from API
+    cities: [],
+    zipCodes: []
   },
   
   'harbor': {
@@ -63,19 +53,9 @@ export const REGIONAL_CENTERS = {
       'Respite care',
       'Behavior intervention programs'
     ],
-    cities: [
-      'Torrance', 'Redondo Beach', 'Manhattan Beach', 'Hermosa Beach', 
-      'El Segundo', 'Hawthorne', 'Gardena', 'Lawndale', 'Inglewood',
-      'Carson', 'Long Beach (partial)', 'San Pedro', 'Wilmington',
-      'Lomita', 'Palos Verdes Estates', 'Rancho Palos Verdes', 
-      'Rolling Hills', 'Rolling Hills Estates'
-    ],
-    zipCodes: [
-      '90245', '90250', '90254', '90260', '90261', '90266', '90274', '90275',
-      '90277', '90278', '90290', '90291', '90292', '90293', '90301', '90302',
-      '90303', '90304', '90305', '90501', '90502', '90503', '90504', '90505',
-      '90710', '90731', '90732', '90744', '90745', '90746', '90747'
-    ]
+    // cities and zipCodes now fetched from API
+    cities: [],
+    zipCodes: []
   },
   
   'north-la-county': {
@@ -101,17 +81,9 @@ export const REGIONAL_CENTERS = {
       'Community integration',
       'Employment development'
     ],
-    cities: [
-      'Lancaster', 'Palmdale', 'Santa Clarita', 'Canyon Country',
-      'Newhall', 'Saugus', 'Valencia', 'Castaic', 'Stevenson Ranch',
-      'Acton', 'Agua Dulce', 'Lake Los Angeles'
-    ],
-    zipCodes: [
-      '91310', '91321', '91350', '91351', '91354', '91355', '91380', '91381',
-      '91382', '91383', '91384', '91385', '91386', '91387', '91390', '93510',
-      '93532', '93534', '93535', '93536', '93543', '93544', '93550', '93551',
-      '93552', '93553', '93560', '93563', '93591'
-    ]
+    // cities and zipCodes now fetched from API
+    cities: [],
+    zipCodes: []
   },
   
   'eastern-la': {
@@ -137,18 +109,9 @@ export const REGIONAL_CENTERS = {
       'Community living support',
       'Vocational services'
     ],
-    cities: [
-      'Alhambra', 'Bell', 'Bell Gardens', 'Commerce', 'Cudahy',
-      'Downey', 'East Los Angeles', 'Huntington Park', 'Maywood',
-      'Montebello', 'Monterey Park', 'Norwalk', 'Pico Rivera',
-      'South Gate', 'Vernon', 'Whittier'
-    ],
-    zipCodes: [
-      '90022', '90023', '90040', '90058', '90201', '90220', '90221', '90222',
-      '90240', '90241', '90242', '90255', '90270', '90280', '90601', '90602',
-      '90603', '90604', '90605', '90606', '90607', '90608', '90638', '90640',
-      '90650', '90660', '90670', '90680', '91754', '91755', '91770', '91803'
-    ]
+    // cities and zipCodes now fetched from API
+    cities: [],
+    zipCodes: []
   },
   
   'south-central-la': {
@@ -174,16 +137,9 @@ export const REGIONAL_CENTERS = {
       'Community supports',
       'Crisis intervention'
     ],
-    cities: [
-      'Los Angeles (South Central)', 'Watts', 'Compton', 'Lynwood',
-      'Paramount', 'South Los Angeles', 'Florence-Graham',
-      'West Athens', 'Westmont', 'Willowbrook'
-    ],
-    zipCodes: [
-      '90001', '90002', '90003', '90007', '90011', '90018', '90037', '90044',
-      '90047', '90059', '90061', '90062', '90089', '90220', '90221', '90222',
-      '90262', '90280', '90303', '90304', '90305', '90723'
-    ]
+    // cities and zipCodes now fetched from API
+    cities: [],
+    zipCodes: []
   },
   
   'westside': {
@@ -209,20 +165,9 @@ export const REGIONAL_CENTERS = {
       'Family support network',
       'Transition programs'
     ],
-    cities: [
-      'Santa Monica', 'Culver City', 'West Los Angeles', 'Mar Vista',
-      'Venice', 'Playa del Rey', 'Marina del Rey', 'Westwood',
-      'Brentwood', 'Pacific Palisades', 'Malibu', 'Beverly Hills',
-      'West Hollywood', 'Century City'
-    ],
-    zipCodes: [
-      '90024', '90025', '90026', '90027', '90028', '90029', '90031', '90033',
-      '90034', '90035', '90036', '90038', '90039', '90046', '90048', '90049',
-      '90056', '90064', '90066', '90067', '90068', '90069', '90073', '90077',
-      '90094', '90095', '90210', '90211', '90212', '90230', '90232', '90263',
-      '90265', '90272', '90291', '90292', '90293', '90401', '90402', '90403',
-      '90404', '90405'
-    ]
+    // cities and zipCodes now fetched from API
+    cities: [],
+    zipCodes: []
   },
   
   'lanterman': {
@@ -248,23 +193,9 @@ export const REGIONAL_CENTERS = {
       'Person-centered planning',
       'Innovation grants'
     ],
-    cities: [
-      'Burbank', 'Glendale', 'Pasadena', 'Altadena', 'La Cañada Flintridge',
-      'San Fernando', 'North Hollywood', 'Studio City', 'Sherman Oaks',
-      'Van Nuys', 'Encino', 'Tarzana', 'Woodland Hills', 'Canoga Park',
-      'Reseda', 'Northridge', 'Chatsworth', 'Granada Hills', 'Porter Ranch',
-      'Sylmar'
-    ],
-    zipCodes: [
-      '90004', '90005', '90006', '90010', '90012', '90013', '90014', '90015',
-      '90017', '90019', '90020', '90021', '90057', '91001', '91006', '91007',
-      '91011', '91020', '91040', '91042', '91101', '91103', '91104', '91105',
-      '91106', '91107', '91108', '91201', '91202', '91203', '91204', '91205',
-      '91206', '91207', '91208', '91214', '91302', '91303', '91304', '91306',
-      '91307', '91311', '91316', '91324', '91325', '91326', '91330', '91331',
-      '91335', '91340', '91342', '91343', '91344', '91345', '91352', '91356',
-      '91364', '91367', '91401', '91402', '91403', '91405', '91406', '91423'
-    ]
+    // cities and zipCodes now fetched from API
+    cities: [],
+    zipCodes: []
   }
 };
 
