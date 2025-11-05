@@ -329,29 +329,41 @@
           <!-- Sticky Header -->
           <div class="results-sticky-header">
             <div class="info-card-header">
-                <i
-                  :class="displayType === 'regionalCenters' ? 'bi bi-building-fill text-info me-2' : 'bi bi-list-ul text-success me-2'"
-                ></i>
-                <strong>
-                  {{
-                    displayType === "locations"
-                      ? "Locations"
-                      : displayType === "regionalCenters"
-                      ? "Regional Centers"
-                      : "Providers"
-                  }}
-                </strong>
-                <span
-                  :class="displayType === 'regionalCenters' ? 'badge bg-info ms-2' : 'badge bg-success ms-2'"
+                <div class="d-flex align-items-center flex-grow-1">
+                  <i
+                    :class="displayType === 'regionalCenters' ? 'bi bi-building-fill text-info me-2' : 'bi bi-list-ul text-success me-2'"
+                  ></i>
+                  <strong>
+                    {{
+                      displayType === "locations"
+                        ? "Locations"
+                        : displayType === "regionalCenters"
+                        ? "Regional Centers"
+                        : "Providers"
+                    }}
+                  </strong>
+                  <span
+                    :class="displayType === 'regionalCenters' ? 'badge bg-info ms-2' : 'badge bg-success ms-2'"
+                  >
+                    {{
+                      displayType === "locations"
+                        ? filteredLocations.length
+                        : displayType === "regionalCenters"
+                        ? (regionalCenterData?.regionalCenters?.length || 0)
+                        : filteredProviders.length
+                    }}
+                  </span>
+                </div>
+                <!-- PDF Download Button -->
+                <button 
+                  v-if="displayType === 'providers' && filteredProviders.length > 0"
+                  @click="downloadProviderPDF"
+                  class="btn-download-pdf"
+                  title="Download provider list as PDF"
                 >
-                  {{
-                    displayType === "locations"
-                      ? filteredLocations.length
-                      : displayType === "regionalCenters"
-                      ? (regionalCenterData?.regionalCenters?.length || 0)
-                      : filteredProviders.length
-                  }}
-                </span>
+                  <i class="bi bi-file-earmark-pdf"></i>
+                  <span class="d-none d-md-inline ms-1">PDF</span>
+                </button>
               </div>
           </div>
 
@@ -515,6 +527,7 @@ import { getApiRoot } from "@/utils/api.js";
 import { getLACountyBounds, isPointInBounds, calculateProviderBounds, calculateDistance as haversineDistance } from "@/utils/geo.js";
 import { formatDescription, formatInsurance, formatLanguages, formatHours, formatHoursObject } from "@/utils/formatting.js";
 import { createMinimalPopup } from "@/utils/popup-minimal.js";
+import { generateProviderPDF } from "@/utils/pdfGenerator.js";
 import { isLACountyZip, isInLACounty, extractZipCode as detectStandaloneZip, extractZipFromAddress, looksLikeAddress, isValidCaliforniaCoordinate } from "@/utils/validation.js";
 import { sampleProviders } from "@/utils/sampleData.js";
 import { hslToHex, stringToColor } from "@/utils/colors.js";
@@ -1082,6 +1095,62 @@ export default {
      */
     toggleSection(section) {
       this.sectionsCollapsed[section] = !this.sectionsCollapsed[section];
+    },
+
+    /**
+     * Download provider list as PDF
+     */
+    downloadProviderPDF() {
+      try {
+        // Gather search information
+        const searchInfo = {
+          location: null,
+          regionalCenter: null,
+          filters: {}
+        };
+        
+        // Determine search location/context
+        if (this.userLocation && this.userLocation.zipCode) {
+          searchInfo.location = `ZIP ${this.userLocation.zipCode}`;
+        } else if (this.userLocation && this.userLocation.coordinates) {
+          searchInfo.location = `${this.userLocation.coordinates.lat.toFixed(4)}, ${this.userLocation.coordinates.lng.toFixed(4)}`;
+        }
+        
+        // Check if we're filtering by regional center
+        if (this.regionalCenterData && this.regionalCenterData.primaryCenter) {
+          searchInfo.regionalCenter = this.regionalCenterData.primaryCenter.regional_center;
+        }
+        
+        // Gather active filters
+        if (this.filterStore) {
+          if (this.filterStore.filterOptions.therapies && this.filterStore.filterOptions.therapies.length > 0) {
+            searchInfo.filters.therapies = this.filterStore.filterOptions.therapies;
+          }
+          if (this.filterStore.filterOptions.insuranceTypes && this.filterStore.filterOptions.insuranceTypes.length > 0) {
+            searchInfo.filters.insurances = this.filterStore.filterOptions.insuranceTypes;
+          }
+          if (this.filterStore.filterOptions.diagnoses && this.filterStore.filterOptions.diagnoses.length > 0) {
+            searchInfo.filters.diagnoses = this.filterStore.filterOptions.diagnoses;
+          }
+        }
+        
+        // Generate PDF with all visible providers (not just paginated)
+        const filename = generateProviderPDF(this.filteredProviders, searchInfo);
+        
+        console.log(`✅ PDF generated: ${filename}`);
+        
+        // Track download event
+        if (window.gtag) {
+          window.gtag('event', 'download_pdf', {
+            event_category: 'Provider List',
+            event_label: searchInfo.regionalCenter || searchInfo.location || 'General Search',
+            value: this.filteredProviders.length
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error generating PDF:', error);
+        alert('Sorry, there was an error generating the PDF. Please try again.');
+      }
     },
 
     /**

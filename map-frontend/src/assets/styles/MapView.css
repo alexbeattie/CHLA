@@ -666,8 +666,10 @@
 .results-sticky-header .info-card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   color: white;
   margin: 0;
+  width: 100%;
 }
 
 .results-sticky-header .info-card-header i {
@@ -676,6 +678,38 @@
 
 .results-sticky-header .badge {
   background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* PDF Download Button */
+.btn-download-pdf {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-download-pdf:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-download-pdf:active {
+  transform: translateY(0);
+}
+
+.btn-download-pdf i {
+  font-size: 1rem;
+  color: white !important;
 }
 
 .results-content {

@@ -18,6 +18,8 @@
   "dependencies": {
     "axios": "^1.9.0",
     "bootstrap-icons": "^1.13.1",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "mapbox-gl": "^3.11.1",
     "pinia": "^3.0.3",
     "vue": "^3.5.13",
