@@ -1189,6 +1189,9 @@ export default {
       // Update provider store selection
       this.providerStore.selectProvider(providerId);
 
+      // Ensure selected provider is visible in paginated list
+      this.ensureProviderInPaginatedList(providerId);
+
       // Center map on selected provider with smooth animation
       const provider = this.providerStore.providers.find(p => p.id === providerId);
       if (provider && provider.latitude && provider.longitude && this.mapInstance) {
@@ -1202,6 +1205,32 @@ export default {
             return t * t * (3.0 - 2.0 * t);
           }
         });
+      }
+    },
+
+    /**
+     * Ensure selected provider is in the paginated list (load more pages if needed)
+     */
+    ensureProviderInPaginatedList(providerId) {
+      if (!this.providerStore || !providerId) return;
+
+      // Find the index of the selected provider in the full list
+      const providerIndex = this.providerStore.providers.findIndex(p => p.id === providerId);
+      
+      if (providerIndex === -1) {
+        console.warn(`[MapView] Provider ${providerId} not found in provider list`);
+        return;
+      }
+
+      // Calculate which page this provider is on
+      const providerPage = Math.ceil((providerIndex + 1) / this.providersPerPage);
+      
+      console.log(`[MapView] Provider ${providerId} is at index ${providerIndex}, needs page ${providerPage}, current page ${this.currentProviderPage}`);
+
+      // Load more pages if needed
+      if (providerPage > this.currentProviderPage) {
+        console.log(`[MapView] Loading pages up to ${providerPage} to show selected provider`);
+        this.currentProviderPage = providerPage;
       }
     },
 

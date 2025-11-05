@@ -11,6 +11,7 @@
 export function createMinimalPopup(item) {
   const name = item.name || item.regional_center || "Location";
   const phone = item.phone || item.telephone || "";
+  const website = item.website || "";
   const lat = item.latitude || 0;
   const lng = item.longitude || 0;
   
@@ -65,16 +66,30 @@ export function createMinimalPopup(item) {
         ">${address}</div>
       ` : ''}
       
-      ${phone ? `
+      ${phone || website ? `
         <div style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           font-size: 13px;
           margin-bottom: 8px;
+          gap: 8px;
         ">
-          <a href="tel:${phoneClean}" style="
-            color: #004877;
-            text-decoration: none;
-            font-weight: 500;
-          ">${phone}</a>
+          ${phone ? `
+            <a href="tel:${phoneClean}" style="
+              color: #004877;
+              text-decoration: none;
+              font-weight: 500;
+            ">📞 ${phone}</a>
+          ` : '<span></span>'}
+          ${website ? `
+            <a href="${website}" target="_blank" rel="noopener noreferrer" style="
+              color: #004877;
+              text-decoration: none;
+              font-weight: 500;
+              white-space: nowrap;
+            ">🌐 Website</a>
+          ` : ''}
         </div>
       ` : ''}
       

@@ -364,58 +364,61 @@ export default {
 
 <style scoped>
 .provider-card {
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .provider-card:hover {
-  border-color: #2563eb;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-  transform: translateY(-2px);
+  border-color: #3b82f6;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+  transform: translateY(-3px);
 }
 
 .provider-card.selected {
-  border-color: #2563eb;
-  background-color: #eff6ff;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.18), 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .provider-card:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 /* Header */
 .provider-header {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
 .provider-icon {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  background-color: #eff6ff;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  color: #2563eb;
+  font-size: 22px;
+  color: #3b82f6;
+  transition: all 0.3s ease;
 }
 
 .provider-card.selected .provider-icon {
-  background-color: #2563eb;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .provider-title {
@@ -424,24 +427,38 @@ export default {
 }
 
 .provider-name {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  color: #1f2937;
+  color: #111827;
   margin: 0;
   margin-bottom: 4px;
-  line-height: 1.3;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
 }
 
 .provider-type {
   font-size: 13px;
   color: #6b7280;
   font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .selected-indicator {
   flex-shrink: 0;
-  color: #2563eb;
-  font-size: 24px;
+  color: #3b82f6;
+  font-size: 26px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Distance and Directions Section */
@@ -449,47 +466,52 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .provider-distance {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-size: 14px;
   font-weight: 600;
-  color: #2563eb;
+  color: #3b82f6;
+  letter-spacing: -0.01em;
 }
 
 .provider-distance i {
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .btn-get-directions {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: #2563eb;
+  gap: 7px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
 }
 
 .btn-get-directions:hover {
-  background-color: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
 }
 
 .btn-get-directions:active {
   transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
 }
 
 .btn-get-directions i {
@@ -500,128 +522,168 @@ export default {
 .provider-address {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
   font-size: 14px;
   color: #4b5563;
-  margin-bottom: 12px;
-  line-height: 1.5;
+  margin-bottom: 14px;
+  line-height: 1.6;
 }
 
 .provider-address i {
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 3px;
   color: #9ca3af;
+  font-size: 15px;
 }
 
 /* Contact Info */
 .provider-contact {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-size: 13px;
 }
 
 .contact-item i {
   color: #6b7280;
+  font-size: 14px;
 }
 
 .contact-link {
-  color: #2563eb;
+  color: #3b82f6;
   text-decoration: none;
   font-weight: 500;
+  transition: color 0.2s ease;
 }
 
 .contact-link:hover {
+  color: #2563eb;
   text-decoration: underline;
 }
 
 /* Insurance Badges */
 .provider-insurance {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .insurance-label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 7px;
+  font-size: 12px;
   font-weight: 600;
   color: #6b7280;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.insurance-label i {
+  font-size: 13px;
 }
 
 .insurance-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 7px;
 }
 
 .insurance-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  background-color: #f3f4f6;
-  border-radius: 12px;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  font-size: 11px;
   font-weight: 500;
   color: #374151;
+  transition: all 0.2s ease;
+}
+
+.insurance-badge:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
 }
 
 .insurance-badge.badge-insurance {
-  background-color: #dbeafe;
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
   color: #1e40af;
 }
 
 .insurance-badge.badge-regional-center {
-  background-color: #fef3c7;
+  background-color: #fffbeb;
+  border-color: #fde68a;
   color: #92400e;
 }
 
 .insurance-badge.badge-private-pay {
-  background-color: #f3e8ff;
+  background-color: #faf5ff;
+  border-color: #e9d5ff;
   color: #6b21a8;
 }
 
 /* Therapy Types */
 .provider-therapies {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .therapies-label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 7px;
+  font-size: 12px;
   font-weight: 600;
   color: #6b7280;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.therapies-label i {
+  font-size: 13px;
 }
 
 .therapies-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 7px;
 }
 
 .therapy-chip {
-  display: inline-block;
-  padding: 4px 10px;
-  background-color: #eff6ff;
-  border-radius: 12px;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  font-size: 11px;
   font-weight: 500;
   color: #1e40af;
+  transition: all 0.2s ease;
+}
+
+.therapy-chip:hover {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  transform: translateY(-1px);
 }
 
 .therapy-chip.more-chip {
-  background-color: #f3f4f6;
+  background: #f9fafb;
+  border-color: #e5e7eb;
   color: #6b7280;
+  font-weight: 600;
 }
 
 /* Age Groups */
@@ -667,18 +729,36 @@ export default {
 /* Responsive */
 @media (max-width: 768px) {
   .provider-card {
-    padding: 14px;
+    padding: 16px;
     margin-bottom: 10px;
+    border-radius: 14px;
+  }
+
+  .provider-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
   }
 
   .provider-name {
-    font-size: 15px;
+    font-size: 16px;
   }
 
   .provider-type,
   .provider-address,
   .contact-item {
     font-size: 13px;
+  }
+
+  .btn-get-directions {
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+
+  .insurance-badge,
+  .therapy-chip {
+    padding: 4px 10px;
+    font-size: 10px;
   }
 }
 </style>

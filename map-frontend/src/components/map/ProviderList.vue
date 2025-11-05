@@ -294,8 +294,11 @@ export default {
 
       // Auto-scroll to selected provider
       if (props.autoScrollToSelected) {
+        // Use double nextTick to ensure DOM is fully updated
         nextTick(() => {
-          scrollToProvider(providerId);
+          nextTick(() => {
+            scrollToProvider(providerId);
+          });
         });
       }
     };
@@ -316,20 +319,38 @@ export default {
     };
 
     /**
-     * Scroll to specific provider
+     * Scroll to specific provider with retry logic
      */
-    const scrollToProvider = (providerId) => {
-      if (!listContainer.value) return;
+    const scrollToProvider = (providerId, retryCount = 0) => {
+      const maxRetries = 3;
+      
+      if (!listContainer.value) {
+        console.warn(`📍 ProviderList: No listContainer for provider ${providerId}`);
+        return;
+      }
 
       const providerElement = listContainer.value.querySelector(
         `.provider-card[data-provider-id="${providerId}"]`
       );
 
       if (providerElement) {
+        // Use 'center' to ensure the selected item is always visible
+        // and centered in the viewport when possible
         providerElement.scrollIntoView({
           behavior: 'smooth',
-          block: 'nearest'
+          block: 'center',
+          inline: 'nearest'
         });
+        
+        console.log(`📍 ProviderList: Scrolled to provider ${providerId}`);
+      } else if (retryCount < maxRetries) {
+        // Element not found, retry after a short delay
+        console.warn(`📍 ProviderList: Provider ${providerId} not found, retry ${retryCount + 1}/${maxRetries}`);
+        setTimeout(() => {
+          scrollToProvider(providerId, retryCount + 1);
+        }, 100);
+      } else {
+        console.error(`📍 ProviderList: Could not find provider element ${providerId} after ${maxRetries} retries`);
       }
     };
 
@@ -372,10 +393,14 @@ export default {
     };
 
     // Watch for selected provider changes
-    watch(selectedProviderId, (newId) => {
+    watch(selectedProviderId, (newId, oldId) => {
       if (newId && props.autoScrollToSelected) {
+        console.log(`📍 ProviderList: Selected ID changed from ${oldId} to ${newId}`);
+        // Use double nextTick to ensure DOM is fully updated
         nextTick(() => {
-          scrollToProvider(newId);
+          nextTick(() => {
+            scrollToProvider(newId);
+          });
         });
       }
     });
