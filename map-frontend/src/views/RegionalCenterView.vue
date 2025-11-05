@@ -271,10 +271,12 @@ export default {
     });
     
     const searchProviders = () => {
-      // Navigate to map with ZIP code
+      // Navigate to map with search text
+      // Use ZIP code if provided, otherwise use regional center name for API query
+      const searchQuery = zipCode.value || rcData.value.name;
       router.push({
         path: '/',
-        query: { zip: zipCode.value || rcData.value.zipCodes[0] }
+        query: { q: searchQuery }
       });
     };
     
