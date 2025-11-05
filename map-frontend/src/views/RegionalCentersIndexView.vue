@@ -335,23 +335,48 @@ export default {
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #004877 0%, #003355 100%);
+  background: linear-gradient(135deg, #004877 0%, #0066aa 50%, #003355 100%);
   color: white;
   padding: 4rem 0;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.15) 100%);
+  pointer-events: none;
+}
+
+.hero-section .container {
+  position: relative;
+  z-index: 1;
 }
 
 .page-title {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   font-weight: 700;
   margin-bottom: 1rem;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+  letter-spacing: -0.5px;
 }
 
 .page-subtitle {
-  font-size: 1.25rem;
-  opacity: 0.9;
+  font-size: 1.35rem;
+  opacity: 0.95;
   max-width: 800px;
   margin: 0 auto;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-weight: 400;
 }
 
 /* Quick Finder */
@@ -361,17 +386,40 @@ export default {
 }
 
 .finder-card {
-  background: white;
-  padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.06);
   text-align: center;
+  border: 1px solid rgba(0, 72, 119, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.finder-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #004877 0%, #0066aa 25%, #00a8e8 50%, #0066aa 75%, #004877 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .finder-card h2 {
-  font-size: 1.75rem;
+  font-size: 1.85rem;
   color: #004877;
   margin-bottom: 0.5rem;
+  font-weight: 700;
 }
 
 .finder-card p {
@@ -470,11 +518,22 @@ export default {
 }
 
 .content-block {
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
   padding: 2.5rem;
   border-radius: 12px;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+  border-left: 4px solid #004877;
+  transition: all 0.3s ease;
+}
+
+.content-block:hover {
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
 }
 
 .content-block h2 {
@@ -482,6 +541,10 @@ export default {
   font-weight: 700;
   color: #004877;
   margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #004877 0%, #0066aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .lead {
@@ -540,19 +603,40 @@ export default {
 }
 
 .rc-card {
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
   padding: 1.75rem;
-  border-radius: 8px;
+  border-radius: 12px;
   border-left: 5px solid;
   text-decoration: none;
   color: inherit;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.rc-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, currentColor 0%, transparent 100%);
+  opacity: 0.3;
 }
 
 .rc-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-6px);
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.14),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.rc-card:hover::before {
+  opacity: 0.5;
 }
 
 .rc-header {

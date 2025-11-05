@@ -358,6 +358,27 @@ export default {
 .hero-section {
   color: white;
   padding: 3rem 0 4rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.1) 100%);
+  pointer-events: none;
+}
+
+.hero-section .container {
+  position: relative;
+  z-index: 1;
 }
 
 .breadcrumb {
@@ -385,12 +406,16 @@ export default {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: -0.5px;
 }
 
 .page-subtitle {
   font-size: 1.25rem;
-  opacity: 0.9;
+  opacity: 0.95;
   margin-bottom: 2rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  font-weight: 400;
 }
 
 .hero-stats {
@@ -405,10 +430,21 @@ export default {
   gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 500;
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.hero-stats .stat:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
 }
 
 .hero-stats .stat i {
   font-size: 1.5rem;
+  opacity: 0.9;
 }
 
 /* Quick Search */
@@ -418,17 +454,40 @@ export default {
 }
 
 .search-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.1),
+    0 1px 8px rgba(0, 0, 0, 0.06);
   text-align: center;
+  border: 1px solid rgba(0, 72, 119, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.search-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #004877 0%, #0066aa 50%, #004877 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .search-card h2 {
   font-size: 1.75rem;
   color: #004877;
   margin-bottom: 0.5rem;
+  font-weight: 700;
 }
 
 .search-card p {
@@ -469,11 +528,22 @@ export default {
 }
 
 .content-block {
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
   padding: 2.5rem;
   border-radius: 12px;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+  border-left: 4px solid #004877;
+  transition: all 0.3s ease;
+}
+
+.content-block:hover {
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
 }
 
 .content-block h2 {
@@ -481,6 +551,10 @@ export default {
   font-weight: 700;
   color: #004877;
   margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #004877 0%, #0066aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .content-block h3 {
