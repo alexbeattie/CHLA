@@ -2887,9 +2887,10 @@ export default {
           this.isMapMoving = false;
         }, 1100);
 
-        // Also ensure LA Regional Centers are shown
-        if (!this.showLARegionalCenters) {
-          this.toggleLARegionalCenters();
+        // Regional Center polygons stay visible always - no toggling needed
+        // Ensure we have regional center data for the list
+        if (!Array.isArray(this.regionalCenters) || this.regionalCenters.length === 0) {
+          this.regionalCenterData.fetchRegionalCenters();
         }
       } else if (type === "providers") {
         // When switching back to providers, check if we should refocus
@@ -4501,17 +4502,18 @@ export default {
         ];
 
         // Build opacity expression based on user's RC
+        // Keep opacity low to maintain transparent look with colored outlines
         const userRCName = this.userRegionalCenterName;
         const opacityExpression = userRCName
           ? [
               "case",
               ["==", ["get", "REGIONALCENTER"], userRCName],
-              0.8, // Full opacity for user's RC
-              0.3, // Dimmed opacity for other RCs
+              0.25, // Slightly more visible for user's RC
+              0.15, // Very transparent for other RCs
             ]
-          : 0.8; // Default opacity if no user RC
+          : 0.15; // Default low opacity - emphasize outlines not fills
 
-        // Fill layer
+        // Fill layer (keep very transparent - outlines are the main visual)
         this.map.addLayer({
           id: "rc-static-fill",
           type: "fill",
@@ -4523,14 +4525,15 @@ export default {
           },
         });
 
-        // Outline layer
+        // Outline layer (this is the main visual - make it prominent)
         this.map.addLayer({
           id: "rc-static-outline",
           type: "line",
           source: "rc",
           paint: {
-            "line-color": "#ffffff",
-            "line-width": 2.5,
+            "line-color": colorMatch, // Use the Regional Center's color
+            "line-width": 3, // Prominent width
+            "line-opacity": 0.9, // Strong visibility
           },
         });
 
@@ -4660,7 +4663,7 @@ export default {
 
     /**
      * Update Regional Center polygon highlighting based on user's RC
-     * Highlights user's RC at full opacity, dims others
+     * Highlights user's RC slightly more, but keeps all polygons transparent with prominent outlines
      */
     updateRegionalCenterHighlighting() {
       if (!this.map || !this.map.getLayer("rc-static-fill")) {
@@ -4671,14 +4674,15 @@ export default {
       const userRCName = this.userRegionalCenterName;
       console.log("[MapView] Updating RC highlighting for:", userRCName);
 
+      // Keep opacity low - the colored outlines are the main visual
       const opacityExpression = userRCName
         ? [
             "case",
             ["==", ["get", "REGIONALCENTER"], userRCName],
-            0.8, // Full opacity for user's RC
-            0.3, // Dimmed opacity for other RCs
+            0.25, // Slightly more visible for user's RC
+            0.15, // Very transparent for other RCs
           ]
-        : 0.8; // Default opacity if no user RC
+        : 0.15; // Default low opacity - emphasize outlines not fills
 
       try {
         this.map.setPaintProperty("rc-static-fill", "fill-opacity", opacityExpression);
