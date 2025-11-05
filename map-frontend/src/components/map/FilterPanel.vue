@@ -26,6 +26,28 @@
       </div>
     </div>
 
+    <!-- Therapy Types (Multi-Select) -->
+    <div class="filter-section" v-if="availableTherapyTypes.length > 0">
+      <div class="section-header">
+        <i class="bi bi-clipboard2-pulse"></i>
+        <h4>Therapy Types</h4>
+      </div>
+      <div class="filter-options">
+        <label 
+          class="filter-option" 
+          v-for="therapy in availableTherapyTypes" 
+          :key="therapy"
+        >
+          <input
+            type="checkbox"
+            :checked="isTherapySelected(therapy)"
+            @change="handleTherapyToggle(therapy)"
+          />
+          <span class="filter-label">{{ therapy }}</span>
+        </label>
+      </div>
+    </div>
+
     <!-- My Needs (Based on Profile) -->
     <div class="filter-section" v-if="hasUserProfile">
       <div class="section-header">
@@ -134,6 +156,16 @@
           {{ userData.therapy }}
           <i class="bi bi-x"></i>
         </button>
+        <!-- Therapy Type Chips -->
+        <button
+          v-for="therapy in filterStore.filterOptions.therapies"
+          :key="therapy"
+          class="filter-chip therapy-chip"
+          @click="handleTherapyToggle(therapy)"
+        >
+          {{ therapy }}
+          <i class="bi bi-x"></i>
+        </button>
       </div>
     </div>
 
@@ -214,6 +246,9 @@ export default {
     // User data from store
     const userData = computed(() => filterStore.userData);
     
+    // Available therapy types from store
+    const availableTherapyTypes = computed(() => filterStore.availableTherapyTypes);
+    
     // Check if user has profile data
     const hasUserProfile = computed(() => {
       return !!(userData.value.age || userData.value.diagnosis || userData.value.therapy);
@@ -228,11 +263,15 @@ export default {
       if (localFilters.value.matchesDiagnosis) count++;
       if (localFilters.value.matchesTherapy) count++;
       if (localFilters.value.showOnlyFavorites) count++;
+      // Add count for selected therapy types
+      count += filterStore.filterOptions.therapies.length;
       return count;
     });
 
     // Has any active filters
-    const hasActiveFilters = computed(() => activeFilterCount.value > 0);
+    const hasActiveFilters = computed(() => {
+      return activeFilterCount.value > 0 || filterStore.filterOptions.therapies.length > 0;
+    });
 
     /**
      * Format age for display
@@ -298,6 +337,10 @@ export default {
         showOnlyFavorites: false
       };
 
+      // Clear therapy types and diagnoses arrays in store
+      filterStore.filterOptions.therapies = [];
+      filterStore.filterOptions.diagnoses = [];
+
       applyFiltersToStore();
       emit('reset');
     };
@@ -311,6 +354,22 @@ export default {
       handleFilterChange();
     };
 
+    /**
+     * Check if a therapy type is selected
+     */
+    const isTherapySelected = (therapy) => {
+      return filterStore.filterOptions.therapies.includes(therapy);
+    };
+
+    /**
+     * Handle therapy type toggle
+     */
+    const handleTherapyToggle = (therapy) => {
+      console.log(`🎯 FilterPanel: Toggling therapy type: ${therapy}`);
+      filterStore.toggleTherapyType(therapy);
+      emit('filter-change', localFilters.value);
+    };
+
     // Sync with store when store changes
     watch(
       () => filterStore.filterOptions,
@@ -321,8 +380,10 @@ export default {
     );
 
     return {
+      filterStore,
       localFilters,
       userData,
+      availableTherapyTypes,
       hasUserProfile,
       activeFilterCount,
       hasActiveFilters,
@@ -331,7 +392,9 @@ export default {
       formatDiagnosis,
       handleFilterChange,
       handleReset,
-      toggleFilter
+      toggleFilter,
+      isTherapySelected,
+      handleTherapyToggle
     };
   }
 };

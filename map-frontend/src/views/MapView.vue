@@ -914,6 +914,30 @@ export default {
 
     console.log("[MapView] Stores and composables initialized");
 
+    // Initialize available filter options (therapy types, diagnoses, etc.)
+    this.filterStore.setAvailableOptions({
+      therapyTypes: [
+        'ABA therapy',
+        'Speech Therapy',
+        'Occupational Therapy',
+        'Physical Therapy',
+        'Social Skills Training',
+        'Parent Training',
+        'Behavioral Therapy',
+        'Developmental Therapy'
+      ],
+      diagnoses: [
+        'Autism Spectrum Disorder',
+        'ADHD',
+        'Global Development Delay',
+        'Intellectual Disability',
+        'Speech and Language Disorder',
+        'Cerebral Palsy',
+        'Down Syndrome'
+      ]
+    });
+    console.log("[MapView] Available filter options initialized");
+
     // Initialize with empty arrays to prevent null reference errors
     this.categories = [];
     this.locations = [];

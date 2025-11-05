@@ -32,9 +32,11 @@ export interface SearchParams {
   lng?: number;
   radius?: number;
   insurance?: string;
-  therapy?: string;
+  therapy?: string;  // Single therapy (legacy from onboarding)
+  therapies?: string[];  // Multiple therapies (multi-select filter)
   age?: string;
-  diagnosis?: string;
+  diagnosis?: string;  // Single diagnosis (legacy from onboarding)
+  diagnoses?: string[];  // Multiple diagnoses (multi-select filter)
   searchText?: string;
 }
 
@@ -125,16 +127,32 @@ export const useProviderStore = defineStore('provider', () => {
         queryParams.append('insurance', params.insurance);
       }
 
+      // Handle single therapy (from onboarding legacy)
       if (params.therapy) {
         queryParams.append('therapy', params.therapy);
+      }
+
+      // Handle multiple therapies (from multi-select filter)
+      if (params.therapies && Array.isArray(params.therapies)) {
+        params.therapies.forEach((therapy: string) => {
+          queryParams.append('therapy', therapy);
+        });
       }
 
       if (params.age) {
         queryParams.append('age', params.age);
       }
 
+      // Handle single diagnosis (from onboarding legacy)
       if (params.diagnosis) {
         queryParams.append('diagnosis', params.diagnosis);
+      }
+
+      // Handle multiple diagnoses (from multi-select filter)
+      if (params.diagnoses && Array.isArray(params.diagnoses)) {
+        params.diagnoses.forEach((diagnosis: string) => {
+          queryParams.append('diagnosis', diagnosis);
+        });
       }
 
       // Make API call
