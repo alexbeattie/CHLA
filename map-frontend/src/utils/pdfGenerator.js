@@ -96,62 +96,56 @@ export function generateProviderPDF(providers, searchInfo = {}) {
     // Format phone
     const phone = provider.phone || 'N/A';
     
-    // Format website - extract domain
+    // Format website - make it readable and clickable
     let website = 'N/A';
     if (provider.website) {
-      try {
-        const url = new URL(provider.website.startsWith('http') ? provider.website : `https://${provider.website}`);
-        website = url.hostname.replace('www.', '');
-        if (website.length > 20) {
-          website = website.substring(0, 17) + '...';
-        }
-      } catch (e) {
-        website = provider.website.substring(0, 20);
-      }
-    }
-    
-    // Format therapies
-    let therapies = 'N/A';
-    if (provider.therapy_types && provider.therapy_types.length > 0) {
-      therapies = provider.therapy_types.slice(0, 2).join(', ');
-      if (provider.therapy_types.length > 2) {
-        therapies += ` +${provider.therapy_types.length - 2}`;
+      // Clean up the website URL
+      let cleanUrl = provider.website.trim();
+      // Remove protocol for readability
+      cleanUrl = cleanUrl.replace(/^https?:\/\//, '');
+      // Remove trailing slash
+      cleanUrl = cleanUrl.replace(/\/$/, '');
+      // Remove www. for cleaner look
+      cleanUrl = cleanUrl.replace(/^www\./, '');
+      
+      website = cleanUrl;
+      
+      // Truncate if too long
+      if (website.length > 35) {
+        website = website.substring(0, 32) + '...';
       }
     }
     
     return [
-      index + 1,
       provider.name || 'Unknown',
       address,
       phone,
-      website,
-      therapies
+      website
     ];
   });
   
   autoTable(doc, {
     startY: yPos,
-    head: [['#', 'Provider Name', 'Address', 'Phone', 'Website', 'Services']],
+    head: [['Provider Name', 'Address', 'Phone', 'Website']],
     body: tableData,
     styles: {
-      fontSize: 8,
-      cellPadding: 2,
+      fontSize: 9,
+      cellPadding: 3,
     },
     headStyles: {
       fillColor: [0, 72, 119],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
+      fontSize: 10,
     },
     alternateRowStyles: {
       fillColor: [245, 245, 245],
     },
     columnStyles: {
-      0: { cellWidth: 10 },  // #
-      1: { cellWidth: 40 },  // Name
-      2: { cellWidth: 45 },  // Address
-      3: { cellWidth: 22 },  // Phone
-      4: { cellWidth: 28 },  // Website
-      5: { cellWidth: 35 },  // Services
+      0: { cellWidth: 50 },  // Provider Name
+      1: { cellWidth: 55 },  // Address
+      2: { cellWidth: 30 },  // Phone
+      3: { cellWidth: 45 },  // Website
     },
     margin: { left: 10, right: 10 },
   });
