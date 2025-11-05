@@ -259,15 +259,17 @@ export default {
     const router = useRouter();
     const zipCode = ref('');
     const actualZipCodes = ref([]);
+    const actualCities = ref([]);
     const loading = ref(true);
     
     const rcSlug = computed(() => route.params.slug);
     const rcData = computed(() => {
       const baseData = REGIONAL_CENTERS[rcSlug.value] || {};
-      // Replace hardcoded ZIP codes with actual ones from API
+      // Replace hardcoded data with actual data from API
       return {
         ...baseData,
-        zipCodes: actualZipCodes.value.length > 0 ? actualZipCodes.value : baseData.zipCodes || []
+        zipCodes: actualZipCodes.value.length > 0 ? actualZipCodes.value : baseData.zipCodes || [],
+        cities: actualCities.value.length > 0 ? actualCities.value : baseData.cities || []
       };
     });
     
@@ -291,7 +293,7 @@ export default {
       });
     };
     
-    const fetchActualZipCodes = async () => {
+    const fetchActualData = async () => {
       try {
         loading.value = true;
         const response = await fetch(`${API_BASE_URL}/api/regional-centers/`);
@@ -302,20 +304,29 @@ export default {
           rc.regional_center === rcData.value.name
         );
         
-        if (matchingRC && matchingRC.zip_codes) {
-          actualZipCodes.value = matchingRC.zip_codes;
-          console.log(`✅ Loaded ${actualZipCodes.value.length} ZIP codes for ${matchingRC.regional_center} from API`);
+        if (matchingRC) {
+          // Fetch ZIP codes from API
+          if (matchingRC.zip_codes) {
+            actualZipCodes.value = matchingRC.zip_codes;
+            console.log(`✅ Loaded ${actualZipCodes.value.length} ZIP codes for ${matchingRC.regional_center} from API`);
+          }
+          
+          // Fetch cities/service areas from API
+          if (matchingRC.service_areas) {
+            actualCities.value = matchingRC.service_areas;
+            console.log(`✅ Loaded ${actualCities.value.length} cities for ${matchingRC.regional_center} from API`);
+          }
         }
       } catch (error) {
-        console.error('Error fetching ZIP codes from API:', error);
+        console.error('Error fetching data from API:', error);
       } finally {
         loading.value = false;
       }
     };
     
     onMounted(async () => {
-      // Fetch actual ZIP codes from API
-      await fetchActualZipCodes();
+      // Fetch actual ZIP codes and cities from API
+      await fetchActualData();
       
       // Track page view
       if (window.gtag) {
