@@ -257,7 +257,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { REGIONAL_CENTERS } from '@/data/regionalCenters';
 
@@ -372,6 +372,30 @@ export default {
           page_title: `${rcData.value.name} | KINDD`,
           page_path: route.path
         });
+      }
+    });
+    
+    // Watch for route changes (when clicking other RC links)
+    watch(rcSlug, async (newSlug, oldSlug) => {
+      if (newSlug !== oldSlug) {
+        // Reset UI state
+        showAllCities.value = false;
+        showAllZips.value = false;
+        zipCode.value = '';
+        
+        // Scroll to top of page
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Refetch data for new regional center
+        await fetchActualData();
+        
+        // Track page view
+        if (window.gtag) {
+          window.gtag('event', 'page_view', {
+            page_title: `${rcData.value.name} | KINDD`,
+            page_path: route.path
+          });
+        }
       }
     });
     
