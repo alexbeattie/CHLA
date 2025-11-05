@@ -89,6 +89,8 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
     service_area_geojson = serializers.SerializerMethodField()
     has_service_area = serializers.SerializerMethodField()
     distance = serializers.SerializerMethodField()
+    zip_codes = serializers.JSONField(required=False, allow_null=True)
+    service_areas = serializers.JSONField(required=False, allow_null=True)
 
     class Meta:
         model = RegionalCenter
@@ -115,6 +117,16 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
             "zip_codes",  # Array of ZIP codes served
             "service_areas",  # Array of cities/communities served
         ]
+    
+    def to_representation(self, instance):
+        """Ensure zip_codes and service_areas are always included"""
+        data = super().to_representation(instance)
+        # Ensure these fields are always present, even if NULL
+        if 'zip_codes' not in data or data['zip_codes'] is None:
+            data['zip_codes'] = []
+        if 'service_areas' not in data or data['service_areas'] is None:
+            data['service_areas'] = []
+        return data
 
     def get_served_providers(self, obj):
         """Get providers served by this regional center"""
