@@ -211,11 +211,14 @@
         <!-- Results Step -->
         <div v-if="currentStep === 4" class="step results-step">
           <div class="success-header">
-            <div class="success-icon">
-              <i class="bi bi-check-circle-fill"></i>
+            <div class="success-icon" :class="{ 'warning-icon': resultsCount === 0 }">
+              <i :class="resultsCount === 0 ? 'bi bi-exclamation-triangle-fill' : 'bi bi-check-circle-fill'"></i>
             </div>
-            <h2>You're all set!</h2>
-            <p class="success-subtitle">We found {{ resultsCount }} providers in your area</p>
+            <h2>{{ resultsCount === 0 ? 'No exact matches found' : "You're all set!" }}</h2>
+            <p class="success-subtitle" v-if="resultsCount > 0">We found {{ resultsCount }} providers in your area</p>
+            <p class="success-subtitle warning-text" v-else>
+              No providers match all your criteria. Try adjusting your filters or explore the map to see all nearby providers.
+            </p>
           </div>
 
           <div class="results-grid">
@@ -774,16 +777,10 @@ export default {
               console.log('✅ Filtered provider data received:', providerData.length, 'providers');
               console.log('Response data:', responseData);
 
-              // If no results with filters, try again WITHOUT filters to show something
+              // DON'T fall back to unfiltered results - show actual filter results
+              // If 0 results, user will see "No providers match your criteria"
               if (providerData.length === 0) {
-                console.log('⚠️ No providers match all filters, fetching unfiltered results...');
-                const unfilteredUrl = `${apiBaseUrl}/api/providers-v2/by_regional_center/?zip_code=${searchZip}`;
-                const unfilteredResponse = await fetch(unfilteredUrl);
-                if (unfilteredResponse.ok) {
-                  const unfilteredData = await unfilteredResponse.json();
-                  providerData = unfilteredData.results || unfilteredData.providers || [];
-                  console.log('✅ Showing unfiltered providers:', providerData.length);
-                }
+                console.log('⚠️ No providers match your filters (showing 0 results as accurate)');
               }
             } else {
               console.error('Provider API error:', filteredResponse.status);
@@ -849,28 +846,12 @@ export default {
               providerData = Array.isArray(responseData) ? responseData : (responseData.results || responseData.providers || []);
               console.log('✅ Coordinate-based search returned:', providerData.length, 'providers');
 
-              // If we got very few results with filters, try without filters to show nearest providers
-              if (providerData.length < 5) {
-                console.log('⚠️ Only found', providerData.length, 'providers with filters, fetching nearest unfiltered providers...');
-                const unfilteredParams = new URLSearchParams();
-                unfilteredParams.append('lat', this.userCoordinates.latitude.toString());
-                unfilteredParams.append('lng', this.userCoordinates.longitude.toString());
-                unfilteredParams.append('radius', '50');
-
-                const unfilteredUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${unfilteredParams.toString()}`;
-                console.log('🔍 Fetching unfiltered nearest providers:', unfilteredUrl);
-
-                try {
-                  const unfilteredResponse = await fetch(unfilteredUrl);
-                  if (unfilteredResponse.ok) {
-                    const unfilteredData = await unfilteredResponse.json();
-                    const unfilteredProviders = Array.isArray(unfilteredData) ? unfilteredData : (unfilteredData.results || unfilteredData.providers || []);
-                    console.log('✅ Unfiltered search returned:', unfilteredProviders.length, 'providers');
-                    providerData = unfilteredProviders;
-                  }
-                } catch (error) {
-                  console.error('Unfiltered search failed:', error);
-                }
+              // DON'T fall back to unfiltered results - show accurate filter results
+              // Even if < 5 results, that's what matches the user's criteria
+              if (providerData.length < 5 && providerData.length > 0) {
+                console.log(`✅ Found ${providerData.length} providers matching your criteria (accurate results)`);
+              } else if (providerData.length === 0) {
+                console.log('⚠️ No providers match your filters in this area (showing 0 results as accurate)');
               }
             }
           } catch (error) {
