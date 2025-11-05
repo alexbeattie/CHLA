@@ -122,6 +122,10 @@
                 <option value="Intellectual Disability">Intellectual Disability</option>
                 <option value="Speech and Language Disorder">Speech/Language</option>
                 <option value="ADHD">ADHD</option>
+                <option value="Sensory Processing Disorder">Sensory Processing</option>
+                <option value="Down Syndrome">Down Syndrome</option>
+                <option value="Cerebral Palsy">Cerebral Palsy</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 

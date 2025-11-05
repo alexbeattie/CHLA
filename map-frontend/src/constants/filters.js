@@ -2,14 +2,20 @@
  * Filter constants
  */
 
+// IMPORTANT: Must match ProviderV2.DIAGNOSIS_CHOICES in models.py
 export const DIAGNOSIS_OPTIONS = [
-  "Global Development Delay",
   "Autism Spectrum Disorder",
+  "Global Development Delay",
   "Intellectual Disability",
   "Speech and Language Disorder",
   "ADHD",
+  "Sensory Processing Disorder",
+  "Down Syndrome",
+  "Cerebral Palsy",
+  "Other",
 ];
 
+// IMPORTANT: Must match ProviderV2.THERAPY_TYPE_CHOICES in models.py
 export const THERAPY_OPTIONS = [
   "ABA therapy",
   "Speech therapy",

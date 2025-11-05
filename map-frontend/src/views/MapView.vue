@@ -915,25 +915,26 @@ export default {
     console.log("[MapView] Stores and composables initialized");
 
     // Initialize available filter options (therapy types, diagnoses, etc.)
+    // IMPORTANT: These MUST match ProviderV2.THERAPY_TYPE_CHOICES in models.py
     this.filterStore.setAvailableOptions({
       therapyTypes: [
         'ABA therapy',
-        'Speech Therapy',
-        'Occupational Therapy',
-        'Physical Therapy',
-        'Social Skills Training',
-        'Parent Training',
-        'Behavioral Therapy',
-        'Developmental Therapy'
+        'Speech therapy',
+        'Occupational therapy',
+        'Physical therapy',
+        'Feeding therapy',
+        'Parent child interaction therapy/parent training behavior management'
       ],
       diagnoses: [
         'Autism Spectrum Disorder',
-        'ADHD',
         'Global Development Delay',
         'Intellectual Disability',
         'Speech and Language Disorder',
+        'ADHD',
+        'Sensory Processing Disorder',
+        'Down Syndrome',
         'Cerebral Palsy',
-        'Down Syndrome'
+        'Other'
       ]
     });
     console.log("[MapView] Available filter options initialized");
