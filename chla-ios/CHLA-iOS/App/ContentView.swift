@@ -184,11 +184,6 @@ struct MainTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea()
-            .contentShape(Rectangle())
-            .onTapGesture {
-                // Single tap to toggle UI visibility
-                visibilityManager.toggleUI()
-            }
             .onChange(of: appState.selectedTab) { _, newTab in
                 // Refresh List when tab is selected
                 if newTab == 2 {

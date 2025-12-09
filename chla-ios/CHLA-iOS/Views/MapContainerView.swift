@@ -71,7 +71,7 @@ struct MapContainerView: View {
                 Spacer()
                 VStack(spacing: 0) {
                     Spacer()
-                        .frame(height: 140)
+                        .frame(height: 160)
                     GlassMapControls(
                         onLocationTap: { centerOnUserLocation() },
                         onFilterTap: { showFilters = true },
@@ -80,8 +80,8 @@ struct MapContainerView: View {
                     )
                     Spacer()
                 }
-                .padding(.trailing, 16)
-                .offset(x: visibilityManager.isHeaderVisible ? 0 : 80)
+                .padding(.trailing, 20)
+                .offset(x: visibilityManager.isHeaderVisible ? 0 : 100)
                 .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
             }
@@ -204,11 +204,14 @@ struct MapContainerView: View {
         }
         .mapStyle(.standard(elevation: .realistic))
         .mapControls {
-            MapUserLocationButton()
             MapCompass()
             MapScaleView()
         }
         .ignoresSafeArea(edges: .top)
+        .onTapGesture {
+            // Tap on map to toggle UI visibility
+            visibilityManager.toggleUI()
+        }
     }
 
     @ViewBuilder
