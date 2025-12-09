@@ -56,8 +56,17 @@ export function buildProviderQueryParams(options) {
   );
 
   // Add insurance filter options
-  if (filterOptions.acceptsInsurance) {
+  // NEW: Support for specific insurance type checkboxes
+  if (filterOptions.insuranceTypes && filterOptions.insuranceTypes.length > 0) {
+    // Send each selected insurance type to the API
+    filterOptions.insuranceTypes.forEach((insuranceType) => {
+      queryParams.append("insurance", insuranceType);
+    });
+    console.log("💳 Insurance filter: specific types", filterOptions.insuranceTypes);
+  } else if (filterOptions.acceptsInsurance) {
+    // Legacy: generic "accepts any insurance" toggle
     queryParams.append("insurance", "insurance");
+    console.log("💳 Insurance filter: any insurance");
   }
 
   if (filterOptions.acceptsRegionalCenter) {
@@ -77,11 +86,11 @@ export function buildProviderQueryParams(options) {
  */
 export function buildProviderUrl(searchText, queryParams) {
   const isZipSearch = searchText && /^\d{5}$/.test(searchText.trim());
-  
+
   if (isZipSearch) {
     return `${getApiRoot()}/api/providers-v2/by_regional_center/?zip_code=${searchText.trim()}&${queryParams.toString()}`;
   }
-  
+
   return `${getApiRoot()}/api/providers-v2/comprehensive_search/?${queryParams.toString()}`;
 }
 
@@ -94,7 +103,10 @@ export function hasActiveFilters(filterOptions) {
     filterOptions.acceptsRegionalCenter ||
     filterOptions.acceptsPrivatePay ||
     filterOptions.matchesDiagnosis ||
-    filterOptions.matchesAge
+    filterOptions.matchesAge ||
+    (filterOptions.insuranceTypes && filterOptions.insuranceTypes.length > 0) ||
+    (filterOptions.therapies && filterOptions.therapies.length > 0) ||
+    (filterOptions.diagnoses && filterOptions.diagnoses.length > 0)
   );
 }
 
@@ -103,11 +115,11 @@ export function hasActiveFilters(filterOptions) {
  */
 export function validateProvider(provider) {
   if (!provider) return false;
-  
+
   // Check for invalid coordinates (common bug)
   const lat = parseFloat(provider.latitude);
   const lng = parseFloat(provider.longitude);
-  
+
   if (isNaN(lat) || isNaN(lng)) {
     console.warn(`⚠️ Invalid coordinates for provider: ${provider.name}`, {
       latitude: provider.latitude,
@@ -115,13 +127,13 @@ export function validateProvider(provider) {
     });
     return false;
   }
-  
+
   // Check for zero coordinates (indicates missing data)
   if (lat === 0 && lng === 0) {
     console.warn(`⚠️ Zero coordinates for provider: ${provider.name}`);
     return false;
   }
-  
+
   return true;
 }
 
@@ -147,7 +159,7 @@ export function filterProvidersInLACounty(providers) {
     const lng = parseFloat(provider.longitude);
     const lat = parseFloat(provider.latitude);
     return lng >= laCountyBounds.west && lng <= laCountyBounds.east &&
-           lat >= laCountyBounds.south && lat <= laCountyBounds.north;
+      lat >= laCountyBounds.south && lat <= laCountyBounds.north;
   });
 }
 
