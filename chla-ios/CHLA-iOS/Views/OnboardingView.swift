@@ -468,22 +468,22 @@ struct OnboardingView: View {
 
     private func ageGroupDisplayName(_ age: String) -> String {
         switch age {
-        case "0-5": return "🧒 0-5 years (Early Intervention)"
-        case "6-12": return "👦 6-12 years (School Age)"
-        case "13-18": return "👨 13-18 years (Adolescent)"
-        case "19+": return "🧑 19+ years (Adult)"
-        case "All Ages": return "👥 All Ages"
+        case "0-5": return "0-5 years (Early Intervention)"
+        case "6-12": return "6-12 years (School Age)"
+        case "13-18": return "13-18 years (Adolescent)"
+        case "19+": return "19+ years (Adult)"
+        case "All Ages": return "All Ages"
         default: return age
         }
     }
 
     private func therapyDisplayName(_ therapy: String) -> String {
         switch therapy {
-        case "ABA therapy": return "🧩 ABA Therapy"
-        case "Speech therapy": return "💬 Speech Therapy"
-        case "Occupational therapy": return "🖐️ Occupational Therapy"
-        case "Physical therapy": return "🏃 Physical Therapy"
-        case "Feeding therapy": return "🍎 Feeding Therapy"
+        case "ABA therapy": return "ABA Therapy"
+        case "Speech therapy": return "Speech Therapy"
+        case "Occupational therapy": return "Occupational Therapy"
+        case "Physical therapy": return "Physical Therapy"
+        case "Feeding therapy": return "Feeding Therapy"
         default: return therapy
         }
     }

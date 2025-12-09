@@ -84,10 +84,6 @@ struct SearchFilters: Codable, Equatable {
         "Global Development Delay",
         "Intellectual Disability",
         "Speech and Language Disorder",
-        "ADHD",
-//        "Sensory Processing Disorder",
-//        "Down Syndrome",
-//        "Cerebral Palsy",
         "Other"
     ]
 
