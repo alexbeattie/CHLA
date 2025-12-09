@@ -642,6 +642,8 @@ struct RegionalCentersTabView: View {
 struct RegionalCentersListContent: View {
     @State private var searchText = ""
     @StateObject private var locationManager = RCLocationManager()
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
+    @State private var lastDragValue: CGFloat = 0
 
     private let centers = RegionalCenterMatcher.shared.laRegionalCenters
 
@@ -737,6 +739,21 @@ struct RegionalCentersListContent: View {
         }
         .listStyle(.insetGrouped)
         .searchable(text: $searchText, prompt: "Search centers")
+        .simultaneousGesture(
+            DragGesture()
+                .onChanged { value in
+                    let delta = value.translation.height - lastDragValue
+                    if delta < -10 {
+                        visibilityManager.hideUI()
+                    } else if delta > 10 {
+                        visibilityManager.showUI()
+                    }
+                    lastDragValue = value.translation.height
+                }
+                .onEnded { _ in
+                    lastDragValue = 0
+                }
+        )
         .onAppear {
             locationManager.requestLocation()
         }
@@ -745,6 +762,9 @@ struct RegionalCentersListContent: View {
 
 // MARK: - More View
 struct MoreView: View {
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
+    @State private var lastDragValue: CGFloat = 0
+
     var body: some View {
         NavigationStack {
             List {
@@ -818,6 +838,21 @@ struct MoreView: View {
                 }
             }
             .navigationTitle("More")
+            .simultaneousGesture(
+                DragGesture()
+                    .onChanged { value in
+                        let delta = value.translation.height - lastDragValue
+                        if delta < -10 {
+                            visibilityManager.hideUI()
+                        } else if delta > 10 {
+                            visibilityManager.showUI()
+                        }
+                        lastDragValue = value.translation.height
+                    }
+                    .onEnded { _ in
+                        lastDragValue = 0
+                    }
+            )
         }
     }
 }
