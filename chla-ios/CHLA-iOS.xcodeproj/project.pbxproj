@@ -1,0 +1,507 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		04BC3A23DAB7D2BC4099B14B /* FullMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8FA95361CB09C477DD471BB /* FullMapView.swift */; };
+		066B905200A44CF4DA67DA13 /* la_regional_centers.geojson in Resources */ = {isa = PBXBuildFile; fileRef = D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */; };
+		08197465A09964FEDE9838F7 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D436BC3380B8D5D10977DC8 /* APIModels.swift */; };
+		0A1B2C3D4E5F6A7B8C9D0E1F /* ModernSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */; };
+		100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */; };
+		1449BCCC6174C33F7BEE7622 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6591C41B29B4E6F007C4177 /* ContentView.swift */; };
+		1CEC881B9CBD2A15E447E8A8 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F17384527B1FBCE7FD88F6 /* APIService.swift */; };
+		3280A258F4FD9C1DBCB63162 /* RegionalCenterStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31DBE152BC605E5607045F5 /* RegionalCenterStore.swift */; };
+		400B622708BD81DA6D9E3444 /* MapContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3B6AD2B4FB09E5225CA384 /* MapContainerView.swift */; };
+		4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */; };
+		5D76754352E7C07BA12CA586 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */; };
+		7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306D53C14B3C1FAEC3E125CB /* Formatters.swift */; };
+		7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */; };
+		8655A013D36520C7E627B87C /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1CAAF9621905B2CA8C4526 /* FAQView.swift */; };
+		8B442B44FD870077299FF3F9 /* ProviderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */; };
+		8B50850460375933BDD8764B /* ProviderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */; };
+		90A0C507590D7CC34803E040 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */; };
+		9133652FAD1A98671B50825E /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */; };
+		9500190A582CEE8FB5DC8DC1 /* ProviderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0984D9DCC530BA0054C44679 /* ProviderListView.swift */; };
+		AA4A526410141C30831A38A5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */; };
+		B07E247A299B557906472120 /* RegionalCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB7E59A57007FC65E7BCE03 /* RegionalCenter.swift */; };
+		B7B2689A066399CC906831F6 /* DirectionsMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */; };
+		C898C110F2BE59F7FAE60387 /* RegionalCentersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44774A304C1AEFF050E91B8E /* RegionalCentersView.swift */; };
+		D021626D7868639BF75E7DED /* RegionalCenterMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */; };
+		E34FB2F1D1B6549488E397CD /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1E575CEBC73792782D8E0A /* AboutView.swift */; };
+		E578BECE1D55AB54BFCAB764 /* CHLA_iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB8D52AF87D4A250BF8B28B3 /* CHLA_iOSApp.swift */; };
+		EBA84EB20ACAE5C15E1646E2 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814A77FB55507E652FC3F4E8 /* Provider.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0984D9DCC530BA0054C44679 /* ProviderListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderListView.swift; sourceTree = "<group>"; };
+		1FB5C75599D9C22F14F05B42 /* CHLA Provider Map.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CHLA Provider Map.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2075D8466FED15932BEE85FD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		306D53C14B3C1FAEC3E125CB /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		3D436BC3380B8D5D10977DC8 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		3E1CAAF9621905B2CA8C4526 /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
+		43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterMapView.swift; sourceTree = "<group>"; };
+		44774A304C1AEFF050E91B8E /* RegionalCentersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCentersView.swift; sourceTree = "<group>"; };
+		49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectionsMapView.swift; sourceTree = "<group>"; };
+		5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
+		7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
+		814A77FB55507E652FC3F4E8 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
+		8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDetailView.swift; sourceTree = "<group>"; };
+		9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterMatcher.swift; sourceTree = "<group>"; };
+		AAB7E59A57007FC65E7BCE03 /* RegionalCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenter.swift; sourceTree = "<group>"; };
+		AF1E575CEBC73792782D8E0A /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		B31DBE152BC605E5607045F5 /* RegionalCenterStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterStore.swift; sourceTree = "<group>"; };
+		BD3B6AD2B4FB09E5225CA384 /* MapContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapContainerView.swift; sourceTree = "<group>"; };
+		CB8D52AF87D4A250BF8B28B3 /* CHLA_iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CHLA_iOSApp.swift; sourceTree = "<group>"; };
+		CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapMarkers.swift; sourceTree = "<group>"; };
+		D8F17384527B1FBCE7FD88F6 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
+		D8FA95361CB09C477DD471BB /* FullMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullMapView.swift; sourceTree = "<group>"; };
+		D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */ = {isa = PBXFileReference; lastKnownFileType = text; path = la_regional_centers.geojson; sourceTree = "<group>"; };
+		E6591C41B29B4E6F007C4177 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		10BF7A4DA57D3584A2E10381 = {
+			isa = PBXGroup;
+			children = (
+				ECD3741F0C98337817686A2D /* CHLA-iOS */,
+				EB7C22148FEF8E87E05E3493 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		24009E8122A112C396352106 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */,
+				2075D8466FED15932BEE85FD /* Info.plist */,
+				D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		2D6A3F0D4A8E225193D49425 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D8F17384527B1FBCE7FD88F6 /* APIService.swift */,
+				ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */,
+				9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		44C3E28DCAB95A0D91C11514 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				306D53C14B3C1FAEC3E125CB /* Formatters.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		4D093770FEA472169ACC91DA /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */,
+				F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		583D240ED728538F30EE8E8E /* App */ = {
+			isa = PBXGroup;
+			children = (
+				CB8D52AF87D4A250BF8B28B3 /* CHLA_iOSApp.swift */,
+				E6591C41B29B4E6F007C4177 /* ContentView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		69886AD91291C36A164EE5EB /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AF1E575CEBC73792782D8E0A /* AboutView.swift */,
+				49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */,
+				3E1CAAF9621905B2CA8C4526 /* FAQView.swift */,
+				D8FA95361CB09C477DD471BB /* FullMapView.swift */,
+				BD3B6AD2B4FB09E5225CA384 /* MapContainerView.swift */,
+				799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */,
+				8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */,
+				0984D9DCC530BA0054C44679 /* ProviderListView.swift */,
+				43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */,
+				44774A304C1AEFF050E91B8E /* RegionalCentersView.swift */,
+				F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */,
+				4D093770FEA472169ACC91DA /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		9410D52DF71193838612B37C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3D436BC3380B8D5D10977DC8 /* APIModels.swift */,
+				814A77FB55507E652FC3F4E8 /* Provider.swift */,
+				AAB7E59A57007FC65E7BCE03 /* RegionalCenter.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B6CC92C3BBCC5142AB3C96B7 /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */,
+				B31DBE152BC605E5607045F5 /* RegionalCenterStore.swift */,
+			);
+			path = Stores;
+			sourceTree = "<group>";
+		};
+		EB7C22148FEF8E87E05E3493 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1FB5C75599D9C22F14F05B42 /* CHLA Provider Map.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ECD3741F0C98337817686A2D /* CHLA-iOS */ = {
+			isa = PBXGroup;
+			children = (
+				583D240ED728538F30EE8E8E /* App */,
+				FF212992361548BD1F7382F0 /* Extensions */,
+				9410D52DF71193838612B37C /* Models */,
+				24009E8122A112C396352106 /* Resources */,
+				2D6A3F0D4A8E225193D49425 /* Services */,
+				B6CC92C3BBCC5142AB3C96B7 /* Stores */,
+				44C3E28DCAB95A0D91C11514 /* Utils */,
+				69886AD91291C36A164EE5EB /* Views */,
+			);
+			path = "CHLA-iOS";
+			sourceTree = "<group>";
+		};
+		FF212992361548BD1F7382F0 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4078F61FF572E66B27C15AE7 /* CHLA-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 117510B274FDF781EFE2E32C /* Build configuration list for PBXNativeTarget "CHLA-iOS" */;
+			buildPhases = (
+				54CDF34F01D3A3FE6D86C75F /* Sources */,
+				3D85C023AFA8C8967C74CB03 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "CHLA-iOS";
+			packageProductDependencies = (
+			);
+			productName = "CHLA-iOS";
+			productReference = 1FB5C75599D9C22F14F05B42 /* CHLA Provider Map.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DEFCD0F0AF2F8007BD6358D5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					4078F61FF572E66B27C15AE7 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 992C03C9CFD2233BCDD27BF0 /* Build configuration list for PBXProject "CHLA-iOS" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 10BF7A4DA57D3584A2E10381;
+			minimizedProjectReferenceProxies = 1;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4078F61FF572E66B27C15AE7 /* CHLA-iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3D85C023AFA8C8967C74CB03 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA4A526410141C30831A38A5 /* Assets.xcassets in Resources */,
+				066B905200A44CF4DA67DA13 /* la_regional_centers.geojson in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		54CDF34F01D3A3FE6D86C75F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08197465A09964FEDE9838F7 /* APIModels.swift in Sources */,
+				1CEC881B9CBD2A15E447E8A8 /* APIService.swift in Sources */,
+				E34FB2F1D1B6549488E397CD /* AboutView.swift in Sources */,
+				E578BECE1D55AB54BFCAB764 /* CHLA_iOSApp.swift in Sources */,
+				90A0C507590D7CC34803E040 /* Color+Extensions.swift in Sources */,
+				1449BCCC6174C33F7BEE7622 /* ContentView.swift in Sources */,
+				B7B2689A066399CC906831F6 /* DirectionsMapView.swift in Sources */,
+				8655A013D36520C7E627B87C /* FAQView.swift in Sources */,
+				7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */,
+				04BC3A23DAB7D2BC4099B14B /* FullMapView.swift in Sources */,
+				9133652FAD1A98671B50825E /* LocationService.swift in Sources */,
+				400B622708BD81DA6D9E3444 /* MapContainerView.swift in Sources */,
+				100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */,
+				0A1B2C3D4E5F6A7B8C9D0E1F /* ModernSearchView.swift in Sources */,
+				4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */,
+				EBA84EB20ACAE5C15E1646E2 /* Provider.swift in Sources */,
+				8B442B44FD870077299FF3F9 /* ProviderDetailView.swift in Sources */,
+				9500190A582CEE8FB5DC8DC1 /* ProviderListView.swift in Sources */,
+				8B50850460375933BDD8764B /* ProviderStore.swift in Sources */,
+				B07E247A299B557906472120 /* RegionalCenter.swift in Sources */,
+				7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */,
+				D021626D7868639BF75E7DED /* RegionalCenterMatcher.swift in Sources */,
+				3280A258F4FD9C1DBCB63162 /* RegionalCenterStore.swift in Sources */,
+				C898C110F2BE59F7FAE60387 /* RegionalCentersView.swift in Sources */,
+				5D76754352E7C07BA12CA586 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4AE2292EB90415C35707AFBB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = LR4SP9C264;
+				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.chla.providermap;
+				PRODUCT_NAME = "CHLA Provider Map";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		653164C744988FE54E20A24E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "CHLA Provider Map";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CHLA Provider Map uses your location to find healthcare providers near you.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		7E79A5B6468CF29E37BEEC6C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "CHLA Provider Map";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CHLA Provider Map uses your location to find healthcare providers near you.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		83EAB082A2ABDF604A859052 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = LR4SP9C264;
+				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.chla.providermap;
+				PRODUCT_NAME = "CHLA Provider Map";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		117510B274FDF781EFE2E32C /* Build configuration list for PBXNativeTarget "CHLA-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4AE2292EB90415C35707AFBB /* Debug */,
+				83EAB082A2ABDF604A859052 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		992C03C9CFD2233BCDD27BF0 /* Build configuration list for PBXProject "CHLA-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E79A5B6468CF29E37BEEC6C /* Debug */,
+				653164C744988FE54E20A24E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DEFCD0F0AF2F8007BD6358D5 /* Project object */;
+}
