@@ -404,6 +404,7 @@ struct ProviderCardView: View {
                 Spacer()
 
                 if let rcName = provider.regionalCenterShortName {
+                    let rcColor = Color.regionalCenterColor(for: rcName)
                     Text(rcName)
                         .font(.caption2)
                         .fontWeight(.bold)
@@ -414,12 +415,12 @@ struct ProviderCardView: View {
                             Capsule()
                                 .fill(
                                     LinearGradient(
-                                        colors: [.purple, .purple.opacity(0.8)],
+                                        colors: [rcColor, rcColor.opacity(0.8)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
                                 )
-                                .shadow(color: .purple.opacity(0.4), radius: 4, y: 2)
+                                .shadow(color: rcColor.opacity(0.4), radius: 4, y: 2)
                         )
                 }
             }
