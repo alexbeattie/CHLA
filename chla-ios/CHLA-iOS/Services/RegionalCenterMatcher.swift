@@ -7,6 +7,33 @@
 
 import Foundation
 import CoreLocation
+import SwiftUI
+
+// MARK: - Centralized Regional Center Colors
+/// Use these colors throughout the app for consistent branding
+extension Color {
+    /// Returns the official color for a regional center by shortName/acronym
+    static func regionalCenterColor(for shortName: String) -> Color {
+        switch shortName.uppercased() {
+        case "NLACRC":
+            return Color(red: 0.85, green: 0.65, blue: 0.13)   // Gold/Yellow
+        case "FDLRC":
+            return Color(red: 0.60, green: 0.40, blue: 0.70)    // Purple
+        case "HRC":
+            return Color(red: 0.20, green: 0.60, blue: 0.86)    // Blue
+        case "SCLARC":
+            return Color(red: 0.95, green: 0.55, blue: 0.20)    // Orange
+        case "ELARC":
+            return Color(red: 0.30, green: 0.75, blue: 0.45)    // Green
+        case "WRC":
+            return Color(red: 0.90, green: 0.30, blue: 0.50)    // Pink/Magenta
+        case "SGPRC", "SG/PRC":
+            return Color(red: 0.20, green: 0.55, blue: 0.35)    // Dark Green/Teal
+        default:
+            return .accentBlue
+        }
+    }
+}
 
 /// Matches providers to LA County Regional Centers based on location
 class RegionalCenterMatcher {
@@ -21,7 +48,12 @@ class RegionalCenterMatcher {
         let phone: String
         let website: String
         let coordinate: CLLocationCoordinate2D
-        let color: String // For UI consistency
+        let color: String // Legacy - use Color.regionalCenterColor(for:) instead
+
+        /// Get the SwiftUI Color for this regional center
+        var uiColor: Color {
+            Color.regionalCenterColor(for: shortName)
+        }
     }
 
     /// LA County Regional Centers with their approximate service area centers

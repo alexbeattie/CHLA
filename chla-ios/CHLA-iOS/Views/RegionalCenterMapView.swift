@@ -573,16 +573,10 @@ class RegionalCenterMapViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: Error?
 
-    // Colors matching the web frontend
-    private let colorsByAcronym: [String: Color] = [
-        "NLACRC": Color(red: 0.85, green: 0.65, blue: 0.13),   // Gold/Yellow
-        "FDLRC": Color(red: 0.60, green: 0.40, blue: 0.70),    // Purple
-        "HRC": Color(red: 0.20, green: 0.60, blue: 0.86),      // Blue
-        "SCLARC": Color(red: 0.95, green: 0.55, blue: 0.20),   // Orange
-        "ELARC": Color(red: 0.30, green: 0.75, blue: 0.45),    // Green
-        "WRC": Color(red: 0.90, green: 0.30, blue: 0.50),      // Pink/Magenta
-        "SG/PRC": Color(red: 0.20, green: 0.55, blue: 0.35)    // Dark Green
-    ]
+    // Colors using centralized Color.regionalCenterColor(for:)
+    private func colorForAcronym(_ acronym: String) -> Color {
+        Color.regionalCenterColor(for: acronym)
+    }
 
     // Center coordinates for each regional center (centered in service area)
     private let officeCoordinates: [String: CLLocationCoordinate2D] = [
@@ -613,7 +607,7 @@ class RegionalCenterMapViewModel: ObservableObject {
             var features: [ServiceAreaFeature] = []
             for feature in geojson.features {
                 let acronym = feature.properties.acronym
-                let color = colorsByAcronym[acronym] ?? .gray
+                let color = colorForAcronym(acronym)
                 let officeCoord = officeCoordinates[acronym]
 
                 let serviceArea = ServiceAreaFeature(

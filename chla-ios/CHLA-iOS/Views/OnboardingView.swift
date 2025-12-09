@@ -236,7 +236,7 @@ struct OnboardingView: View {
                 Image(systemName: "building.2.crop.circle.fill")
                     .font(.system(size: 60))
                     .foregroundStyle(.linearGradient(
-                        colors: [rcColor(rc.color), rcColor(rc.color).opacity(0.6)],
+                        colors: [rcColor(for: rc), rcColor(for: rc).opacity(0.6)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ))
@@ -254,7 +254,7 @@ struct OnboardingView: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
-                            .background(rcColor(rc.color))
+                            .background(rcColor(for: rc))
                             .cornerRadius(8)
 
                         Spacer()
@@ -289,11 +289,11 @@ struct OnboardingView: View {
                     }
                 }
                 .padding()
-                .background(rcColor(rc.color).opacity(0.08))
+                .background(rcColor(for: rc).opacity(0.08))
                 .cornerRadius(16)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(rcColor(rc.color).opacity(0.3), lineWidth: 1)
+                        .stroke(rcColor(for: rc).opacity(0.3), lineWidth: 1)
                 )
                 .padding(.horizontal, 24)
 
@@ -324,17 +324,8 @@ struct OnboardingView: View {
         .padding()
     }
 
-    private func rcColor(_ colorName: String) -> Color {
-        switch colorName {
-        case "orange": return .orange
-        case "blue": return .blue
-        case "purple": return .purple
-        case "green": return .green
-        case "teal": return .teal
-        case "red": return .red
-        case "indigo": return .indigo
-        default: return .accentBlue
-        }
+    private func rcColor(for center: RegionalCenterMatcher.RegionalCenterInfo) -> Color {
+        center.uiColor
     }
 
     private var ageGroupStep: some View {

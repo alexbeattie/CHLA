@@ -24,16 +24,7 @@ struct ProviderDetailView: View {
 
     private var rcColor: Color {
         guard let rc = cachedRegionalCenter else { return .accentBlue }
-        switch rc.color {
-        case "orange": return .orange
-        case "blue": return .blue
-        case "purple": return .purple
-        case "green": return .green
-        case "teal": return .teal
-        case "red": return .red
-        case "indigo": return .indigo
-        default: return .accentBlue
-        }
+        return rc.uiColor
     }
 
     var body: some View {

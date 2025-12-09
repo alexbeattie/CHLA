@@ -167,16 +167,7 @@ struct UserRCRow: View {
     let center: RegionalCenterMatcher.RegionalCenterInfo
 
     private var centerColor: Color {
-        switch center.color {
-        case "orange": return .orange
-        case "blue": return .blue
-        case "purple": return .purple
-        case "green": return .green
-        case "teal": return .teal
-        case "red": return .red
-        case "indigo": return .indigo
-        default: return .accentBlue
-        }
+        center.uiColor
     }
 
     var body: some View {
@@ -229,16 +220,7 @@ struct RCListRow: View {
     let center: RegionalCenterMatcher.RegionalCenterInfo
 
     private var centerColor: Color {
-        switch center.color {
-        case "orange": return .orange
-        case "blue": return .blue
-        case "purple": return .purple
-        case "green": return .green
-        case "teal": return .teal
-        case "red": return .red
-        case "indigo": return .indigo
-        default: return .accentBlue
-        }
+        center.uiColor
     }
 
     var body: some View {
@@ -290,16 +272,7 @@ struct RegionalCenterDetailSheet: View {
     @State private var lastDragValue: CGFloat = 0
 
     private var centerColor: Color {
-        switch center.color {
-        case "orange": return .orange
-        case "blue": return .blue
-        case "purple": return .purple
-        case "green": return .green
-        case "teal": return .teal
-        case "red": return .red
-        case "indigo": return .indigo
-        default: return .accentBlue
-        }
+        center.uiColor
     }
 
     private var centerData: RCDetailData {
