@@ -144,12 +144,17 @@ struct MapContainerView: View {
     private func performSearchWithQuery(_ query: String, scope: SearchScope = .all) async {
         // Update therapy filter based on scope
         var filters = appState.searchFilters
+
+        // Use larger radius for text searches to get more results
+        filters.radiusMiles = max(filters.radiusMiles, 50)
+
         if let therapyType = scope.therapyType {
             if !filters.therapyTypes.contains(therapyType) {
                 filters.therapyTypes = [therapyType]
             }
         } else {
-            // "All" scope - use existing filters
+            // "All" scope - clear therapy filter for broader search
+            filters.therapyTypes = []
         }
 
         let coordinate = locationService.coordinate ?? defaultRegion.center

@@ -33,6 +33,10 @@ struct AboutView: View {
     // MARK: - Hero Section
     private var heroSection: some View {
         VStack(spacing: 12) {
+            // Safe area spacer for status bar
+            Color.clear
+                .frame(height: 50)
+
             Text("About NDD Resources")
                 .font(.title2)
                 .fontWeight(.bold)
@@ -45,7 +49,7 @@ struct AboutView: View {
                 .padding(.horizontal, 20)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
+        .padding(.bottom, 32)
         .background(Color.accentBlue)
     }
 
