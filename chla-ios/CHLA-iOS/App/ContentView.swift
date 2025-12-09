@@ -609,10 +609,23 @@ struct AppHeader: View {
 // MARK: - Regional Centers Tab View
 struct RegionalCentersTabView: View {
     @State private var selectedView: Int = 0  // 0 = List, 1 = Map
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            // Header with segmented picker
             VStack(spacing: 0) {
+                // Title area
+                HStack {
+                    Text("Regional Centers")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 60) // Account for status bar
+                .padding(.bottom, 8)
+
                 // Segmented Picker
                 Picker("View", selection: $selectedView) {
                     Label("List", systemImage: "list.bullet").tag(0)
@@ -620,27 +633,26 @@ struct RegionalCentersTabView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
-                .padding(.vertical, 12)
-                .background(Color(.systemBackground))
-
-                Divider()
-
-                // Content
-                if selectedView == 0 {
-                    RegionalCentersListContent()
-                } else {
-                    RegionalCenterMapView()
-                }
+                .padding(.bottom, 12)
             }
-            .navigationTitle("Regional Centers")
-            .navigationBarTitleDisplayMode(.inline)
+            .background(Color(.systemBackground))
+            .offset(y: visibilityManager.isHeaderVisible ? 0 : -150)
+            .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
+
+            // Content
+            if selectedView == 0 {
+                RegionalCentersListContent()
+            } else {
+                RegionalCenterMapView()
+            }
         }
+        .ignoresSafeArea(edges: .top)
     }
 }
 
 // MARK: - Regional Centers List Content
 struct RegionalCentersListContent: View {
-    @State private var searchText = ""
     @State private var selectedCenter: RegionalCenterMatcher.RegionalCenterInfo?
     @StateObject private var locationManager = RCLocationManager()
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
@@ -659,19 +671,11 @@ struct RegionalCentersListContent: View {
     }
 
     var filteredCenters: [RegionalCenterMatcher.RegionalCenterInfo] {
-        let centersToFilter = userRegionalCenter != nil ? otherCenters : centers
-        if searchText.isEmpty { return centersToFilter }
-        return centersToFilter.filter { center in
-            center.name.localizedCaseInsensitiveContains(searchText) ||
-            center.shortName.localizedCaseInsensitiveContains(searchText)
-        }
+        userRegionalCenter != nil ? otherCenters : centers
     }
 
     private var showUserCenter: Bool {
-        guard let userCenter = userRegionalCenter else { return false }
-        if searchText.isEmpty { return true }
-        return userCenter.name.localizedCaseInsensitiveContains(searchText) ||
-               userCenter.shortName.localizedCaseInsensitiveContains(searchText)
+        userRegionalCenter != nil
     }
 
     var body: some View {
@@ -741,7 +745,21 @@ struct RegionalCentersListContent: View {
             }
         }
         .listStyle(.insetGrouped)
-        .searchable(text: $searchText, prompt: "Search centers")
+        .simultaneousGesture(
+            DragGesture()
+                .onChanged { value in
+                    let delta = value.translation.height - lastDragValue
+                    if delta < -10 {
+                        visibilityManager.hideUI()
+                    } else if delta > 10 {
+                        visibilityManager.showUI()
+                    }
+                    lastDragValue = value.translation.height
+                }
+                .onEnded { _ in
+                    lastDragValue = 0
+                }
+        )
         .sheet(item: $selectedCenter) { center in
             RegionalCenterDetailSheet(center: center)
                 .presentationDetents([.large])
