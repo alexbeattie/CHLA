@@ -355,9 +355,6 @@ struct RegionalCenterDetailSheet: View {
                     }
                 }
             }
-            .onTapGesture {
-                hideKeyboard()
-            }
         }
         .sheet(isPresented: $showFullMap) {
             FullMapView(
