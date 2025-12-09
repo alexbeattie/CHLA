@@ -15,16 +15,13 @@ class UIVisibilityManager: ObservableObject {
     @Published var isTabBarVisible = true
     @Published var isHeaderVisible = true
     @Published var lastScrollOffset: CGFloat = 0
-    @Published var isUserInteracting = false
-
-    private var hideTimer: Timer?
 
     func handleScroll(offset: CGFloat) {
         let delta = offset - lastScrollOffset
-        let threshold: CGFloat = 8
+        let threshold: CGFloat = 12
 
-        // Scrolling down - hide UI
-        if delta > threshold && offset > 50 {
+        // Scrolling down significantly - hide UI
+        if delta > threshold && offset > 80 {
             hideUI()
         }
         // Scrolling up - show UI
@@ -44,11 +41,11 @@ class UIVisibilityManager: ObservableObject {
     }
 
     func showUI() {
+        guard !isTabBarVisible else { return }
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
             isTabBarVisible = true
             isHeaderVisible = true
         }
-        resetHideTimer()
     }
 
     func toggleUI() {
@@ -57,27 +54,6 @@ class UIVisibilityManager: ObservableObject {
         } else {
             showUI()
         }
-    }
-
-    func resetHideTimer() {
-        hideTimer?.invalidate()
-        hideTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: false) { [weak self] _ in
-            Task { @MainActor in
-                if self?.isUserInteracting == false {
-                    self?.hideUI()
-                }
-            }
-        }
-    }
-
-    func userStartedInteracting() {
-        isUserInteracting = true
-        showUI()
-    }
-
-    func userStoppedInteracting() {
-        isUserInteracting = false
-        resetHideTimer()
     }
 }
 
@@ -210,39 +186,34 @@ struct MainTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(edges: .bottom)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                // Tap anywhere to toggle UI visibility
-                visibilityManager.toggleUI()
-            }
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        visibilityManager.userStartedInteracting()
-                    }
-                    .onEnded { _ in
-                        visibilityManager.userStoppedInteracting()
-                    }
-            )
 
-            // Tap indicator when UI is hidden
+            // Tap-to-show button when UI is hidden
             if !visibilityManager.isTabBarVisible {
                 VStack {
                     Spacer()
-                    HStack {
-                        Spacer()
-                        Text("Tap to show menu")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(.ultraThinMaterial, in: Capsule())
-                        Spacer()
+                    Button {
+                        visibilityManager.showUI()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.up")
+                                .font(.caption.bold())
+                            Text("Show Menu")
+                                .font(.caption.bold())
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background {
+                            Capsule()
+                                .fill(Color.accentBlue.opacity(0.9))
+                            Capsule()
+                                .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
+                        }
+                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
                     }
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 24)
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
-                .allowsHitTesting(false)
             }
 
             // Floating Glass Tab Bar with auto-hide
@@ -273,10 +244,6 @@ struct MainTabView: View {
                 "Check out NDD Resources - Find developmental disability services in LA County!",
                 URL(string: "https://kinddhelp.com")!
             ])
-        }
-        .onAppear {
-            // Start with UI visible, then auto-hide after delay
-            visibilityManager.resetHideTimer()
         }
     }
 

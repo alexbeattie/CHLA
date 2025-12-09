@@ -158,10 +158,8 @@ struct ProviderListView: View {
                 await refreshProviders()
             }
             .task {
-                // Always load on first appearance
-                if providerStore.providers.isEmpty {
-                    await loadInitialProviders()
-                }
+                // Always load providers when view appears
+                await loadInitialProviders()
             }
             // Listen for tab menu actions
             .onReceive(NotificationCenter.default.publisher(for: .refreshList)) { _ in
