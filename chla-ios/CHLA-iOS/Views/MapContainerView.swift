@@ -203,20 +203,14 @@ struct MapContainerView: View {
     private var searchOverlay: some View {
         let shouldShow = visibilityManager.isHeaderVisible || searchState.isSearchActive
         return VStack(spacing: 0) {
-            // Full-width header background
-            Color.clear
-                .frame(height: 0)
-                .background(.ultraThinMaterial)
-                .ignoresSafeArea(edges: .top)
-
             ModernSearchBar(
                 searchState: searchState,
                 onFilterTap: { showFilters = true },
                 activeFilterCount: activeFilterCount
             )
-            .padding(.horizontal)
-            .padding(.top, 8)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 16)
+            .padding(.top, 16) // Padding from top edge
+            .padding(.bottom, 12)
             .background(.ultraThinMaterial)
 
             // Active filter chips

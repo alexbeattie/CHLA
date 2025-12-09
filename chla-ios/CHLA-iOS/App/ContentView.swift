@@ -33,7 +33,6 @@ class UIVisibilityManager: ObservableObject {
     }
 
     func hideUI() {
-        guard isTabBarVisible else { return }
         withAnimation(.easeOut(duration: 0.25)) {
             isTabBarVisible = false
             isHeaderVisible = false
@@ -41,7 +40,6 @@ class UIVisibilityManager: ObservableObject {
     }
 
     func showUI() {
-        guard !isTabBarVisible else { return }
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
             isTabBarVisible = true
             isHeaderVisible = true
@@ -186,43 +184,21 @@ struct MainTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea()
+            .contentShape(Rectangle())
+            .onTapGesture {
+                // Single tap to toggle UI visibility
+                visibilityManager.toggleUI()
+            }
             .onChange(of: appState.selectedTab) { _, newTab in
                 // Refresh List when tab is selected
                 if newTab == 2 {
                     NotificationCenter.default.post(name: .refreshList, object: nil)
                 }
+                // Show UI when switching tabs
+                visibilityManager.showUI()
             }
 
-            // Tap-to-show button when UI is hidden
-            if !visibilityManager.isTabBarVisible {
-                VStack {
-                    Spacer()
-                    Button {
-                        visibilityManager.showUI()
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "chevron.up")
-                                .font(.caption.bold())
-                            Text("Show Menu")
-                                .font(.caption.bold())
-                        }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background {
-                            Capsule()
-                                .fill(Color.accentBlue.opacity(0.9))
-                            Capsule()
-                                .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
-                        }
-                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-                    }
-                    .padding(.bottom, 24)
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
-                }
-            }
-
-            // Floating Glass Tab Bar with swipe-to-hide
+            // Floating Glass Tab Bar
             LiquidGlassTabBar(
                 selectedTab: $appState.selectedTab,
                 namespace: tabAnimation,
@@ -233,17 +209,9 @@ struct MainTabView: View {
             .offset(y: visibilityManager.isTabBarVisible ? 0 : 120)
             .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
-            .gesture(
-                DragGesture(minimumDistance: 20)
-                    .onEnded { value in
-                        // Swipe down to hide
-                        if value.translation.height > 30 {
-                            visibilityManager.hideUI()
-                        }
-                    }
-            )
         }
         .ignoresSafeArea(.keyboard)
+        .statusBarHidden(!visibilityManager.isHeaderVisible)
         .sheet(isPresented: $showFAQ) {
             NavigationStack {
                 FAQView()
