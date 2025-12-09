@@ -7,6 +7,116 @@
 
 import SwiftUI
 
+// MARK: - UI Visibility Manager
+@MainActor
+class UIVisibilityManager: ObservableObject {
+    static let shared = UIVisibilityManager()
+
+    @Published var isTabBarVisible = true
+    @Published var isHeaderVisible = true
+    @Published var lastScrollOffset: CGFloat = 0
+    @Published var isUserInteracting = false
+
+    private var hideTimer: Timer?
+
+    func handleScroll(offset: CGFloat) {
+        let delta = offset - lastScrollOffset
+        let threshold: CGFloat = 8
+
+        // Scrolling down - hide UI
+        if delta > threshold && offset > 50 {
+            hideUI()
+        }
+        // Scrolling up - show UI
+        else if delta < -threshold {
+            showUI()
+        }
+
+        lastScrollOffset = offset
+    }
+
+    func hideUI() {
+        guard isTabBarVisible else { return }
+        withAnimation(.easeOut(duration: 0.25)) {
+            isTabBarVisible = false
+            isHeaderVisible = false
+        }
+    }
+
+    func showUI() {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            isTabBarVisible = true
+            isHeaderVisible = true
+        }
+        resetHideTimer()
+    }
+
+    func toggleUI() {
+        if isTabBarVisible {
+            hideUI()
+        } else {
+            showUI()
+        }
+    }
+
+    func resetHideTimer() {
+        hideTimer?.invalidate()
+        hideTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                if self?.isUserInteracting == false {
+                    self?.hideUI()
+                }
+            }
+        }
+    }
+
+    func userStartedInteracting() {
+        isUserInteracting = true
+        showUI()
+    }
+
+    func userStoppedInteracting() {
+        isUserInteracting = false
+        resetHideTimer()
+    }
+}
+
+// MARK: - Scroll Offset Preference Key
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+// MARK: - Scrollable Content Wrapper
+struct ScrollTrackingView<Content: View>: View {
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        ScrollView {
+            content
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(
+                            key: ScrollOffsetPreferenceKey.self,
+                            value: -geo.frame(in: .named("scroll")).origin.y
+                        )
+                    }
+                )
+        }
+        .coordinateSpace(name: "scroll")
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
+            visibilityManager.handleScroll(offset: offset)
+        }
+    }
+}
+
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
     @State private var showMainView = false
@@ -66,6 +176,7 @@ struct MainTabView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.openURL) private var openURL
     @Namespace private var tabAnimation
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     // Sheet states
     @State private var showFilters = false
@@ -86,7 +197,7 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Tab Content
+            // Tab Content - Full Screen
             Group {
                 switch appState.selectedTab {
                 case 0: MapContainerView()
@@ -98,8 +209,43 @@ struct MainTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea(edges: .bottom)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                // Tap anywhere to toggle UI visibility
+                visibilityManager.toggleUI()
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        visibilityManager.userStartedInteracting()
+                    }
+                    .onEnded { _ in
+                        visibilityManager.userStoppedInteracting()
+                    }
+            )
 
-            // Floating Glass Tab Bar
+            // Tap indicator when UI is hidden
+            if !visibilityManager.isTabBarVisible {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Text("Tap to show menu")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(.ultraThinMaterial, in: Capsule())
+                        Spacer()
+                    }
+                    .padding(.bottom, 20)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+                .allowsHitTesting(false)
+            }
+
+            // Floating Glass Tab Bar with auto-hide
             LiquidGlassTabBar(
                 selectedTab: $appState.selectedTab,
                 namespace: tabAnimation,
@@ -107,6 +253,9 @@ struct MainTabView: View {
             )
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
+            .offset(y: visibilityManager.isTabBarVisible ? 0 : 120)
+            .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
         }
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showFAQ) {
@@ -124,6 +273,10 @@ struct MainTabView: View {
                 "Check out NDD Resources - Find developmental disability services in LA County!",
                 URL(string: "https://kinddhelp.com")!
             ])
+        }
+        .onAppear {
+            // Start with UI visible, then auto-hide after delay
+            visibilityManager.resetHideTimer()
         }
     }
 

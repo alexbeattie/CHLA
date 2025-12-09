@@ -13,6 +13,7 @@ struct MapContainerView: View {
     @StateObject private var providerStore = ProviderStore()
     @StateObject private var locationService = LocationService()
     @StateObject private var searchState = SearchStateManager()
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var selectedProvider: Provider?
@@ -69,6 +70,9 @@ struct MapContainerView: View {
                     Spacer()
                 }
                 .padding(.trailing, 12)
+                .offset(x: visibilityManager.isHeaderVisible ? 0 : 80)
+                .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
             }
 
             // Loading overlay
@@ -211,6 +215,9 @@ struct MapContainerView: View {
                     .padding(.top, 8)
             }
         }
+        .offset(y: visibilityManager.isHeaderVisible ? 0 : -120)
+        .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
     }
 
     @ViewBuilder
