@@ -131,7 +131,7 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
             # Add distance to serialized data
             serializer_data = list(serializer.data)
             for i, location in enumerate(nearby_locations):
-                if i < len(serializer_data) and hasattr(location, 'distance'):
+                if i < len(serializer_data) and hasattr(location, "distance"):
                     serializer_data[i] = dict(serializer_data[i])
                     serializer_data[i]["distance"] = round(location.distance, 2)
 
@@ -841,30 +841,64 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     insurance_lower = insurance_type.lower()
 
                     # Map common insurance type names to carriers in the database
-                    if insurance_lower in ["insurance", "accepts insurance", "private insurance"]:
+                    if insurance_lower in [
+                        "insurance",
+                        "accepts insurance",
+                        "private insurance",
+                    ]:
                         # Get all providers that accept ANY insurance
                         # This returns providers that have at least one insurance carrier relationship
-                        insurance_provider_ids = ProviderInsuranceCarrier.objects.values_list('provider_id', flat=True).distinct()
+                        insurance_provider_ids = (
+                            ProviderInsuranceCarrier.objects.values_list(
+                                "provider_id", flat=True
+                            ).distinct()
+                        )
                         insurance_q |= Q(id__in=insurance_provider_ids)
-                    elif insurance_lower in ["private pay", "private payment", "self pay"]:
+                    elif insurance_lower in [
+                        "private pay",
+                        "private payment",
+                        "self pay",
+                    ]:
                         # Private pay is implicit - all providers accept it
                         # For now, don't filter out any providers for private pay
                         pass
-                    elif insurance_lower in ["regional center", "regional center funding"]:
-                        # Regional center funding - for now, don't filter
-                        # TODO: Add regional center acceptance field if needed
-                        pass
+                    elif insurance_lower in [
+                        "regional center",
+                        "regional center funding",
+                    ]:
+                        # Filter by Regional Center insurance carrier
+                        try:
+                            carrier = InsuranceCarrier.objects.get(
+                                name__iexact="Regional Center"
+                            )
+                            carrier_provider_ids = (
+                                ProviderInsuranceCarrier.objects.filter(
+                                    insurance_carrier=carrier
+                                ).values_list("provider_id", flat=True)
+                            )
+                            insurance_q |= Q(id__in=carrier_provider_ids)
+                        except InsuranceCarrier.DoesNotExist:
+                            # Fallback: search in legacy field
+                            insurance_q |= Q(
+                                insurance_accepted__icontains="regional center"
+                            )
                     else:
                         # Try to match specific insurance carrier names
                         try:
-                            carrier = InsuranceCarrier.objects.get(name__iexact=insurance_type)
-                            carrier_provider_ids = ProviderInsuranceCarrier.objects.filter(
-                                insurance_carrier=carrier
-                            ).values_list('provider_id', flat=True)
+                            carrier = InsuranceCarrier.objects.get(
+                                name__iexact=insurance_type
+                            )
+                            carrier_provider_ids = (
+                                ProviderInsuranceCarrier.objects.filter(
+                                    insurance_carrier=carrier
+                                ).values_list("provider_id", flat=True)
+                            )
                             insurance_q |= Q(id__in=carrier_provider_ids)
                         except InsuranceCarrier.DoesNotExist:
                             # Fallback: search in legacy insurance_accepted text field
-                            insurance_q |= Q(insurance_accepted__icontains=insurance_type)
+                            insurance_q |= Q(
+                                insurance_accepted__icontains=insurance_type
+                            )
 
                 if insurance_q:
                     providers = providers.filter(insurance_q)
@@ -876,14 +910,19 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             # Apply diagnosis filter using JSON field operations
             if diagnosis:
                 # Count how many providers have diagnosis data
-                providers_with_diagnosis_data = providers.exclude(
-                    diagnoses_treated__isnull=True
-                ).exclude(diagnoses_treated=[]).count()
+                providers_with_diagnosis_data = (
+                    providers.exclude(diagnoses_treated__isnull=True)
+                    .exclude(diagnoses_treated=[])
+                    .count()
+                )
                 total_providers = providers.count()
 
                 # Only apply diagnosis filter if at least 10% of providers have diagnosis data
                 # This prevents filtering to 2-3 providers when the field is rarely populated
-                if total_providers > 0 and (providers_with_diagnosis_data / total_providers) >= 0.1:
+                if (
+                    total_providers > 0
+                    and (providers_with_diagnosis_data / total_providers) >= 0.1
+                ):
                     diagnosis_filtered = providers.filter(
                         diagnoses_treated__contains=[diagnosis]
                     )
@@ -910,7 +949,9 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
 
                     # Get IDs of already filtered providers
                     filtered_provider_ids = list(providers.values_list("id", flat=True))
-                    print(f"🔍 [comprehensive_search] Radius: {radius} miles, Providers before distance filter: {len(filtered_provider_ids)}")
+                    print(
+                        f"🔍 [comprehensive_search] Radius: {radius} miles, Providers before distance filter: {len(filtered_provider_ids)}"
+                    )
 
                     if filtered_provider_ids:
                         # Filter by distance using raw SQL with proper parameterization
@@ -938,7 +979,9 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                             cursor.execute(sql, params)
                             nearby_ids = [row[0] for row in cursor.fetchall()]
 
-                        print(f"🎯 [comprehensive_search] Providers after {radius} mile radius filter: {len(nearby_ids)}")
+                        print(
+                            f"🎯 [comprehensive_search] Providers after {radius} mile radius filter: {len(nearby_ids)}"
+                        )
                         providers = providers.filter(id__in=nearby_ids)
                     else:
                         # If no providers match the non-geographic filters, return empty queryset
@@ -999,11 +1042,10 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     # 1. Have the specific age group in their age_groups array
                     # 2. Have "All Ages" in their array (they serve all ages)
                     # 3. Have NULL age_groups (defaulted to "All Ages" in serializer)
-                    from django.db.models import Q
                     age_filtered = providers.filter(
-                        Q(age_groups__contains=[age]) |
-                        Q(age_groups__contains=["All Ages"]) |
-                        Q(age_groups__isnull=True)
+                        Q(age_groups__contains=[age])
+                        | Q(age_groups__contains=["All Ages"])
+                        | Q(age_groups__isnull=True)
                     )
                     if age_filtered.exists():
                         providers = age_filtered
@@ -1012,7 +1054,9 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             # Apply limit - increased to support larger radius searches
             providers = providers[:1000]  # Support large radius searches
 
-            print(f"✅ [comprehensive_search] Final provider count after all filters: {len(providers)}")
+            print(
+                f"✅ [comprehensive_search] Final provider count after all filters: {len(providers)}"
+            )
 
             serializer = self.get_serializer(providers, many=True)
             return Response(serializer.data)
@@ -1103,9 +1147,17 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                 from locations.models import ProviderInsuranceCarrier, InsuranceCarrier
 
                 insurance_lower = insurance.lower()
-                if insurance_lower in ["insurance", "accepts insurance", "private insurance"]:
+                if insurance_lower in [
+                    "insurance",
+                    "accepts insurance",
+                    "private insurance",
+                ]:
                     # Get all providers that accept ANY insurance
-                    insurance_provider_ids = ProviderInsuranceCarrier.objects.values_list('provider_id', flat=True).distinct()
+                    insurance_provider_ids = (
+                        ProviderInsuranceCarrier.objects.values_list(
+                            "provider_id", flat=True
+                        ).distinct()
+                    )
                     providers = providers.filter(id__in=insurance_provider_ids)
                 elif insurance_lower in ["private pay", "private payment", "self pay"]:
                     # Private pay - all providers implicitly accept it, no filtering needed
@@ -1119,7 +1171,7 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                         carrier = InsuranceCarrier.objects.get(name__iexact=insurance)
                         carrier_provider_ids = ProviderInsuranceCarrier.objects.filter(
                             insurance_carrier=carrier
-                        ).values_list('provider_id', flat=True)
+                        ).values_list("provider_id", flat=True)
                         providers = providers.filter(id__in=carrier_provider_ids)
                     except InsuranceCarrier.DoesNotExist:
                         # No matching carrier found, return empty results
@@ -1132,23 +1184,29 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     pass  # No filtering
                 else:
                     # Filter by specific age group, including providers with "All Ages" or NULL
-                    from django.db.models import Q
                     providers = providers.filter(
-                        Q(age_groups__contains=[age]) |
-                        Q(age_groups__contains=["All Ages"]) |
-                        Q(age_groups__isnull=True)
+                        Q(age_groups__contains=[age])
+                        | Q(age_groups__contains=["All Ages"])
+                        | Q(age_groups__isnull=True)
                     )
 
             diagnosis = request.query_params.get("diagnosis")
             if diagnosis:
                 # Only filter by diagnosis if field is widely populated (10%+ of providers)
-                providers_with_diagnosis_data = providers.exclude(
-                    diagnoses_treated__isnull=True
-                ).exclude(diagnoses_treated=[]).count()
+                providers_with_diagnosis_data = (
+                    providers.exclude(diagnoses_treated__isnull=True)
+                    .exclude(diagnoses_treated=[])
+                    .count()
+                )
                 total_providers = providers.count()
 
-                if total_providers > 0 and (providers_with_diagnosis_data / total_providers) >= 0.1:
-                    providers = providers.filter(diagnoses_treated__contains=[diagnosis])
+                if (
+                    total_providers > 0
+                    and (providers_with_diagnosis_data / total_providers) >= 0.1
+                ):
+                    providers = providers.filter(
+                        diagnoses_treated__contains=[diagnosis]
+                    )
 
             therapy = request.query_params.get("therapy")
             if therapy:
