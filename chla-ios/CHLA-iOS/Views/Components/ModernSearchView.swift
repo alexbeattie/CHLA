@@ -98,12 +98,12 @@ class SearchStateManager: ObservableObject {
     }
 
     static let popularSearches = [
-        "ABA therapy",
-        "Speech therapy near me",
-        "Autism services",
-        "Early intervention",
-        "Occupational therapy",
-        "Regional Center"
+        "ABA",
+        "Speech",
+        "Autism",
+        "therapy",
+        "behavior",
+        "developmental"
     ]
 }
 

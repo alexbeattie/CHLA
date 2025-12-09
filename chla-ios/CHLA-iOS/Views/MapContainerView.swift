@@ -37,7 +37,10 @@ struct MapContainerView: View {
                 // Search suggestions when active
                 if searchState.showSuggestions && searchState.isSearchActive {
                     SearchSuggestionsView(searchState: searchState) { suggestion in
-                        // Close suggestions first
+                        // Dismiss keyboard immediately
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+
+                        // Close suggestions and search UI
                         searchState.showSuggestions = false
                         searchState.isSearchActive = false
 
