@@ -333,21 +333,9 @@ struct RegionalCenterDetailSheet: View {
         }
         .ignoresSafeArea(edges: .top)
         .navigationBarHidden(true)
-        .simultaneousGesture(
-            DragGesture()
-                .onChanged { value in
-                    let delta = value.translation.height - lastDragValue
-                    if delta < -10 {
-                        visibilityManager.hideUI()
-                    } else if delta > 10 {
-                        visibilityManager.showUI()
-                    }
-                    lastDragValue = value.translation.height
-                }
-                .onEnded { _ in
-                    lastDragValue = 0
-                }
-        )
+        .onTapGesture {
+            hideKeyboard()
+        }
         .sheet(isPresented: $showFullMap) {
             FullMapView(
                 title: center.name,
