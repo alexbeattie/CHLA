@@ -263,6 +263,7 @@ struct RCListRow: View {
 struct RegionalCenterDetailSheet: View {
     let center: RegionalCenterMatcher.RegionalCenterInfo
     @Environment(\.openURL) private var openURL
+    @Environment(\.dismiss) private var dismiss
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
     @State private var showFullMap = false
     @State private var showDirections = false
@@ -331,8 +332,7 @@ struct RegionalCenterDetailSheet: View {
             }
         }
         .ignoresSafeArea(edges: .top)
-        .navigationTitle(center.shortName)
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .simultaneousGesture(
             DragGesture()
                 .onChanged { value in
@@ -375,6 +375,49 @@ struct RegionalCenterDetailSheet: View {
             )
             .frame(height: 220)
 
+            // Top buttons (back and share)
+            VStack {
+                HStack {
+                    // Back button
+                    Button {
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Back")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(.white.opacity(0.2))
+                        .clipShape(Capsule())
+                    }
+
+                    Spacer()
+
+                    // Share button
+                    ShareLink(
+                        item: "Check out \(center.name) - \(center.website)",
+                        subject: Text(center.name),
+                        message: Text("Learn about \(center.shortName) on NDD Resources")
+                    ) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(.white.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 54) // Account for status bar
+
+                Spacer()
+            }
+
             // Content
             VStack(alignment: .leading, spacing: 12) {
                 // Badge
@@ -397,7 +440,6 @@ struct RegionalCenterDetailSheet: View {
                     .foregroundColor(.white.opacity(0.9))
             }
             .padding()
-            .padding(.top, 50) // Account for status bar
             .padding(.bottom, 8)
         }
     }
