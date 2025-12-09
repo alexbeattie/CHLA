@@ -62,7 +62,7 @@ struct MapContainerView: View {
                 Spacer()
                 VStack(spacing: 0) {
                     Spacer()
-                        .frame(height: 120)
+                        .frame(height: 140)
                     GlassMapControls(
                         onLocationTap: { centerOnUserLocation() },
                         onFilterTap: { showFilters = true },
@@ -71,7 +71,7 @@ struct MapContainerView: View {
                     )
                     Spacer()
                 }
-                .padding(.trailing, 12)
+                .padding(.trailing, 16)
                 .offset(x: visibilityManager.isHeaderVisible ? 0 : 80)
                 .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
