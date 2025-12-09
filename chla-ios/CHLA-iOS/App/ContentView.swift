@@ -688,8 +688,6 @@ struct RegionalCentersTabView: View {
 struct RegionalCentersListContent: View {
     @State private var selectedCenter: RegionalCenterMatcher.RegionalCenterInfo?
     @StateObject private var locationManager = RCLocationManager()
-    @ObservedObject var visibilityManager = UIVisibilityManager.shared
-    @State private var lastDragValue: CGFloat = 0
 
     private let centers = RegionalCenterMatcher.shared.laRegionalCenters
 
@@ -778,21 +776,6 @@ struct RegionalCentersListContent: View {
             }
         }
         .listStyle(.insetGrouped)
-        .simultaneousGesture(
-            DragGesture()
-                .onChanged { value in
-                    let delta = value.translation.height - lastDragValue
-                    if delta < -10 {
-                        visibilityManager.hideUI()
-                    } else if delta > 10 {
-                        visibilityManager.showUI()
-                    }
-                    lastDragValue = value.translation.height
-                }
-                .onEnded { _ in
-                    lastDragValue = 0
-                }
-        )
         .sheet(item: $selectedCenter) { center in
             RegionalCenterDetailSheet(center: center)
                 .presentationDetents([.large])
