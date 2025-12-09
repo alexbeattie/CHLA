@@ -612,39 +612,60 @@ struct RegionalCentersTabView: View {
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header with segmented picker
-            VStack(spacing: 0) {
-                // Title area
-                HStack {
-                    Text("Regional Centers")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.top, 60) // Account for status bar
-                .padding(.bottom, 8)
-
-                // Segmented Picker
-                Picker("View", selection: $selectedView) {
-                    Label("List", systemImage: "list.bullet").tag(0)
-                    Label("Map", systemImage: "map").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.bottom, 12)
-            }
-            .background(Color(.systemBackground))
-            .offset(y: visibilityManager.isHeaderVisible ? 0 : -150)
-            .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
-
+        ZStack {
             // Content
             if selectedView == 0 {
-                RegionalCentersListContent()
+                VStack(spacing: 0) {
+                    // Header for list view
+                    VStack(spacing: 0) {
+                        HStack {
+                            Text("Regional Centers")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 60)
+                        .padding(.bottom, 8)
+
+                        // Segmented Picker
+                        Picker("View", selection: $selectedView) {
+                            Label("List", systemImage: "list.bullet").tag(0)
+                            Label("Map", systemImage: "map").tag(1)
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal)
+                        .padding(.bottom, 12)
+                    }
+                    .background(Color(.systemBackground))
+                    .offset(y: visibilityManager.isHeaderVisible ? 0 : -150)
+                    .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
+
+                    RegionalCentersListContent()
+                }
             } else {
+                // Full screen map
                 RegionalCenterMapView()
+
+                // Floating picker overlay for map
+                VStack {
+                    VStack(spacing: 8) {
+                        // Floating segmented picker
+                        Picker("View", selection: $selectedView) {
+                            Label("List", systemImage: "list.bullet").tag(0)
+                            Label("Map", systemImage: "map").tag(1)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 200)
+                    }
+                    .padding(.top, 60)
+                    .offset(y: visibilityManager.isHeaderVisible ? 0 : -100)
+                    .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
+
+                    Spacer()
+                }
             }
         }
         .ignoresSafeArea(edges: .top)

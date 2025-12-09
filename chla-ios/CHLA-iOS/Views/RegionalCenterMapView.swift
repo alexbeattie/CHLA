@@ -20,40 +20,68 @@ struct RegionalCenterMapView: View {
     @State private var showCenterDetail = false
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                mapContent
+        ZStack {
+            mapContent
 
-                if viewModel.isLoading {
-                    loadingOverlay
-                }
+            if viewModel.isLoading {
+                loadingOverlay
+            }
 
-                // Legend
-                VStack {
+            // Floating controls on right side
+            VStack {
+                HStack {
                     Spacer()
-                    legendView
-                        .padding()
-                }
-            }
-            .navigationTitle("Regional Centers")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        Task { await viewModel.fetchServiceAreas() }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
+                    VStack(spacing: 0) {
+                        // Location button
+                        Button {
+                            withAnimation {
+                                cameraPosition = .region(MKCoordinateRegion(
+                                    center: CLLocationCoordinate2D(latitude: 34.05, longitude: -118.25),
+                                    span: MKCoordinateSpan(latitudeDelta: 0.7, longitudeDelta: 0.7)
+                                ))
+                            }
+                        } label: {
+                            Image(systemName: "location.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(.accentBlue)
+                                .frame(width: 44, height: 44)
+                        }
+
+                        Divider()
+                            .frame(width: 30)
+
+                        // Refresh button
+                        Button {
+                            Task { await viewModel.fetchServiceAreas() }
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 18))
+                                .foregroundColor(.accentBlue)
+                                .frame(width: 44, height: 44)
+                        }
                     }
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                 }
+                .padding(.trailing, 16)
+                .padding(.top, 8)
+
+                Spacer()
+
+                // Legend at bottom
+                legendView
+                    .padding()
             }
-            .sheet(item: $selectedCenter) { center in
-                RegionalCenterInfoSheet(feature: center)
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
-            }
-            .onAppear {
-                Task { await viewModel.fetchServiceAreas() }
-            }
+        }
+        .ignoresSafeArea(edges: .all)
+        .sheet(item: $selectedCenter) { center in
+            RegionalCenterInfoSheet(feature: center)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+        .onAppear {
+            Task { await viewModel.fetchServiceAreas() }
         }
     }
 
