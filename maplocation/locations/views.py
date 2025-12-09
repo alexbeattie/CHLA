@@ -988,11 +988,26 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
 
             # Apply age filtering
             if age:
-                # Try to filter by age groups, but if no results, fall back to no age filter
-                age_filtered = providers.filter(age_groups__contains=[age])
-                if age_filtered.exists():
-                    providers = age_filtered
-                # If no providers match age filter, keep all providers (lenient approach)
+                # "All Ages" means no age filter - user wants all providers regardless of age
+                # Also skip filter if user explicitly selects "All Ages" as they want to see everything
+                if age.lower() == "all ages":
+                    # No filtering - return all providers regardless of age groups
+                    pass
+                else:
+                    # Filter by specific age group
+                    # Include providers that:
+                    # 1. Have the specific age group in their age_groups array
+                    # 2. Have "All Ages" in their array (they serve all ages)
+                    # 3. Have NULL age_groups (defaulted to "All Ages" in serializer)
+                    from django.db.models import Q
+                    age_filtered = providers.filter(
+                        Q(age_groups__contains=[age]) |
+                        Q(age_groups__contains=["All Ages"]) |
+                        Q(age_groups__isnull=True)
+                    )
+                    if age_filtered.exists():
+                        providers = age_filtered
+                    # If no providers match age filter, keep all providers (lenient approach)
 
             # Apply limit - increased to support larger radius searches
             providers = providers[:1000]  # Support large radius searches
@@ -1112,7 +1127,17 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
 
             age = request.query_params.get("age")
             if age:
-                providers = providers.filter(age_groups__contains=[age])
+                # "All Ages" means no age filter - user wants all providers regardless of age
+                if age.lower() == "all ages":
+                    pass  # No filtering
+                else:
+                    # Filter by specific age group, including providers with "All Ages" or NULL
+                    from django.db.models import Q
+                    providers = providers.filter(
+                        Q(age_groups__contains=[age]) |
+                        Q(age_groups__contains=["All Ages"]) |
+                        Q(age_groups__isnull=True)
+                    )
 
             diagnosis = request.query_params.get("diagnosis")
             if diagnosis:
