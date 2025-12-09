@@ -613,10 +613,19 @@ struct RegionalCentersTabView: View {
 
     var body: some View {
         ZStack {
+            // Background that extends full screen
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+
             // Content
             if selectedView == 0 {
-                VStack(spacing: 0) {
-                    // Header for list view
+                // List content - full screen
+                RegionalCentersListContent()
+                    .padding(.top, visibilityManager.isHeaderVisible ? 140 : 0) // Space for header when visible
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
+
+                // Header overlay for list view
+                VStack {
                     VStack(spacing: 0) {
                         HStack {
                             Text("Regional Centers")
@@ -637,12 +646,12 @@ struct RegionalCentersTabView: View {
                         .padding(.horizontal)
                         .padding(.bottom, 12)
                     }
-                    .background(Color(.systemBackground))
-                    .offset(y: visibilityManager.isHeaderVisible ? 0 : -150)
+                    .background(.ultraThinMaterial)
+                    .offset(y: visibilityManager.isHeaderVisible ? 0 : -200)
                     .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
 
-                    RegionalCentersListContent()
+                    Spacer()
                 }
             } else {
                 // Full screen map
