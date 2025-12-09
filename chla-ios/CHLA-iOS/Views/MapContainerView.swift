@@ -203,13 +203,18 @@ struct MapContainerView: View {
     private var searchOverlay: some View {
         let shouldShow = visibilityManager.isHeaderVisible || searchState.isSearchActive
         return VStack(spacing: 0) {
+            // Safe area spacer for status bar area
+            Color.clear
+                .frame(height: 50)
+                .background(.ultraThinMaterial)
+
             ModernSearchBar(
                 searchState: searchState,
                 onFilterTap: { showFilters = true },
                 activeFilterCount: activeFilterCount
             )
             .padding(.horizontal, 16)
-            .padding(.top, 16) // Padding from top edge
+            .padding(.top, 4)
             .padding(.bottom, 12)
             .background(.ultraThinMaterial)
 
@@ -221,7 +226,7 @@ struct MapContainerView: View {
                     .background(.ultraThinMaterial)
             }
         }
-        .offset(y: shouldShow ? 0 : -150)
+        .offset(y: shouldShow ? 0 : -180)
         .opacity(shouldShow ? 1 : 0)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: shouldShow)
     }

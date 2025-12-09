@@ -271,35 +271,23 @@ struct ProviderListView: View {
     // MARK: - Methods
 
     private func loadInitialProviders() async {
-        if let coordinate = locationService.coordinate {
-            await providerStore.search(
-                location: coordinate,
-                filters: appState.searchFilters
-            )
-        } else {
-            // Default to LA center
-            await providerStore.searchNearby(
-                latitude: 34.0522,
-                longitude: -118.2437,
-                radiusMiles: appState.searchFilters.radiusMiles
-            )
-        }
+        // Use user location if available, otherwise default to LA center
+        let coordinate = locationService.coordinate ?? CLLocationCoordinate2D(latitude: 34.0522, longitude: -118.2437)
+        await providerStore.search(
+            location: coordinate,
+            filters: appState.searchFilters
+        )
     }
 
     private func refreshProviders() async {
-        if let coordinate = locationService.coordinate {
-            await providerStore.search(
-                location: coordinate,
-                filters: appState.searchFilters
-            )
-        } else if let lastLocation = providerStore.lastSearchLocation {
-            await providerStore.search(
-                location: lastLocation,
-                filters: appState.searchFilters
-            )
-        } else {
-            await loadInitialProviders()
-        }
+        // Use user location if available, otherwise use last search location or LA center
+        let coordinate = locationService.coordinate
+            ?? providerStore.lastSearchLocation
+            ?? CLLocationCoordinate2D(latitude: 34.0522, longitude: -118.2437)
+        await providerStore.search(
+            location: coordinate,
+            filters: appState.searchFilters
+        )
     }
 }
 
