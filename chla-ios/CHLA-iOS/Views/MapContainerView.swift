@@ -37,9 +37,15 @@ struct MapContainerView: View {
                 // Search suggestions when active
                 if searchState.showSuggestions && searchState.isSearchActive {
                     SearchSuggestionsView(searchState: searchState) { suggestion in
-                        searchState.searchText = suggestion
+                        // Close suggestions first
                         searchState.showSuggestions = false
+                        searchState.isSearchActive = false
+
+                        // Update search text (for display)
+                        searchState.searchText = suggestion
                         searchState.addToRecentSearches(suggestion)
+
+                        // Perform search
                         Task {
                             await performSearchWithQuery(suggestion)
                         }
@@ -142,28 +148,26 @@ struct MapContainerView: View {
     }
 
     private func performSearchWithQuery(_ query: String, scope: SearchScope = .all) async {
-        // Update therapy filter based on scope
-        var filters = appState.searchFilters
+        // For text searches, use minimal filters to get broad results
+        var filters = SearchFilters()
+        filters.radiusMiles = 100  // Large radius for text search
 
-        // Use larger radius for text searches to get more results
-        filters.radiusMiles = max(filters.radiusMiles, 50)
-
+        // Only apply therapy filter if a specific scope is selected
         if let therapyType = scope.therapyType {
-            if !filters.therapyTypes.contains(therapyType) {
-                filters.therapyTypes = [therapyType]
-            }
-        } else {
-            // "All" scope - clear therapy filter for broader search
-            filters.therapyTypes = []
+            filters.therapyTypes = [therapyType]
         }
 
         let coordinate = locationService.coordinate ?? defaultRegion.center
+
+        print("🔍 Searching for: '\(query)' with radius: \(filters.radiusMiles) miles")
 
         await providerStore.search(
             query: query,
             location: coordinate,
             filters: filters
         )
+
+        print("✅ Search returned \(providerStore.providers.count) results")
     }
 
     private func centerOnUserLocation() {
