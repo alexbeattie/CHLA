@@ -1479,12 +1479,17 @@ struct TagView: View {
     var body: some View {
         Text(text)
             .font(.caption)
-            .fontWeight(.medium)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(color.opacity(0.12))
+            .fontWeight(.semibold)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color(.systemBackground).opacity(0.95))
             .foregroundColor(color)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(color.opacity(0.4), lineWidth: 1)
+            )
             .cornerRadius(8)
+            .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
     }
 }
 

@@ -88,6 +88,7 @@ struct ProviderDetailView: View {
             }
             .padding()
         }
+        .background(Color(.systemBackground))
         .navigationTitle("Resource Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
