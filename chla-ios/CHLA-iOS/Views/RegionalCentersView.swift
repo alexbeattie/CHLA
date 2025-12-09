@@ -84,11 +84,12 @@ struct RegionalCentersView: View {
             // User's Regional Center (highlighted at top)
             if let userCenter = userRegionalCenter, showUserCenter {
                 Section {
-                    NavigationLink {
-                        RegionalCenterDetailSheet(center: userCenter)
+                    Button {
+                        selectedCenter = userCenter
                     } label: {
                         UserRCRow(center: userCenter)
                     }
+                    .buttonStyle(.plain)
                 } header: {
                     HStack {
                         Image(systemName: "location.fill")
@@ -103,11 +104,12 @@ struct RegionalCentersView: View {
             // Other Centers list
             Section {
                 ForEach(filteredCenters, id: \.id) { center in
-                    NavigationLink {
-                        RegionalCenterDetailSheet(center: center)
+                    Button {
+                        selectedCenter = center
                     } label: {
                         RCListRow(center: center)
                     }
+                    .buttonStyle(.plain)
                 }
             } header: {
                 Text(userRegionalCenter != nil ? "Other Centers" : "All Centers")
@@ -116,6 +118,11 @@ struct RegionalCentersView: View {
         .listStyle(.insetGrouped)
         .navigationTitle("Regional Centers")
         .searchable(text: $searchText, prompt: "Search centers")
+        .sheet(item: $selectedCenter) { center in
+            RegionalCenterDetailSheet(center: center)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
         .onAppear {
             locationManager.requestLocation()
         }
@@ -281,60 +288,76 @@ struct RegionalCenterDetailSheet: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                // Hero Header
-                heroSection
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Hero Header
+                    heroSection
 
-                VStack(alignment: .leading, spacing: 24) {
-                    // Stats Row
-                    statsSection
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Stats Row
+                        statsSection
 
-                    // ZIP Code Search
-                    zipSearchSection
+                        // ZIP Code Search
+                        zipSearchSection
 
-                    Divider()
+                        Divider()
 
-                    // About Section
-                    aboutSection
+                        // About Section
+                        aboutSection
 
-                    Divider()
+                        Divider()
 
-                    // Services Section
-                    servicesSection
+                        // Services Section
+                        servicesSection
 
-                    Divider()
+                        Divider()
 
-                    // Quick Actions
-                    quickActionsSection
+                        // Quick Actions
+                        quickActionsSection
 
-                    Divider()
+                        Divider()
 
-                    // Contact Card
-                    contactSection
+                        // Contact Card
+                        contactSection
 
-                    Divider()
+                        Divider()
 
-                    // Cities Served
-                    citiesSection
+                        // Cities Served
+                        citiesSection
 
-                    Divider()
+                        Divider()
 
-                    // How to Access Services
-                    howToAccessSection
+                        // How to Access Services
+                        howToAccessSection
 
-                    Divider()
+                        Divider()
 
-                    // Other Regional Centers
-                    otherCentersSection
+                        // Other Regional Centers
+                        otherCentersSection
+                    }
+                    .padding()
                 }
-                .padding()
             }
-        }
-        .ignoresSafeArea(edges: .top)
-        .navigationBarHidden(true)
-        .onTapGesture {
-            hideKeyboard()
+            .navigationTitle(center.shortName)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    ShareLink(
+                        item: "Check out \(center.name) - \(center.website)",
+                        subject: Text(center.name),
+                        message: Text("Learn about \(center.shortName) on NDD Resources")
+                    ) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+            }
+            .onTapGesture {
+                hideKeyboard()
+            }
         }
         .sheet(isPresented: $showFullMap) {
             FullMapView(
@@ -361,50 +384,7 @@ struct RegionalCenterDetailSheet: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 220)
-
-            // Top buttons (back and share)
-            VStack {
-                HStack {
-                    // Back button
-                    Button {
-                        dismiss()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Back")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(.white.opacity(0.2))
-                        .clipShape(Capsule())
-                    }
-
-                    Spacer()
-
-                    // Share button
-                    ShareLink(
-                        item: "Check out \(center.name) - \(center.website)",
-                        subject: Text(center.name),
-                        message: Text("Learn about \(center.shortName) on NDD Resources")
-                    ) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(10)
-                            .background(.white.opacity(0.2))
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 54) // Account for status bar
-
-                Spacer()
-            }
+            .frame(height: 160)
 
             // Content
             VStack(alignment: .leading, spacing: 12) {
@@ -419,7 +399,7 @@ struct RegionalCenterDetailSheet: View {
                     .cornerRadius(20)
 
                 Text(center.name)
-                    .font(.title)
+                    .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
 

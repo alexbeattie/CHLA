@@ -41,7 +41,7 @@ class RegionalCenterMatcher {
 
     // MARK: - Regional Center Data
 
-    struct RegionalCenterInfo {
+    struct RegionalCenterInfo: Identifiable {
         let id: Int
         let name: String
         let shortName: String

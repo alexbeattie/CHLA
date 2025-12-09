@@ -30,9 +30,10 @@ struct ProviderDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                // Hero Header - edge to edge
+                // Hero Header - edge to edge (no padding)
                 heroHeaderSection
 
+                // Content with padding
                 VStack(alignment: .leading, spacing: 24) {
                     // Quick actions
                     quickActionsSection
@@ -82,6 +83,7 @@ struct ProviderDetailView: View {
             }
         }
         .background(Color(.systemBackground))
+        .ignoresSafeArea(edges: .horizontal)
         .navigationTitle("Resource Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -131,13 +133,12 @@ struct ProviderDetailView: View {
 
     private var heroHeaderSection: some View {
         ZStack(alignment: .bottomLeading) {
-            // Gradient background
+            // Gradient background - extends to edges
             LinearGradient(
                 colors: [rcColor.opacity(0.8), rcColor.opacity(0.4)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 140)
 
             // Content
             VStack(alignment: .leading, spacing: 8) {
@@ -181,7 +182,10 @@ struct ProviderDetailView: View {
                 }
             }
             .padding()
+            .padding(.bottom, 8)
         }
+        .frame(height: 140)
+        .frame(maxWidth: .infinity)
     }
 
     private var headerSection: some View {

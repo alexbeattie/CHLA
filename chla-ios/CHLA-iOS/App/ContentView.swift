@@ -641,6 +641,7 @@ struct RegionalCentersTabView: View {
 // MARK: - Regional Centers List Content
 struct RegionalCentersListContent: View {
     @State private var searchText = ""
+    @State private var selectedCenter: RegionalCenterMatcher.RegionalCenterInfo?
     @StateObject private var locationManager = RCLocationManager()
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
     @State private var lastDragValue: CGFloat = 0
@@ -708,11 +709,12 @@ struct RegionalCentersListContent: View {
             // User's Regional Center
             if let userCenter = userRegionalCenter, showUserCenter {
                 Section {
-                    NavigationLink {
-                        RegionalCenterDetailSheet(center: userCenter)
+                    Button {
+                        selectedCenter = userCenter
                     } label: {
                         UserRCRow(center: userCenter)
                     }
+                    .buttonStyle(.plain)
                 } header: {
                     HStack {
                         Image(systemName: "location.fill")
@@ -727,11 +729,12 @@ struct RegionalCentersListContent: View {
             // All/Other Centers
             Section {
                 ForEach(filteredCenters, id: \.id) { center in
-                    NavigationLink {
-                        RegionalCenterDetailSheet(center: center)
+                    Button {
+                        selectedCenter = center
                     } label: {
                         RCListRow(center: center)
                     }
+                    .buttonStyle(.plain)
                 }
             } header: {
                 Text(userRegionalCenter != nil ? "Other Centers" : "All Centers")
@@ -739,21 +742,11 @@ struct RegionalCentersListContent: View {
         }
         .listStyle(.insetGrouped)
         .searchable(text: $searchText, prompt: "Search centers")
-        .simultaneousGesture(
-            DragGesture()
-                .onChanged { value in
-                    let delta = value.translation.height - lastDragValue
-                    if delta < -10 {
-                        visibilityManager.hideUI()
-                    } else if delta > 10 {
-                        visibilityManager.showUI()
-                    }
-                    lastDragValue = value.translation.height
-                }
-                .onEnded { _ in
-                    lastDragValue = 0
-                }
-        )
+        .sheet(item: $selectedCenter) { center in
+            RegionalCenterDetailSheet(center: center)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
         .onAppear {
             locationManager.requestLocation()
         }
