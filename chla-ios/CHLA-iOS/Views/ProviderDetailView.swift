@@ -38,59 +38,60 @@ struct ProviderDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Header
-                headerSection
+            VStack(alignment: .leading, spacing: 0) {
+                // Hero Header - edge to edge
+                heroHeaderSection
 
-                Divider()
+                VStack(alignment: .leading, spacing: 24) {
+                    // Quick actions
+                    quickActionsSection
 
-                // Quick actions
-                quickActionsSection
-
-                Divider()
-
-                // Map Section
-                mapSection
-
-                Divider()
-
-                // Contact Info
-                contactSection
-
-                // Regional Center
-                if cachedRegionalCenter != nil {
                     Divider()
-                    regionalCenterSection
-                }
 
-                if let description = provider.description, !description.isEmpty {
-                    Divider()
-                    aboutSection(description)
-                }
+                    // Map Section
+                    mapSection
 
-                if let therapies = provider.therapyTypes, !therapies.isEmpty {
                     Divider()
-                    servicesSection(therapies)
-                }
 
-                if let diagnoses = provider.diagnosesTreated, !diagnoses.isEmpty {
-                    Divider()
-                    diagnosesSection(diagnoses)
-                }
+                    // Contact Info
+                    contactSection
 
-                if let ageGroups = provider.ageGroups, !ageGroups.isEmpty {
-                    Divider()
-                    ageGroupsSection(ageGroups)
-                }
+                    // Regional Center
+                    if cachedRegionalCenter != nil {
+                        Divider()
+                        regionalCenterSection
+                    }
 
-                if let insurance = provider.insuranceAccepted, !insurance.isEmpty {
-                    Divider()
-                    insuranceSection(insurance)
+                    if let description = provider.description, !description.isEmpty {
+                        Divider()
+                        aboutSection(description)
+                    }
+
+                    if let therapies = provider.therapyTypes, !therapies.isEmpty {
+                        Divider()
+                        servicesSection(therapies)
+                    }
+
+                    if let diagnoses = provider.diagnosesTreated, !diagnoses.isEmpty {
+                        Divider()
+                        diagnosesSection(diagnoses)
+                    }
+
+                    if let ageGroups = provider.ageGroups, !ageGroups.isEmpty {
+                        Divider()
+                        ageGroupsSection(ageGroups)
+                    }
+
+                    if let insurance = provider.insuranceAccepted, !insurance.isEmpty {
+                        Divider()
+                        insuranceSection(insurance)
+                    }
                 }
+                .padding()
             }
-            .padding()
         }
         .background(Color(.systemBackground))
+        .ignoresSafeArea(edges: .top)
         .navigationTitle("Resource Details")
         .navigationBarTitleDisplayMode(.inline)
         .simultaneousGesture(
@@ -137,6 +138,62 @@ struct ProviderDetailView: View {
     }
 
     // MARK: - Sections
+
+    private var heroHeaderSection: some View {
+        ZStack(alignment: .bottomLeading) {
+            // Gradient background
+            LinearGradient(
+                colors: [rcColor.opacity(0.8), rcColor.opacity(0.4)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 180)
+
+            // Content
+            VStack(alignment: .leading, spacing: 8) {
+                // Regional center badge
+                if let rc = cachedRegionalCenter {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 10, height: 10)
+
+                        Text(rc.shortName)
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(.white.opacity(0.2))
+                    .clipShape(Capsule())
+                }
+
+                Text(provider.name)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+
+                if let type = provider.type, !type.isEmpty {
+                    Text(type)
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.9))
+                }
+
+                if provider.distance != nil {
+                    HStack(spacing: 4) {
+                        Image(systemName: "location.fill")
+                            .font(.caption)
+                        Text(provider.distanceFormatted)
+                            .font(.subheadline)
+                    }
+                    .foregroundColor(.white.opacity(0.9))
+                }
+            }
+            .padding()
+            .padding(.top, 50) // Account for status bar
+        }
+    }
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 12) {

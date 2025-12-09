@@ -357,6 +357,7 @@ struct RegionalCenterDetailSheet: View {
                 .padding()
             }
         }
+        .ignoresSafeArea(edges: .top)
         .navigationTitle(center.shortName)
         .navigationBarTitleDisplayMode(.inline)
         .simultaneousGesture(
@@ -399,7 +400,7 @@ struct RegionalCenterDetailSheet: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 200)
+            .frame(height: 220)
 
             // Content
             VStack(alignment: .leading, spacing: 12) {
@@ -423,6 +424,7 @@ struct RegionalCenterDetailSheet: View {
                     .foregroundColor(.white.opacity(0.9))
             }
             .padding()
+            .padding(.top, 50) // Account for status bar
             .padding(.bottom, 8)
         }
     }
