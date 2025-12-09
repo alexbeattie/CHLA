@@ -12,8 +12,10 @@ struct ProviderDetailView: View {
     let provider: Provider
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
     @State private var showFullMap = false
     @State private var showDirections = false
+    @State private var lastDragValue: CGFloat = 0
 
     // Cache regional center lookup to avoid repeated calculations
     private var cachedRegionalCenter: RegionalCenterMatcher.RegionalCenterInfo? {
@@ -91,6 +93,21 @@ struct ProviderDetailView: View {
         .background(Color(.systemBackground))
         .navigationTitle("Resource Details")
         .navigationBarTitleDisplayMode(.inline)
+        .simultaneousGesture(
+            DragGesture()
+                .onChanged { value in
+                    let delta = value.translation.height - lastDragValue
+                    if delta < -10 {
+                        visibilityManager.hideUI()
+                    } else if delta > 10 {
+                        visibilityManager.showUI()
+                    }
+                    lastDragValue = value.translation.height
+                }
+                .onEnded { _ in
+                    lastDragValue = 0
+                }
+        )
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 ShareLink(

@@ -281,11 +281,13 @@ struct RCListRow: View {
 struct RegionalCenterDetailSheet: View {
     let center: RegionalCenterMatcher.RegionalCenterInfo
     @Environment(\.openURL) private var openURL
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
     @State private var showFullMap = false
     @State private var showDirections = false
     @State private var zipSearch = ""
     @State private var zipSearchResult: ZipSearchResult?
     @State private var isCheckingZip = false
+    @State private var lastDragValue: CGFloat = 0
 
     private var centerColor: Color {
         switch center.color {
@@ -357,6 +359,21 @@ struct RegionalCenterDetailSheet: View {
         }
         .navigationTitle(center.shortName)
         .navigationBarTitleDisplayMode(.inline)
+        .simultaneousGesture(
+            DragGesture()
+                .onChanged { value in
+                    let delta = value.translation.height - lastDragValue
+                    if delta < -10 {
+                        visibilityManager.hideUI()
+                    } else if delta > 10 {
+                        visibilityManager.showUI()
+                    }
+                    lastDragValue = value.translation.height
+                }
+                .onEnded { _ in
+                    lastDragValue = 0
+                }
+        )
         .sheet(isPresented: $showFullMap) {
             FullMapView(
                 title: center.name,
