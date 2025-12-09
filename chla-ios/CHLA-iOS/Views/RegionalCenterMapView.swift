@@ -64,17 +64,19 @@ struct RegionalCenterMapView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                 }
-                .padding(.trailing, 16)
-                .padding(.top, 8)
+                .padding(.trailing, 24)
+                .padding(.top, 80) // Below picker with breathing room
 
                 Spacer()
 
-                // Legend at bottom
+                // Legend at bottom - above tab bar
                 legendView
-                    .padding()
+                    .padding(.horizontal)
+                    .padding(.bottom, 100) // Space for tab bar
             }
         }
         .ignoresSafeArea(edges: .all)
+        .statusBarHidden(true)
         .sheet(item: $selectedCenter) { center in
             RegionalCenterInfoSheet(feature: center)
                 .presentationDetents([.medium, .large])

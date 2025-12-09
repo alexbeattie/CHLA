@@ -658,8 +658,10 @@ struct RegionalCentersTabView: View {
                         }
                         .pickerStyle(.segmented)
                         .frame(width: 200)
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-                    .padding(.top, 60)
+                    .padding(.top, 16)
                     .offset(y: visibilityManager.isHeaderVisible ? 0 : -100)
                     .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
@@ -668,7 +670,8 @@ struct RegionalCentersTabView: View {
                 }
             }
         }
-        .ignoresSafeArea(edges: .top)
+        .ignoresSafeArea(edges: .all)
+        .statusBarHidden(selectedView == 1)
     }
 }
 
