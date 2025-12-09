@@ -12,12 +12,14 @@ struct ProviderListView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var providerStore = ProviderStore()
     @StateObject private var locationService = LocationService()
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     @State private var searchText = ""
     @State private var showFilters = false
     @State private var sortOption: SortOption = .distance
     @State private var searchScope: SearchScope = .all
     @State private var searchSuggestions: [String] = []
+    @State private var lastDragValue: CGFloat = 0
 
     enum SortOption: String, CaseIterable {
         case distance = "Distance"
@@ -242,6 +244,23 @@ struct ProviderListView: View {
                 .listRowSeparator(.hidden)
             }
             .listStyle(.plain)
+            .simultaneousGesture(
+                DragGesture()
+                    .onChanged { value in
+                        let delta = value.translation.height - lastDragValue
+                        if delta < -10 {
+                            // Scrolling down (finger moving up)
+                            visibilityManager.hideUI()
+                        } else if delta > 10 {
+                            // Scrolling up (finger moving down)
+                            visibilityManager.showUI()
+                        }
+                        lastDragValue = value.translation.height
+                    }
+                    .onEnded { _ in
+                        lastDragValue = 0
+                    }
+            )
         }
     }
 

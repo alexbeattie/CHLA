@@ -9,6 +9,8 @@ import SwiftUI
 
 struct AboutView: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
+    @State private var lastDragValue: CGFloat = 0
 
     var body: some View {
         ScrollView {
@@ -28,6 +30,21 @@ struct AboutView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
+        .simultaneousGesture(
+            DragGesture()
+                .onChanged { value in
+                    let delta = value.translation.height - lastDragValue
+                    if delta < -10 {
+                        visibilityManager.hideUI()
+                    } else if delta > 10 {
+                        visibilityManager.showUI()
+                    }
+                    lastDragValue = value.translation.height
+                }
+                .onEnded { _ in
+                    lastDragValue = 0
+                }
+        )
     }
 
     // MARK: - Hero Section

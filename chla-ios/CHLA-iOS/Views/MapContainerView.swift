@@ -33,38 +33,9 @@ struct MapContainerView: View {
             // Top search bar with modern design
             VStack(spacing: 0) {
                 searchOverlay
-
-                // Search suggestions when active
-                if searchState.showSuggestions && searchState.isSearchActive {
-                    SearchSuggestionsView(searchState: searchState) { suggestion in
-                        // Dismiss keyboard immediately
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-
-                        // Close suggestions and search UI
-                        searchState.showSuggestions = false
-                        searchState.isSearchActive = false
-
-                        // Update search text (for display)
-                        searchState.searchText = suggestion
-                        searchState.addToRecentSearches(suggestion)
-
-                        // Perform search
-                        Task {
-                            await performSearchWithQuery(suggestion)
-                        }
-                    }
-                    .frame(maxHeight: 350)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .padding(.horizontal)
-                    .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
-
                 Spacer()
             }
             .zIndex(10) // Ensure search is above map
-            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: searchState.showSuggestions)
 
             // Right side floating controls (iOS 26 style)
             HStack {
