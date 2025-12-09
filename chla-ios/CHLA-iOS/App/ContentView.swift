@@ -186,6 +186,12 @@ struct MainTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea()
+            .onChange(of: appState.selectedTab) { _, newTab in
+                // Refresh List when tab is selected
+                if newTab == 2 {
+                    NotificationCenter.default.post(name: .refreshList, object: nil)
+                }
+            }
 
             // Tap-to-show button when UI is hidden
             if !visibilityManager.isTabBarVisible {
