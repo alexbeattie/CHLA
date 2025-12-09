@@ -83,8 +83,7 @@ struct ProviderDetailView: View {
         }
         .background(Color(.systemBackground))
         .ignoresSafeArea(edges: .top)
-        .navigationTitle("Resource Details")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .simultaneousGesture(
             DragGesture()
                 .onChanged { value in
@@ -100,17 +99,6 @@ struct ProviderDetailView: View {
                     lastDragValue = 0
                 }
         )
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                ShareLink(
-                    item: shareText,
-                    subject: Text(provider.name),
-                    message: Text("Check out this resource I found on NDD Resources")
-                ) {
-                    Image(systemName: "square.and.arrow.up")
-                }
-            }
-        }
         .sheet(isPresented: $showFullMap) {
             FullMapView(
                 title: provider.name,
@@ -138,7 +126,50 @@ struct ProviderDetailView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 180)
+            .frame(height: 200)
+
+            // Top buttons (back and share)
+            VStack {
+                HStack {
+                    // Back button
+                    Button {
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Back")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(.white.opacity(0.2))
+                        .clipShape(Capsule())
+                    }
+
+                    Spacer()
+
+                    // Share button
+                    ShareLink(
+                        item: shareText,
+                        subject: Text(provider.name),
+                        message: Text("Check out this resource I found on NDD Resources")
+                    ) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(.white.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 54) // Account for status bar
+
+                Spacer()
+            }
 
             // Content
             VStack(alignment: .leading, spacing: 8) {
@@ -182,7 +213,6 @@ struct ProviderDetailView: View {
                 }
             }
             .padding()
-            .padding(.top, 50) // Account for status bar
         }
     }
 
