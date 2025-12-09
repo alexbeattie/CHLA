@@ -42,7 +42,7 @@ struct MapContainerView: View {
                 Spacer()
                 VStack(spacing: 0) {
                     Spacer()
-                        .frame(height: 160)
+                        .frame(height: hasActiveFilters ? 210 : 160) // Extra space when filters shown
                     GlassMapControls(
                         onLocationTap: { centerOnUserLocation() },
                         onFilterTap: { showFilters = true },
@@ -54,6 +54,7 @@ struct MapContainerView: View {
                 .padding(.trailing, 20)
                 .offset(x: visibilityManager.isHeaderVisible ? 0 : 100)
                 .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
+                .animation(.spring(response: 0.3), value: hasActiveFilters)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
             }
 
