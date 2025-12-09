@@ -185,7 +185,7 @@ struct MainTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea(edges: .bottom)
+            .ignoresSafeArea()
 
             // Tap-to-show button when UI is hidden
             if !visibilityManager.isTabBarVisible {
@@ -216,7 +216,7 @@ struct MainTabView: View {
                 }
             }
 
-            // Floating Glass Tab Bar with auto-hide
+            // Floating Glass Tab Bar with swipe-to-hide
             LiquidGlassTabBar(
                 selectedTab: $appState.selectedTab,
                 namespace: tabAnimation,
@@ -227,6 +227,15 @@ struct MainTabView: View {
             .offset(y: visibilityManager.isTabBarVisible ? 0 : 120)
             .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
+            .gesture(
+                DragGesture(minimumDistance: 20)
+                    .onEnded { value in
+                        // Swipe down to hide
+                        if value.translation.height > 30 {
+                            visibilityManager.hideUI()
+                        }
+                    }
+            )
         }
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showFAQ) {
