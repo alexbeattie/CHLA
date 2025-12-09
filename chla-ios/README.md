@@ -1,6 +1,6 @@
-# CHLA-iOS
+# NDD Resources iOS
 
-SwiftUI iOS app for the CHLA Provider Map - Healthcare provider directory for LA County Regional Centers.
+SwiftUI iOS app for NDD Resource Map - Healthcare provider directory for LA County Regional Centers.
 
 ## 🚀 Quick Start
 
@@ -12,28 +12,15 @@ SwiftUI iOS app for the CHLA Provider Map - Healthcare provider directory for LA
 
 ### Opening the Project
 
-1. **Create Xcode Project** (first time only):
+1. **Navigate to project**:
 
    ```bash
    cd /Users/alexbeattie/Developer/CHLA/chla-ios
    ```
 
-2. Open Xcode and create a new iOS App project:
-   - File → New → Project → iOS → App
-   - Product Name: `CHLA-iOS`
-   - Team: Your development team
-   - Organization Identifier: `com.chla`
-   - Interface: SwiftUI
-   - Language: Swift
-   - Save to: `/Users/alexbeattie/Developer/CHLA/chla-ios`
+2. Open `CHLA-iOS.xcodeproj` in Xcode
 
-3. **Replace Generated Files**:
-   - Delete the auto-generated ContentView.swift and App file
-   - Drag the `CHLA-iOS` folder contents into Xcode
-   - Make sure "Copy items if needed" is **unchecked**
-   - Make sure "Create groups" is selected
-
-4. **Build & Run**:
+3. **Build & Run**:
    - Select an iOS Simulator (iPhone 15 Pro recommended)
    - Press `Cmd+R` to build and run
 
@@ -73,7 +60,7 @@ chla-ios/
 
 ## 🔌 API Integration
 
-The app connects to your Django backend:
+The app connects to the Django backend:
 
 | Environment | URL                             |
 | ----------- | ------------------------------- |
@@ -92,14 +79,10 @@ The app connects to your Django backend:
 
 ### Switching Environments
 
-In `APIService.swift`, the environment is automatically selected based on build configuration:
+In `APIService.swift`, the environment is set:
 
 ```swift
-#if DEBUG
-private let environment: Environment = .development
-#else
 private let environment: Environment = .production
-#endif
 ```
 
 For local development, make sure your Django server is running:
@@ -123,7 +106,7 @@ python3 manage.py runserver
 
 - Sortable list of providers
 - Distance-based sorting
-- Quick search
+- Quick search with scopes
 - Pull to refresh
 
 ### 🏢 Regional Centers
@@ -176,18 +159,6 @@ The app requests location access for finding nearby providers. Permissions are c
 - `NSLocationWhenInUseUsageDescription`
 - `NSLocationAlwaysAndWhenInUseUsageDescription`
 
-### App Transport Security
-
-For local development with `localhost`, you may need to add:
-
-```xml
-<key>NSAppTransportSecurity</key>
-<dict>
-    <key>NSAllowsLocalNetworking</key>
-    <true/>
-</dict>
-```
-
 ## 📱 Testing
 
 ### Running on Simulator
@@ -218,17 +189,6 @@ For local development with `localhost`, you may need to add:
 2. In Simulator, use Features → Location to simulate
 3. Check for `LocationError` in console
 
-## 📝 TODO
-
-- [ ] Add push notifications for provider updates
-- [ ] Implement favorites/bookmarks
-- [ ] Add offline caching
-- [ ] Add provider reviews
-- [ ] Implement appointment scheduling links
-- [ ] Add accessibility improvements (VoiceOver)
-- [ ] Add unit tests
-- [ ] Add UI tests
-
 ## 🔗 Related
 
 - [Django Backend](../maplocation/) - API server
@@ -237,4 +197,4 @@ For local development with `localhost`, you may need to add:
 
 ## 📄 License
 
-Private - CHLA Project
+Private - NDD Resources Project

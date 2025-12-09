@@ -19,14 +19,14 @@ settings:
     CODE_SIGN_STYLE: Automatic
     SWIFT_VERSION: "5.9"
     GENERATE_INFOPLIST_FILE: YES
-    INFOPLIST_KEY_CFBundleDisplayName: "CHLA Provider Map"
+    INFOPLIST_KEY_CFBundleDisplayName: "NDD Resource Map"
     INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.healthcare-fitness"
     INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
     INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
     INFOPLIST_KEY_UILaunchScreen_Generation: YES
     INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
     INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
-    INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "CHLA Provider Map uses your location to find healthcare providers near you."
+    INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "NDD Resource Map uses your location to find healthcare providers near you."
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
 
@@ -41,14 +41,14 @@ targets:
           - "**/.DS_Store"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.chla.providermap
-        PRODUCT_NAME: "CHLA Provider Map"
+        PRODUCT_BUNDLE_IDENTIFIER: com.nddresources.map
+        PRODUCT_NAME: "NDD Resource Map"
     info:
       path: CHLA-iOS/Resources/Info.plist
       properties:
-        CFBundleDisplayName: "CHLA Provider Map"
-        NSLocationWhenInUseUsageDescription: "CHLA Provider Map uses your location to find healthcare providers near you."
-        NSLocationAlwaysAndWhenInUseUsageDescription: "CHLA Provider Map uses your location to find healthcare providers near you."
+        CFBundleDisplayName: "NDD Resource Map"
+        NSLocationWhenInUseUsageDescription: "NDD Resource Map uses your location to find healthcare providers near you."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "NDD Resource Map uses your location to find healthcare providers near you."
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
 

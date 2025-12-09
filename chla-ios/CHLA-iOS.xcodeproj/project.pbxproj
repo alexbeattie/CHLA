@@ -38,7 +38,7 @@
 
 /* Begin PBXFileReference section */
 		0984D9DCC530BA0054C44679 /* ProviderListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderListView.swift; sourceTree = "<group>"; };
-		1FB5C75599D9C22F14F05B42 /* CHLA Provider Map.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CHLA Provider Map.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NDD Resource Map.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2075D8466FED15932BEE85FD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		306D53C14B3C1FAEC3E125CB /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		3D436BC3380B8D5D10977DC8 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
@@ -60,11 +60,11 @@
 		CB8D52AF87D4A250BF8B28B3 /* CHLA_iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CHLA_iOSApp.swift; sourceTree = "<group>"; };
 		CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapMarkers.swift; sourceTree = "<group>"; };
 		D8F17384527B1FBCE7FD88F6 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
-		F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
 		D8FA95361CB09C477DD471BB /* FullMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullMapView.swift; sourceTree = "<group>"; };
 		D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */ = {isa = PBXFileReference; lastKnownFileType = text; path = la_regional_centers.geojson; sourceTree = "<group>"; };
 		E6591C41B29B4E6F007C4177 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
 		F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -164,7 +164,7 @@
 		EB7C22148FEF8E87E05E3493 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1FB5C75599D9C22F14F05B42 /* CHLA Provider Map.app */,
+				1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -210,7 +210,7 @@
 			packageProductDependencies = (
 			);
 			productName = "CHLA-iOS";
-			productReference = 1FB5C75599D9C22F14F05B42 /* CHLA Provider Map.app */;
+			productReference = 1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -305,8 +305,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.chla.providermap;
-				PRODUCT_NAME = "CHLA Provider Map";
+				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map;
+				PRODUCT_NAME = "NDD Resource Map";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -363,9 +363,9 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "CHLA Provider Map";
+				INFOPLIST_KEY_CFBundleDisplayName = "NDD Resource Map";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CHLA Provider Map uses your location to find healthcare providers near you.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NDD Resource Map uses your location to find healthcare providers near you.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -440,9 +440,9 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "CHLA Provider Map";
+				INFOPLIST_KEY_CFBundleDisplayName = "NDD Resource Map";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CHLA Provider Map uses your location to find healthcare providers near you.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NDD Resource Map uses your location to find healthcare providers near you.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -473,8 +473,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.chla.providermap;
-				PRODUCT_NAME = "CHLA Provider Map";
+				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map;
+				PRODUCT_NAME = "NDD Resource Map";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

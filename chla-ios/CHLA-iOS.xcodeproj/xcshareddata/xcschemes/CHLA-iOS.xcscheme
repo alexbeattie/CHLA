@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "4078F61FF572E66B27C15AE7"
-               BuildableName = "CHLA Provider Map.app"
+               BuildableName = "NDD Resource Map.app"
                BlueprintName = "CHLA-iOS"
                ReferencedContainer = "container:CHLA-iOS.xcodeproj">
             </BuildableReference>
@@ -31,7 +31,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4078F61FF572E66B27C15AE7"
-            BuildableName = "CHLA Provider Map.app"
+            BuildableName = "NDD Resource Map.app"
             BlueprintName = "CHLA-iOS"
             ReferencedContainer = "container:CHLA-iOS.xcodeproj">
          </BuildableReference>
@@ -54,7 +54,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4078F61FF572E66B27C15AE7"
-            BuildableName = "CHLA Provider Map.app"
+            BuildableName = "NDD Resource Map.app"
             BlueprintName = "CHLA-iOS"
             ReferencedContainer = "container:CHLA-iOS.xcodeproj">
          </BuildableReference>
@@ -71,7 +71,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4078F61FF572E66B27C15AE7"
-            BuildableName = "CHLA Provider Map.app"
+            BuildableName = "NDD Resource Map.app"
             BlueprintName = "CHLA-iOS"
             ReferencedContainer = "container:CHLA-iOS.xcodeproj">
          </BuildableReference>
