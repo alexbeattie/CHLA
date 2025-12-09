@@ -44,15 +44,17 @@ struct MapContainerView: View {
                             await performSearchWithQuery(suggestion)
                         }
                     }
+                    .frame(maxHeight: 350)
                     .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .padding(.horizontal)
-                    .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
+                    .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
                 Spacer()
             }
+            .zIndex(10) // Ensure search is above map
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: searchState.showSuggestions)
 
             // Right side floating controls (iOS 26 style)
@@ -199,7 +201,8 @@ struct MapContainerView: View {
 
     @ViewBuilder
     private var searchOverlay: some View {
-        VStack(spacing: 0) {
+        let shouldShow = visibilityManager.isHeaderVisible || searchState.isSearchActive
+        return VStack(spacing: 0) {
             ModernSearchBar(
                 searchState: searchState,
                 onFilterTap: { showFilters = true },
@@ -215,9 +218,9 @@ struct MapContainerView: View {
                     .padding(.top, 8)
             }
         }
-        .offset(y: visibilityManager.isHeaderVisible ? 0 : -120)
-        .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
+        .offset(y: shouldShow ? 0 : -120)
+        .opacity(shouldShow ? 1 : 0)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: shouldShow)
     }
 
     @ViewBuilder

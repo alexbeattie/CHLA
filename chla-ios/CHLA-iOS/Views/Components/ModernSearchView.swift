@@ -151,7 +151,8 @@ struct ModernSearchBar: View {
                 .onChange(of: isTextFieldFocused) { _, focused in
                     withAnimation(.spring(response: 0.3)) {
                         searchState.isSearchActive = focused
-                        searchState.showSuggestions = focused && searchState.searchText.isEmpty
+                        // Show suggestions when search is active
+                        searchState.showSuggestions = focused
                     }
                 }
 
