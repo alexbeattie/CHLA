@@ -139,7 +139,7 @@ struct ModernSearchBar: View {
                 .fontWeight(.medium)
                 .animation(.easeInOut(duration: 0.2), value: searchState.isSearchActive)
 
-            TextField("Search providers, ZIP code...", text: $searchState.searchText)
+            TextField("Search resources, ZIP code...", text: $searchState.searchText)
                 .focused($isTextFieldFocused)
                 .submitLabel(.search)
                 .autocorrectionDisabled()
@@ -457,7 +457,7 @@ struct SearchResultsSheet: View {
         } else if providers.isEmpty {
             return "No Results"
         } else {
-            return "\(providers.count) Provider\(providers.count == 1 ? "" : "s")"
+            return "\(providers.count) Resource\(providers.count == 1 ? "" : "s")"
         }
     }
 
@@ -466,7 +466,7 @@ struct SearchResultsSheet: View {
         VStack(spacing: 16) {
             ProgressView()
                 .scaleEffect(1.2)
-            Text("Finding providers...")
+            Text("Finding resources...")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -476,12 +476,12 @@ struct SearchResultsSheet: View {
     @ViewBuilder
     private var emptyView: some View {
         ContentUnavailableView {
-            Label("No Providers Found", systemImage: "building.2")
+            Label("No Resources Found", systemImage: "building.2")
         } description: {
             if !searchText.isEmpty {
                 Text("Try different search terms or expand your filters.")
             } else {
-                Text("Search for providers by name, location, or service type.")
+                Text("Search for resources by name, location, or service type.")
             }
         }
     }

@@ -84,7 +84,7 @@ struct ProviderListView: View {
             .searchable(
                 text: $searchText,
                 placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search providers, services, or ZIP code"
+                prompt: "Search resources, services, or ZIP code"
             ) {
                 // Search suggestions
                 if !currentSuggestions.isEmpty {
