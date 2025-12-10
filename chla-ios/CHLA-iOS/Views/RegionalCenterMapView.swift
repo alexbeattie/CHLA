@@ -10,6 +10,8 @@ import MapKit
 
 struct RegionalCenterMapView: View {
     @StateObject private var viewModel = RegionalCenterMapViewModel()
+    @StateObject private var locationService = LocationService()
+    @EnvironmentObject var visibilityManager: UIVisibilityManager
 
     // Centered on LA County with appropriate zoom
     @State private var cameraPosition: MapCameraPosition = .region(MKCoordinateRegion(
@@ -23,6 +25,25 @@ struct RegionalCenterMapView: View {
             ZStack {
                 mapContent
 
+                // Glass controls on right side
+                HStack {
+                    Spacer()
+                    VStack(spacing: 0) {
+                        Spacer()
+                            .frame(height: 160)
+                        GlassMapControls(
+                            onLocationTap: { centerOnUserLocation() },
+                            onFilterTap: { /* No filters on this map */ },
+                            onRefreshTap: { Task { await viewModel.fetchServiceAreas() } },
+                            activeFilterCount: 0
+                        )
+                        Spacer()
+                    }
+                    .padding(.trailing, 20)
+                    .offset(x: visibilityManager.isHeaderVisible ? 0 : 100)
+                    .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
+                }
+
                 if viewModel.isLoading {
                     loadingOverlay
                 }
@@ -33,6 +54,8 @@ struct RegionalCenterMapView: View {
                 legendView
                     .padding(.horizontal)
                     .padding(.bottom, 100)
+                    .offset(y: visibilityManager.isHeaderVisible ? 0 : 100)
+                    .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
             }
         }
         .ignoresSafeArea(edges: .all)
@@ -44,6 +67,21 @@ struct RegionalCenterMapView: View {
             }
             .onAppear {
                 Task { await viewModel.fetchServiceAreas() }
+        }
+    }
+
+    // MARK: - Actions
+
+    private func centerOnUserLocation() {
+        if let coordinate = locationService.coordinate {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                cameraPosition = .region(MKCoordinateRegion(
+                    center: coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                ))
+            }
+        } else {
+            locationService.requestLocation()
         }
     }
 
@@ -74,11 +112,6 @@ struct RegionalCenterMapView: View {
             UserAnnotation()
         }
         .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .excludingAll))
-        .mapControls {
-            MapUserLocationButton()
-            MapCompass()
-            MapScaleView()
-        }
     }
 
     // MARK: - Loading Overlay
