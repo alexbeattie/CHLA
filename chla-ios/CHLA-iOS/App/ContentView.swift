@@ -621,7 +621,8 @@ struct RegionalCentersTabView: View {
             if selectedView == 0 {
                 // List content - full screen
                 RegionalCentersListContent()
-                    .padding(.top, 140) // Fixed space for header
+                    .padding(.top, visibilityManager.isHeaderVisible ? 140 : 0)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
 
                 // Header overlay - positioned at top, doesn't extend full screen
             VStack(spacing: 0) {
