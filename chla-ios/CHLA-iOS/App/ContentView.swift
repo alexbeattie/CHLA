@@ -619,27 +619,21 @@ struct RegionalCentersTabView: View {
 
             // Content
             if selectedView == 0 {
-                // List content with header space
-                VStack(spacing: 0) {
-                    // Spacer for header
-                    Color.clear
-                        .frame(height: visibilityManager.isHeaderVisible ? 140 : 0)
-                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
-
-                    RegionalCentersListContent()
-                }
+                // List content
+                RegionalCentersListContent()
+                    .padding(.top, visibilityManager.isHeaderVisible ? 100 : 0)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
 
                 // Header overlay - positioned at top
-                VStack(spacing: 0) {
+                VStack(spacing: 4) {
                     HStack {
                         Text("Regional Centers")
-                            .font(.largeTitle)
+                            .font(.title2)
                             .fontWeight(.bold)
                         Spacer()
                     }
                     .padding(.horizontal)
-                    .padding(.top, 60)
-                    .padding(.bottom, 8)
+                    .padding(.top, 54)
 
                     // Segmented Picker
                     Picker("View", selection: $selectedView) {
@@ -648,10 +642,10 @@ struct RegionalCentersTabView: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
-                    .padding(.bottom, 12)
+                    .padding(.bottom, 6)
                 }
                 .background(.ultraThinMaterial)
-                .offset(y: visibilityManager.isHeaderVisible ? 0 : -200)
+                .offset(y: visibilityManager.isHeaderVisible ? 0 : -120)
                 .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
                 } else {
