@@ -32,7 +32,7 @@ struct MapContainerView: View {
 
             // Top search bar with modern design
             VStack(spacing: 0) {
-                searchOverlay
+            searchOverlay
                 Spacer()
             }
             .zIndex(10) // Ensure search is above map
@@ -277,7 +277,7 @@ struct MapContainerView: View {
                     Button {
                         showResultsSheet = true
                     } label: {
-                        ProviderCountBadge(count: providerStore.providerCount)
+                    ProviderCountBadge(count: providerStore.providerCount)
                     }
                     .buttonStyle(.plain)
                 }

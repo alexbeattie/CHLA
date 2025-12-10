@@ -138,7 +138,7 @@ struct ProviderListView: View {
                         showFilters = true
                     } label: {
                         ZStack(alignment: .topTrailing) {
-                            Image(systemName: "slider.horizontal.3")
+                        Image(systemName: "slider.horizontal.3")
 
                             if activeFilterCount > 0 {
                                 Circle()
@@ -161,7 +161,7 @@ struct ProviderListView: View {
             }
             .task {
                 // Always load providers when view appears
-                await loadInitialProviders()
+                    await loadInitialProviders()
             }
             // Listen for tab menu actions
             .onReceive(NotificationCenter.default.publisher(for: .refreshList)) { _ in
@@ -292,10 +292,10 @@ struct ProviderListView: View {
     private func loadInitialProviders() async {
         // Use user location if available, otherwise default to LA center
         let coordinate = locationService.coordinate ?? CLLocationCoordinate2D(latitude: 34.0522, longitude: -118.2437)
-        await providerStore.search(
-            location: coordinate,
-            filters: appState.searchFilters
-        )
+            await providerStore.search(
+                location: coordinate,
+                filters: appState.searchFilters
+            )
     }
 
     private func refreshProviders() async {
@@ -303,10 +303,10 @@ struct ProviderListView: View {
         let coordinate = locationService.coordinate
             ?? providerStore.lastSearchLocation
             ?? CLLocationCoordinate2D(latitude: 34.0522, longitude: -118.2437)
-        await providerStore.search(
-            location: coordinate,
-            filters: appState.searchFilters
-        )
+            await providerStore.search(
+                location: coordinate,
+                filters: appState.searchFilters
+            )
     }
 }
 

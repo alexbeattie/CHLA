@@ -20,70 +20,49 @@ struct RegionalCenterMapView: View {
     @State private var showCenterDetail = false
 
     var body: some View {
-        ZStack {
-            mapContent
+            ZStack {
+                mapContent
 
-            if viewModel.isLoading {
-                loadingOverlay
-            }
+                if viewModel.isLoading {
+                    loadingOverlay
+                }
 
-            // Floating controls on right side
+            // Floating refresh button on right side
             VStack {
                 HStack {
                     Spacer()
-                    VStack(spacing: 0) {
-                        // Location button
-                        Button {
-                            withAnimation {
-                                cameraPosition = .region(MKCoordinateRegion(
-                                    center: CLLocationCoordinate2D(latitude: 34.05, longitude: -118.25),
-                                    span: MKCoordinateSpan(latitudeDelta: 0.7, longitudeDelta: 0.7)
-                                ))
-                            }
-                        } label: {
-                            Image(systemName: "location.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(.accentBlue)
-                                .frame(width: 44, height: 44)
-                        }
-
-                        Divider()
-                            .frame(width: 30)
-
-                        // Refresh button
-                        Button {
-                            Task { await viewModel.fetchServiceAreas() }
-                        } label: {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 18))
-                                .foregroundColor(.accentBlue)
-                                .frame(width: 44, height: 44)
-                        }
+                    Button {
+                        Task { await viewModel.fetchServiceAreas() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 18))
+                            .foregroundColor(.accentBlue)
+                            .frame(width: 44, height: 44)
                     }
                     .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                 }
                 .padding(.trailing, 24)
-                .padding(.top, 80) // Below picker with breathing room
+                .padding(.top, 80)
 
                 Spacer()
 
                 // Legend at bottom - above tab bar
                 legendView
                     .padding(.horizontal)
-                    .padding(.bottom, 100) // Space for tab bar
+                    .padding(.bottom, 100)
             }
         }
         .ignoresSafeArea(edges: .all)
         .statusBarHidden(true)
-        .sheet(item: $selectedCenter) { center in
-            RegionalCenterInfoSheet(feature: center)
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-        }
-        .onAppear {
-            Task { await viewModel.fetchServiceAreas() }
+            .sheet(item: $selectedCenter) { center in
+                RegionalCenterInfoSheet(feature: center)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
+            .onAppear {
+                Task { await viewModel.fetchServiceAreas() }
         }
     }
 

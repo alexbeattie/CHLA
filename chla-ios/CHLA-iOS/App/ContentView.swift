@@ -624,7 +624,7 @@ struct RegionalCentersTabView: View {
                     .padding(.top, 140) // Fixed space for header
 
                 // Header overlay - positioned at top, doesn't extend full screen
-                VStack(spacing: 0) {
+            VStack(spacing: 0) {
                     HStack {
                         Text("Regional Centers")
                             .font(.largeTitle)
@@ -635,22 +635,22 @@ struct RegionalCentersTabView: View {
                     .padding(.top, 60)
                     .padding(.bottom, 8)
 
-                    // Segmented Picker
-                    Picker("View", selection: $selectedView) {
-                        Label("List", systemImage: "list.bullet").tag(0)
-                        Label("Map", systemImage: "map").tag(1)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
+                // Segmented Picker
+                Picker("View", selection: $selectedView) {
+                    Label("List", systemImage: "list.bullet").tag(0)
+                    Label("Map", systemImage: "map").tag(1)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
                     .padding(.bottom, 12)
                 }
                 .background(.ultraThinMaterial)
                 .offset(y: visibilityManager.isHeaderVisible ? 0 : -200)
                 .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
-            } else {
+                } else {
                 // Full screen map
-                RegionalCenterMapView()
+                    RegionalCenterMapView()
 
                 // Floating picker overlay for map
                 VStack {
@@ -684,7 +684,7 @@ struct RegionalCentersListContent: View {
     @State private var selectedCenter: RegionalCenterMatcher.RegionalCenterInfo?
     @StateObject private var locationManager = RCLocationManager()
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
-    @GestureState private var dragOffset: CGFloat = 0
+    @State private var lastScrollOffset: CGFloat = 0
 
     private let centers = RegionalCenterMatcher.shared.laRegionalCenters
 
@@ -708,6 +708,19 @@ struct RegionalCentersListContent: View {
 
     var body: some View {
         List {
+            // Scroll detection
+            Color.clear
+                .frame(height: 1)
+                .background(
+                    GeometryReader { geo in
+                        Color.clear
+                            .preference(key: ScrollOffsetPreferenceKey.self,
+                                      value: geo.frame(in: .named("scroll")).minY)
+                    }
+                )
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+
             // Info Header
             Section {
                 VStack(alignment: .leading, spacing: 12) {
@@ -741,12 +754,12 @@ struct RegionalCentersListContent: View {
             // User's Regional Center
             if let userCenter = userRegionalCenter, showUserCenter {
                 Section {
-                    Button {
-                        selectedCenter = userCenter
-                    } label: {
-                        UserRCRow(center: userCenter)
-                    }
-                    .buttonStyle(.plain)
+                    UserRCRow(center: userCenter)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            selectedCenter = userCenter
+                        }
                 } header: {
                     HStack {
                         Image(systemName: "location.fill")
@@ -761,31 +774,28 @@ struct RegionalCentersListContent: View {
             // All/Other Centers
             Section {
                 ForEach(filteredCenters, id: \.id) { center in
-                    Button {
-                        selectedCenter = center
-                    } label: {
-                        RCListRow(center: center)
-                    }
-                    .buttonStyle(.plain)
+                    RCListRow(center: center)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            selectedCenter = center
+                        }
                 }
             } header: {
                 Text(userRegionalCenter != nil ? "Other Centers" : "All Centers")
             }
         }
         .listStyle(.insetGrouped)
-        .gesture(
-            DragGesture(minimumDistance: 30) // Only trigger after 30pt drag
-                .updating($dragOffset) { value, state, _ in
-                    state = value.translation.height
-                }
-                .onEnded { value in
-                    if value.translation.height < -50 {
-                        visibilityManager.hideUI()
-                    } else if value.translation.height > 50 {
-                        visibilityManager.showUI()
-                    }
-                }
-        )
+        .coordinateSpace(name: "scroll")
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
+            let delta = offset - lastScrollOffset
+            if delta < -20 {
+                visibilityManager.hideUI()
+            } else if delta > 20 {
+                visibilityManager.showUI()
+            }
+            lastScrollOffset = offset
+        }
         .sheet(item: $selectedCenter) { center in
             RegionalCenterDetailSheet(center: center)
                 .presentationDetents([.large])

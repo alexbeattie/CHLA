@@ -34,53 +34,53 @@ struct ProviderDetailView: View {
                 heroHeaderSection
 
                 // Content with padding
-                VStack(alignment: .leading, spacing: 24) {
-                    // Quick actions
-                    quickActionsSection
+            VStack(alignment: .leading, spacing: 24) {
+                // Quick actions
+                quickActionsSection
 
+                Divider()
+
+                // Map Section
+                mapSection
+
+                Divider()
+
+                // Contact Info
+                contactSection
+
+                // Regional Center
+                if cachedRegionalCenter != nil {
                     Divider()
-
-                    // Map Section
-                    mapSection
-
-                    Divider()
-
-                    // Contact Info
-                    contactSection
-
-                    // Regional Center
-                    if cachedRegionalCenter != nil {
-                        Divider()
-                        regionalCenterSection
-                    }
-
-                    if let description = provider.description, !description.isEmpty {
-                        Divider()
-                        aboutSection(description)
-                    }
-
-                    if let therapies = provider.therapyTypes, !therapies.isEmpty {
-                        Divider()
-                        servicesSection(therapies)
-                    }
-
-                    if let diagnoses = provider.diagnosesTreated, !diagnoses.isEmpty {
-                        Divider()
-                        diagnosesSection(diagnoses)
-                    }
-
-                    if let ageGroups = provider.ageGroups, !ageGroups.isEmpty {
-                        Divider()
-                        ageGroupsSection(ageGroups)
-                    }
-
-                    if let insurance = provider.insuranceAccepted, !insurance.isEmpty {
-                        Divider()
-                        insuranceSection(insurance)
-                    }
+                    regionalCenterSection
                 }
-                .padding()
+
+                if let description = provider.description, !description.isEmpty {
+                    Divider()
+                    aboutSection(description)
+                }
+
+                if let therapies = provider.therapyTypes, !therapies.isEmpty {
+                    Divider()
+                    servicesSection(therapies)
+                }
+
+                if let diagnoses = provider.diagnosesTreated, !diagnoses.isEmpty {
+                    Divider()
+                    diagnosesSection(diagnoses)
+                }
+
+                if let ageGroups = provider.ageGroups, !ageGroups.isEmpty {
+                    Divider()
+                    ageGroupsSection(ageGroups)
+                }
+
+                if let insurance = provider.insuranceAccepted, !insurance.isEmpty {
+                    Divider()
+                    insuranceSection(insurance)
+                }
             }
+            .padding()
+        }
         }
         .background(Color(.systemBackground))
         .ignoresSafeArea(edges: .horizontal)

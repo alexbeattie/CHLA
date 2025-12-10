@@ -289,58 +289,58 @@ struct RegionalCenterDetailSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Hero Header
-                    heroSection
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                // Hero Header
+                heroSection
 
-                    VStack(alignment: .leading, spacing: 24) {
-                        // Stats Row
-                        statsSection
+                VStack(alignment: .leading, spacing: 24) {
+                    // Stats Row
+                    statsSection
 
-                        // ZIP Code Search
-                        zipSearchSection
+                    // ZIP Code Search
+                    zipSearchSection
 
-                        Divider()
+                    Divider()
 
-                        // About Section
-                        aboutSection
+                    // About Section
+                    aboutSection
 
-                        Divider()
+                    Divider()
 
-                        // Services Section
-                        servicesSection
+                    // Services Section
+                    servicesSection
 
-                        Divider()
+                    Divider()
 
-                        // Quick Actions
-                        quickActionsSection
+                    // Quick Actions
+                    quickActionsSection
 
-                        Divider()
+                    Divider()
 
-                        // Contact Card
-                        contactSection
+                    // Contact Card
+                    contactSection
 
-                        Divider()
+                    Divider()
 
-                        // Cities Served
-                        citiesSection
+                    // Cities Served
+                    citiesSection
 
-                        Divider()
+                    Divider()
 
-                        // How to Access Services
-                        howToAccessSection
+                    // How to Access Services
+                    howToAccessSection
 
-                        Divider()
+                    Divider()
 
-                        // Other Regional Centers
-                        otherCentersSection
-                    }
-                    .padding()
+                    // Other Regional Centers
+                    otherCentersSection
                 }
+                .padding()
             }
-            .navigationTitle(center.shortName)
-            .navigationBarTitleDisplayMode(.inline)
+        }
+        .navigationTitle(center.shortName)
+        .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
