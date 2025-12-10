@@ -27,28 +27,9 @@ struct RegionalCenterMapView: View {
                     loadingOverlay
                 }
 
-            // Floating refresh button on right side
+            // Legend at bottom - above tab bar
             VStack {
-                HStack {
-                    Spacer()
-                    Button {
-                        Task { await viewModel.fetchServiceAreas() }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 18))
-                            .foregroundColor(.accentBlue)
-                            .frame(width: 44, height: 44)
-                    }
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                }
-                .padding(.trailing, 24)
-                .padding(.top, 80)
-
                 Spacer()
-
-                // Legend at bottom - above tab bar
                 legendView
                     .padding(.horizontal)
                     .padding(.bottom, 100)
