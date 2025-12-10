@@ -612,7 +612,7 @@ struct RegionalCentersTabView: View {
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             // Background that extends full screen
             Color(.systemGroupedBackground)
                 .ignoresSafeArea()
@@ -621,40 +621,33 @@ struct RegionalCentersTabView: View {
             if selectedView == 0 {
                 // List content - full screen
                 RegionalCentersListContent()
-                    .padding(.top, visibilityManager.isHeaderVisible ? 140 : 0) // Space for header when visible
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
+                    .padding(.top, 140) // Fixed space for header
 
-                // Header overlay for list view - only the header receives touches
-                VStack {
-                    VStack(spacing: 0) {
-                        HStack {
-                            Text("Regional Centers")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 60)
-                        .padding(.bottom, 8)
-
-                        // Segmented Picker
-                        Picker("View", selection: $selectedView) {
-                            Label("List", systemImage: "list.bullet").tag(0)
-                            Label("Map", systemImage: "map").tag(1)
-                        }
-                        .pickerStyle(.segmented)
-                        .padding(.horizontal)
-                        .padding(.bottom, 12)
+                // Header overlay - positioned at top, doesn't extend full screen
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("Regional Centers")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        Spacer()
                     }
-                    .background(.ultraThinMaterial)
-                    .offset(y: visibilityManager.isHeaderVisible ? 0 : -200)
-                    .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
+                    .padding(.horizontal)
+                    .padding(.top, 60)
+                    .padding(.bottom, 8)
 
-                    Spacer()
-                        .allowsHitTesting(false) // Don't block taps on list
+                    // Segmented Picker
+                    Picker("View", selection: $selectedView) {
+                        Label("List", systemImage: "list.bullet").tag(0)
+                        Label("Map", systemImage: "map").tag(1)
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.bottom, 12)
                 }
-                .allowsHitTesting(visibilityManager.isHeaderVisible) // Only when visible
+                .background(.ultraThinMaterial)
+                .offset(y: visibilityManager.isHeaderVisible ? 0 : -200)
+                .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
             } else {
                 // Full screen map
                 RegionalCenterMapView()
@@ -690,6 +683,8 @@ struct RegionalCentersTabView: View {
 struct RegionalCentersListContent: View {
     @State private var selectedCenter: RegionalCenterMatcher.RegionalCenterInfo?
     @StateObject private var locationManager = RCLocationManager()
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
+    @GestureState private var dragOffset: CGFloat = 0
 
     private let centers = RegionalCenterMatcher.shared.laRegionalCenters
 
@@ -778,6 +773,19 @@ struct RegionalCentersListContent: View {
             }
         }
         .listStyle(.insetGrouped)
+        .gesture(
+            DragGesture(minimumDistance: 30) // Only trigger after 30pt drag
+                .updating($dragOffset) { value, state, _ in
+                    state = value.translation.height
+                }
+                .onEnded { value in
+                    if value.translation.height < -50 {
+                        visibilityManager.hideUI()
+                    } else if value.translation.height > 50 {
+                        visibilityManager.showUI()
+                    }
+                }
+        )
         .sheet(item: $selectedCenter) { center in
             RegionalCenterDetailSheet(center: center)
                 .presentationDetents([.large])
