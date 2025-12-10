@@ -619,13 +619,18 @@ struct RegionalCentersTabView: View {
 
             // Content
             if selectedView == 0 {
-                // List content - full screen
-                RegionalCentersListContent()
-                    .padding(.top, visibilityManager.isHeaderVisible ? 140 : 0)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
+                // List content with header space
+                VStack(spacing: 0) {
+                    // Spacer for header
+                    Color.clear
+                        .frame(height: visibilityManager.isHeaderVisible ? 140 : 0)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
 
-                // Header overlay - positioned at top, doesn't extend full screen
-            VStack(spacing: 0) {
+                    RegionalCentersListContent()
+                }
+
+                // Header overlay - positioned at top
+                VStack(spacing: 0) {
                     HStack {
                         Text("Regional Centers")
                             .font(.largeTitle)
@@ -636,13 +641,13 @@ struct RegionalCentersTabView: View {
                     .padding(.top, 60)
                     .padding(.bottom, 8)
 
-                // Segmented Picker
-                Picker("View", selection: $selectedView) {
-                    Label("List", systemImage: "list.bullet").tag(0)
-                    Label("Map", systemImage: "map").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
+                    // Segmented Picker
+                    Picker("View", selection: $selectedView) {
+                        Label("List", systemImage: "list.bullet").tag(0)
+                        Label("Map", systemImage: "map").tag(1)
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
                     .padding(.bottom, 12)
                 }
                 .background(.ultraThinMaterial)
