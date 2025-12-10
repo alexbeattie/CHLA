@@ -672,7 +672,7 @@ struct RegionalCentersTabView: View {
                         .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-                    .padding(.top, 16)
+                    .padding(.top, 60) // Account for status bar
                     .offset(y: visibilityManager.isHeaderVisible ? 0 : -100)
                     .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
