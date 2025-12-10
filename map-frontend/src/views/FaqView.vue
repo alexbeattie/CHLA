@@ -464,6 +464,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   padding: 1.25rem 1.5rem;
   background: none;
   border: none;
@@ -479,10 +480,22 @@ export default {
   background-color: #f8f9fa;
 }
 
+.faq-question span {
+  flex: 1;
+}
+
 .faq-question i {
-  font-size: 1.25rem;
+  flex-shrink: 0;
+  font-size: 1.5rem;
   color: #004877;
   transition: transform 0.3s ease;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  border-radius: 50%;
+}
+
+.faq-question:hover i {
+  background-color: rgba(0, 72, 119, 0.1);
 }
 
 .faq-answer {

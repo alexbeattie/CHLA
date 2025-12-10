@@ -1,13 +1,156 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "../../../Desktop/chla-data"
-		}
-	],
-	"settings": {
-		"vue3snippets.enable-compile-vue-file-on-did-save-code": true
-	}
+  "folders": [
+    {
+      "name": "🏠 CHLA Root",
+      "path": "."
+    },
+    {
+      "name": "🐍 Backend (Django)",
+      "path": "maplocation"
+    },
+    {
+      "name": "🌐 Frontend (Vue)",
+      "path": "map-frontend"
+    },
+    {
+      "name": "📱 iOS App (Swift)",
+      "path": "chla-ios/CHLA-iOS"
+    }
+  ],
+  "settings": {
+    // Vue/TypeScript
+    "vue3snippets.enable-compile-vue-file-on-did-save-code": true,
+
+    // Python
+    "python.defaultInterpreterPath": "${workspaceFolder:🏠 CHLA Root}/venv/bin/python",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.formatting.provider": "black",
+
+    // Swift/iOS
+    "swift.path": "/usr/bin/swift",
+    "[swift]": {
+      "editor.defaultFormatter": "vknabel.vscode-swift-format",
+      "editor.formatOnSave": true
+    },
+
+    // General
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/node_modules": true,
+      "**/.git": false,
+      "**/venv": true
+    },
+    "files.watcherExclude": {
+      "**/venv/**": true,
+      "**/node_modules/**": true,
+      "**/.git/objects/**": true,
+      "**/.git/subtree-cache/**": true,
+      "**/dist/**": true,
+      "**/.build/**": true
+    },
+
+    // Editor
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      // Vue/Frontend
+      "vue.volar",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+
+      // Python/Django
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "batisteo.vscode-django",
+
+      // Swift/iOS
+      "sswg.swift-lang",
+      "vknabel.vscode-swift-format",
+
+      // General
+      "editorconfig.editorconfig",
+      "streetsidesoftware.code-spell-checker"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "🐍 Django Server",
+        "type": "python",
+        "request": "launch",
+        "program": "${workspaceFolder:🐍 Backend (Django)}/manage.py",
+        "args": ["runserver"],
+        "django": true,
+        "justMyCode": false
+      },
+      {
+        "name": "🌐 Vite Dev Server",
+        "type": "node",
+        "request": "launch",
+        "cwd": "${workspaceFolder:🌐 Frontend (Vue)}",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": ["run", "dev"]
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "🚀 Start All Services",
+        "dependsOn": ["Start Database", "Start Backend", "Start Frontend"],
+        "problemMatcher": []
+      },
+      {
+        "label": "Start Database",
+        "type": "shell",
+        "command": "docker compose -f docker-compose.local.yml up -d",
+        "options": {
+          "cwd": "${workspaceFolder:🏠 CHLA Root}"
+        }
+      },
+      {
+        "label": "Start Backend",
+        "type": "shell",
+        "command": "source ../venv/bin/activate && python3 manage.py runserver",
+        "options": {
+          "cwd": "${workspaceFolder:🐍 Backend (Django)}"
+        },
+        "isBackground": true
+      },
+      {
+        "label": "Start Frontend",
+        "type": "shell",
+        "command": "./switch-env.sh dev && npm run dev",
+        "options": {
+          "cwd": "${workspaceFolder:🌐 Frontend (Vue)}"
+        },
+        "isBackground": true
+      },
+      {
+        "label": "⚡ Quick Test",
+        "type": "shell",
+        "command": "./scripts/quick-test.sh",
+        "options": {
+          "cwd": "${workspaceFolder:🏠 CHLA Root}"
+        }
+      },
+      {
+        "label": "🧪 Full Test Suite",
+        "type": "shell",
+        "command": "./scripts/test-deployment-locally.sh",
+        "options": {
+          "cwd": "${workspaceFolder:🏠 CHLA Root}"
+        }
+      }
+    ]
+  }
 }

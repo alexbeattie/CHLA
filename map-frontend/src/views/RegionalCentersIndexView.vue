@@ -17,28 +17,46 @@
           <h2>Find Your Regional Center</h2>
           <p>Enter your ZIP code to discover which Regional Center serves your area</p>
           <div class="zip-finder">
-            <input 
-              type="text" 
-              v-model="zipCode" 
+            <input
+              type="text"
+              v-model="zipCode"
               placeholder="Enter ZIP code"
               @keyup.enter="findRegionalCenter"
               maxlength="5"
               class="zip-input"
               :disabled="detectingLocation"
             />
-            <button @click="findRegionalCenter" class="btn btn-primary" :disabled="loading || detectingLocation">
+            <button
+              @click="findRegionalCenter"
+              class="btn btn-primary"
+              :disabled="loading || detectingLocation"
+            >
               <i class="bi bi-search me-2"></i>
               Find My RC
             </button>
-            <button @click="useMyLocation" class="btn btn-outline-primary" :disabled="loading || detectingLocation">
-              <i :class="detectingLocation ? 'bi bi-arrow-clockwise spin' : 'bi bi-geo-alt-fill'" class="me-2"></i>
-              {{ detectingLocation ? 'Detecting...' : 'Use My Location' }}
+            <button
+              @click="useMyLocation"
+              class="btn btn-outline-primary"
+              :disabled="loading || detectingLocation"
+            >
+              <i
+                :class="
+                  detectingLocation ? 'bi bi-arrow-clockwise spin' : 'bi bi-geo-alt-fill'
+                "
+                class="me-2"
+              ></i>
+              {{ detectingLocation ? "Detecting..." : "Use My Location" }}
             </button>
           </div>
           <div v-if="foundRC" class="found-result">
             <i class="bi bi-check-circle-fill"></i>
-            <span>Your ZIP code is served by <strong>{{ foundRC.shortName }}</strong></span>
-            <router-link :to="`/regional-centers/${foundRC.slug}`" class="btn btn-sm btn-outline-primary ms-3">
+            <span
+              >Your ZIP code is served by <strong>{{ foundRC.shortName }}</strong></span
+            >
+            <router-link
+              :to="`/regional-centers/${foundRC.slug}`"
+              class="btn btn-sm btn-outline-primary ms-3"
+            >
               View Details →
             </router-link>
           </div>
@@ -53,28 +71,38 @@
     <!-- Main Content -->
     <section class="content-section">
       <div class="container">
-        
         <!-- What are Regional Centers -->
         <div class="content-block intro-block">
           <h2>What are Regional Centers?</h2>
           <p class="lead">
-            Regional Centers are nonprofit agencies funded by the State of California to provide services and support to individuals with developmental disabilities and their families.
+            Regional Centers are nonprofit agencies funded by the State of California to
+            provide services and support to individuals with developmental disabilities
+            and their families.
           </p>
           <div class="info-grid">
             <div class="info-card">
               <i class="bi bi-geo-alt-fill"></i>
               <h3>Geographic Assignment</h3>
-              <p>Your Regional Center is determined by your ZIP code, not your choice. Each area is served by one specific Regional Center.</p>
+              <p>
+                Your Regional Center is determined by your ZIP code, not your choice. Each
+                area is served by one specific Regional Center.
+              </p>
             </div>
             <div class="info-card">
               <i class="bi bi-currency-dollar"></i>
               <h3>Free Services</h3>
-              <p>Services through Regional Centers are free for eligible individuals with developmental disabilities.</p>
+              <p>
+                Services through Regional Centers are free for eligible individuals with
+                developmental disabilities.
+              </p>
             </div>
             <div class="info-card">
               <i class="bi bi-people-fill"></i>
               <h3>Comprehensive Support</h3>
-              <p>Regional Centers coordinate access to ABA therapy, respite care, support services, and more.</p>
+              <p>
+                Regional Centers coordinate access to ABA therapy, respite care, support
+                services, and more.
+              </p>
             </div>
           </div>
         </div>
@@ -82,11 +110,14 @@
         <!-- 7 Regional Centers -->
         <div class="content-block">
           <h2>LA County's 7 Regional Centers</h2>
-          <p>Los Angeles County is served by 7 Regional Centers, each covering specific geographic areas:</p>
-          
+          <p>
+            Los Angeles County is served by 7 Regional Centers, each covering specific
+            geographic areas:
+          </p>
+
           <div class="rc-grid">
-            <router-link 
-              v-for="rc in regionalCenters" 
+            <router-link
+              v-for="rc in regionalCenters"
               :key="rc.slug"
               :to="`/regional-centers/${rc.slug}`"
               class="rc-card"
@@ -112,7 +143,7 @@
                 </div>
               </div>
               <div class="rc-cities">
-                <strong>Major Cities:</strong> {{ rc.cities.slice(0, 5).join(', ') }}
+                <strong>Major Cities:</strong> {{ rc.cities.slice(0, 5).join(", ") }}
                 <span v-if="rc.cities.length > 5"> +{{ rc.cities.length - 5 }} more</span>
               </div>
             </router-link>
@@ -122,7 +153,10 @@
         <!-- Map Visualization -->
         <div class="content-block highlight-block">
           <h2>Interactive Service Area Map</h2>
-          <p>See all provider locations and Regional Center boundaries on our interactive map.</p>
+          <p>
+            See all provider locations and Regional Center boundaries on our interactive
+            map.
+          </p>
           <router-link to="/" class="btn btn-primary btn-lg">
             <i class="bi bi-map me-2"></i>
             Explore the Map
@@ -137,35 +171,50 @@
               <div class="step-number">1</div>
               <div class="step-content">
                 <h3>Determine Your Regional Center</h3>
-                <p>Use the ZIP code finder above or check the list to find your Regional Center.</p>
+                <p>
+                  Use the ZIP code finder above or check the list to find your Regional
+                  Center.
+                </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">2</div>
               <div class="step-content">
                 <h3>Contact Your Regional Center</h3>
-                <p>Call your Regional Center to schedule an intake appointment and discuss eligibility.</p>
+                <p>
+                  Call your Regional Center to schedule an intake appointment and discuss
+                  eligibility.
+                </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">3</div>
               <div class="step-content">
                 <h3>Eligibility Assessment</h3>
-                <p>Complete an assessment to determine if you qualify for services (developmental disability must begin before age 18).</p>
+                <p>
+                  Complete an assessment to determine if you qualify for services
+                  (developmental disability must begin before age 18).
+                </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">4</div>
               <div class="step-content">
                 <h3>Develop Service Plan</h3>
-                <p>Work with your service coordinator to create an Individualized Program Plan (IPP).</p>
+                <p>
+                  Work with your service coordinator to create an Individualized Program
+                  Plan (IPP).
+                </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">5</div>
               <div class="step-content">
                 <h3>Choose Providers</h3>
-                <p>Select providers from our map that accept your Regional Center's funding.</p>
+                <p>
+                  Select providers from our map that accept your Regional Center's
+                  funding.
+                </p>
               </div>
             </div>
           </div>
@@ -186,54 +235,58 @@
             </router-link>
           </div>
         </div>
-
       </div>
     </section>
   </div>
 </template>
 
 <script>
-import { ref, computed } from 'vue';
-import { getAllRegionalCenters } from '@/data/regionalCenters';
+import { ref, computed } from "vue";
+import { getAllRegionalCenters } from "@/data/regionalCenters";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.kinddhelp.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.kinddhelp.com";
 
 export default {
-  name: 'RegionalCentersIndexView',
-  
+  name: "RegionalCentersIndexView",
+
   setup() {
-    const zipCode = ref('');
+    const zipCode = ref("");
     const foundRC = ref(null);
     const notFound = ref(false);
     const loading = ref(false);
     const detectingLocation = ref(false);
-    
+
     const regionalCenters = computed(() => getAllRegionalCenters());
-    
+
     const findRegionalCenter = async () => {
       foundRC.value = null;
       notFound.value = false;
       loading.value = true;
-      
+
       if (!zipCode.value || zipCode.value.length !== 5) {
         notFound.value = true;
         loading.value = false;
         return;
       }
-      
+
       try {
         // Query API for the regional center by ZIP code
-        const response = await fetch(`${API_BASE_URL}/api/regional-centers/by_zip_code/?zip_code=${zipCode.value}`);
-        
+        const response = await fetch(
+          `${API_BASE_URL}/api/regional-centers/by_zip_code/?zip_code=${zipCode.value}`
+        );
+
         if (response.ok) {
           const rcData = await response.json();
-          console.log(`✅ API returned RC for ZIP ${zipCode.value}:`, rcData.regional_center);
-          
-          // Find matching RC in our local data for display
-          const localRC = getAllRegionalCenters().find(rc => 
-            rc.name === rcData.regional_center
+          console.log(
+            `✅ API returned RC for ZIP ${zipCode.value}:`,
+            rcData.regional_center
           );
-          
+
+          // Find matching RC in our local data for display
+          const localRC = getAllRegionalCenters().find(
+            (rc) => rc.name === rcData.regional_center
+          );
+
           if (localRC) {
             foundRC.value = localRC;
           } else {
@@ -241,7 +294,7 @@ export default {
             foundRC.value = {
               name: rcData.regional_center,
               shortName: rcData.regional_center,
-              slug: rcData.regional_center.toLowerCase().replace(/\s+/g, '-')
+              slug: rcData.regional_center.toLowerCase().replace(/\s+/g, "-"),
             };
           }
         } else {
@@ -249,70 +302,72 @@ export default {
           notFound.value = true;
         }
       } catch (error) {
-        console.error('Error finding regional center:', error);
+        console.error("Error finding regional center:", error);
         notFound.value = true;
       } finally {
         loading.value = false;
       }
     };
-    
+
     const useMyLocation = async () => {
       foundRC.value = null;
       notFound.value = false;
       detectingLocation.value = true;
-      
+
       if (!navigator.geolocation) {
-        alert('Geolocation is not supported by your browser');
+        alert("Geolocation is not supported by your browser");
         detectingLocation.value = false;
         return;
       }
-      
+
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
             const { latitude, longitude } = position.coords;
             console.log(`📍 Location detected: ${latitude}, ${longitude}`);
-            
+
             // Reverse geocode to get ZIP code using Mapbox
-            const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiY200ZHcwaTc0MDJjcjJscTE3emxhM2xvZCJ9.VnoxlGaFkGT7qKSgJLU_mQ';
+            const mapboxToken =
+              import.meta.env.VITE_MAPBOX_TOKEN ||
+              "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiY200ZHcwaTc0MDJjcjJscTE3emxhM2xvZCJ9.VnoxlGaFkGT7qKSgJLU_mQ";
             const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&types=postcode`;
-            
+
             const response = await fetch(geocodeUrl);
             const data = await response.json();
-            
+
             if (data.features && data.features.length > 0) {
               const zip = data.features[0].text;
               console.log(`✅ ZIP code detected: ${zip}`);
               zipCode.value = zip;
-              
+
               // Automatically find the regional center
               await findRegionalCenter();
             } else {
-              alert('Could not determine your ZIP code. Please enter it manually.');
+              alert("Could not determine your ZIP code. Please enter it manually.");
               notFound.value = true;
             }
           } catch (error) {
-            console.error('Error reverse geocoding:', error);
-            alert('Error detecting your location. Please enter your ZIP code manually.');
+            console.error("Error reverse geocoding:", error);
+            alert("Error detecting your location. Please enter your ZIP code manually.");
             notFound.value = true;
           } finally {
             detectingLocation.value = false;
           }
         },
         (error) => {
-          console.error('Geolocation error:', error);
-          alert('Unable to detect your location. Please enter your ZIP code manually.');
+          console.error("Geolocation error:", error);
+          alert("Unable to detect your location. Please enter your ZIP code manually.");
           detectingLocation.value = false;
           notFound.value = true;
         },
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 0
+          maximumAge: 0,
         }
       );
     };
-    
+
     return {
       zipCode,
       foundRC,
@@ -321,9 +376,9 @@ export default {
       detectingLocation,
       regionalCenters,
       findRegionalCenter,
-      useMyLocation
+      useMyLocation,
     };
-  }
+  },
 };
 </script>
 
@@ -344,14 +399,17 @@ export default {
 }
 
 .hero-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+  background: radial-gradient(
+      circle at 30% 40%,
+      rgba(255, 255, 255, 0.12) 0%,
+      transparent 50%
+    ),
     radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
     linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.15) 100%);
   pointer-events: none;
@@ -389,9 +447,7 @@ export default {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   padding: 3rem;
   border-radius: 16px;
-  box-shadow: 
-    0 12px 32px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
   text-align: center;
   border: 1px solid rgba(0, 72, 119, 0.1);
   position: relative;
@@ -399,20 +455,31 @@ export default {
 }
 
 .finder-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 5px;
-  background: linear-gradient(90deg, #004877 0%, #0066aa 25%, #00a8e8 50%, #0066aa 75%, #004877 100%);
+  background: linear-gradient(
+    90deg,
+    #004877 0%,
+    #0066aa 25%,
+    #00a8e8 50%,
+    #0066aa 75%,
+    #004877 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 3s linear infinite;
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .finder-card h2 {
@@ -474,7 +541,8 @@ export default {
   }
 }
 
-.found-result, .not-found-result {
+.found-result,
+.not-found-result {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -522,17 +590,13 @@ export default {
   padding: 2.5rem;
   border-radius: 12px;
   margin-bottom: 2rem;
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.06),
-    0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
   border-left: 4px solid #004877;
   transition: all 0.3s ease;
 }
 
 .content-block:hover {
-  box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 2px 6px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
   transform: translateY(-2px);
 }
 
@@ -571,7 +635,7 @@ export default {
 }
 
 .info-card:hover {
-  border-color: #FFC923;
+  border-color: #ffc923;
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -603,6 +667,7 @@ export default {
 }
 
 .rc-card {
+  display: block;
   background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
   padding: 1.75rem;
   border-radius: 12px;
@@ -610,15 +675,14 @@ export default {
   text-decoration: none;
   color: inherit;
   transition: all 0.3s ease;
-  box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.05),
-    0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .rc-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -630,13 +694,15 @@ export default {
 
 .rc-card:hover {
   transform: translateY(-6px);
-  box-shadow: 
-    0 12px 32px rgba(0, 0, 0, 0.14),
-    0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14), 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .rc-card:hover::before {
   opacity: 0.5;
+}
+
+.rc-card:active {
+  transform: translateY(-2px);
 }
 
 .rc-header {
@@ -655,7 +721,7 @@ export default {
 }
 
 .view-link {
-  color: #0D9DDB;
+  color: #0d9ddb;
   font-weight: 600;
   font-size: 0.9rem;
   white-space: nowrap;
@@ -719,7 +785,7 @@ export default {
   flex-shrink: 0;
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #004877, #0D9DDB);
+  background: linear-gradient(135deg, #004877, #0d9ddb);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -744,13 +810,13 @@ export default {
 /* Highlight Block */
 .highlight-block {
   background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
-  border-left: 6px solid #0D9DDB;
+  border-left: 6px solid #0d9ddb;
   text-align: center;
 }
 
 /* CTA Section */
 .cta-section {
-  background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%);
+  background: linear-gradient(135deg, #004877 0%, #0d9ddb 100%);
   color: white;
   padding: 3rem;
   border-radius: 12px;
@@ -777,8 +843,8 @@ export default {
 }
 
 .btn-primary {
-  background-color: #FFC923;
-  border-color: #FFC923;
+  background-color: #ffc923;
+  border-color: #ffc923;
   color: #004877;
   font-weight: 600;
   padding: 0.75rem 2rem;
@@ -863,4 +929,3 @@ export default {
   }
 }
 </style>
-
