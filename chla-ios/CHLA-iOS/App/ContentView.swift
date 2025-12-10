@@ -624,7 +624,7 @@ struct RegionalCentersTabView: View {
                     .padding(.top, visibilityManager.isHeaderVisible ? 140 : 0) // Space for header when visible
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
 
-                // Header overlay for list view
+                // Header overlay for list view - only the header receives touches
                 VStack {
                     VStack(spacing: 0) {
                         HStack {
@@ -652,7 +652,9 @@ struct RegionalCentersTabView: View {
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
 
                     Spacer()
+                        .allowsHitTesting(false) // Don't block taps on list
                 }
+                .allowsHitTesting(visibilityManager.isHeaderVisible) // Only when visible
             } else {
                 // Full screen map
                 RegionalCenterMapView()
