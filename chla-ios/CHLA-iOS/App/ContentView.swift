@@ -652,6 +652,7 @@ struct RegionalCentersTabView: View {
                 } else {
                 // Full screen map
                     RegionalCenterMapView()
+                        .environmentObject(visibilityManager)
 
                 // Floating picker overlay for map
                 VStack {
