@@ -621,14 +621,14 @@ struct RegionalCentersTabView: View {
             if selectedView == 0 {
                 // List content
                 RegionalCentersListContent()
-                    .padding(.top, visibilityManager.isHeaderVisible ? 100 : 0)
+                    .padding(.top, visibilityManager.isHeaderVisible ? 95 : 0)
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
 
                 // Header overlay - positioned at top
                 VStack(spacing: 4) {
                     HStack {
                         Text("Regional Centers")
-                            .font(.title2)
+                            .font(.title3)
                             .fontWeight(.bold)
                         Spacer()
                     }
@@ -642,10 +642,10 @@ struct RegionalCentersTabView: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
-                    .padding(.bottom, 6)
+                    .padding(.bottom, 4)
                 }
                 .background(.ultraThinMaterial)
-                .offset(y: visibilityManager.isHeaderVisible ? 0 : -120)
+                .offset(y: visibilityManager.isHeaderVisible ? 0 : -110)
                 .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
                 } else {
