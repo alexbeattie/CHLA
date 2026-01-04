@@ -1190,30 +1190,13 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            # Get all providers
-            providers = ProviderV2.objects.all()
-
-            # Filter providers whose address contains one of the regional center's ZIP codes
-            rc_zip_set = set(regional_center.zip_codes)
-            filtered_providers = []
-
-            for provider in providers:
-                # Extract ZIP code from address field
-                address_str = (
-                    provider.address
-                    if isinstance(provider.address, str)
-                    else str(provider.address)
-                )
-
-                # Look for 5-digit ZIP codes in the address
-                zip_matches = re.findall(r"\b\d{5}\b", address_str)
-
-                # Check if any ZIP matches the regional center's ZIPs
-                if any(zip_code in rc_zip_set for zip_code in zip_matches):
-                    filtered_providers.append(provider.id)
-
-            # Filter queryset to only matching providers
-            providers = ProviderV2.objects.filter(id__in=filtered_providers)
+            # OPTIMIZED: Use database-level regex filtering instead of Python loop
+            # Build a regex pattern that matches any of the regional center's ZIP codes
+            # Using PostgreSQL regex operator for efficient database-level filtering
+            zip_pattern = r'\b(' + '|'.join(regional_center.zip_codes) + r')\b'
+            
+            # Filter providers using database regex - much faster than Python iteration
+            providers = ProviderV2.objects.filter(address__regex=zip_pattern)
 
             # Apply additional filters
             # Apply insurance filter using ProviderInsuranceCarrier relationship

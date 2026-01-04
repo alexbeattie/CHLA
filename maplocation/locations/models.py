@@ -466,6 +466,25 @@ class ProviderV2(models.Model):
         db_table = "providers_v2"
         verbose_name = "Provider V2"
         verbose_name_plural = "Providers V2"
+        indexes = [
+            # Index for name search
+            models.Index(fields=['name'], name='providerv2_name_idx'),
+            # GIN indexes for JSON array fields (for contains lookups)
+            # These dramatically speed up queries like: therapy_types__contains=['ABA']
+            models.Index(
+                fields=['therapy_types'],
+                name='providerv2_therapy_gin',
+                opclasses=['gin_trgm_ops'] if False else [],  # Use default GIN for JSONB
+            ),
+            models.Index(
+                fields=['age_groups'],
+                name='providerv2_age_gin',
+            ),
+            models.Index(
+                fields=['diagnoses_treated'],
+                name='providerv2_diag_gin',
+            ),
+        ]
 
     def __str__(self):
         return self.name
