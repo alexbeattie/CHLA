@@ -5,6 +5,10 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.db import connection
 from django.db.models import Q, Avg
+from django.core.cache import cache
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 # from django.contrib.gis.geos import Point
 # from django.contrib.gis.measure import D
@@ -219,6 +223,30 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
         "los_angeles_health_district",
     ]
     ordering_fields = ["regional_center", "city", "county_served"]
+
+    def list(self, request, *args, **kwargs):
+        """
+        List all regional centers with caching.
+        Cached for 1 hour since regional center data rarely changes.
+        """
+        # Build cache key from query parameters
+        import hashlib
+        query_str = "&".join(sorted(f"{k}={v}" for k, v in request.query_params.items()))
+        cache_key = f"regional_centers_list_{hashlib.md5(query_str.encode()).hexdigest()}"
+        
+        # Check cache first
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+        
+        # Get the response from parent class
+        response = super().list(request, *args, **kwargs)
+        
+        # Cache for 1 hour
+        cache_timeout = getattr(settings, 'CACHE_TIMEOUT_REGIONAL_CENTERS', 3600)
+        cache.set(cache_key, response.data, cache_timeout)
+        
+        return response
 
     @action(detail=False, methods=["get"])
     def nearby(self, request):
@@ -464,7 +492,14 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Get real geographic service area boundaries for LA Regional Centers.
         Returns GeoJSON with actual geographic boundaries that fit together like puzzle pieces.
+        Cached for 1 hour since this data rarely changes.
         """
+        # Check cache first
+        cache_key = "regional_centers_service_area_boundaries"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+
         try:
             # Get only LA regional centers
             la_centers = RegionalCenter.objects.filter(is_la_regional_center=True)
@@ -506,6 +541,10 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
                     features.append(feature)
 
             geojson = {"type": "FeatureCollection", "features": features}
+
+            # Cache for 1 hour
+            cache_timeout = getattr(settings, 'CACHE_TIMEOUT_SERVICE_AREAS', 3600)
+            cache.set(cache_key, geojson, cache_timeout)
 
             return Response(geojson)
 
@@ -660,6 +699,31 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return ProviderV2WriteSerializer
         return ProviderV2Serializer
+
+    def list(self, request, *args, **kwargs):
+        """
+        List all providers with caching.
+        Cached for 5 minutes.
+        """
+        import hashlib
+        
+        # Build cache key from query parameters
+        query_str = "&".join(sorted(f"{k}={v}" for k, v in request.query_params.items()))
+        cache_key = f"providers_v2_list_{hashlib.md5(query_str.encode()).hexdigest()}"
+        
+        # Check cache first
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+        
+        # Get the response from parent class
+        response = super().list(request, *args, **kwargs)
+        
+        # Cache for 5 minutes
+        cache_timeout = getattr(settings, 'CACHE_TIMEOUT_PROVIDERS', 300)
+        cache.set(cache_key, response.data, cache_timeout)
+        
+        return response
 
     @action(detail=False, methods=["get"])
     def by_area(self, request):
@@ -1085,10 +1149,21 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
         - regional_center_id: ID of the regional center
         - zip_code: ZIP code to look up regional center (alternative to regional_center_id)
         - Additional filters: insurance, age, diagnosis, therapy
+        Cached based on query parameters for 1 minute.
         """
         try:
             from locations.models import RegionalCenter
             import re
+            import hashlib
+
+            # Build cache key from query parameters
+            query_str = "&".join(sorted(f"{k}={v}" for k, v in request.query_params.items()))
+            cache_key = f"providers_by_rc_{hashlib.md5(query_str.encode()).hexdigest()}"
+            
+            # Check cache first
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return Response(cached_data)
 
             # Get regional center either by ID or ZIP lookup
             regional_center_id = request.query_params.get("regional_center_id")
@@ -1215,17 +1290,21 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             # Serialize and return
             serializer = self.get_serializer(providers, many=True)
 
-            return Response(
-                {
-                    "count": providers.count(),
-                    "regional_center": {
-                        "id": regional_center.id,
-                        "name": regional_center.regional_center,
-                        "zip_codes": regional_center.zip_codes,
-                    },
-                    "results": serializer.data,
-                }
-            )
+            response_data = {
+                "count": providers.count(),
+                "regional_center": {
+                    "id": regional_center.id,
+                    "name": regional_center.regional_center,
+                    "zip_codes": regional_center.zip_codes,
+                },
+                "results": serializer.data,
+            }
+
+            # Cache for 1 minute (search results may change more frequently)
+            cache_timeout = getattr(settings, 'CACHE_TIMEOUT_PROVIDER_SEARCH', 60)
+            cache.set(cache_key, response_data, cache_timeout)
+
+            return Response(response_data)
 
         except RegionalCenter.DoesNotExist:
             return Response(

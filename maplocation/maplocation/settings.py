@@ -254,3 +254,23 @@ REST_FRAMEWORK = {
 # Basic Auth for Admin Portal
 BASIC_AUTH_USERNAME = os.environ.get("BASIC_AUTH_USERNAME", "clientaccess")
 BASIC_AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "changeme123!")
+
+# Caching Configuration
+# Use in-memory cache for simple deployment (no Redis required)
+# Each Gunicorn worker has its own cache, which is fine for our use case
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+        "TIMEOUT": 300,  # 5 minutes default timeout
+        "OPTIONS": {
+            "MAX_ENTRIES": 1000,
+        },
+    }
+}
+
+# Cache timeouts for different data types (in seconds)
+CACHE_TIMEOUT_REGIONAL_CENTERS = 3600  # 1 hour - rarely changes
+CACHE_TIMEOUT_SERVICE_AREAS = 3600  # 1 hour - rarely changes
+CACHE_TIMEOUT_PROVIDERS = 300  # 5 minutes - may change more often
+CACHE_TIMEOUT_PROVIDER_SEARCH = 60  # 1 minute - search results
