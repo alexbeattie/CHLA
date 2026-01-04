@@ -103,6 +103,11 @@ DATABASES = {
         "PASSWORD": os.environ.get("DB_PASSWORD", ""),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "5432"),
+        # Keep database connections alive to avoid slow reconnection overhead
+        # 600 seconds = 10 minutes, which works well with Gunicorn workers
+        "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", "600")),
+        # Health check connections before using them (Django 4.1+)
+        "CONN_HEALTH_CHECKS": True,
         # Enable TLS to RDS when requested via env (keeps local simple)
         "OPTIONS": (
             {"sslmode": "require"}
