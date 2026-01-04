@@ -13,7 +13,6 @@ struct ProviderDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
-    @State private var showFullMap = false
     @State private var showDirections = false
     @State private var lastDragValue: CGFloat = 0
 
@@ -28,75 +27,83 @@ struct ProviderDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                // Hero Header - edge to edge (no padding)
-                heroHeaderSection
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Hero Header - edge to edge (no padding)
+                    heroHeaderSection
 
-                // Content with padding
-            VStack(alignment: .leading, spacing: 24) {
-                // Quick actions
-                quickActionsSection
+                    // Content with padding
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Quick actions
+                        quickActionsSection
 
-                Divider()
+                        Divider()
 
-                // Map Section
-                mapSection
+                        // Map Section
+                        mapSection
 
-                Divider()
+                        Divider()
 
-                // Contact Info
-                contactSection
+                        // Contact Info
+                        contactSection
 
-                // Regional Center
-                if cachedRegionalCenter != nil {
-                    Divider()
-                    regionalCenterSection
-                }
+                        // Regional Center
+                        if cachedRegionalCenter != nil {
+                            Divider()
+                            regionalCenterSection
+                        }
 
-                if let description = provider.description, !description.isEmpty {
-                    Divider()
-                    aboutSection(description)
-                }
+                        if let therapies = provider.therapyTypes, !therapies.isEmpty {
+                            Divider()
+                            servicesSection(therapies)
+                        }
 
-                if let therapies = provider.therapyTypes, !therapies.isEmpty {
-                    Divider()
-                    servicesSection(therapies)
-                }
+                        if let diagnoses = provider.diagnosesTreated, !diagnoses.isEmpty {
+                            Divider()
+                            diagnosesSection(diagnoses)
+                        }
 
-                if let diagnoses = provider.diagnosesTreated, !diagnoses.isEmpty {
-                    Divider()
-                    diagnosesSection(diagnoses)
-                }
+                        if let ageGroups = provider.ageGroups, !ageGroups.isEmpty {
+                            Divider()
+                            ageGroupsSection(ageGroups)
+                        }
 
-                if let ageGroups = provider.ageGroups, !ageGroups.isEmpty {
-                    Divider()
-                    ageGroupsSection(ageGroups)
-                }
-
-                if let insurance = provider.insuranceAccepted, !insurance.isEmpty {
-                    Divider()
-                    insuranceSection(insurance)
-                }
-            }
-            .padding()
-        }
-        }
-        .background(Color(.systemBackground))
-        .ignoresSafeArea(edges: .horizontal)
-        .navigationTitle("Resource Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                ShareLink(
-                    item: shareText,
-                    subject: Text(provider.name),
-                    message: Text("Check out this resource I found on NDD Resources")
-                ) {
-                    Image(systemName: "square.and.arrow.up")
+                        if let insurance = provider.insuranceAccepted, !insurance.isEmpty {
+                            Divider()
+                            insuranceSection(insurance)
+                        }
+                    }
+                    .padding()
                 }
             }
+            .background(Color(.systemBackground))
+            .ignoresSafeArea(edges: [.horizontal, .top])
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(provider.regionalCenterShortName ?? "")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundColor(.white)
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    ShareLink(
+                        item: shareText,
+                        subject: Text(provider.name),
+                        message: Text("Check out this resource I found on NDD Resources")
+                    ) {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(.white)
+                    }
+                }
+            }
         }
+        .tint(.white)
         .simultaneousGesture(
             DragGesture()
                 .onChanged { value in
@@ -112,14 +119,6 @@ struct ProviderDetailView: View {
                     lastDragValue = 0
                 }
         )
-        .sheet(isPresented: $showFullMap) {
-            FullMapView(
-                title: provider.name,
-                coordinate: provider.coordinate,
-                address: provider.formattedAddress
-            )
-            .interactiveDismissDisabled(false)
-        }
         .sheet(isPresented: $showDirections) {
             DirectionsMapView(
                 destinationName: provider.name,
@@ -133,12 +132,13 @@ struct ProviderDetailView: View {
 
     private var heroHeaderSection: some View {
         ZStack(alignment: .bottomLeading) {
-            // Gradient background - extends to edges
+            // Gradient background - extends to all edges
             LinearGradient(
-                colors: [rcColor.opacity(0.8), rcColor.opacity(0.4)],
+                colors: [rcColor.opacity(0.9), rcColor.opacity(0.5)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
+            .ignoresSafeArea(edges: .horizontal)
 
             // Content
             VStack(alignment: .leading, spacing: 8) {
@@ -165,7 +165,7 @@ struct ProviderDetailView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
 
-                if let type = provider.type, !type.isEmpty {
+                if let type = provider.displayType, !type.isEmpty {
                     Text(type)
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.9))
@@ -184,7 +184,7 @@ struct ProviderDetailView: View {
             .padding()
             .padding(.bottom, 8)
         }
-        .frame(height: 140)
+        .frame(height: 160)
         .frame(maxWidth: .infinity)
     }
 
@@ -208,7 +208,7 @@ struct ProviderDetailView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            if let type = provider.type, !type.isEmpty {
+            if let type = provider.displayType, !type.isEmpty {
                 Text(type)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -257,15 +257,6 @@ struct ProviderDetailView: View {
                     openURL(websiteURL)
                 }
             }
-
-            // Directions - opens in-app map
-            ActionButton(
-                icon: "arrow.triangle.turn.up.right.diamond.fill",
-                title: "Directions",
-                color: .orange
-            ) {
-                showDirections = true
-            }
         }
     }
 
@@ -274,9 +265,9 @@ struct ProviderDetailView: View {
             Label("Location", systemImage: "mappin.circle.fill")
                 .font(.headline)
 
-            // Map preview - tap to open full map
+            // Map preview - tap to open in-app directions
             Button {
-                showFullMap = true
+                showDirections = true
             } label: {
                 Map(initialPosition: .region(MKCoordinateRegion(
                     center: provider.coordinate,
@@ -289,12 +280,17 @@ struct ProviderDetailView: View {
                 .cornerRadius(12)
                 .allowsHitTesting(false)
                 .overlay(alignment: .topTrailing) {
-                    Image(systemName: "arrow.up.left.and.arrow.down.right")
-                        .font(.caption)
-                        .padding(8)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(8)
-                        .padding(8)
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
+                            .font(.caption)
+                        Text("Directions")
+                            .font(.caption.bold())
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(8)
+                    .padding(8)
                 }
             }
             .buttonStyle(.plain)
@@ -306,9 +302,12 @@ struct ProviderDetailView: View {
             Label("Contact Information", systemImage: "info.circle.fill")
                 .font(.headline)
 
-            // Address
+            // Address - tap to copy
             Button {
-                showFullMap = true
+                UIPasteboard.general.string = provider.formattedAddress
+                // Haptic feedback
+                let impact = UIImpactFeedbackGenerator(style: .medium)
+                impact.impactOccurred()
             } label: {
                 HStack {
                     Image(systemName: "mappin.circle.fill")
@@ -322,7 +321,7 @@ struct ProviderDetailView: View {
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "doc.on.doc")
                         .foregroundStyle(.secondary)
                         .font(.caption)
                 }
@@ -331,6 +330,7 @@ struct ProviderDetailView: View {
                 .cornerRadius(12)
             }
             .buttonStyle(.plain)
+            .sensoryFeedback(.success, trigger: UIPasteboard.general.changeCount)
 
             // Phone
             if let phone = provider.formattedPhone {
@@ -506,25 +506,11 @@ struct ProviderDetailView: View {
                         .buttonStyle(.plain)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
                 .background(rcColor.opacity(0.08))
                 .cornerRadius(12)
             }
-        }
-    }
-
-    private func aboutSection(_ description: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("About", systemImage: "info.circle.fill")
-                .font(.headline)
-
-            Text(description)
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
         }
     }
 
@@ -611,19 +597,57 @@ struct ProviderDetailView: View {
     // MARK: - Helpers
 
     private var shareText: String {
-        var text = "\(provider.name)\n\(provider.address)"
+        var lines: [String] = []
+
+        // Name and type
+        lines.append("📍 \(provider.name)")
+        if let type = provider.displayType, !type.isEmpty {
+            lines.append(type)
+        }
+
+        lines.append("") // Empty line
+
+        // Address
+        lines.append("📫 Address:")
+        lines.append(provider.formattedAddress)
+
+        // Contact info
         if let phone = provider.formattedPhone {
-            text += "\nPhone: \(phone)"
+            lines.append("")
+            lines.append("📞 Phone: \(phone)")
         }
+
         if let website = provider.displayWebsite {
-            text += "\nWebsite: \(website)"
+            lines.append("🌐 Website: \(website)")
         }
-        return text
+
+        // Regional Center
+        if let rc = cachedRegionalCenter {
+            lines.append("")
+            lines.append("🏢 Regional Center: \(rc.name)")
+        }
+
+        // Services (first few)
+        if let therapies = provider.therapyTypes, !therapies.isEmpty {
+            lines.append("")
+            lines.append("✅ Services:")
+            let topServices = therapies.prefix(5)
+            for service in topServices {
+                lines.append("  • \(service)")
+            }
+            if therapies.count > 5 {
+                lines.append("  ... and \(therapies.count - 5) more")
+            }
+        }
+
+        // Footer
+        lines.append("")
+        lines.append("Found on NDD Resources - kinddhelp.com")
+
+        return lines.joined(separator: "\n")
     }
 }
 
 #Preview {
-    NavigationStack {
-        ProviderDetailView(provider: .mock)
-    }
+    ProviderDetailView(provider: .mock)
 }

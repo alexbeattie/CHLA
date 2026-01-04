@@ -83,6 +83,7 @@ def get_rds_connection_info():
         import subprocess
 
         candidate_envs = [
+            "chla-api-docker2",
             "chla-api-env-lb",
             "chla-api-env-v2",
             "chla-api-env",
@@ -339,7 +340,7 @@ def verify_rds_data():
     print("✅ Data sync completed!")
     print("\n📋 Next steps:")
     print("1. Deploy your app to trigger migrations: git push origin main")
-    print("2. Check EB logs to ensure migrations ran: eb logs chla-api-env --all")
+    print("2. Check EB logs to ensure migrations ran: eb logs chla-api-docker2 --all")
     print("3. Test your API endpoints")
     print("4. If issues persist, check the deployment guide")
 

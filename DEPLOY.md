@@ -33,7 +33,7 @@ cd map-frontend
 - **Framework**: Django with GeoDjango/PostGIS
 - **Hosting**: AWS Elastic Beanstalk (Docker)
 - **URL**: https://api.kinddhelp.com
-- **Environment**: chla-api-env
+- **Environment**: chla-api-docker2
 - **Region**: us-west-2
 - **SSL Certificate**: Managed via ACM
 
@@ -97,16 +97,16 @@ option_settings:
 
 ### Backend Deployment Steps
 1. Commit all changes to git
-2. Deploy to EB: `eb deploy chla-api-env --region us-west-2`
-3. Monitor deployment: `eb health chla-api-env`
-4. Check logs if needed: `eb logs chla-api-env`
+2. Deploy to EB: `eb deploy chla-api-docker2 --region us-west-2`
+3. Monitor deployment: `eb health chla-api-docker2`
+4. Check logs if needed: `eb logs chla-api-docker2`
 
 ## DNS Configuration
 
 ### Route53 Records (hosted zone: Z0467239OKDU4Z74D3ZB)
 - **kinddhelp.com** → CloudFront distribution
 - **www.kinddhelp.com** → CloudFront distribution
-- **api.kinddhelp.com** → chla-api-env.eba-ehmtxp3g.us-west-2.elasticbeanstalk.com (CNAME)
+- **api.kinddhelp.com** → chla-api-docker2.eba-9aiqcppx.us-west-2.elasticbeanstalk.com (CNAME)
 
 ## SSL/TLS Certificates
 
@@ -140,10 +140,10 @@ AWS_PROFILE=personal aws cloudfront create-invalidation \
 **Deployment failed:**
 ```bash
 # Check environment health
-eb health chla-api-env --region us-west-2
+eb health chla-api-docker2 --region us-west-2
 
 # View recent logs
-eb logs chla-api-env --region us-west-2
+eb logs chla-api-docker2 --region us-west-2
 ```
 
 **HTTPS not working:**
@@ -151,7 +151,7 @@ eb logs chla-api-env --region us-west-2
 # Check load balancer listeners
 aws elbv2 describe-listeners \
     --load-balancer-arn $(aws elasticbeanstalk describe-environment-resources \
-    --environment-name chla-api-env --region us-west-2 \
+    --environment-name chla-api-docker2 --region us-west-2 \
     --query 'EnvironmentResources.LoadBalancers[0].Name' --output text)
 
 # Verify certificate
@@ -190,8 +190,8 @@ curl "https://api.kinddhelp.com/api/providers-v2/by_regional_center/?zip_code=91
 
 ### Check EB Environment
 ```bash
-eb status chla-api-env --region us-west-2
-eb health chla-api-env --region us-west-2
+eb status chla-api-docker2 --region us-west-2
+eb health chla-api-docker2 --region us-west-2
 ```
 
 ## Rollback
@@ -209,7 +209,7 @@ eb health chla-api-env --region us-west-2
 eb appversion -a maplocation
 
 # Deploy previous version
-eb deploy chla-api-env --version <version-label>
+eb deploy chla-api-docker2 --version <version-label>
 ```
 
 ## Cost Optimization
@@ -225,7 +225,7 @@ eb deploy chla-api-env --version <version-label>
 ## Support
 
 For issues or questions:
-1. Check EB logs: `eb logs chla-api-env`
+1. Check EB logs: `eb logs chla-api-docker2`
 2. Check browser console for frontend errors
 3. Review this deployment guide
 4. Check AWS CloudWatch for detailed metrics

@@ -25,7 +25,7 @@
 - **Framework**: Django 5.2 with Django REST Framework
 - **Language**: Python 3.12
 - **Hosting**: AWS Elastic Beanstalk
-- **Environment**: chla-api-prod
+- **Environment**: chla-api-docker2
 - **URL**: https://api.kinddhelp.com
 - **SSL Certificate**: arn:aws:acm:us-west-2:795519544722:certificate/77514a62-6636-4fdb-8360-863aa711859e
 
@@ -198,13 +198,13 @@ aws cloudfront get-distribution --id E2W6EECHUV4LMM --profile personal
 - **Production Frontend**: https://kinddhelp.com
 - **Production API**: https://api.kinddhelp.com
 - **S3 Direct**: http://kinddhelp-frontend-1755148345.s3-website-us-west-2.amazonaws.com
-- **EB Direct**: https://chla-api-prod.eba-9aiqcppx.us-west-2.elasticbeanstalk.com
+- **EB Direct**: https://chla-api-docker2.eba-9aiqcppx.us-west-2.elasticbeanstalk.com
 
 ### AWS Resources
 - **Region**: us-west-2
 - **AWS Profile**: personal
 - **EB Application**: chla-api
-- **EB Environment**: chla-api-prod
+- **EB Environment**: chla-api-docker2
 - **RDS Instance**: chla-postgres-db
 
 ## 💡 Pro Tips

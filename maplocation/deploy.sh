@@ -6,7 +6,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EB_ENV="chla-api-env"
+EB_ENV="chla-api-docker2"
 AWS_REGION="us-west-2"
 
 echo "🚀 Starting Backend Deployment to Elastic Beanstalk..."
