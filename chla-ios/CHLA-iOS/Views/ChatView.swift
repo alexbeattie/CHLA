@@ -342,9 +342,11 @@ struct MessageBubble: View {
                     TypingIndicator()
                 } else {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(message.content)
-                            .font(.body)
-                            .foregroundColor(message.role == .user ? .white : Color(hex: "1E293B"))
+                        // Use Markdown-aware text with clickable links
+                        MarkdownTextView(
+                            content: message.content,
+                            isUserMessage: message.role == .user
+                        )
 
                         // Streaming indicator
                         if message.isStreaming {
@@ -355,6 +357,7 @@ struct MessageBubble: View {
                                     .font(.caption2)
                                     .foregroundColor(Color(hex: "94A3B8"))
                             }
+                            .transition(.opacity.combined(with: .scale(scale: 0.8)))
                         }
 
                         // Actions for assistant messages (not while streaming)
@@ -366,10 +369,12 @@ struct MessageBubble: View {
                                 onCopy: onCopy,
                                 onShare: onShare
                             )
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
+                    .animation(.easeOut(duration: 0.2), value: message.isStreaming)
                     .background(
                         message.role == .user
                             ? AnyShapeStyle(
@@ -563,6 +568,88 @@ struct ChatInputBar: View {
             .padding(.vertical, 12)
             .background(Color.white)
         }
+    }
+}
+
+// MARK: - Markdown Text View with Clickable Links
+
+struct MarkdownTextView: View {
+    let content: String
+    let isUserMessage: Bool
+    
+    var body: some View {
+        // Try to parse as AttributedString for link support
+        if let attributedString = try? AttributedString(
+            markdown: content,
+            options: AttributedString.MarkdownParsingOptions(
+                interpretedSyntax: .inlineOnlyPreservingWhitespace
+            )
+        ) {
+            Text(attributedString)
+                .font(.body)
+                .foregroundColor(isUserMessage ? .white : Color(hex: "1E293B"))
+                .tint(isUserMessage ? .white.opacity(0.9) : Color(hex: "6366F1"))
+                .textSelection(.enabled)
+        } else {
+            // Fallback to plain text with link detection
+            LinkDetectingText(content: content, isUserMessage: isUserMessage)
+        }
+    }
+}
+
+// MARK: - Link Detecting Text (Fallback)
+
+struct LinkDetectingText: View {
+    let content: String
+    let isUserMessage: Bool
+    
+    var body: some View {
+        // Parse and create clickable text
+        Text(parseContent())
+            .font(.body)
+            .foregroundColor(isUserMessage ? .white : Color(hex: "1E293B"))
+            .tint(isUserMessage ? .white.opacity(0.9) : Color(hex: "6366F1"))
+            .textSelection(.enabled)
+    }
+    
+    private func parseContent() -> AttributedString {
+        var result = AttributedString(content)
+        
+        // Detect URLs
+        let urlPattern = #"https?://[^\s\)\]\>]+"#
+        if let regex = try? NSRegularExpression(pattern: urlPattern, options: []) {
+            let range = NSRange(content.startIndex..., in: content)
+            let matches = regex.matches(in: content, options: [], range: range)
+            
+            for match in matches.reversed() {
+                if let stringRange = Range(match.range, in: content),
+                   let attributedRange = Range(stringRange, in: result),
+                   let url = URL(string: String(content[stringRange])) {
+                    result[attributedRange].link = url
+                    result[attributedRange].underlineStyle = .single
+                }
+            }
+        }
+        
+        // Detect phone numbers
+        let phonePattern = #"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"#
+        if let regex = try? NSRegularExpression(pattern: phonePattern, options: []) {
+            let range = NSRange(content.startIndex..., in: content)
+            let matches = regex.matches(in: content, options: [], range: range)
+            
+            for match in matches.reversed() {
+                if let stringRange = Range(match.range, in: content),
+                   let attributedRange = Range(stringRange, in: result) {
+                    let phoneNumber = String(content[stringRange]).replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
+                    if let url = URL(string: "tel:\(phoneNumber)") {
+                        result[attributedRange].link = url
+                        result[attributedRange].underlineStyle = .single
+                    }
+                }
+            }
+        }
+        
+        return result
     }
 }
 

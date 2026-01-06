@@ -120,6 +120,8 @@ class LLMService: ObservableObject {
 
     private let baseURL: String
     private var streamingTask: Task<Void, Never>?
+    private var pendingText = ""
+    private var updateDebounceTask: Task<Void, Never>?
 
     init() {
         #if DEBUG
@@ -161,17 +163,21 @@ class LLMService: ObservableObject {
     func cancelStreaming() {
         streamingTask?.cancel()
         streamingTask = nil
-
-        // Mark any streaming message as complete
+        updateDebounceTask?.cancel()
+        
+        // Flush pending text and mark as complete
         if let index = messages.lastIndex(where: { $0.isStreaming }) {
+            flushPendingText(id: messages[index].id)
             messages[index].isStreaming = false
         }
+        pendingText = ""
         isLoading = false
     }
 
     func clearChat() {
         cancelStreaming()
         messages.removeAll()
+        pendingText = ""
         error = nil
     }
 
@@ -341,8 +347,29 @@ class LLMService: ObservableObject {
     }
 
     private func appendToStreamingMessage(id: UUID, text: String) {
-        if let index = messages.firstIndex(where: { $0.id == id }) {
-            messages[index].content += text
+        // Batch text updates for smoother animation
+        pendingText += text
+        
+        // Debounce updates - flush every 50ms for smooth streaming
+        updateDebounceTask?.cancel()
+        updateDebounceTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            guard !Task.isCancelled else { return }
+            
+            if let index = messages.firstIndex(where: { $0.id == id }) {
+                withAnimation(.easeOut(duration: 0.1)) {
+                    messages[index].content += pendingText
+                }
+                pendingText = ""
+            }
+        }
+    }
+    
+    private func flushPendingText(id: UUID) {
+        updateDebounceTask?.cancel()
+        if !pendingText.isEmpty, let index = messages.firstIndex(where: { $0.id == id }) {
+            messages[index].content += pendingText
+            pendingText = ""
         }
     }
 
@@ -354,10 +381,15 @@ class LLMService: ObservableObject {
     }
 
     private func finalizeStreamingMessage(id: UUID, providersReferenced: [String]?, regionalCenter: String?) {
+        // Flush any remaining pending text
+        flushPendingText(id: id)
+        
         if let index = messages.firstIndex(where: { $0.id == id }) {
-            messages[index].isStreaming = false
-            messages[index].providersReferenced = providersReferenced
-            messages[index].regionalCenter = regionalCenter
+            withAnimation(.easeOut(duration: 0.3)) {
+                messages[index].isStreaming = false
+                messages[index].providersReferenced = providersReferenced
+                messages[index].regionalCenter = regionalCenter
+            }
         }
     }
 
