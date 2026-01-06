@@ -82,11 +82,30 @@ struct ChatView: View {
                     Menu {
                         if !llmService.messages.isEmpty {
                             Button {
-                                exportText = llmService.exportConversation()
+                                // Get regional center from last message if available
+                                let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
+                                exportText = llmService.exportConversation(
+                                    userZipCode: userZipCode ?? appState.userZipCode,
+                                    regionalCenter: lastRC
+                                )
                                 showingExportSheet = true
                             } label: {
-                                Label("Export Chat", systemImage: "square.and.arrow.up")
+                                Label("Share Chat", systemImage: "square.and.arrow.up")
                             }
+
+                            Button {
+                                let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
+                                let text = llmService.exportConversation(
+                                    userZipCode: userZipCode ?? appState.userZipCode,
+                                    regionalCenter: lastRC
+                                )
+                                UIPasteboard.general.string = text
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            } label: {
+                                Label("Copy All", systemImage: "doc.on.doc")
+                            }
+
+                            Divider()
 
                             Button(role: .destructive) {
                                 showingClearConfirmation = true

@@ -191,16 +191,36 @@ class LLMService: ObservableObject {
         return nil
     }
 
-    func exportConversation() -> String {
-        var export = "KiNDD Chat Export\n"
-        export += "Date: \(Date().formatted())\n"
-        export += String(repeating: "=", count: 40) + "\n\n"
+    func exportConversation(userZipCode: String? = nil, regionalCenter: String? = nil) -> String {
+        var export = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        export += "       KiNDD Chat Export\n"
+        export += "       Neurodevelopmental Services Navigator\n"
+        export += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        export += "📅 Date: \(Date().formatted(date: .long, time: .shortened))\n"
+
+        if let zip = userZipCode {
+            export += "📍 Location: \(zip)\n"
+        }
+        if let rc = regionalCenter {
+            export += "🏢 Regional Center: \(rc)\n"
+        }
+
+        export += "\n" + String(repeating: "─", count: 40) + "\n\n"
 
         for message in messages {
-            let role = message.role == .user ? "You" : "KiNDD"
+            let role = message.role == .user ? "👤 You" : "✨ KiNDD"
             let time = message.timestamp.formatted(date: .omitted, time: .shortened)
             export += "[\(time)] \(role):\n\(message.content)\n\n"
+
+            // Include referenced providers if available
+            if let providers = message.providersReferenced, !providers.isEmpty {
+                export += "📋 Providers referenced: \(providers.count)\n\n"
+            }
         }
+
+        export += String(repeating: "─", count: 40) + "\n"
+        export += "Exported from KiNDD - kinddhelp.com\n"
+        export += "LA County Developmental Services\n"
 
         return export
     }
