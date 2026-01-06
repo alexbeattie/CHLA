@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-01-06
+
+### ✨ Major New Feature: AI-Powered Chat (Ask KiNDD)
+
+#### Streaming AI Chat
+
+- Real-time streaming responses powered by AWS Bedrock (Claude 3.5)
+- Location-aware answers using your GPS-detected ZIP code
+- Knows which Regional Center serves your area
+- Contextual responses based on your diagnosis, insurance, child's age
+
+#### Smart Action Buttons
+
+- AI responses include tappable action buttons
+- "Find ABA Providers" → Opens filtered provider list
+- "Regional Centers" → View all 7 LA County centers
+- "Open Map" → Jump to map view
+- No more copy/paste - tap to navigate!
+
+#### Quick Prompt Capsules
+
+- Horizontal scrolling bar with 8 common questions
+- Find providers, Assessment, My RC, Early Start, Insurance, Waitlists, Age 3 transition, Speech
+- Tap any capsule to ask instantly
+
+#### Clickable Links
+
+- Phone numbers are tappable (opens dialer)
+- URLs are clickable (opens browser)
+- Markdown formatting (bold, lists, headers)
+
+#### Message Actions
+
+- 👍 Like / 👎 Dislike responses
+- 📋 Copy individual messages
+- 📤 Share messages or entire chat
+- Export formatted conversation with date, location, regional center
+
+### 🎨 UI Improvements
+
+- Wider chat bubbles for better readability
+- Smoother streaming animation (50ms batched updates)
+- Subtle transitions when streaming completes
+
+### 🔧 Technical
+
+- AWS Strands Agent SDK integration with custom tools
+- Semantic search with pgvector embeddings
+- SSE (Server-Sent Events) for real-time streaming
+- Location-to-ZIP reverse geocoding
+
+---
+
 ## [1.1.0] - 2026-01-05
 
 ### ✨ New Features
@@ -72,6 +125,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## App Store Release Notes
+
+### Version 1.2.0
+
+```
+What's New in Version 1.2.0
+
+🤖 NEW: Ask KiNDD - AI-Powered Chat
+• Get instant answers about developmental services
+• AI knows your location and suggests your Regional Center
+• Streaming responses in real-time
+• Tappable phone numbers and website links
+
+⚡ Smart Action Buttons
+• AI suggests relevant actions you can tap
+• "Find ABA Providers" - jumps to filtered list
+• "Regional Centers" - view all 7 LA County centers
+• No more copy/paste!
+
+💬 Quick Prompts
+• 8 common questions at your fingertips
+• Ask about assessments, waitlists, insurance, and more
+• One tap to get answers
+
+📱 Better Experience
+• Wider chat bubbles for readability
+• Smooth streaming animations
+• Export and share conversations
+• Like/dislike responses
+```
 
 ### Version 1.1.0
 
