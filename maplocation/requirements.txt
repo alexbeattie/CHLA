@@ -12,9 +12,9 @@ whitenoise>=6,<7
 requests==2.32.3
 openpyxl==3.1.5  # Excel file support for data imports
 
-# AWS Bedrock LLM Integration (optional - for local dev with LLM features)
-# boto3>=1.34.0  # AWS SDK for Python
-# pgvector>=0.2.4  # Vector similarity search for PostgreSQL
+# AWS Bedrock LLM Integration
+boto3>=1.34.0  # AWS SDK for Python
+pgvector>=0.2.4  # Vector similarity search for PostgreSQL
 
 # Strands Agents SDK for AI agent with tools (optional - for local dev)
 # Note: Uncomment if deploying agent features
