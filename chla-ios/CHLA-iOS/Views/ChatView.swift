@@ -8,6 +8,7 @@
 
 import SwiftUI
 import CoreLocation
+import UIKit
 
 struct ChatView: View {
     @StateObject private var llmService = LLMService.shared
@@ -29,9 +30,9 @@ struct ChatView: View {
         ("💊", "Insurance", "What insurance covers ABA therapy?"),
         ("📅", "Waitlists", "How long are therapy waitlists?"),
         ("🎂", "Age 3 transition", "What happens when my child turns 3?"),
-        ("🗣️", "Speech", "Find speech therapy providers"),
+        ("🗣️", "Speech", "Find speech therapy providers")
     ]
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -39,7 +40,7 @@ struct ChatView: View {
                 PromptCapsulesBar(prompts: quickPrompts) { prompt in
                     sendMessage(prompt)
                 }
-                
+
                 // Messages
                 ScrollViewReader { proxy in
                     ScrollView {
@@ -66,6 +67,9 @@ struct ChatView: View {
                                     onShare: {
                                         exportText = message.content
                                         showingExportSheet = true
+                                    },
+                                    onAction: { action in
+                                        handleAction(action)
                                     }
                                 )
                                 .id(message.id)
@@ -196,6 +200,41 @@ struct ChatView: View {
         }
     }
 
+    private func handleAction(_ action: ChatAction) {
+        switch action {
+        case .searchProviders(let therapyType):
+            // Set filter and navigate to provider list
+            if let type = therapyType {
+                appState.searchFilters.therapyTypes = [type + " therapy"]
+            }
+            appState.navigateToBrowse()
+            // Dismiss chat sheet if presented as sheet
+
+        case .viewMap(let zipCode):
+            if let zip = zipCode {
+                appState.saveUserContext(zipCode: zip)
+            }
+            appState.navigateToMap()
+
+        case .viewRegionalCenters:
+            appState.navigateToRegions()
+
+        case .viewProviderList:
+            appState.navigateToBrowse()
+
+        case .callPhone(let number):
+            let cleanNumber = number.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
+            if let url = URL(string: "tel:\(cleanNumber)") {
+                UIApplication.shared.open(url)
+            }
+
+        case .openWebsite(let urlString):
+            if let url = URL(string: urlString) {
+                UIApplication.shared.open(url)
+            }
+        }
+    }
+
     private func sendMessage(_ text: String) {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
@@ -313,6 +352,83 @@ struct SuggestionChip: View {
     }
 }
 
+// MARK: - In-App Action Links
+
+enum ChatAction: Identifiable {
+    case searchProviders(therapyType: String?)
+    case viewMap(zipCode: String?)
+    case viewRegionalCenters
+    case viewProviderList
+    case callPhone(number: String)
+    case openWebsite(url: String)
+
+    var id: String {
+        switch self {
+        case .searchProviders(let type): return "search_\(type ?? "all")"
+        case .viewMap(let zip): return "map_\(zip ?? "current")"
+        case .viewRegionalCenters: return "rc"
+        case .viewProviderList: return "list"
+        case .callPhone(let num): return "call_\(num)"
+        case .openWebsite(let url): return "web_\(url)"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .searchProviders: return "magnifyingglass"
+        case .viewMap: return "map"
+        case .viewRegionalCenters: return "building.2"
+        case .viewProviderList: return "list.bullet"
+        case .callPhone: return "phone"
+        case .openWebsite: return "safari"
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .searchProviders(let type):
+            return type != nil ? "Find \(type!) Providers" : "Search Providers"
+        case .viewMap(let zip):
+            return zip != nil ? "View Map (\(zip!))" : "Open Map"
+        case .viewRegionalCenters: return "Regional Centers"
+        case .viewProviderList: return "Browse All"
+        case .callPhone: return "Call Now"
+        case .openWebsite: return "Visit Website"
+        }
+    }
+}
+
+struct ChatActionButton: View {
+    let action: ChatAction
+    let onTap: (ChatAction) -> Void
+
+    var body: some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            onTap(action)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: action.icon)
+                    .font(.system(size: 12, weight: .semibold))
+                Text(action.label)
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundColor(Color(hex: "6366F1"))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(hex: "EEF2FF"))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(Color(hex: "C7D2FE"), lineWidth: 1)
+            )
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
 // MARK: - Message Bubble with Actions
 
 struct MessageBubble: View {
@@ -321,8 +437,43 @@ struct MessageBubble: View {
     var onDislike: (() -> Void)?
     var onCopy: (() -> Void)?
     var onShare: (() -> Void)?
+    var onAction: ((ChatAction) -> Void)?
 
     @State private var showActions = false
+
+    // Detect suggested actions from message content
+    private var suggestedActions: [ChatAction] {
+        guard message.role == .assistant && !message.isStreaming else { return [] }
+
+        var actions: [ChatAction] = []
+        let content = message.content.lowercased()
+
+        // Detect therapy type mentions
+        if content.contains("aba") || content.contains("applied behavior") {
+            actions.append(.searchProviders(therapyType: "ABA"))
+        }
+        if content.contains("speech") || content.contains("slp") {
+            actions.append(.searchProviders(therapyType: "Speech"))
+        }
+        if content.contains("occupational therapy") || content.contains(" ot ") {
+            actions.append(.searchProviders(therapyType: "OT"))
+        }
+
+        // Detect Regional Center mentions
+        if content.contains("regional center") && !content.contains("which regional center") {
+            actions.append(.viewRegionalCenters)
+        }
+
+        // Detect map/location suggestions
+        if content.contains("near you") || content.contains("in your area") || content.contains("providers") {
+            if actions.isEmpty {
+                actions.append(.viewMap(zipCode: nil))
+            }
+        }
+
+        // Limit to 3 actions
+        return Array(actions.prefix(3))
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -375,6 +526,20 @@ struct MessageBubble: View {
                                     .foregroundColor(Color(hex: "94A3B8"))
                             }
                             .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                        }
+
+                        // Suggested action buttons
+                        if !suggestedActions.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(suggestedActions) { action in
+                                        ChatActionButton(action: action) { action in
+                                            onAction?(action)
+                                        }
+                                    }
+                                }
+                            }
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                         }
 
                         // Actions for assistant messages (not while streaming)
@@ -593,7 +758,7 @@ struct ChatInputBar: View {
 struct PromptCapsulesBar: View {
     let prompts: [(String, String, String)]  // (emoji, label, full prompt)
     let onTap: (String) -> Void
-    
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -618,9 +783,9 @@ struct PromptCapsule: View {
     let emoji: String
     let label: String
     let action: () -> Void
-    
+
     @State private var isPressed = false
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
