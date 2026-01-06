@@ -35,6 +35,8 @@
 		E456789012345HOMEVIEWBLD /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A123456789HOMEVIEWREF /* HomeView.swift */; };
 		E578BECE1D55AB54BFCAB764 /* CHLA_iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB8D52AF87D4A250BF8B28B3 /* CHLA_iOSApp.swift */; };
 		EBA84EB20ACAE5C15E1646E2 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814A77FB55507E652FC3F4E8 /* Provider.swift */; };
+		F1A2B3C4D5E6F708CHATBLD /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F708CHATREF /* ChatView.swift */; };
+		F2B3C4D5E6F70819LLMBLD /* LLMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B3C4D5E6F70819LLMREF /* LLMService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +70,8 @@
 		ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
 		F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		F1A2B3C4D5E6F708CHATREF /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		F2B3C4D5E6F70819LLMREF /* LLMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -93,6 +97,7 @@
 			isa = PBXGroup;
 			children = (
 				D8F17384527B1FBCE7FD88F6 /* APIService.swift */,
+				F2B3C4D5E6F70819LLMREF /* LLMService.swift */,
 				ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */,
 				9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */,
 			);
@@ -129,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				AF1E575CEBC73792782D8E0A /* AboutView.swift */,
+				F1A2B3C4D5E6F708CHATREF /* ChatView.swift */,
 				49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */,
 				3E1CAAF9621905B2CA8C4526 /* FAQView.swift */,
 				D8FA95361CB09C477DD471BB /* FullMapView.swift */,
@@ -269,6 +275,8 @@
 				1CEC881B9CBD2A15E447E8A8 /* APIService.swift in Sources */,
 				E34FB2F1D1B6549488E397CD /* AboutView.swift in Sources */,
 				E578BECE1D55AB54BFCAB764 /* CHLA_iOSApp.swift in Sources */,
+				F1A2B3C4D5E6F708CHATBLD /* ChatView.swift in Sources */,
+				F2B3C4D5E6F70819LLMBLD /* LLMService.swift in Sources */,
 				90A0C507590D7CC34803E040 /* Color+Extensions.swift in Sources */,
 				1449BCCC6174C33F7BEE7622 /* ContentView.swift in Sources */,
 				B7B2689A066399CC906831F6 /* DirectionsMapView.swift in Sources */,

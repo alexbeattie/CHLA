@@ -21,6 +21,7 @@ struct HomeView: View {
     @State private var animateHero = false
     @State private var showSettingsMenu = false
     @State private var showResetConfirmation = false
+    @State private var showChatSheet = false
 
     private let therapyTypes = [
         ("ABA therapy", "brain.head.profile", Color(hex: "6366F1")),
@@ -102,6 +103,38 @@ struct HomeView: View {
         .onTapGesture {
             // Dismiss keyboard when tapping outside
             isZipFocused = false
+        }
+        .overlay(alignment: .bottomTrailing) {
+            // Floating Chat Button
+            Button {
+                showChatSheet = true
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "8B5CF6"), Color(hex: "EC4899")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 60, height: 60)
+                        .shadow(color: Color(hex: "8B5CF6").opacity(0.4), radius: 12, y: 6)
+
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.trailing, 20)
+            .padding(.bottom, 100)
+            .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
+            .offset(y: visibilityManager.isTabBarVisible ? 0 : 100)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
+        }
+        .sheet(isPresented: $showChatSheet) {
+            ChatView()
+                .environmentObject(appState)
         }
     }
 
