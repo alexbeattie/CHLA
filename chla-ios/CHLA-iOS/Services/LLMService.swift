@@ -164,7 +164,7 @@ class LLMService: ObservableObject {
         streamingTask?.cancel()
         streamingTask = nil
         updateDebounceTask?.cancel()
-        
+
         // Flush pending text and mark as complete
         if let index = messages.lastIndex(where: { $0.isStreaming }) {
             flushPendingText(id: messages[index].id)
@@ -349,13 +349,13 @@ class LLMService: ObservableObject {
     private func appendToStreamingMessage(id: UUID, text: String) {
         // Batch text updates for smoother animation
         pendingText += text
-        
+
         // Debounce updates - flush every 50ms for smooth streaming
         updateDebounceTask?.cancel()
         updateDebounceTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
             guard !Task.isCancelled else { return }
-            
+
             if let index = messages.firstIndex(where: { $0.id == id }) {
                 withAnimation(.easeOut(duration: 0.1)) {
                     messages[index].content += pendingText
@@ -364,7 +364,7 @@ class LLMService: ObservableObject {
             }
         }
     }
-    
+
     private func flushPendingText(id: UUID) {
         updateDebounceTask?.cancel()
         if !pendingText.isEmpty, let index = messages.firstIndex(where: { $0.id == id }) {
@@ -383,7 +383,7 @@ class LLMService: ObservableObject {
     private func finalizeStreamingMessage(id: UUID, providersReferenced: [String]?, regionalCenter: String?) {
         // Flush any remaining pending text
         flushPendingText(id: id)
-        
+
         if let index = messages.firstIndex(where: { $0.id == id }) {
             withAnimation(.easeOut(duration: 0.3)) {
                 messages[index].isStreaming = false

@@ -20,9 +20,26 @@ struct ChatView: View {
     @State private var exportText = ""
     @State private var userZipCode: String?
 
+    // Quick prompt suggestions
+    private let quickPrompts = [
+        ("🔍", "Find providers", "Find ABA providers near me"),
+        ("📋", "Assessment", "How do I get a Regional Center assessment?"),
+        ("🏥", "My RC", "Which Regional Center serves my area?"),
+        ("👶", "Early Start", "What is Early Start and who qualifies?"),
+        ("💊", "Insurance", "What insurance covers ABA therapy?"),
+        ("📅", "Waitlists", "How long are therapy waitlists?"),
+        ("🎂", "Age 3 transition", "What happens when my child turns 3?"),
+        ("🗣️", "Speech", "Find speech therapy providers"),
+    ]
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // Quick prompts capsules
+                PromptCapsulesBar(prompts: quickPrompts) { prompt in
+                    sendMessage(prompt)
+                }
+                
                 // Messages
                 ScrollViewReader { proxy in
                     ScrollView {
@@ -571,12 +588,78 @@ struct ChatInputBar: View {
     }
 }
 
+// MARK: - Prompt Capsules Bar
+
+struct PromptCapsulesBar: View {
+    let prompts: [(String, String, String)]  // (emoji, label, full prompt)
+    let onTap: (String) -> Void
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(prompts, id: \.1) { emoji, label, prompt in
+                    PromptCapsule(emoji: emoji, label: label) {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        onTap(prompt)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+        }
+        .background(
+            Color(hex: "F8FAFC")
+                .shadow(color: Color.black.opacity(0.05), radius: 2, y: 2)
+        )
+    }
+}
+
+struct PromptCapsule: View {
+    let emoji: String
+    let label: String
+    let action: () -> Void
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Text(emoji)
+                    .font(.system(size: 14))
+                Text(label)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Color(hex: "475569"))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.08), radius: 3, y: 1)
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(Color(hex: "E2E8F0"), lineWidth: 1)
+            )
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
 // MARK: - Markdown Text View with Clickable Links
 
 struct MarkdownTextView: View {
     let content: String
     let isUserMessage: Bool
-    
+
     var body: some View {
         // Try to parse as AttributedString for link support
         if let attributedString = try? AttributedString(
@@ -602,7 +685,7 @@ struct MarkdownTextView: View {
 struct LinkDetectingText: View {
     let content: String
     let isUserMessage: Bool
-    
+
     var body: some View {
         // Parse and create clickable text
         Text(parseContent())
@@ -611,16 +694,16 @@ struct LinkDetectingText: View {
             .tint(isUserMessage ? .white.opacity(0.9) : Color(hex: "6366F1"))
             .textSelection(.enabled)
     }
-    
+
     private func parseContent() -> AttributedString {
         var result = AttributedString(content)
-        
+
         // Detect URLs
         let urlPattern = #"https?://[^\s\)\]\>]+"#
         if let regex = try? NSRegularExpression(pattern: urlPattern, options: []) {
             let range = NSRange(content.startIndex..., in: content)
             let matches = regex.matches(in: content, options: [], range: range)
-            
+
             for match in matches.reversed() {
                 if let stringRange = Range(match.range, in: content),
                    let attributedRange = Range(stringRange, in: result),
@@ -630,13 +713,13 @@ struct LinkDetectingText: View {
                 }
             }
         }
-        
+
         // Detect phone numbers
         let phonePattern = #"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"#
         if let regex = try? NSRegularExpression(pattern: phonePattern, options: []) {
             let range = NSRange(content.startIndex..., in: content)
             let matches = regex.matches(in: content, options: [], range: range)
-            
+
             for match in matches.reversed() {
                 if let stringRange = Range(match.range, in: content),
                    let attributedRange = Range(stringRange, in: result) {
@@ -648,7 +731,7 @@ struct LinkDetectingText: View {
                 }
             }
         }
-        
+
         return result
     }
 }
