@@ -142,7 +142,7 @@ USER QUESTION: {user_message}"""
 
     # Call Claude via Bedrock
     response = client.invoke_model(
-        modelId="anthropic.claude-sonnet-4-20250514-v1:0",  # Claude Sonnet 4 (latest)
+        modelId="anthropic.claude-opus-4-5-20251101-v1:0",  # Claude Opus 4.5
         contentType="application/json",
         accept="application/json",
         body=json.dumps(
@@ -183,7 +183,7 @@ USER QUESTION: {user_message}"""
         full_message = user_message
 
     response = client.invoke_model_with_response_stream(
-        modelId="anthropic.claude-sonnet-4-20250514-v1:0",  # Claude Sonnet 4
+        modelId="anthropic.claude-opus-4-5-20251101-v1:0",  # Claude Opus 4.5
         contentType="application/json",
         accept="application/json",
         body=json.dumps(
