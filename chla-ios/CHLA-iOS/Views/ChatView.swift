@@ -476,13 +476,13 @@ struct MessageBubble: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 8) {
             if message.role == .user {
-                Spacer(minLength: 60)
+                Spacer(minLength: 40)  // Reduced for wider bubbles
             }
 
             if message.role == .assistant || message.role == .system {
-                // AI Avatar
+                // AI Avatar - smaller for more content space
                 ZStack {
                     Circle()
                         .fill(
@@ -494,10 +494,10 @@ struct MessageBubble: View {
                                     endPoint: .bottomTrailing
                                 ))
                         )
-                        .frame(width: 36, height: 36)
+                        .frame(width: 32, height: 32)
 
                     Image(systemName: message.role == .system ? "exclamationmark.triangle" : "sparkles")
-                        .font(.system(size: 16))
+                        .font(.system(size: 14))
                         .foregroundColor(.white)
                 }
             }
@@ -590,7 +590,7 @@ struct MessageBubble: View {
             }
 
             if message.role != .user {
-                Spacer(minLength: 60)
+                Spacer(minLength: 20)  // Reduced for wider AI bubbles
             }
         }
     }
@@ -826,45 +826,33 @@ struct MarkdownTextView: View {
     let isUserMessage: Bool
 
     var body: some View {
-        // Try to parse as AttributedString for link support
-        if let attributedString = try? AttributedString(
-            markdown: content,
-            options: AttributedString.MarkdownParsingOptions(
-                interpretedSyntax: .inlineOnlyPreservingWhitespace
-            )
-        ) {
-            Text(attributedString)
-                .font(.body)
-                .foregroundColor(isUserMessage ? .white : Color(hex: "1E293B"))
-                .tint(isUserMessage ? .white.opacity(0.9) : Color(hex: "6366F1"))
-                .textSelection(.enabled)
-        } else {
-            // Fallback to plain text with link detection
-            LinkDetectingText(content: content, isUserMessage: isUserMessage)
-        }
+        // Use LinkDetectingText which preserves formatting better
+        // and makes phone numbers/URLs clickable
+        LinkDetectingText(content: content, isUserMessage: isUserMessage)
     }
 }
 
-// MARK: - Link Detecting Text (Fallback)
+// MARK: - Link Detecting Text
 
 struct LinkDetectingText: View {
     let content: String
     let isUserMessage: Bool
 
     var body: some View {
-        // Parse and create clickable text
         Text(parseContent())
             .font(.body)
             .foregroundColor(isUserMessage ? .white : Color(hex: "1E293B"))
             .tint(isUserMessage ? .white.opacity(0.9) : Color(hex: "6366F1"))
             .textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)  // Preserve line breaks
     }
 
     private func parseContent() -> AttributedString {
+        // Preserve line breaks by keeping newlines intact
         var result = AttributedString(content)
 
         // Detect URLs
-        let urlPattern = #"https?://[^\s\)\]\>]+"#
+        let urlPattern = #"https?://[^\s\)\]\>\"\']+"#
         if let regex = try? NSRegularExpression(pattern: urlPattern, options: []) {
             let range = NSRange(content.startIndex..., in: content)
             let matches = regex.matches(in: content, options: [], range: range)
@@ -875,11 +863,12 @@ struct LinkDetectingText: View {
                    let url = URL(string: String(content[stringRange])) {
                     result[attributedRange].link = url
                     result[attributedRange].underlineStyle = .single
+                    result[attributedRange].foregroundColor = isUserMessage ? .white : UIColor(Color(hex: "6366F1"))
                 }
             }
         }
 
-        // Detect phone numbers
+        // Detect phone numbers (various formats)
         let phonePattern = #"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"#
         if let regex = try? NSRegularExpression(pattern: phonePattern, options: []) {
             let range = NSRange(content.startIndex..., in: content)
@@ -892,6 +881,7 @@ struct LinkDetectingText: View {
                     if let url = URL(string: "tel:\(phoneNumber)") {
                         result[attributedRange].link = url
                         result[attributedRange].underlineStyle = .single
+                        result[attributedRange].foregroundColor = isUserMessage ? .white : UIColor(Color(hex: "22C55E"))  // Green for phone
                     }
                 }
             }
