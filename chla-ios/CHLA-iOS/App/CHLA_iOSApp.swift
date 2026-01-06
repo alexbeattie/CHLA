@@ -28,11 +28,40 @@ class AppState: ObservableObject {
     @Published var selectedRegionalCenter: RegionalCenter?
     @Published var searchFilters: SearchFilters
     @Published var selectedTab: Int = 0
+    @Published var userZipCode: String?
+    @Published var userChildAge: Int?
+    @Published var userDiagnosis: String?
+    @Published var userInsurance: String?
 
     init() {
         // Check if user has completed onboarding
         self.isOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         self.searchFilters = SearchFilters()
+
+        // Load saved user context
+        self.userZipCode = UserDefaults.standard.string(forKey: "userZipCode")
+        self.userChildAge = UserDefaults.standard.object(forKey: "userChildAge") as? Int
+        self.userDiagnosis = UserDefaults.standard.string(forKey: "userDiagnosis")
+        self.userInsurance = UserDefaults.standard.string(forKey: "userInsurance")
+    }
+
+    func saveUserContext(zipCode: String? = nil, childAge: Int? = nil, diagnosis: String? = nil, insurance: String? = nil) {
+        if let zip = zipCode {
+            userZipCode = zip
+            UserDefaults.standard.set(zip, forKey: "userZipCode")
+        }
+        if let age = childAge {
+            userChildAge = age
+            UserDefaults.standard.set(age, forKey: "userChildAge")
+        }
+        if let dx = diagnosis {
+            userDiagnosis = dx
+            UserDefaults.standard.set(dx, forKey: "userDiagnosis")
+        }
+        if let ins = insurance {
+            userInsurance = ins
+            UserDefaults.standard.set(ins, forKey: "userInsurance")
+        }
     }
 
     func completeOnboarding() {

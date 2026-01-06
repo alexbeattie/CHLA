@@ -121,7 +121,7 @@ def format_user_context(
         lines.append(f"- Location: {user_context['zip_code']}")
 
     if regional_center:
-        lines.append(f"- Regional Center: {regional_center.name}")
+        lines.append(f"- Regional Center: {regional_center.regional_center}")
 
     if user_context.get("child_age"):
         lines.append(f"- Child's Age: {user_context['child_age']}")
@@ -174,7 +174,7 @@ def answer_query(
         if user_context.get("insurance"):
             enhanced_query += f" {user_context['insurance']}"
         if regional_center:
-            enhanced_query += f" {regional_center.name}"
+            enhanced_query += f" {regional_center.regional_center}"
 
     relevant_providers = semantic_search(enhanced_query, limit=15)
 
@@ -197,7 +197,7 @@ def answer_query(
     return {
         "answer": answer,
         "providers_referenced": [p.id for p in relevant_providers],
-        "regional_center": regional_center.name if regional_center else None,
+        "regional_center": regional_center.regional_center if regional_center else None,
     }
 
 

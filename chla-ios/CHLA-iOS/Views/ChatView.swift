@@ -3,7 +3,7 @@
 //  CHLA-iOS
 //
 //  Created for KiNDD Resource Navigator
-//  AI-powered chat for neurodevelopmental service questions
+//  AI-powered chat with streaming and message actions
 //
 
 import SwiftUI
@@ -14,6 +14,8 @@ struct ChatView: View {
     @State private var inputText = ""
     @FocusState private var isFocused: Bool
     @State private var showingClearConfirmation = false
+    @State private var showingExportSheet = false
+    @State private var exportText = ""
 
     var body: some View {
         NavigationStack {
@@ -24,27 +26,39 @@ struct ChatView: View {
                         LazyVStack(spacing: 16) {
                             // Welcome message
                             if llmService.messages.isEmpty {
-                                WelcomeCard()
-                                    .padding(.top, 20)
-                                    .onTapGesture { _ in
-                                        // Handled by suggestion chips
-                                    }
+                                WelcomeCard(onSuggestionTap: { suggestion in
+                                    sendMessage(suggestion)
+                                })
+                                .padding(.top, 20)
                             }
 
                             ForEach(llmService.messages) { message in
-                                MessageBubble(message: message)
-                                    .id(message.id)
+                                MessageBubble(
+                                    message: message,
+                                    onLike: { llmService.setFeedback(message.id, feedback: .liked) },
+                                    onDislike: { llmService.setFeedback(message.id, feedback: .disliked) },
+                                    onCopy: {
+                                        if let text = llmService.copyMessage(message.id) {
+                                            UIPasteboard.general.string = text
+                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        }
+                                    },
+                                    onShare: {
+                                        exportText = message.content
+                                        showingExportSheet = true
+                                    }
+                                )
+                                .id(message.id)
                             }
                         }
                         .padding(.horizontal)
                         .padding(.bottom, 100)
                     }
                     .onChange(of: llmService.messages.count) { _, _ in
-                        if let last = llmService.messages.last {
-                            withAnimation(.easeOut(duration: 0.3)) {
-                                proxy.scrollTo(last.id, anchor: .bottom)
-                            }
-                        }
+                        scrollToBottom(proxy: proxy)
+                    }
+                    .onChange(of: llmService.messages.last?.content) { _, _ in
+                        scrollToBottom(proxy: proxy)
                     }
                 }
 
@@ -52,22 +66,38 @@ struct ChatView: View {
                 ChatInputBar(
                     text: $inputText,
                     isFocused: $isFocused,
-                    isLoading: llmService.isLoading
-                ) {
-                    sendMessage()
-                }
+                    isLoading: llmService.isLoading,
+                    isStreaming: llmService.messages.last?.isStreaming == true,
+                    onSend: { sendMessage(inputText) },
+                    onCancel: { llmService.cancelStreaming() }
+                )
             }
             .navigationTitle("Ask KiNDD")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !llmService.messages.isEmpty {
-                        Button {
-                            showingClearConfirmation = true
-                        } label: {
-                            Image(systemName: "trash")
-                                .foregroundColor(.secondary)
+                    Menu {
+                        if !llmService.messages.isEmpty {
+                            Button {
+                                exportText = llmService.exportConversation()
+                                showingExportSheet = true
+                            } label: {
+                                Label("Export Chat", systemImage: "square.and.arrow.up")
+                            }
+
+                            Button(role: .destructive) {
+                                showingClearConfirmation = true
+                            } label: {
+                                Label("Clear Chat", systemImage: "trash")
+                            }
                         }
+
+                        Toggle(isOn: $llmService.useStreaming) {
+                            Label("Streaming Mode", systemImage: "waveform")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundColor(.secondary)
                     }
                 }
             }
@@ -77,22 +107,33 @@ struct ChatView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             }
+            .sheet(isPresented: $showingExportSheet) {
+                ShareSheet(items: [exportText])
+            }
         }
     }
 
-    private func sendMessage() {
-        let query = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+    private func scrollToBottom(proxy: ScrollViewProxy) {
+        if let last = llmService.messages.last {
+            withAnimation(.easeOut(duration: 0.2)) {
+                proxy.scrollTo(last.id, anchor: .bottom)
+            }
+        }
+    }
+
+    private func sendMessage(_ text: String) {
+        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
 
         inputText = ""
         isFocused = false
 
-        // Build context from app state (no zip code available in AppState yet)
+        // Build context from app state
         let context = UserContext(
-            zipCode: nil,
-            childAge: nil,
-            diagnosis: nil,
-            insurance: nil,
+            zipCode: appState.userZipCode,
+            childAge: appState.userChildAge,
+            diagnosis: appState.userDiagnosis ?? appState.searchFilters.diagnosis,
+            insurance: appState.userInsurance ?? appState.searchFilters.insurance,
             currentServices: nil
         )
 
@@ -105,7 +146,7 @@ struct ChatView: View {
 // MARK: - Welcome Card
 
 struct WelcomeCard: View {
-    @StateObject private var llmService = LLMService.shared
+    let onSuggestionTap: (String) -> Void
 
     let suggestions = [
         "What ABA providers near 90210 accept Medi-Cal?",
@@ -154,9 +195,7 @@ struct WelcomeCard: View {
 
                 ForEach(suggestions, id: \.self) { suggestion in
                     SuggestionChip(text: suggestion) {
-                        Task {
-                            await llmService.ask(suggestion)
-                        }
+                        onSuggestionTap(suggestion)
                     }
                 }
             }
@@ -196,10 +235,16 @@ struct SuggestionChip: View {
     }
 }
 
-// MARK: - Message Bubble
+// MARK: - Message Bubble with Actions
 
 struct MessageBubble: View {
     let message: ChatMessage
+    var onLike: (() -> Void)?
+    var onDislike: (() -> Void)?
+    var onCopy: (() -> Void)?
+    var onShare: (() -> Void)?
+
+    @State private var showActions = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -232,25 +277,50 @@ struct MessageBubble: View {
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
                 if message.isLoading {
                     TypingIndicator()
+                } else if message.isStreaming && message.content.isEmpty {
+                    TypingIndicator()
                 } else {
-                    Text(message.content)
-                        .font(.body)
-                        .foregroundColor(message.role == .user ? .white : Color(hex: "1E293B"))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(
-                            message.role == .user
-                                ? AnyShapeStyle(
-                                    LinearGradient(
-                                        colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(message.content)
+                            .font(.body)
+                            .foregroundColor(message.role == .user ? .white : Color(hex: "1E293B"))
+
+                        // Streaming indicator
+                        if message.isStreaming {
+                            HStack(spacing: 4) {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                                Text("Typing...")
+                                    .font(.caption2)
+                                    .foregroundColor(Color(hex: "94A3B8"))
+                            }
+                        }
+
+                        // Actions for assistant messages (not while streaming)
+                        if message.role == .assistant && !message.isStreaming && !message.content.isEmpty {
+                            MessageActionsBar(
+                                feedback: message.feedback,
+                                onLike: onLike,
+                                onDislike: onDislike,
+                                onCopy: onCopy,
+                                onShare: onShare
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        message.role == .user
+                            ? AnyShapeStyle(
+                                LinearGradient(
+                                    colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 )
-                                : AnyShapeStyle(Color(hex: "F1F5F9"))
-                        )
-                        .cornerRadius(18)
-                        .cornerRadius(message.role == .user ? 18 : 4, corners: message.role == .user ? [.bottomRight] : [.topLeft])
+                            )
+                            : AnyShapeStyle(Color(hex: "F1F5F9"))
+                    )
+                    .cornerRadius(18)
                 }
 
                 Text(message.timestamp, style: .time)
@@ -275,6 +345,62 @@ struct MessageBubble: View {
                 Spacer(minLength: 60)
             }
         }
+    }
+}
+
+// MARK: - Message Actions Bar
+
+struct MessageActionsBar: View {
+    let feedback: ChatMessage.MessageFeedback?
+    var onLike: (() -> Void)?
+    var onDislike: (() -> Void)?
+    var onCopy: (() -> Void)?
+    var onShare: (() -> Void)?
+
+    var body: some View {
+        HStack(spacing: 16) {
+            // Like
+            Button {
+                onLike?()
+            } label: {
+                Image(systemName: feedback == .liked ? "hand.thumbsup.fill" : "hand.thumbsup")
+                    .font(.system(size: 14))
+                    .foregroundColor(feedback == .liked ? Color(hex: "22C55E") : Color(hex: "94A3B8"))
+            }
+
+            // Dislike
+            Button {
+                onDislike?()
+            } label: {
+                Image(systemName: feedback == .disliked ? "hand.thumbsdown.fill" : "hand.thumbsdown")
+                    .font(.system(size: 14))
+                    .foregroundColor(feedback == .disliked ? Color(hex: "EF4444") : Color(hex: "94A3B8"))
+            }
+
+            Divider()
+                .frame(height: 16)
+
+            // Copy
+            Button {
+                onCopy?()
+            } label: {
+                Image(systemName: "doc.on.doc")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "94A3B8"))
+            }
+
+            // Share
+            Button {
+                onShare?()
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "94A3B8"))
+            }
+
+            Spacer()
+        }
+        .padding(.top, 8)
     }
 }
 
@@ -314,7 +440,9 @@ struct ChatInputBar: View {
     @Binding var text: String
     var isFocused: FocusState<Bool>.Binding
     let isLoading: Bool
+    let isStreaming: Bool
     let onSend: () -> Void
+    let onCancel: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -328,28 +456,35 @@ struct ChatInputBar: View {
                         .lineLimit(1...5)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
+                        .disabled(isStreaming)
                 }
                 .background(Color(hex: "F1F5F9"))
                 .cornerRadius(24)
 
-                // Send button
-                Button(action: onSend) {
+                // Send/Cancel button
+                Button(action: isStreaming ? onCancel : onSend) {
                     ZStack {
                         Circle()
                             .fill(
-                                text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading
-                                    ? AnyShapeStyle(Color(hex: "E2E8F0"))
-                                    : AnyShapeStyle(LinearGradient(
-                                        colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ))
+                                isStreaming
+                                    ? AnyShapeStyle(Color(hex: "EF4444"))
+                                    : (text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading
+                                        ? AnyShapeStyle(Color(hex: "E2E8F0"))
+                                        : AnyShapeStyle(LinearGradient(
+                                            colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )))
                             )
                             .frame(width: 44, height: 44)
 
-                        if isLoading {
+                        if isLoading && !isStreaming {
                             ProgressView()
                                 .tint(.white)
+                        } else if isStreaming {
+                            Image(systemName: "stop.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white)
                         } else {
                             Image(systemName: "arrow.up")
                                 .font(.system(size: 18, weight: .semibold))
@@ -361,7 +496,7 @@ struct ChatInputBar: View {
                         }
                     }
                 }
-                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
+                .disabled(!isStreaming && (text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -370,7 +505,17 @@ struct ChatInputBar: View {
     }
 }
 
-// Note: cornerRadius(_:corners:) extension is defined in FullMapView.swift
+// MARK: - Share Sheet
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
 
 #Preview {
     ChatView()
