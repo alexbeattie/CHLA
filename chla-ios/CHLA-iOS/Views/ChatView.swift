@@ -7,15 +7,18 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct ChatView: View {
     @StateObject private var llmService = LLMService.shared
+    @StateObject private var locationService = LocationService()
     @EnvironmentObject var appState: AppState
     @State private var inputText = ""
     @FocusState private var isFocused: Bool
     @State private var showingClearConfirmation = false
     @State private var showingExportSheet = false
     @State private var exportText = ""
+    @State private var userZipCode: String?
 
     var body: some View {
         NavigationStack {
@@ -110,6 +113,42 @@ struct ChatView: View {
             .sheet(isPresented: $showingExportSheet) {
                 ShareSheet(items: [exportText])
             }
+            .onAppear {
+                fetchUserZipCode()
+            }
+            .onChange(of: locationService.currentLocation) { _, location in
+                if let location = location {
+                    Task {
+                        await updateZipCodeFromLocation(location)
+                    }
+                }
+            }
+        }
+    }
+
+    private func fetchUserZipCode() {
+        // Use saved ZIP if available
+        if let savedZip = appState.userZipCode {
+            userZipCode = savedZip
+            return
+        }
+
+        // Request location to get ZIP
+        if locationService.hasLocationPermission {
+            locationService.requestLocation()
+        } else if locationService.shouldRequestPermission {
+            locationService.requestPermission()
+        }
+    }
+
+    private func updateZipCodeFromLocation(_ location: CLLocation) async {
+        do {
+            let zip = try await locationService.getZipCode(for: location.coordinate)
+            userZipCode = zip
+            appState.saveUserContext(zipCode: zip)
+            print("📍 Got user ZIP from location: \(zip)")
+        } catch {
+            print("❌ Failed to get ZIP from location: \(error)")
         }
     }
 
@@ -128,9 +167,12 @@ struct ChatView: View {
         inputText = ""
         isFocused = false
 
-        // Build context from app state
+        // Build context from app state - prioritize local userZipCode from location
+        let effectiveZip = userZipCode ?? appState.userZipCode
+        print("📍 Sending query with ZIP: \(effectiveZip ?? "none")")
+
         let context = UserContext(
-            zipCode: appState.userZipCode,
+            zipCode: effectiveZip,
             childAge: appState.userChildAge,
             diagnosis: appState.userDiagnosis ?? appState.searchFilters.diagnosis,
             insurance: appState.userInsurance ?? appState.searchFilters.insurance,
@@ -505,17 +547,7 @@ struct ChatInputBar: View {
     }
 }
 
-// MARK: - Share Sheet
-
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
-}
+// Note: ShareSheet is defined in ContentView.swift
 
 #Preview {
     ChatView()

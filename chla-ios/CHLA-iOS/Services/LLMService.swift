@@ -219,7 +219,7 @@ class LLMService: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        // Don't set Accept header - DRF returns 406 for text/event-stream
         request.timeoutInterval = 120
 
         var body: [String: Any] = ["query": query]
@@ -254,8 +254,22 @@ class LLMService: ObservableObject {
         do {
             let (bytes, response) = try await URLSession.shared.bytes(for: request)
 
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                updateStreamingMessage(id: streamingMessageId, content: "Server error", isComplete: true)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                updateStreamingMessage(id: streamingMessageId, content: "Invalid response", isComplete: true)
+                return
+            }
+
+            print("🟢 HTTP Status: \(httpResponse.statusCode)")
+
+            guard httpResponse.statusCode == 200 else {
+                // Read error body
+                var errorBody = ""
+                for try await byte in bytes {
+                    errorBody.append(Character(UnicodeScalar(byte)))
+                    if errorBody.count > 500 { break }
+                }
+                print("🔴 Error body: \(errorBody)")
+                updateStreamingMessage(id: streamingMessageId, content: "Server error (\(httpResponse.statusCode)): \(errorBody.prefix(200))", isComplete: true)
                 return
             }
 
