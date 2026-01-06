@@ -19,8 +19,12 @@ def semantic_search(query: str, limit: int = 15) -> list[ProviderV2]:
     Falls back to keyword search if embeddings not available.
     """
 
-    # Check if we have embeddings
-    has_embeddings = ProviderV2.objects.filter(embedding__isnull=False).exists()
+    # Check if we have embeddings (field may not exist yet)
+    try:
+        has_embeddings = ProviderV2.objects.filter(embedding__isnull=False).exists()
+    except Exception:
+        # Embedding field doesn't exist yet - use keyword search
+        has_embeddings = False
 
     if has_embeddings:
         # Vector similarity search
@@ -30,7 +34,7 @@ def semantic_search(query: str, limit: int = 15) -> list[ProviderV2]:
             cursor.execute(
                 """
                 SELECT id, 1 - (embedding <=> %s::vector) as similarity
-                FROM locations_providerv2
+                FROM providers_v2
                 WHERE embedding IS NOT NULL
                 ORDER BY embedding <=> %s::vector
                 LIMIT %s

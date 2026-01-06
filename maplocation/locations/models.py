@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.gis.measure import Distance
+from pgvector.django import VectorField
 from decimal import Decimal
 import math
 import uuid
@@ -26,10 +27,10 @@ class Location(models.Model):
     zip_code = models.CharField(max_length=20)
     latitude = models.DecimalField(max_digits=10, decimal_places=7)
     longitude = models.DecimalField(max_digits=10, decimal_places=7)
-    
+
     # PostGIS spatial field for efficient geographic queries
     location = gis_models.PointField(geography=True, srid=4326, blank=True, null=True)
-    
+
     description = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
@@ -56,7 +57,9 @@ class Location(models.Model):
     def save(self, *args, **kwargs):
         """Auto-populate PostGIS location field from latitude/longitude"""
         if self.latitude and self.longitude:
-            self.location = Point(float(self.longitude), float(self.latitude), srid=4326)
+            self.location = Point(
+                float(self.longitude), float(self.latitude), srid=4326
+            )
         super().save(*args, **kwargs)
 
     @classmethod
@@ -74,7 +77,7 @@ class Location(models.Model):
             cls.objects.filter(
                 is_active=True,
                 location__isnull=False,
-                location__dwithin=(point, radius)
+                location__dwithin=(point, radius),
             )
             .annotate(distance=DistanceFunc("location", point))
             .order_by("distance")[:limit]
@@ -139,7 +142,7 @@ class RegionalCenter(models.Model):
     class Meta:
         verbose_name_plural = "Regional Centers"
         db_table = "regional_centers"  # Match the existing RDS table name
-    
+
     def __str__(self):
         return self.regional_center
 
@@ -462,27 +465,33 @@ class ProviderV2(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Vector embedding for semantic search (pgvector)
+    # 1024 dimensions for Amazon Titan Embeddings V2
+    embedding = VectorField(dimensions=1024, null=True, blank=True)
+
     class Meta:
         db_table = "providers_v2"
         verbose_name = "Provider V2"
         verbose_name_plural = "Providers V2"
         indexes = [
             # Index for name search
-            models.Index(fields=['name'], name='providerv2_name_idx'),
+            models.Index(fields=["name"], name="providerv2_name_idx"),
             # GIN indexes for JSON array fields (for contains lookups)
             # These dramatically speed up queries like: therapy_types__contains=['ABA']
             models.Index(
-                fields=['therapy_types'],
-                name='providerv2_therapy_gin',
-                opclasses=['gin_trgm_ops'] if False else [],  # Use default GIN for JSONB
+                fields=["therapy_types"],
+                name="providerv2_therapy_gin",
+                opclasses=(
+                    ["gin_trgm_ops"] if False else []
+                ),  # Use default GIN for JSONB
             ),
             models.Index(
-                fields=['age_groups'],
-                name='providerv2_age_gin',
+                fields=["age_groups"],
+                name="providerv2_age_gin",
             ),
             models.Index(
-                fields=['diagnoses_treated'],
-                name='providerv2_diag_gin',
+                fields=["diagnoses_treated"],
+                name="providerv2_diag_gin",
             ),
         ]
 
@@ -502,8 +511,14 @@ class ProviderV2(models.Model):
             self.latitude = Decimal(str(self.location.y))
             self.longitude = Decimal(str(self.location.x))
         # If lat/lng set but no location, create PostGIS point
-        elif self.latitude and self.longitude and (self.latitude != Decimal('0.0') or self.longitude != Decimal('0.0')):
-            self.location = Point(float(self.longitude), float(self.latitude), srid=4326)
+        elif (
+            self.latitude
+            and self.longitude
+            and (self.latitude != Decimal("0.0") or self.longitude != Decimal("0.0"))
+        ):
+            self.location = Point(
+                float(self.longitude), float(self.latitude), srid=4326
+            )
 
         super().save(*args, **kwargs)
 
@@ -577,7 +592,9 @@ class ProviderV2(models.Model):
         """
         return [
             rel.insurance_carrier.name
-            for rel in self.provider_insurance_carriers.select_related('insurance_carrier')
+            for rel in self.provider_insurance_carriers.select_related(
+                "insurance_carrier"
+            )
         ]
 
     @classmethod

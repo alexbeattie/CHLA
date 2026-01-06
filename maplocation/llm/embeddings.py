@@ -83,11 +83,11 @@ def embed_all_providers(batch_size: int = 50, force: bool = False):
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    UPDATE locations_providerv2 
+                    UPDATE providers_v2 
                     SET embedding = %s::vector 
                     WHERE id = %s
                     """,
-                    [embedding, provider.id],
+                    [embedding, str(provider.id)],
                 )
 
             processed += 1
@@ -114,7 +114,7 @@ def test_embedding_search(query: str):
         cursor.execute(
             """
             SELECT id, name, 1 - (embedding <=> %s::vector) as similarity
-            FROM locations_providerv2
+            FROM providers_v2
             WHERE embedding IS NOT NULL
             ORDER BY embedding <=> %s::vector
             LIMIT 5
