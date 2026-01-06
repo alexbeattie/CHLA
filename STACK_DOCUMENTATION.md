@@ -3,6 +3,7 @@
 ## ⚠️ Known Data Issues
 
 ### Regional Center ZIP Code Coverage
+
 - **Issue**: ZIP 91403 (Sherman Oaks) is not mapped to any Regional Center in the database
 - **Impact**: Users searching for this ZIP code will see "Regional Center (Not Found)"
 - **Expected RC**: North Los Angeles County Regional Center
@@ -13,23 +14,26 @@
 ## 🏗️ Architecture Overview
 
 ### Frontend
+
 - **Framework**: Vue 3 with Vite
 - **UI Library**: Bootstrap 5 + Custom CSS
 - **Map**: Mapbox GL JS
 - **Hosting**: AWS S3 + CloudFront
-- **URL**: https://kinddhelp.com
+- **URL**: <https://kinddhelp.com>
 - **S3 Bucket**: kinddhelp-frontend-1755148345
 - **CloudFront ID**: E2W6EECHUV4LMM
 
 ### Backend
+
 - **Framework**: Django 5.2 with Django REST Framework
 - **Language**: Python 3.12
 - **Hosting**: AWS Elastic Beanstalk
 - **Environment**: chla-api-docker2
-- **URL**: https://api.kinddhelp.com
+- **URL**: <https://api.kinddhelp.com>
 - **SSL Certificate**: arn:aws:acm:us-west-2:795519544722:certificate/77514a62-6636-4fdb-8360-863aa711859e
 
 ### Database
+
 - **Type**: PostgreSQL (AWS RDS)
 - **Host**: chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com
 - **Database Name**: postgres
@@ -62,6 +66,7 @@
 ## 🔧 Local Development
 
 ### Backend Setup
+
 ```bash
 cd maplocation
 source venv/bin/activate  # Activate Python virtual environment
@@ -70,6 +75,7 @@ python3 manage.py runserver 127.0.0.1:8000
 ```
 
 ### Frontend Setup
+
 ```bash
 cd map-frontend
 npm install
@@ -78,19 +84,23 @@ npm run dev          # Starts on http://localhost:3000
 ```
 
 ### Environment Switching
+
 The `switch-env.sh` script manages environment variables:
-- `./switch-env.sh dev` - Points to local backend (http://127.0.0.1:8000)
-- `./switch-env.sh prod` - Points to production backend (https://api.kinddhelp.com)
+
+- `./switch-env.sh dev` - Points to local backend (<http://127.0.0.1:8000>)
+- `./switch-env.sh prod` - Points to production backend (<https://api.kinddhelp.com>)
 
 ## 🚀 Deployment Process
 
 ### Deploy Backend (Django → Elastic Beanstalk)
+
 ```bash
 cd maplocation
 eb deploy --profile personal --region us-west-2
 ```
 
 ### Deploy Frontend (Vue → S3/CloudFront)
+
 ```bash
 cd map-frontend
 ./switch-env.sh prod     # Switch to production URLs
@@ -102,10 +112,11 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 ## 🔐 Environment Variables
 
 ### Backend (Elastic Beanstalk)
+
 - `DJANGO_SECRET_KEY`: Django secret key
 - `DJANGO_DEBUG`: false (in production)
 - `ALLOWED_HOSTS`: api.kinddhelp.com,.elasticbeanstalk.com,localhost
-- `CORS_ALLOWED_ORIGINS`: https://kinddhelp.com,https://www.kinddhelp.com
+- `CORS_ALLOWED_ORIGINS`: <https://kinddhelp.com,https://www.kinddhelp.com>
 - `DB_HOST`: RDS endpoint
 - `DB_NAME`: postgres
 - `DB_USER`: chla_admin
@@ -113,12 +124,14 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 - `DB_SSL_REQUIRE`: true
 
 ### Frontend (Vite)
+
 - `VITE_API_BASE_URL`: API endpoint URL
 - `VITE_MAPBOX_TOKEN`: Mapbox access token
 
 ## 🌐 API Endpoints
 
 ### Main Endpoints
+
 - `/api/providers-v2/` - Provider listings
 - `/api/providers-v2/comprehensive_search/` - Provider search with filters
 - `/api/regional-centers/` - Regional center listings
@@ -137,24 +150,29 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 ## 🐛 Common Issues & Solutions
 
 ### 502 Bad Gateway Errors
+
 - **Cause**: Usually unhealthy EB environment or SSL issues
 - **Fix**: Check EB health, ensure ALLOWED_HOSTS includes load balancer IPs
 
 ### CORS Errors
+
 - **Cause**: Frontend/backend domain mismatch
 - **Fix**: Update CORS_ALLOWED_ORIGINS in EB environment variables
 
 ### Health Check Failures
+
 - **Cause**: Django not responding to ELB health checks
 - **Fix**: Ensure ALLOWED_HOSTS includes internal IPs (172.31.x.x)
 
 ### Mixed Content Warnings
+
 - **Cause**: HTTP/HTTPS mismatch
 - **Fix**: Ensure all URLs use HTTPS in production
 
 ## 📝 Database Management
 
 ### Local to RDS Sync
+
 ```bash
 cd maplocation
 python3 manage.py makemigrations
@@ -165,6 +183,7 @@ git push origin main  # Auto-deploys with migrations
 ```
 
 ### Connect to RDS
+
 ```bash
 psql -h chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com -U chla_admin -d postgres
 ```
@@ -172,6 +191,7 @@ psql -h chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com -U chla_admin 
 ## 🔍 Debugging Commands
 
 ### Check Backend Status
+
 ```bash
 eb status --profile personal --region us-west-2
 eb health --profile personal --region us-west-2
@@ -179,6 +199,7 @@ eb logs --profile personal --region us-west-2
 ```
 
 ### Test API Endpoints
+
 ```bash
 # Test HTTPS
 curl -I https://api.kinddhelp.com/api/regional-centers/
@@ -188,6 +209,7 @@ curl -H "Authorization: Token YOUR_TOKEN" https://api.kinddhelp.com/api/provider
 ```
 
 ### View CloudFront Logs
+
 ```bash
 aws cloudfront get-distribution --id E2W6EECHUV4LMM --profile personal
 ```
@@ -195,12 +217,14 @@ aws cloudfront get-distribution --id E2W6EECHUV4LMM --profile personal
 ## 🎯 Quick Reference
 
 ### URLs
-- **Production Frontend**: https://kinddhelp.com
-- **Production API**: https://api.kinddhelp.com
-- **S3 Direct**: http://kinddhelp-frontend-1755148345.s3-website-us-west-2.amazonaws.com
-- **EB Direct**: https://chla-api-docker2.eba-9aiqcppx.us-west-2.elasticbeanstalk.com
+
+- **Production Frontend**: <https://kinddhelp.com>
+- **Production API**: <https://api.kinddhelp.com>
+- **S3 Direct**: <http://kinddhelp-frontend-1755148345.s3-website-us-west-2.amazonaws.com>
+- **EB Direct**: <https://chla-api-docker2.eba-9aiqcppx.us-west-2.elasticbeanstalk.com>
 
 ### AWS Resources
+
 - **Region**: us-west-2
 - **AWS Profile**: personal
 - **EB Application**: chla-api
@@ -219,16 +243,19 @@ aws cloudfront get-distribution --id E2W6EECHUV4LMM --profile personal
 ## 🚨 Emergency Fixes
 
 ### Backend Down
+
 1. Check EB health: `eb health`
 2. Redeploy: `eb deploy`
 3. Check logs: `eb logs`
 
 ### Frontend Not Updating
+
 1. Clear CloudFront cache
 2. Check S3 sync completed
 3. Use S3 direct URL to bypass cache
 
 ### Database Connection Issues
+
 1. Check RDS security groups
 2. Verify DB_SSL_REQUIRE=true
 3. Check VPC settings

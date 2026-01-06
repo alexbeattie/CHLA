@@ -16,6 +16,9 @@ class UIVisibilityManager: ObservableObject {
     @Published var isHeaderVisible = true
     @Published var lastScrollOffset: CGFloat = 0
 
+    private var autoShowTimer: Timer?
+    private let autoShowDelay: TimeInterval = 5.0  // Auto-show after 5 seconds
+
     func handleScroll(offset: CGFloat) {
         let delta = offset - lastScrollOffset
         let threshold: CGFloat = 12
@@ -37,9 +40,15 @@ class UIVisibilityManager: ObservableObject {
             isTabBarVisible = false
             isHeaderVisible = false
         }
+
+        // Start auto-show timer
+        startAutoShowTimer()
     }
 
     func showUI() {
+        // Cancel any pending auto-show
+        cancelAutoShowTimer()
+
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
             isTabBarVisible = true
             isHeaderVisible = true
@@ -52,6 +61,20 @@ class UIVisibilityManager: ObservableObject {
         } else {
             showUI()
         }
+    }
+
+    private func startAutoShowTimer() {
+        cancelAutoShowTimer()
+        autoShowTimer = Timer.scheduledTimer(withTimeInterval: autoShowDelay, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                self?.showUI()
+            }
+        }
+    }
+
+    private func cancelAutoShowTimer() {
+        autoShowTimer?.invalidate()
+        autoShowTimer = nil
     }
 }
 
@@ -160,10 +183,10 @@ struct MainTabView: View {
 
     private var tabInfo: (title: String, subtitle: String, icon: String) {
         switch appState.selectedTab {
-        case 0: return ("Resources", "Find ABA & developmental services", "mappin.and.ellipse")
-        case 1: return ("Regional Centers", "LA County service areas", "map.fill")
-        case 2: return ("Browse", "Search all resources", "list.bullet")
-        case 3: return ("About", "Learn about NDD Resources", "info.circle")
+        case 0: return ("Home", "Welcome to NDD Resources", "house.fill")
+        case 1: return ("Map", "Find ABA & developmental services", "mappin.and.ellipse")
+        case 2: return ("Regions", "LA County service areas", "map.fill")
+        case 3: return ("Browse", "Search all resources", "list.bullet")
         case 4: return ("More", "Settings & information", "ellipsis.circle")
         default: return ("NDD Resources", "Developmental disability resources", "heart.fill")
         }
@@ -174,12 +197,23 @@ struct MainTabView: View {
             // Tab Content - Full Screen
             Group {
                 switch appState.selectedTab {
-                case 0: MapContainerView()
-                case 1: RegionalCentersTabView()
-                case 2: ProviderListView()
-                case 3: AboutView()
+                case 0:
+                    HomeView()
+                case 1:
+                    MapContainerView()
+                        .simultaneousGesture(
+                            TapGesture()
+                                .onEnded { _ in visibilityManager.toggleUI() }
+                        )
+                case 2:
+                    RegionalCentersTabView()
+                        .simultaneousGesture(
+                            TapGesture()
+                                .onEnded { _ in visibilityManager.toggleUI() }
+                        )
+                case 3: ProviderListView()
                 case 4: MoreView()
-                default: MapContainerView()
+                default: HomeView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -234,8 +268,9 @@ struct MainTabView: View {
         // Map actions
         case .useMyLocation:
             NotificationCenter.default.post(name: .useMyLocation, object: nil)
+            appState.selectedTab = 1  // Go to map
         case .searchArea:
-            appState.selectedTab = 0  // Go to map
+            appState.selectedTab = 1  // Go to map
         case .showFilters:
             NotificationCenter.default.post(name: .showFilters, object: nil)
 
@@ -245,7 +280,7 @@ struct MainTabView: View {
         case .viewAsMap:
             NotificationCenter.default.post(name: .regionsViewMap, object: nil)
         case .findMyCenter:
-            appState.selectedTab = 1  // Go to regions
+            appState.selectedTab = 2  // Go to regions
 
         // List actions
         case .sortList:
@@ -333,6 +368,11 @@ struct LiquidGlassTabBar: View {
     }
 
     private let tabs: [TabInfo] = [
+        TabInfo(icon: "house.fill", label: "Home", menuItems: [
+            ("magnifyingglass", "Search", .searchArea),
+            ("location.fill", "Near Me", .useMyLocation),
+            ("questionmark.circle", "FAQ", .showFAQ)
+        ]),
         TabInfo(icon: "mappin.and.ellipse", label: "Map", menuItems: [
             ("location.fill", "Use My Location", .useMyLocation),
             ("magnifyingglass", "Search Area", .searchArea),
@@ -347,11 +387,6 @@ struct LiquidGlassTabBar: View {
             ("arrow.up.arrow.down", "Sort", .sortList),
             ("line.3.horizontal.decrease.circle", "Filter", .filterList),
             ("arrow.clockwise", "Refresh", .refreshList)
-        ]),
-        TabInfo(icon: "info.circle.fill", label: "About", menuItems: [
-            ("questionmark.circle", "FAQ", .showFAQ),
-            ("envelope", "Contact Us", .contactUs),
-            ("star", "Rate App", .rateApp)
         ]),
         TabInfo(icon: "ellipsis.circle.fill", label: "More", menuItems: [
             ("gear", "Settings", .showSettings),
@@ -619,8 +654,8 @@ struct RegionalCentersTabView: View {
 
             // Content
             if selectedView == 0 {
-                // List content
-                RegionalCentersListContent()
+                // List content - using RegionalCentersView from separate file
+                RegionalCentersView()
                     .padding(.top, visibilityManager.isHeaderVisible ? 88 : 0)
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
 
@@ -652,7 +687,6 @@ struct RegionalCentersTabView: View {
                 } else {
                 // Full screen map
                     RegionalCenterMapView()
-                        .environmentObject(visibilityManager)
 
                 // Floating picker overlay for map
                 VStack {
@@ -802,6 +836,12 @@ struct RegionalCentersListContent: View {
             RegionalCenterDetailSheet(center: center)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+        }
+        .onChange(of: selectedCenter) { _, newValue in
+            // Show UI when sheet closes
+            if newValue == nil {
+                visibilityManager.showUI()
+            }
         }
         .onAppear {
             locationManager.requestLocation()

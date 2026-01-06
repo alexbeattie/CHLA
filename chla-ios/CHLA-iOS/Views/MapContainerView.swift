@@ -63,6 +63,23 @@ struct MapContainerView: View {
 
             // Bottom info and results preview
             bottomOverlay
+
+            // Show UI button (appears when UI is hidden)
+            if !visibilityManager.isHeaderVisible {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        ShowControlsButton {
+                            visibilityManager.showUI()
+                        }
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 100)
+                    }
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                .animation(.spring(response: 0.3), value: visibilityManager.isHeaderVisible)
+            }
         }
         .sheet(isPresented: $showFilters) {
             filterSheet
@@ -80,13 +97,17 @@ struct MapContainerView: View {
             .interactiveDismissDisabled(false)
         }
         .sheet(item: $selectedProvider) { provider in
-            NavigationStack {
-                ProviderDetailView(provider: provider)
+            ProviderDetailView(provider: provider)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(20)
+                .environmentObject(appState)
+        }
+        .onChange(of: selectedProvider) { _, newValue in
+            // Show UI when sheet closes
+            if newValue == nil {
+                visibilityManager.showUI()
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            .presentationBackground(.ultraThinMaterial)
-            .environmentObject(appState)
         }
         .onAppear {
             setupInitialLocation()
@@ -186,7 +207,6 @@ struct MapContainerView: View {
         }
     }
 
-    @ViewBuilder
     private var searchOverlay: some View {
         let shouldShow = visibilityManager.isHeaderVisible || searchState.isSearchActive
         return VStack(spacing: 0) {
@@ -799,6 +819,41 @@ struct GlassControlDivider: View {
                 )
             )
             .frame(width: 32, height: 0.5)
+    }
+}
+
+// MARK: - Show Controls Button
+struct ShowControlsButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Show Controls")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background {
+                Capsule()
+                    .fill(Color.accentBlue)
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [.white.opacity(0.2), .clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            }
+            .shadow(color: Color.accentBlue.opacity(0.4), radius: 8, y: 4)
+            .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+        }
+        .buttonStyle(.plain)
     }
 }
 

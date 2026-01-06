@@ -21,6 +21,7 @@ struct FAQView: View {
                     rcSection
                     insuranceSection
                     appSection
+                    sourcesSection
                     ctaSection
                 }
                 .padding(20)
@@ -54,25 +55,25 @@ struct FAQView: View {
             FAQItem(
                 id: "aba1",
                 question: "What is ABA therapy?",
-                answer: "Applied Behavior Analysis (ABA) is a scientific, evidence-based therapy that helps improve behaviors like social skills, communication, and learning. It's particularly effective for individuals with autism and developmental disabilities, using positive reinforcement to teach new skills.",
+                answer: "Applied Behavior Analysis (ABA) is a scientific, evidence-based therapy that helps improve behaviors like social skills, communication, and learning. It's particularly effective for individuals with autism and developmental disabilities, using positive reinforcement to teach new skills.\n\n📚 Source: Association for Behavior Analysis International (ABAI) & Behavior Analyst Certification Board (BACB)",
                 expandedID: $expandedID
             )
             FAQItem(
                 id: "aba2",
                 question: "Who can benefit from ABA therapy?",
-                answer: "ABA therapy benefits individuals with:\n\n• Autism Spectrum Disorder (ASD)\n• Developmental disabilities\n• Learning disabilities\n• Behavioral disorders (ADHD, ODD)\n• Communication disorders\n\nWhile most common for children with autism, anyone needing structured behavioral intervention can benefit.",
+                answer: "ABA therapy benefits individuals with:\n\n• Autism Spectrum Disorder (ASD)\n• Developmental disabilities\n• Learning disabilities\n• Behavioral disorders (ADHD, ODD)\n• Communication disorders\n\nWhile most common for children with autism, anyone needing structured behavioral intervention can benefit.\n\n📚 Source: American Psychological Association (APA)",
                 expandedID: $expandedID
             )
             FAQItem(
                 id: "aba3",
                 question: "How long does ABA therapy take?",
-                answer: "Duration varies by need:\n\n• Intensive: 20-40 hours/week\n• Focused: 10-20 hours/week\n• Consultation: 1-5 hours/week\n\nMost children participate for 1-3 years. Your resource creates an individualized plan.",
+                answer: "Duration varies by need:\n\n• Intensive: 20-40 hours/week\n• Focused: 10-20 hours/week\n• Consultation: 1-5 hours/week\n\nMost children participate for 1-3 years. Your service coordinator creates an individualized plan.\n\n📚 Source: Autism Speaks & California Department of Developmental Services (DDS)",
                 expandedID: $expandedID
             )
             FAQItem(
                 id: "aba4",
                 question: "What happens in an ABA session?",
-                answer: "A typical session includes:\n\n1. Structured activities for specific goals\n2. Positive reinforcement for behaviors\n3. Data collection to track progress\n4. Real-world skill practice\n5. Parent/caregiver training\n\nSessions can be at home, clinics, or schools.",
+                answer: "A typical session includes:\n\n1. Structured activities for specific goals\n2. Positive reinforcement for behaviors\n3. Data collection to track progress\n4. Real-world skill practice\n5. Parent/caregiver training\n\nSessions can be at home, clinics, or schools.\n\n📚 Source: Behavior Analyst Certification Board (BACB)",
                 expandedID: $expandedID
             )
         }
@@ -84,25 +85,25 @@ struct FAQView: View {
             FAQItem(
                 id: "rc1",
                 question: "What is a Regional Center?",
-                answer: "Regional Centers are California nonprofit agencies that provide services for individuals with developmental disabilities. LA County has 7:\n\n• San Gabriel/Pomona (SG/PRC)\n• Harbor (HRC)\n• North LA County (NLACRC)\n• Eastern LA (ELARC)\n• South Central LA (SCLARC)\n• Westside (WRC)\n• Frank D. Lanterman (FDLRC)\n\nYour center is determined by ZIP code.",
+                answer: "Regional Centers are California nonprofit agencies that provide services for individuals with developmental disabilities. LA County has 7:\n\n• San Gabriel/Pomona (SG/PRC)\n• Harbor (HRC)\n• North LA County (NLACRC)\n• Eastern LA (ELARC)\n• South Central LA (SCLARC)\n• Westside (WRC)\n• Frank D. Lanterman (FDLRC)\n\nYour center is determined by ZIP code.\n\n📚 Source: California Department of Developmental Services (dds.ca.gov)",
                 expandedID: $expandedID
             )
             FAQItem(
                 id: "rc2",
                 question: "How do I find my Regional Center?",
-                answer: "Your Regional Center is assigned by ZIP code. Use our map:\n\n1. Allow location access or enter ZIP\n2. The map shows your RC boundary\n3. See resources in your area\n\nYou cannot choose your RC - it's based on where you live.",
+                answer: "Your Regional Center is assigned by ZIP code. Use our map:\n\n1. Allow location access or enter ZIP\n2. The map shows your RC boundary\n3. See resources in your area\n\nYou cannot choose your RC - it's based on where you live.\n\n📚 Source: Association of Regional Center Agencies (arcanet.org)",
                 expandedID: $expandedID
             )
             FAQItem(
                 id: "rc3",
                 question: "How do I get RC services?",
-                answer: "Steps to access services:\n\n1. Contact your RC for intake appointment\n2. Complete intake assessment\n3. Wait for eligibility determination (~120 days)\n4. Develop Individualized Program Plan (IPP)\n5. Choose from approved resources\n6. Begin services\n\nYou must have a developmental disability that began before age 18.",
+                answer: "Steps to access services:\n\n1. Contact your RC for intake appointment\n2. Complete intake assessment\n3. Wait for eligibility determination (~120 days)\n4. Develop Individualized Program Plan (IPP)\n5. Choose from approved resources\n6. Begin services\n\nYou must have a developmental disability that began before age 18.\n\n📚 Source: Lanterman Developmental Disabilities Services Act (California Welfare & Institutions Code)",
                 expandedID: $expandedID
             )
             FAQItem(
                 id: "rc4",
                 question: "Do I need an RC for ABA therapy?",
-                answer: "No, multiple funding options exist:\n\n• Regional Center - Free for eligible individuals\n• Private Insurance - CA law requires ABA coverage\n• Medi-Cal - Covers eligible children\n• School District - Through IEP\n• Private Pay - Self-funded\n\nMany families combine funding sources.",
+                answer: "No, multiple funding options exist:\n\n• Regional Center - Free for eligible individuals\n• Private Insurance - CA law requires ABA coverage\n• Medi-Cal - Covers eligible children\n• School District - Through IEP\n• Private Pay - Self-funded\n\nMany families combine funding sources.\n\n📚 Source: California Insurance Code Section 10144.51 & California Health and Safety Code",
                 expandedID: $expandedID
             )
         }
@@ -114,25 +115,25 @@ struct FAQView: View {
             FAQItem(
                 id: "ins1",
                 question: "Does insurance cover ABA in California?",
-                answer: "Yes! California law requires most plans to cover ABA for autism:\n\n• Commercial Insurance - Required up to age 21\n• Medi-Cal - Covers eligible children\n• Regional Center - Eligible individuals\n• TRICARE - Military families\n\nCheck your plan for specific benefits and copays.",
+                answer: "Yes! California law requires most plans to cover ABA for autism:\n\n• Commercial Insurance - Required up to age 21\n• Medi-Cal - Covers eligible children\n• Regional Center - Eligible individuals\n• TRICARE - Military families\n\nCheck your plan for specific benefits and copays.\n\n📚 Source: California Senate Bill 946 (2011) & California Insurance Code Section 10144.51",
                 expandedID: $expandedID
             )
             FAQItem(
                 id: "ins2",
                 question: "What insurance do resources accept?",
-                answer: "Common accepted insurance:\n\n• Aetna, Anthem, Blue Shield, Cigna\n• Health Net, Kaiser, UnitedHealthcare\n• Medi-Cal plans (LA Care, Molina, etc.)\n• TRICARE, Magellan\n• Regional Center funding\n\nUse our map filters to find resources accepting your insurance.",
+                answer: "Common accepted insurance:\n\n• Aetna, Anthem, Blue Shield, Cigna\n• Health Net, Kaiser, UnitedHealthcare\n• Medi-Cal plans (LA Care, Molina, etc.)\n• TRICARE, Magellan\n• Regional Center funding\n\nUse our map filters to find resources accepting your insurance.\n\n📚 Source: California Department of Managed Health Care (dmhc.ca.gov)",
                 expandedID: $expandedID
             )
             FAQItem(
                 id: "ins3",
                 question: "How much does ABA therapy cost?",
-                answer: "Costs depend on funding:\n\n• Regional Center - Free\n• Insurance - $0-75 copay per session\n• Medi-Cal - No cost\n• Private Pay - $50-150+ per hour\n\nIntensive programs can cost $30,000-70,000+ yearly without coverage.",
+                answer: "Costs depend on funding:\n\n• Regional Center - Free\n• Insurance - $0-75 copay per session\n• Medi-Cal - No cost\n• Private Pay - $50-150+ per hour\n\nIntensive programs can cost $30,000-70,000+ yearly without coverage.\n\n📚 Source: Autism Speaks & California Health Care Foundation",
                 expandedID: $expandedID
             )
             FAQItem(
                 id: "ins4",
                 question: "Do I need a diagnosis for ABA?",
-                answer: "Yes, typically:\n\n• Insurance - Autism diagnosis required\n• Regional Center - Developmental disability diagnosis\n• School - IEP with documented need\n\nDiagnoses can come from psychologists, developmental pediatricians, psychiatrists, or neurologists.",
+                answer: "Yes, typically:\n\n• Insurance - Autism diagnosis required\n• Regional Center - Developmental disability diagnosis\n• School - IEP with documented need\n\nDiagnoses can come from psychologists, developmental pediatricians, psychiatrists, or neurologists.\n\n📚 Source: American Academy of Pediatrics (AAP) & DSM-5 Diagnostic Criteria",
                 expandedID: $expandedID
             )
         }
@@ -159,6 +160,51 @@ struct FAQView: View {
                 answer: "Yes, completely free!\n\n✓ No registration\n✓ No fees or subscriptions\n✓ No credit card needed\n✓ Unlimited searches\n\nNDD Resources is a public service to help LA County families find developmental disability services.",
                 expandedID: $expandedID
             )
+        }
+    }
+
+    // MARK: - Sources Section
+    private var sourcesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Information Sources")
+                .font(.headline)
+                .foregroundColor(.accentBlue)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("The information in this FAQ is compiled from the following sources:")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    sourceLink("California Dept. of Developmental Services", "dds.ca.gov")
+                    sourceLink("Behavior Analyst Certification Board", "bacb.com")
+                    sourceLink("Association of Regional Center Agencies", "arcanet.org")
+                    sourceLink("Autism Speaks", "autismspeaks.org")
+                    sourceLink("American Psychological Association", "apa.org")
+                    sourceLink("CA Dept. of Managed Health Care", "dmhc.ca.gov")
+                }
+
+                Text("⚠️ Disclaimer: This information is for educational purposes only and is not medical advice. Always consult with qualified healthcare professionals for medical decisions.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+            }
+            .padding(14)
+            .background(Color(.systemBackground))
+            .cornerRadius(10)
+        }
+    }
+
+    private func sourceLink(_ name: String, _ url: String) -> some View {
+        HStack(spacing: 4) {
+            Text("•")
+                .foregroundStyle(.secondary)
+            Text(name)
+                .font(.caption)
+                .foregroundColor(.primary)
+            Text("(\(url))")
+                .font(.caption)
+                .foregroundColor(.accentBlue)
         }
     }
 

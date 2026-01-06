@@ -41,7 +41,7 @@ class RegionalCenterMatcher {
 
     // MARK: - Regional Center Data
 
-    struct RegionalCenterInfo: Identifiable {
+    struct RegionalCenterInfo: Identifiable, Equatable {
         let id: Int
         let name: String
         let shortName: String
@@ -53,6 +53,11 @@ class RegionalCenterMatcher {
         /// Get the SwiftUI Color for this regional center
         var uiColor: Color {
             Color.regionalCenterColor(for: shortName)
+        }
+
+        // Equatable conformance (compare by id since CLLocationCoordinate2D isn't Equatable)
+        static func == (lhs: RegionalCenterInfo, rhs: RegionalCenterInfo) -> Bool {
+            lhs.id == rhs.id
         }
     }
 

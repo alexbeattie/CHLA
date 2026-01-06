@@ -1,0 +1,287 @@
+# CHLA AWS Infrastructure Documentation
+
+> **Last Updated:** January 4, 2026  
+> **Migration Date:** January 4, 2026 (from Ourself company account to personal AWS account)
+
+## AWS Account Information
+
+| Property | Value |
+|----------|-------|
+| **AWS Account** | Personal (Alex Beattie) |
+| **Account ID** | 795519544722 |
+| **Region** | us-west-2 (Oregon) |
+| **AWS Profile** | `personal` (in ~/.aws/credentials) |
+
+---
+
+## 🌐 Domain & DNS
+
+| Property | Value |
+|----------|-------|
+| **Domain** | kinddhelp.com |
+| **API Endpoint** | https://api.kinddhelp.com |
+| **Route53 Hosted Zone ID** | Z0467239OKDU4Z74D3ZB |
+| **DNS Record Type** | CNAME |
+| **TTL** | 60 seconds |
+| **Target** | chla-api-docker2.eba-9aiqcppx.us-west-2.elasticbeanstalk.com |
+
+### DNS Commands
+```bash
+# Check DNS record
+aws route53 list-resource-record-sets \
+  --hosted-zone-id Z0467239OKDU4Z74D3ZB \
+  --profile personal \
+  --query 'ResourceRecordSets[?Name==`api.kinddhelp.com.`]'
+
+# Update DNS (example)
+aws route53 change-resource-record-sets \
+  --hosted-zone-id Z0467239OKDU4Z74D3ZB \
+  --profile personal \
+  --change-batch '{
+    "Changes": [{
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "api.kinddhelp.com",
+        "Type": "CNAME",
+        "TTL": 60,
+        "ResourceRecords": [{"Value": "NEW_EB_URL_HERE"}]
+      }
+    }]
+  }'
+```
+
+---
+
+## 🚀 Elastic Beanstalk
+
+### Active Environment
+
+| Property | Value |
+|----------|-------|
+| **Environment Name** | chla-api-docker2 |
+| **Environment ID** | e-acyjixmpg2 |
+| **Application Name** | chla-api |
+| **Platform** | Docker running on 64bit Amazon Linux 2023 v4.9.0 |
+| **Instance Type** | t3.small |
+| **CNAME** | chla-api-docker2.eba-9aiqcppx.us-west-2.elasticbeanstalk.com |
+| **Health** | Green ✅ |
+| **Status** | Ready |
+| **Created** | January 4, 2026 |
+
+### Current Application Version
+
+| Property | Value |
+|----------|-------|
+| **Version Label** | app-pre-aggressive-refactor-168-g99e8d-251209_122229320265 |
+| **S3 Bucket** | elasticbeanstalk-us-west-2-795519544722 |
+| **S3 Key** | chla-api/app-pre-aggressive-refactor-168-g99e8d-251209_122229320265.zip |
+
+### Common EB Commands
+```bash
+# Check environment status
+aws elasticbeanstalk describe-environments \
+  --environment-names chla-api-docker2 \
+  --profile personal \
+  --region us-west-2
+
+# Deploy new version
+aws elasticbeanstalk update-environment \
+  --environment-name chla-api-docker2 \
+  --version-label "NEW_VERSION_LABEL" \
+  --profile personal \
+  --region us-west-2
+
+# View environment health
+aws elasticbeanstalk describe-environment-health \
+  --environment-name chla-api-docker2 \
+  --attribute-names All \
+  --profile personal \
+  --region us-west-2
+
+# Get environment logs
+aws elasticbeanstalk retrieve-environment-info \
+  --environment-name chla-api-docker2 \
+  --info-type tail \
+  --profile personal \
+  --region us-west-2
+
+# Restart environment
+aws elasticbeanstalk restart-app-server \
+  --environment-name chla-api-docker2 \
+  --profile personal \
+  --region us-west-2
+```
+
+---
+
+## 🗄️ RDS Database
+
+| Property | Value |
+|----------|-------|
+| **DB Instance ID** | chla-postgres-db |
+| **Engine** | PostgreSQL |
+| **Instance Class** | db.t4g.micro |
+| **DB Name** | postgres |
+| **Endpoint** | chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com |
+| **Port** | 5432 |
+| **Status** | Available |
+
+### Database Connection
+```bash
+# Connect via psql
+psql -h chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com \
+     -U chla_admin \
+     -d postgres \
+     -p 5432
+
+# Environment variable format
+DATABASE_URL=postgresql://chla_admin:PASSWORD@chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com:5432/postgres
+```
+
+---
+
+## 📦 S3 Buckets
+
+| Bucket | Purpose |
+|--------|---------|
+| `chla-frontend-1755161523` | Frontend hosting (legacy) |
+| `chla-frontend-1755700706` | Frontend hosting |
+| `elasticbeanstalk-us-west-2-795519544722` | EB deployment artifacts |
+
+---
+
+## 🔐 Environment Variables
+
+The following environment variables are configured in Elastic Beanstalk:
+
+| Variable | Description |
+|----------|-------------|
+| `POSTGRES_HOST` | RDS endpoint |
+| `POSTGRES_DB` | Database name (postgres) |
+| `POSTGRES_USER` | Database username (chla_admin) |
+| `POSTGRES_PASSWORD` | Database password |
+| `GOOGLE_MAPS_API_KEY` | Google Maps API key for geocoding |
+
+### View/Update Environment Variables
+```bash
+# View current configuration
+aws elasticbeanstalk describe-configuration-settings \
+  --application-name chla-api \
+  --environment-name chla-api-docker2 \
+  --profile personal \
+  --region us-west-2
+
+# Update environment variable
+aws elasticbeanstalk update-environment \
+  --environment-name chla-api-docker2 \
+  --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=VAR_NAME,Value=VAR_VALUE \
+  --profile personal \
+  --region us-west-2
+```
+
+---
+
+## 🚨 Deployment Workflow
+
+### Option 1: EB CLI (Recommended)
+```bash
+cd ~/Developer/CHLA/maplocation
+eb deploy chla-api-docker2 --profile personal --region us-west-2
+```
+
+### Option 2: AWS CLI
+```bash
+# 1. Create application version from S3
+aws elasticbeanstalk create-application-version \
+  --application-name chla-api \
+  --version-label "v$(date +%Y%m%d-%H%M%S)" \
+  --source-bundle S3Bucket=elasticbeanstalk-us-west-2-795519544722,S3Key=chla-api/new-version.zip \
+  --profile personal \
+  --region us-west-2
+
+# 2. Deploy new version
+aws elasticbeanstalk update-environment \
+  --environment-name chla-api-docker2 \
+  --version-label "v20260104-123456" \
+  --profile personal \
+  --region us-west-2
+```
+
+### Option 3: GitHub Actions
+The repository has GitHub Actions configured for CI/CD deployment.
+
+---
+
+## 📊 Monitoring & Troubleshooting
+
+### Health Check
+```bash
+# API health check
+curl -s -o /dev/null -w "%{http_code}" https://api.kinddhelp.com/
+
+# API regional-centers endpoint
+curl -s https://api.kinddhelp.com/api/regional-centers/ | head -c 200
+```
+
+### View Logs
+```bash
+# Request logs
+aws elasticbeanstalk request-environment-info \
+  --environment-name chla-api-docker2 \
+  --info-type tail \
+  --profile personal \
+  --region us-west-2
+
+# Wait, then retrieve
+aws elasticbeanstalk retrieve-environment-info \
+  --environment-name chla-api-docker2 \
+  --info-type tail \
+  --profile personal \
+  --region us-west-2
+```
+
+---
+
+## 📜 Migration History
+
+### January 4, 2026 - Migration from Ourself Account
+
+**Reason:** CHLA resources were incorrectly hosted on Ourself company AWS account
+
+**Actions Performed:**
+1. ✅ Downloaded working application version from Ourself account
+2. ✅ Created new Docker environment on personal account (`chla-api-docker2`)
+3. ✅ Deployed application with correct platform (Docker on Amazon Linux 2023)
+4. ✅ Configured environment variables (DB connection, Google Maps API)
+5. ✅ Updated Route53 DNS to point to new environment
+6. ✅ Verified API endpoints working (HTTP 200)
+7. ✅ Terminated old Ourself account EB environment
+8. ✅ Deleted S3 bucket from Ourself account (`chla-provider-imports`)
+
+**Resources Removed from Ourself Account:**
+- Elastic Beanstalk environment: `chla-api-env` (Terminated)
+- Elastic Beanstalk application: `chla-api` (Deleted)
+- EC2 instance: `i-00412e415fbef6c34` (Terminated)
+- S3 bucket: `chla-provider-imports` (Deleted)
+
+---
+
+## ⚠️ Important Notes
+
+1. **Always use `--profile personal`** when running AWS CLI commands for CHLA
+2. **Database** is already on personal account - was NOT migrated (always there)
+3. **DNS** (kinddhelp.com) is managed in personal account Route53
+4. **Instance Type**: t3.small is required for Docker platform
+5. **Platform**: Must use Docker on Amazon Linux 2023, NOT Python
+
+---
+
+## 📞 Quick Reference
+
+| What | Command |
+|------|---------|
+| Check API | `curl https://api.kinddhelp.com/` |
+| Check EB health | `aws elasticbeanstalk describe-environment-health --environment-name chla-api-docker2 --attribute-names All --profile personal --region us-west-2` |
+| View logs | `eb logs chla-api-docker2 --profile personal --region us-west-2` |
+| SSH to instance | `eb ssh chla-api-docker2 --profile personal --region us-west-2` |
+| Restart app | `aws elasticbeanstalk restart-app-server --environment-name chla-api-docker2 --profile personal --region us-west-2` |

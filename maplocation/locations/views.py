@@ -231,21 +231,26 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
         """
         # Build cache key from query parameters
         import hashlib
-        query_str = "&".join(sorted(f"{k}={v}" for k, v in request.query_params.items()))
-        cache_key = f"regional_centers_list_{hashlib.md5(query_str.encode()).hexdigest()}"
-        
+
+        query_str = "&".join(
+            sorted(f"{k}={v}" for k, v in request.query_params.items())
+        )
+        cache_key = (
+            f"regional_centers_list_{hashlib.md5(query_str.encode()).hexdigest()}"
+        )
+
         # Check cache first
         cached_data = cache.get(cache_key)
         if cached_data is not None:
             return Response(cached_data)
-        
+
         # Get the response from parent class
         response = super().list(request, *args, **kwargs)
-        
+
         # Cache for 1 hour
-        cache_timeout = getattr(settings, 'CACHE_TIMEOUT_REGIONAL_CENTERS', 3600)
+        cache_timeout = getattr(settings, "CACHE_TIMEOUT_REGIONAL_CENTERS", 3600)
         cache.set(cache_key, response.data, cache_timeout)
-        
+
         return response
 
     @action(detail=False, methods=["get"])
@@ -543,7 +548,7 @@ class RegionalCenterViewSet(viewsets.ReadOnlyModelViewSet):
             geojson = {"type": "FeatureCollection", "features": features}
 
             # Cache for 1 hour
-            cache_timeout = getattr(settings, 'CACHE_TIMEOUT_SERVICE_AREAS', 3600)
+            cache_timeout = getattr(settings, "CACHE_TIMEOUT_SERVICE_AREAS", 3600)
             cache.set(cache_key, geojson, cache_timeout)
 
             return Response(geojson)
@@ -706,23 +711,25 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
         Cached for 5 minutes.
         """
         import hashlib
-        
+
         # Build cache key from query parameters
-        query_str = "&".join(sorted(f"{k}={v}" for k, v in request.query_params.items()))
+        query_str = "&".join(
+            sorted(f"{k}={v}" for k, v in request.query_params.items())
+        )
         cache_key = f"providers_v2_list_{hashlib.md5(query_str.encode()).hexdigest()}"
-        
+
         # Check cache first
         cached_data = cache.get(cache_key)
         if cached_data is not None:
             return Response(cached_data)
-        
+
         # Get the response from parent class
         response = super().list(request, *args, **kwargs)
-        
+
         # Cache for 5 minutes
-        cache_timeout = getattr(settings, 'CACHE_TIMEOUT_PROVIDERS', 300)
+        cache_timeout = getattr(settings, "CACHE_TIMEOUT_PROVIDERS", 300)
         cache.set(cache_key, response.data, cache_timeout)
-        
+
         return response
 
     @action(detail=False, methods=["get"])
@@ -1157,9 +1164,11 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             import hashlib
 
             # Build cache key from query parameters
-            query_str = "&".join(sorted(f"{k}={v}" for k, v in request.query_params.items()))
+            query_str = "&".join(
+                sorted(f"{k}={v}" for k, v in request.query_params.items())
+            )
             cache_key = f"providers_by_rc_{hashlib.md5(query_str.encode()).hexdigest()}"
-            
+
             # Check cache first
             cached_data = cache.get(cache_key)
             if cached_data is not None:
@@ -1196,10 +1205,14 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             filtered_provider_ids = []
 
             # Get all providers and filter by ZIP code match
-            for provider in ProviderV2.objects.only('id', 'address'):
-                address_str = provider.address if isinstance(provider.address, str) else str(provider.address)
+            for provider in ProviderV2.objects.only("id", "address"):
+                address_str = (
+                    provider.address
+                    if isinstance(provider.address, str)
+                    else str(provider.address)
+                )
                 # Look for 5-digit ZIP codes in the address
-                zip_matches = re.findall(r'\d{5}', address_str)
+                zip_matches = re.findall(r"\d{5}", address_str)
                 # Check if any ZIP matches the regional center's ZIPs
                 if any(z in rc_zip_set for z in zip_matches):
                     filtered_provider_ids.append(provider.id)
@@ -1293,7 +1306,7 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             }
 
             # Cache for 1 minute (search results may change more frequently)
-            cache_timeout = getattr(settings, 'CACHE_TIMEOUT_PROVIDER_SEARCH', 60)
+            cache_timeout = getattr(settings, "CACHE_TIMEOUT_PROVIDER_SEARCH", 60)
             cache.set(cache_key, response_data, cache_timeout)
 
             return Response(response_data)

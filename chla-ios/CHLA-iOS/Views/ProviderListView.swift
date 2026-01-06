@@ -20,6 +20,7 @@ struct ProviderListView: View {
     @State private var searchScope: SearchScope = .all
     @State private var searchSuggestions: [String] = []
     @State private var lastDragValue: CGFloat = 0
+    @State private var selectedProvider: Provider?
 
     enum SortOption: String, CaseIterable {
         case distance = "Distance"
@@ -156,6 +157,12 @@ struct ProviderListView: View {
                 }
                 .presentationDetents([.medium, .large])
             }
+            .sheet(item: $selectedProvider) { provider in
+                ProviderDetailView(provider: provider)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .presentationCornerRadius(20)
+            }
             .refreshable {
                 await refreshProviders()
             }
@@ -171,6 +178,27 @@ struct ProviderListView: View {
                 // Toggle sort option
                 withAnimation {
                     sortOption = sortOption == .distance ? .name : .distance
+                }
+            }
+            // Reload when therapy filters change (e.g., from HomeView)
+            .onChange(of: appState.searchFilters.therapyTypes) { _, newTypes in
+                if !newTypes.isEmpty {
+                    // Set the search scope based on the therapy type
+                    if let therapy = newTypes.first {
+                        switch therapy.lowercased() {
+                        case let t where t.contains("aba"):
+                            searchScope = .abaTherapy
+                        case let t where t.contains("speech"):
+                            searchScope = .speechTherapy
+                        case let t where t.contains("occupational"):
+                            searchScope = .occupationalTherapy
+                        case let t where t.contains("physical"):
+                            searchScope = .physicalTherapy
+                        default:
+                            searchScope = .all
+                        }
+                    }
+                    Task { await refreshProviders() }
                 }
             }
         }
@@ -235,11 +263,12 @@ struct ProviderListView: View {
             resultsHeader
 
             List(filteredProviders) { provider in
-                NavigationLink {
-                    ProviderDetailView(provider: provider)
+                Button {
+                    selectedProvider = provider
                 } label: {
                     ProviderCardView(provider: provider)
                 }
+                .buttonStyle(.plain)
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 .listRowSeparator(.hidden)
             }
@@ -265,26 +294,88 @@ struct ProviderListView: View {
     }
 
     private var resultsHeader: some View {
-        HStack {
-            Text("\(filteredProviders.count) resource\(filteredProviders.count == 1 ? "" : "s") found")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        VStack(spacing: 8) {
+            HStack {
+                Text("\(filteredProviders.count) resource\(filteredProviders.count == 1 ? "" : "s") found")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
 
-            Spacer()
+                Spacer()
 
-            if !searchText.isEmpty {
-                Button {
-                    searchText = ""
-                } label: {
-                    Text("Clear search")
-                        .font(.caption)
-                        .foregroundColor(.accentBlue)
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Text("Clear search")
+                            .font(.caption)
+                            .foregroundColor(.accentBlue)
+                    }
+                }
+            }
+
+            // Active filter chips
+            if !appState.searchFilters.therapyTypes.isEmpty || searchScope != .all {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        // Show therapy type filter chips
+                        ForEach(appState.searchFilters.therapyTypes, id: \.self) { therapy in
+                            ActiveFilterChip(
+                                text: shortTherapyDisplayName(therapy),
+                                color: therapyColor(therapy)
+                            ) {
+                                // Remove this filter
+                                withAnimation {
+                                    appState.searchFilters.therapyTypes.removeAll { $0 == therapy }
+                                    if appState.searchFilters.therapyTypes.isEmpty {
+                                        searchScope = .all
+                                    }
+                                    Task { await refreshProviders() }
+                                }
+                            }
+                        }
+
+                        // Clear all button
+                        if !appState.searchFilters.therapyTypes.isEmpty {
+                            Button {
+                                withAnimation {
+                                    appState.searchFilters.therapyTypes = []
+                                    searchScope = .all
+                                    Task { await refreshProviders() }
+                                }
+                            } label: {
+                                Text("Clear All")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
                 }
             }
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(Color(.systemGroupedBackground))
+    }
+
+    private func shortTherapyDisplayName(_ therapy: String) -> String {
+        switch therapy.lowercased() {
+        case let t where t.contains("aba"): return "ABA"
+        case let t where t.contains("speech"): return "Speech"
+        case let t where t.contains("occupational"): return "OT"
+        case let t where t.contains("physical"): return "PT"
+        case let t where t.contains("feeding"): return "Feeding"
+        default: return therapy
+        }
+    }
+
+    private func therapyColor(_ therapy: String) -> Color {
+        switch therapy.lowercased() {
+        case let t where t.contains("aba"): return Color(hex: "6366F1")
+        case let t where t.contains("speech"): return Color(hex: "EC4899")
+        case let t where t.contains("occupational"): return Color(hex: "10B981")
+        case let t where t.contains("physical"): return Color(hex: "F59E0B")
+        default: return .accentBlue
+        }
     }
 
     // MARK: - Methods
@@ -325,7 +416,7 @@ struct ProviderCardView: View {
                         .foregroundColor(.primary)
                         .lineLimit(2)
 
-                    if let type = provider.type, !type.isEmpty {
+                    if let type = provider.displayType, !type.isEmpty {
                         Text(type)
                             .font(.caption)
                             .fontWeight(.medium)
@@ -460,6 +551,35 @@ struct ProviderCardView: View {
     }
 }
 
+// MARK: - Active Filter Chip
+
+struct ActiveFilterChip: View {
+    let text: String
+    let color: Color
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(text)
+                .font(.caption)
+                .fontWeight(.semibold)
+
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.caption)
+            }
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(color)
+        )
+        .shadow(color: color.opacity(0.3), radius: 4, y: 2)
+    }
+}
+
 // MARK: - Service Tag (Glass Style)
 
 struct ServiceTag: View {
@@ -495,7 +615,7 @@ struct ProviderRowView: View {
                         .font(.headline)
                         .lineLimit(2)
 
-                    if let type = provider.type, !type.isEmpty {
+                    if let type = provider.displayType, !type.isEmpty {
                         Text(type)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)

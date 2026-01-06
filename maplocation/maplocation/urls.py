@@ -33,6 +33,7 @@ urlpatterns = [
     path("client-portal/", admin.site.urls),
     path("api/", include("locations.urls")),
     path("api/users/", include("users.urls")),
+    path("api/llm/", include("llm.urls")),  # LLM/Bedrock endpoints
     path("api-auth/", include("rest_framework.urls")),
     path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
     path(

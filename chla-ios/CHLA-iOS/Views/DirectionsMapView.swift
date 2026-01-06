@@ -15,7 +15,9 @@ struct DirectionsMapView: View {
     let destinationAddress: String
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @StateObject private var viewModel: DirectionsViewModel
+    @State private var showExternalMapsSheet = false
 
     init(destinationName: String, destinationCoordinate: CLLocationCoordinate2D, destinationAddress: String) {
         self.destinationName = destinationName
@@ -48,6 +50,7 @@ struct DirectionsMapView: View {
             }
             .navigationTitle("Directions")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Done") { dismiss() }
@@ -227,9 +230,9 @@ struct DirectionsMapView: View {
                 Spacer()
 
                 Button {
-                    viewModel.zoomToOverview()
+                    showExternalMapsSheet = true
                 } label: {
-                    Image(systemName: "map")
+                    Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
                         .font(.title2)
                 }
                 .buttonStyle(.bordered)
@@ -239,6 +242,65 @@ struct DirectionsMapView: View {
         .background(.regularMaterial)
         .cornerRadius(16)
         .padding()
+        .confirmationDialog("Open in Maps", isPresented: $showExternalMapsSheet, titleVisibility: .visible) {
+            Button("Apple Maps") {
+                openInAppleMaps()
+            }
+            Button("Google Maps") {
+                openInGoogleMaps()
+            }
+            Button("Waze") {
+                openInWaze()
+            }
+            Button("Copy Address") {
+                UIPasteboard.general.string = destinationAddress
+                let impact = UIImpactFeedbackGenerator(style: .medium)
+                impact.impactOccurred()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Get directions to \(destinationName)")
+        }
+    }
+
+    // MARK: - External Maps
+
+    private func openInAppleMaps() {
+        let destination = MKMapItem(placemark: MKPlacemark(coordinate: destinationCoordinate))
+        destination.name = destinationName
+        destination.openInMaps(launchOptions: [
+            MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
+        ])
+    }
+
+    private func openInGoogleMaps() {
+        let lat = destinationCoordinate.latitude
+        let lng = destinationCoordinate.longitude
+        let urlString = "comgooglemaps://?daddr=\(lat),\(lng)&directionsmode=driving"
+        if let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
+            openURL(url)
+        } else {
+            // Fallback to web
+            let webURL = "https://www.google.com/maps/dir/?api=1&destination=\(lat),\(lng)"
+            if let url = URL(string: webURL) {
+                openURL(url)
+            }
+        }
+    }
+
+    private func openInWaze() {
+        let lat = destinationCoordinate.latitude
+        let lng = destinationCoordinate.longitude
+        let urlString = "waze://?ll=\(lat),\(lng)&navigate=yes"
+        if let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
+            openURL(url)
+        } else {
+            // Fallback to web
+            let webURL = "https://waze.com/ul?ll=\(lat),\(lng)&navigate=yes"
+            if let url = URL(string: webURL) {
+                openURL(url)
+            }
+        }
     }
 
     // MARK: - Steps List Sheet

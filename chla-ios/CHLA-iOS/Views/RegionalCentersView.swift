@@ -123,6 +123,12 @@ struct RegionalCentersView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
+        .onChange(of: selectedCenter) { _, newValue in
+            // Show UI when sheet closes
+            if newValue == nil {
+                UIVisibilityManager.shared.showUI()
+            }
+        }
         .onAppear {
             locationManager.requestLocation()
         }
@@ -339,23 +345,33 @@ struct RegionalCenterDetailSheet: View {
                 .padding()
             }
         }
-        .navigationTitle(center.shortName)
+        .background(Color(.systemBackground))
+        .ignoresSafeArea(edges: [.horizontal, .top])
         .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    ShareLink(
-                        item: "Check out \(center.name) - \(center.website)",
-                        subject: Text(center.name),
-                        message: Text("Learn about \(center.shortName) on NDD Resources")
-                    ) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(center.shortName)
+                    .font(.headline)
+                    .foregroundColor(.white)
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Done") { dismiss() }
+                    .foregroundColor(.white)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                ShareLink(
+                    item: "Check out \(center.name) - \(center.website)",
+                    subject: Text(center.name),
+                    message: Text("Learn about \(center.shortName) on NDD Resources")
+                ) {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundColor(.white)
                 }
             }
         }
+        }
+        .tint(.white)
         .sheet(isPresented: $showFullMap) {
             FullMapView(
                 title: center.name,
@@ -375,13 +391,13 @@ struct RegionalCenterDetailSheet: View {
     // MARK: - Hero Section
     private var heroSection: some View {
         ZStack(alignment: .bottomLeading) {
-            // Gradient background
+            // Gradient background - extends to all edges
             LinearGradient(
-                colors: [centerColor, centerColor.opacity(0.7)],
+                colors: [centerColor.opacity(0.9), centerColor.opacity(0.5)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 160)
+            .ignoresSafeArea(edges: .horizontal)
 
             // Content
             VStack(alignment: .leading, spacing: 12) {
@@ -407,6 +423,8 @@ struct RegionalCenterDetailSheet: View {
             .padding()
             .padding(.bottom, 8)
         }
+        .frame(height: 160)
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Stats Section
@@ -1022,16 +1040,7 @@ struct OtherCenterCard: View {
     let center: RegionalCenterMatcher.RegionalCenterInfo
 
     private var cardColor: Color {
-        switch center.color {
-        case "orange": return .orange
-        case "blue": return .blue
-        case "purple": return .purple
-        case "green": return .green
-        case "teal": return .teal
-        case "red": return .red
-        case "indigo": return .indigo
-        default: return .accentBlue
-        }
+        center.uiColor
     }
 
     var body: some View {

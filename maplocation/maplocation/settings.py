@@ -274,3 +274,16 @@ CACHE_TIMEOUT_REGIONAL_CENTERS = 3600  # 1 hour - rarely changes
 CACHE_TIMEOUT_SERVICE_AREAS = 3600  # 1 hour - rarely changes
 CACHE_TIMEOUT_PROVIDERS = 300  # 5 minutes - may change more often
 CACHE_TIMEOUT_PROVIDER_SEARCH = 60  # 1 minute - search results
+
+# ============================================================================
+# AWS Configuration
+# ============================================================================
+AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
+
+# Bedrock model IDs
+BEDROCK_EMBEDDING_MODEL = "amazon.titan-embed-text-v2:0"
+BEDROCK_CHAT_MODEL = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+
+# LLM settings
+LLM_MAX_TOKENS = 1500
+LLM_TEMPERATURE = 0.3

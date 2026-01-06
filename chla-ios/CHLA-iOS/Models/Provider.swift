@@ -109,6 +109,20 @@ struct Provider: Codable, Identifiable, Equatable, Hashable {
         }
     }
 
+    /// Display-friendly type that replaces "Service Provider" with "Resource"
+    var displayType: String? {
+        guard let type = type, !type.isEmpty else { return nil }
+        // Replace various "Service Provider" patterns with "Resource"
+        var cleanType = type
+        cleanType = cleanType.replacingOccurrences(of: "Service Provider", with: "Resource")
+        cleanType = cleanType.replacingOccurrences(of: "service provider", with: "Resource")
+        cleanType = cleanType.replacingOccurrences(of: "Provider", with: "Resource")
+        cleanType = cleanType.replacingOccurrences(of: "provider", with: "Resource")
+        // Avoid "Resource Resource" if it happens
+        cleanType = cleanType.replacingOccurrences(of: "Resource Resource", with: "Resource")
+        return cleanType.trimmingCharacters(in: .whitespaces)
+    }
+
     var servicesFormatted: String {
         var services: [String] = []
         if let types = therapyTypes, !types.isEmpty {

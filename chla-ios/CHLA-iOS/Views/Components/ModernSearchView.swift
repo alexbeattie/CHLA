@@ -514,7 +514,7 @@ struct ProviderResultRow: View {
                         .font(.headline)
                         .lineLimit(2)
 
-                    if let type = provider.type {
+                    if let type = provider.displayType {
                         Text(type)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)

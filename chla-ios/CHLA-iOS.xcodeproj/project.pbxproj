@@ -32,6 +32,7 @@
 		C898C110F2BE59F7FAE60387 /* RegionalCentersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44774A304C1AEFF050E91B8E /* RegionalCentersView.swift */; };
 		D021626D7868639BF75E7DED /* RegionalCenterMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */; };
 		E34FB2F1D1B6549488E397CD /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1E575CEBC73792782D8E0A /* AboutView.swift */; };
+		E456789012345HOMEVIEWBLD /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A123456789HOMEVIEWREF /* HomeView.swift */; };
 		E578BECE1D55AB54BFCAB764 /* CHLA_iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB8D52AF87D4A250BF8B28B3 /* CHLA_iOSApp.swift */; };
 		EBA84EB20ACAE5C15E1646E2 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814A77FB55507E652FC3F4E8 /* Provider.swift */; };
 /* End PBXBuildFile section */
@@ -50,6 +51,7 @@
 		799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
 		7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
+		A123456789HOMEVIEWREF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		814A77FB55507E652FC3F4E8 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDetailView.swift; sourceTree = "<group>"; };
 		9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterMatcher.swift; sourceTree = "<group>"; };
@@ -130,6 +132,7 @@
 				49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */,
 				3E1CAAF9621905B2CA8C4526 /* FAQView.swift */,
 				D8FA95361CB09C477DD471BB /* FullMapView.swift */,
+				A123456789HOMEVIEWREF /* HomeView.swift */,
 				BD3B6AD2B4FB09E5225CA384 /* MapContainerView.swift */,
 				799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */,
 				8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */,
@@ -272,6 +275,7 @@
 				8655A013D36520C7E627B87C /* FAQView.swift in Sources */,
 				7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */,
 				04BC3A23DAB7D2BC4099B14B /* FullMapView.swift in Sources */,
+				E456789012345HOMEVIEWBLD /* HomeView.swift in Sources */,
 				9133652FAD1A98671B50825E /* LocationService.swift in Sources */,
 				400B622708BD81DA6D9E3444 /* MapContainerView.swift in Sources */,
 				100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */,
@@ -300,6 +304,8 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = LR4SP9C264;
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -308,7 +314,11 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map;
 				PRODUCT_NAME = "NDD Resource Map";
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -350,7 +360,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -365,7 +375,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "NDD Resource Map";
+				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NDD Resource Map uses your location to find healthcare providers near you.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -374,7 +384,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -423,7 +433,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -444,7 +454,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "NDD Resource Map";
+				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NDD Resource Map uses your location to find healthcare providers near you.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -453,7 +463,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -472,6 +482,8 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = LR4SP9C264;
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -480,7 +492,11 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map;
 				PRODUCT_NAME = "NDD Resource Map";
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

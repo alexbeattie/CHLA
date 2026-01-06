@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KiNDD Resources - Presentation Slide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .slide {
+            width: 1920px;
+            height: 1080px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 50px 80px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Background decoration */
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .slide::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .logo {
+            height: 70px;
+            width: auto;
+        }
+
+        .app-badge {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .app-store-badge {
+            height: 50px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .app-store-badge:hover {
+            transform: scale(1.05);
+        }
+
+        /* Main content */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Screenshots section */
+        .screenshots {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .phone-frame {
+            background: #f8fafc;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .phone-frame:hover {
+            transform: translateY(-10px);
+        }
+
+        .phone-frame.main {
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .phone-frame.main:hover {
+            transform: scale(1.05) translateY(-10px);
+        }
+
+        .phone-frame img {
+            width: 200px;
+            height: auto;
+            border-radius: 32px;
+            display: block;
+        }
+
+        .phone-frame.main img {
+            width: 230px;
+        }
+
+        .phone-label {
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+
+        /* Features section */
+        .features {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .tagline {
+            font-size: 34px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+            margin-bottom: 10px;
+        }
+
+        .tagline span {
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .feature {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .feature-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .feature-text h3 {
+            color: #0f172a;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .feature-text p {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Download CTA */
+        .download-cta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .download-cta img {
+            height: 50px;
+            width: auto;
+        }
+
+        .download-text {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            position: absolute;
+            bottom: 50px;
+            left: 80px;
+            right: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            z-index: 1;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .stat-value span {
+            color: #0ea5e9;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .divider {
+            width: 1px;
+            height: 50px;
+            background: #e2e8f0;
+        }
+
+        /* Regional center colors */
+        .rc-colors {
+            display: flex;
+            gap: 6px;
+            margin-top: 16px;
+        }
+
+        .rc-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Apple branding */
+        .apple-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .platform-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #0f172a;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .platform-badge svg {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                <img src="kindd-logo.png" alt="KiNDD" class="logo">
+            </div>
+            <div class="apple-section">
+                <div class="platform-badge">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                    Available on iOS
+                </div>
+                <!-- App Store Badge -->
+                <a href="https://apps.apple.com" target="_blank">
+                    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" class="app-store-badge">
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Screenshots -->
+            <div class="screenshots">
+                <div class="phone-frame">
+                    <img src="../screenshots/appstore/regional-center-map.png" alt="Regional Centers Map">
+                    <div class="phone-label">Regional Centers</div>
+                </div>
+                <div class="phone-frame main">
+                    <img src="../screenshots/appstore/map.png" alt="Provider Map">
+                    <div class="phone-label">Resource Map</div>
+                </div>
+                <div class="phone-frame">
+                    <img src="../screenshots/appstore/resource-list.png" alt="Resources List">
+                    <div class="phone-label">Resources</div>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="features">
+                <div class="tagline">
+                    Connecting families to<br>
+                    <span>developmental disability resources</span><br>
+                    across LA County
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature">
+                        <div class="feature-icon">📍</div>
+                        <div class="feature-text">
+                            <h3>Interactive Map</h3>
+                            <p>Find resources near you with real-time location</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🏥</div>
+                        <div class="feature-text">
+                            <h3>7 Regional Centers</h3>
+                            <p>Complete coverage of LA County service areas</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🔍</div>
+                        <div class="feature-text">
+                            <h3>Smart Search</h3>
+                            <p>Filter by service type, location, or ZIP code</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🧭</div>
+                        <div class="feature-text">
+                            <h3>Turn-by-Turn</h3>
+                            <p>Get directions to any provider instantly</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rc-colors">
+                    <div class="rc-dot" style="background: #E53935;"></div>
+                    <div class="rc-dot" style="background: #8E24AA;"></div>
+                    <div class="rc-dot" style="background: #3949AB;"></div>
+                    <div class="rc-dot" style="background: #00897B;"></div>
+                    <div class="rc-dot" style="background: #F9A825;"></div>
+                    <div class="rc-dot" style="background: #6D4C41;"></div>
+                    <div class="rc-dot" style="background: #546E7A;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-value"><span>370+</span></div>
+                <div class="stat-label">Verified Resources</div>
+            </div>
+            <div class="divider"></div>
+            <div class="stat">
+                <div class="stat-value"><span>7</span></div>
+                <div class="stat-label">Regional Centers</div>
+            </div>
+            <div class="divider"></div>
+            <div class="stat">
+                <div class="stat-value"><span>Free</span></div>
+                <div class="stat-label">No Cost to Families</div>
+            </div>
+            <div class="divider"></div>
+            <div class="stat">
+                <div class="stat-value">
+                    <svg viewBox="0 0 24 24" fill="#0f172a" width="32" height="32" style="display: inline-block; vertical-align: middle;">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                </div>
+                <div class="stat-label">Native iOS App</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

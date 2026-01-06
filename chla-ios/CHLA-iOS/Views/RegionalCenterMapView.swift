@@ -11,7 +11,7 @@ import MapKit
 struct RegionalCenterMapView: View {
     @StateObject private var viewModel = RegionalCenterMapViewModel()
     @StateObject private var locationService = LocationService()
-    @EnvironmentObject var visibilityManager: UIVisibilityManager
+    @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     // Centered on LA County with appropriate zoom
     @State private var cameraPosition: MapCameraPosition = .region(MKCoordinateRegion(
@@ -270,6 +270,7 @@ struct RegionalCenterInfoSheet: View {
             }
             .navigationTitle("Regional Center")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }

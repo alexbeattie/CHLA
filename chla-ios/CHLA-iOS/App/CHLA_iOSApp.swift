@@ -50,14 +50,24 @@ class AppState: ObservableObject {
         selectedTab = tab
     }
 
-    /// Navigate to map tab (Resources)
-    func navigateToMap() {
+    /// Navigate to home tab
+    func navigateToHome() {
         selectedTab = 0
+    }
+
+    /// Navigate to map tab
+    func navigateToMap() {
+        selectedTab = 1
     }
 
     /// Navigate to regions tab
     func navigateToRegions() {
-        selectedTab = 1
+        selectedTab = 2
+    }
+
+    /// Navigate to browse/list tab
+    func navigateToBrowse() {
+        selectedTab = 3
     }
 }
 

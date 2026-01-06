@@ -90,6 +90,7 @@ struct FullMapView: View {
             }
             .navigationTitle("Location")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {

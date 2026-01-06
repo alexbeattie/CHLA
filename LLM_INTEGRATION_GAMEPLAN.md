@@ -1,6 +1,7 @@
 # KiNDD LLM Integration Game Plan
 
 ## Vision
+
 Transform KiNDD from a static provider directory into an **intelligent navigator** that understands eligibility, synthesizes across systems, and reduces the cognitive load on families navigating neurodevelopmental services.
 
 ---
@@ -813,17 +814,20 @@ def generate_iep_request(user_context: dict) -> str:
 ## Implementation Priority
 
 ### Must Have (MVP)
+
 1. ✅ Existing provider database with PostGIS
 2. Add embeddings to providers (pgvector)
 3. Basic `/llm/ask/` endpoint
 4. Simple chat UI in iOS app
 
 ### Should Have
+
 5. Scraper framework for 2-3 Regional Centers
 6. User context integration (age, insurance, location)
 7. Staleness tracking and alerts
 
 ### Nice to Have
+
 8. Provider self-service portal
 9. Document generation
 10. Eligibility reasoning engine
@@ -834,11 +838,13 @@ def generate_iep_request(user_context: dict) -> str:
 ## Cost Estimates
 
 ### API Costs (Monthly)
+
 - Embeddings: ~$5-10 (one-time for 370 providers, minimal ongoing)
 - GPT-4o queries: ~$50-100 (assuming 1000 queries/month)
 - Total: **~$50-100/month**
 
 ### Infrastructure
+
 - RDS (current db.t4g.small): $25/month
 - pgvector: Included in PostgreSQL
 - Celery + Redis (for scrapers): ~$15/month if needed

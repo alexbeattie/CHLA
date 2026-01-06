@@ -315,7 +315,9 @@ struct OnboardingView: View {
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 32)
+                    .frame(maxWidth: 400)
             }
 
             Spacer()
@@ -338,6 +340,9 @@ struct OnboardingView: View {
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 24)
+                .frame(maxWidth: 400)
 
             VStack(spacing: 12) {
                 ForEach(SearchFilters.ageGroups, id: \.self) { age in

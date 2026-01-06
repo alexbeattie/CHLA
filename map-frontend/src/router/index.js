@@ -4,6 +4,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import MapView from '../views/MapView.vue'
 import FaqView from '../views/FaqView.vue'
 import AboutView from '../views/AboutView.vue'
+import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
+import TermsOfServiceView from '../views/TermsOfServiceView.vue'
 import RegionalCentersIndexView from '../views/RegionalCentersIndexView.vue'
 import RegionalCenterView from '../views/RegionalCenterView.vue'
 import ProviderManagement from '../components/ProviderManagement.vue'
@@ -27,6 +29,16 @@ const routes = [
     path: '/about',
     name: 'about',
     component: AboutView
+  },
+  {
+    path: '/privacy',
+    name: 'privacy',
+    component: PrivacyPolicyView
+  },
+  {
+    path: '/terms',
+    name: 'terms',
+    component: TermsOfServiceView
   },
   {
     path: '/regional-centers',
@@ -67,7 +79,7 @@ const router = createRouter({
 // Navigation guards
 router.beforeEach((to, from, next) => {
   const isAuthenticated = authService.isAuthenticated();
-  
+
   if (to.meta.requiresAuth && !isAuthenticated) {
     // Redirect to login with return URL
     next({
