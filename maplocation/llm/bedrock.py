@@ -142,7 +142,7 @@ USER QUESTION: {user_message}"""
 
     # Call Claude via Bedrock
     response = client.invoke_model(
-        modelId="anthropic.claude-3-5-haiku-20241022-v1:0",  # Claude 3.5 Haiku (on-demand)
+        modelId="anthropic.claude-3-haiku-20240307-v1:0",  # Claude 3 Haiku
         contentType="application/json",
         accept="application/json",
         body=json.dumps(
@@ -183,7 +183,7 @@ USER QUESTION: {user_message}"""
         full_message = user_message
 
     response = client.invoke_model_with_response_stream(
-        modelId="anthropic.claude-3-5-haiku-20241022-v1:0",  # Claude 3.5 Haiku (on-demand)
+        modelId="anthropic.claude-3-haiku-20240307-v1:0",  # Claude 3 Haiku
         contentType="application/json",
         accept="application/json",
         body=json.dumps(
