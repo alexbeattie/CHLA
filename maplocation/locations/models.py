@@ -474,9 +474,9 @@ class ProviderV2(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Vector embedding for semantic search (pgvector)
-    # 1024 dimensions for Amazon Titan Embeddings V2
-    embedding = VectorField(dimensions=1024, null=True, blank=True)
+    # Vector embedding for semantic search (pgvector) - disabled for production
+    # Uncomment when pgvector extension is installed on RDS
+    # embedding = VectorField(dimensions=1024, null=True, blank=True)
 
     class Meta:
         db_table = "providers_v2"
