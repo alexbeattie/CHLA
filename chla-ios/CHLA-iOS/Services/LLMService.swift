@@ -32,7 +32,7 @@ struct ChatMessage: Identifiable, Equatable {
 struct LLMResponse: Codable {
     let query: String
     let answer: String
-    let providersReferenced: [Int]?
+    let providersReferenced: [String]?  // UUIDs from backend
     let regionalCenter: String?
 
     enum CodingKeys: String, CodingKey {
@@ -115,9 +115,13 @@ class LLMService: ObservableObject {
             messages.removeAll { $0.isLoading }
             self.error = error.localizedDescription
 
+            // Debug: print the actual error and URL being used
+            print("🔴 LLM Error: \(error)")
+            print("🔴 URL: \(baseURL)/ask/")
+
             let errorMessage = ChatMessage(
                 role: .system,
-                content: "Sorry, I couldn't process your request. Please try again."
+                content: "Error: \(error.localizedDescription)\n\nURL: \(baseURL)"
             )
             messages.append(errorMessage)
         }
@@ -133,7 +137,10 @@ class LLMService: ObservableObject {
     // MARK: - Private Methods
 
     private func sendQuery(_ query: String, context: UserContext?) async throws -> LLMResponse {
-        guard let url = URL(string: "\(baseURL)/ask/") else {
+        let urlString = "\(baseURL)/ask/"
+        print("🟡 LLM Request to: \(urlString)")
+
+        guard let url = URL(string: urlString) else {
             throw LLMError.invalidURL
         }
 
