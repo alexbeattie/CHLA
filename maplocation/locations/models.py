@@ -2,10 +2,19 @@ from django.db import models
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.gis.measure import Distance
-from pgvector.django import VectorField
 from decimal import Decimal
 import math
 import uuid
+
+# Optional pgvector support - may not be available in all environments
+try:
+    from pgvector.django import VectorField
+
+    HAS_PGVECTOR = True
+except ImportError:
+    HAS_PGVECTOR = False
+    # Create a dummy VectorField that's just a TextField for compatibility
+    VectorField = lambda **kwargs: models.TextField(null=True, blank=True)
 
 
 class LocationCategory(models.Model):
