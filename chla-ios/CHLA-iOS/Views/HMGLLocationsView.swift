@@ -445,7 +445,7 @@ struct HMGLMapView: View {
                     .shadow(radius: 4)
                 }
             }
-            .padding(.bottom, 20)
+            .padding(.bottom, 100) // Above tab bar
         }
     }
 

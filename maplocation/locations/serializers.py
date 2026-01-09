@@ -533,20 +533,23 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
         return None
 
     def get_primary_phone_clean(self, obj):
-        """Extract clean primary phone number"""
-        import re
+        """Extract and format phone numbers - one per line"""
 
         # Try phone_list first
         if obj.phone_list and len(obj.phone_list) > 0:
-            return obj.phone_list[0]
+            return "\n".join(obj.phone_list)
 
-        # Try to extract first phone from phones field
+        # Parse the phones field which has format: "Label1 (xxx) xxx-xxxx, Label2 (xxx) xxx-xxxx"
         if obj.phones:
-            # Find phone numbers in format (xxx) xxx-xxxx or xxx-xxx-xxxx
-            match = re.search(r"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}", obj.phones)
-            if match:
-                return match.group()
-            return obj.phones[:50]  # Truncate if no pattern found
+            # Split by comma, keeping label with each phone
+            parts = []
+            for part in obj.phones.split(","):
+                part = part.strip()
+                if part:
+                    parts.append(part)
+            if parts:
+                return "\n".join(parts)
+
         return None
 
 
