@@ -18,6 +18,8 @@
 		400B622708BD81DA6D9E3444 /* MapContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3B6AD2B4FB09E5225CA384 /* MapContainerView.swift */; };
 		4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */; };
 		5D76754352E7C07BA12CA586 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */; };
+		783B182E2F118618008C41F0 /* HMGLLocationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B182D2F118618008C41F0 /* HMGLLocationsView.swift */; };
+		783B18302F118647008C41F0 /* HMGLLocationStore 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B182F2F118647008C41F0 /* HMGLLocationStore 2.swift */; };
 		7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306D53C14B3C1FAEC3E125CB /* Formatters.swift */; };
 		7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */; };
 		8655A013D36520C7E627B87C /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1CAAF9621905B2CA8C4526 /* FAQView.swift */; };
@@ -50,13 +52,15 @@
 		44774A304C1AEFF050E91B8E /* RegionalCentersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCentersView.swift; sourceTree = "<group>"; };
 		49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectionsMapView.swift; sourceTree = "<group>"; };
 		5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		783B182D2F118618008C41F0 /* HMGLLocationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMGLLocationsView.swift; sourceTree = "<group>"; };
+		783B182F2F118647008C41F0 /* HMGLLocationStore 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HMGLLocationStore 2.swift"; sourceTree = "<group>"; };
 		799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
 		7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
-		A123456789HOMEVIEWREF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		814A77FB55507E652FC3F4E8 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDetailView.swift; sourceTree = "<group>"; };
 		9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterMatcher.swift; sourceTree = "<group>"; };
+		A123456789HOMEVIEWREF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		AAB7E59A57007FC65E7BCE03 /* RegionalCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenter.swift; sourceTree = "<group>"; };
 		AF1E575CEBC73792782D8E0A /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		B31DBE152BC605E5607045F5 /* RegionalCenterStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterStore.swift; sourceTree = "<group>"; };
@@ -68,10 +72,10 @@
 		D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */ = {isa = PBXFileReference; lastKnownFileType = text; path = la_regional_centers.geojson; sourceTree = "<group>"; };
 		E6591C41B29B4E6F007C4177 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
-		F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
-		F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F1A2B3C4D5E6F708CHATREF /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
 		F2B3C4D5E6F70819LLMREF /* LLMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMService.swift; sourceTree = "<group>"; };
+		F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -133,6 +137,7 @@
 		69886AD91291C36A164EE5EB /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				783B182D2F118618008C41F0 /* HMGLLocationsView.swift */,
 				AF1E575CEBC73792782D8E0A /* AboutView.swift */,
 				F1A2B3C4D5E6F708CHATREF /* ChatView.swift */,
 				49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */,
@@ -164,6 +169,7 @@
 		B6CC92C3BBCC5142AB3C96B7 /* Stores */ = {
 			isa = PBXGroup;
 			children = (
+				783B182F2F118647008C41F0 /* HMGLLocationStore 2.swift */,
 				7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */,
 				B31DBE152BC605E5607045F5 /* RegionalCenterStore.swift */,
 			);
@@ -287,7 +293,9 @@
 				9133652FAD1A98671B50825E /* LocationService.swift in Sources */,
 				400B622708BD81DA6D9E3444 /* MapContainerView.swift in Sources */,
 				100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */,
+				783B18302F118647008C41F0 /* HMGLLocationStore 2.swift in Sources */,
 				0A1B2C3D4E5F6A7B8C9D0E1F /* ModernSearchView.swift in Sources */,
+				783B182E2F118618008C41F0 /* HMGLLocationsView.swift in Sources */,
 				4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */,
 				EBA84EB20ACAE5C15E1646E2 /* Provider.swift in Sources */,
 				8B442B44FD870077299FF3F9 /* ProviderDetailView.swift in Sources */,

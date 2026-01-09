@@ -241,20 +241,20 @@ actor APIService {
     }
 
     // MARK: - HMGL (Help Me Grow LA) Location Endpoints
-    
+
     /// Get all HMGL locations (paginated list view)
     func getHMGLLocations() async throws -> [HMGLLocation] {
         let url = URL(string: "\(baseURL)/hmgl-locations/")!
         let response: PaginatedResponse<HMGLLocation> = try await fetch(url: url)
         return response.results
     }
-    
+
     /// Get a single HMGL location by ID
     func getHMGLLocation(id: Int) async throws -> HMGLLocation {
         let url = URL(string: "\(baseURL)/hmgl-locations/\(id)/")!
         return try await fetch(url: url)
     }
-    
+
     /// Search HMGL locations near a location
     func getHMGLLocationsNearby(
         latitude: Double,
@@ -270,35 +270,35 @@ actor APIService {
         ]
         return try await fetch(url: components.url!)
     }
-    
+
     /// Get HMGL locations by city
     func getHMGLLocationsByCity(city: String) async throws -> HMGLLocationResponse {
         var components = URLComponents(string: "\(baseURL)/hmgl-locations/by_city/")!
         components.queryItems = [URLQueryItem(name: "city", value: city)]
         return try await fetch(url: components.url!)
     }
-    
+
     /// Get HMGL locations by ZIP code
     func getHMGLLocationsByZip(zip: String) async throws -> HMGLLocationResponse {
         var components = URLComponents(string: "\(baseURL)/hmgl-locations/by_zip/")!
         components.queryItems = [URLQueryItem(name: "zip", value: zip)]
         return try await fetch(url: components.url!)
     }
-    
+
     /// Search HMGL locations by program
     func getHMGLLocationsByProgram(program: String) async throws -> HMGLLocationResponse {
         var components = URLComponents(string: "\(baseURL)/hmgl-locations/by_program/")!
         components.queryItems = [URLQueryItem(name: "program", value: program)]
         return try await fetch(url: components.url!)
     }
-    
+
     /// Search HMGL locations by tag
     func getHMGLLocationsByTag(tag: String) async throws -> HMGLLocationResponse {
         var components = URLComponents(string: "\(baseURL)/hmgl-locations/by_tag/")!
         components.queryItems = [URLQueryItem(name: "tag", value: tag)]
         return try await fetch(url: components.url!)
     }
-    
+
     /// Get HMGL statistics
     func getHMGLStats() async throws -> HMGLStatsResponse {
         let url = URL(string: "\(baseURL)/hmgl-locations/stats/")!

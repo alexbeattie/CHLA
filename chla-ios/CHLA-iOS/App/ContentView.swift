@@ -885,7 +885,7 @@ struct MoreView: View {
                 } footer: {
                     Text("Browse locations from the Help Me Grow LA database")
                 }
-                
+
                 Section {
                     NavigationLink {
                         FAQView()

@@ -455,6 +455,10 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
     # Distance field (dynamically added for proximity searches)
     distance = serializers.SerializerMethodField()
 
+    # Cleaned fields
+    hours_clean = serializers.SerializerMethodField()
+    description_clean = serializers.SerializerMethodField()
+
     class Meta:
         model = HMGLLocation
         fields = [
@@ -462,8 +466,10 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
             "name",
             "phones",
             "hours",
+            "hours_clean",
             "email",
             "description_html",
+            "description_clean",
             "organization",
             "is_county",
             "operated_by_label",
@@ -495,6 +501,27 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
         if hasattr(obj, "calculated_distance") and obj.calculated_distance is not None:
             return round(float(obj.calculated_distance), 2)
         return obj.distance_miles
+
+    def get_hours_clean(self, obj):
+        """Strip HTML from hours field"""
+        import re
+
+        if obj.hours:
+            # Replace <br> with newline, strip other tags
+            clean = re.sub(r"<br\s*/?>", "\n", obj.hours)
+            clean = re.sub(r"<[^>]+>", "", clean)
+            return clean.strip()
+        return None
+
+    def get_description_clean(self, obj):
+        """Strip HTML from description field"""
+        import re
+
+        if obj.description_html:
+            clean = re.sub(r"<br\s*/?>", "\n", obj.description_html)
+            clean = re.sub(r"<[^>]+>", "", clean)
+            return clean.strip()
+        return None
 
 
 class HMGLLocationListSerializer(serializers.ModelSerializer):

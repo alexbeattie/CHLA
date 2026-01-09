@@ -294,23 +294,25 @@ struct HMGLLocation: Codable, Identifiable {
     let longitude: Double?
     let fullAddress: String?
     let primaryPhone: String?
-    let tags: [String]?
-    let programs: [String]?
-    
+    let tags: [HMGLTag]?
+    let programs: [HMGLProgram]?
+
     // Additional fields from detail view
     let phones: String?
     let hours: String?
+    let hoursClean: String?
     let email: String?
     let descriptionHtml: String?
+    let descriptionClean: String?
     let url: String?
     let imgurl: String?
     let phoneList: [String]?
     let hourList: [String]?
     let customAttributes: [String: AnyCodable]?
     let distance: Double?
-    
+
     var id: Int { locationId }
-    
+
     enum CodingKeys: String, CodingKey {
         case locationId = "location_id"
         case name, organization, city, state, zip
@@ -320,21 +322,82 @@ struct HMGLLocation: Codable, Identifiable {
         case tags, programs
         case phones, hours, email
         case descriptionHtml = "description_html"
+        case descriptionClean = "description_clean"
         case url, imgurl
         case phoneList = "phone_list"
         case hourList = "hour_list"
         case customAttributes = "custom_attributes"
         case distance
     }
-    
+
+    /// Clean hours display
+    var displayHours: String? {
+        hoursClean ?? hours
+    }
+
+    /// Clean description display
+    var displayDescription: String? {
+        descriptionClean ?? descriptionHtml
+    }
+
     /// Display name with fallback
     var displayName: String {
         name ?? organization ?? "Unknown Location"
     }
-    
+
     /// Formatted location string
     var locationString: String {
         [city, state].compactMap { $0 }.joined(separator: ", ")
+    }
+
+    /// Get tag names as strings
+    var tagNames: [String] {
+        tags?.compactMap { $0.tag1 } ?? []
+    }
+
+    /// Get program names as strings
+    var programNames: [String] {
+        programs?.compactMap { $0.name } ?? []
+    }
+}
+
+// MARK: - HMGL Tag
+struct HMGLTag: Codable {
+    let tag1: String?
+    let tagID: Int?
+    let imageURL: String?
+    let tagTypeID: Int?
+}
+
+// MARK: - HMGL Program
+struct HMGLProgram: Codable {
+    let name: String?
+    let programID: Int?
+    let description: String?
+
+    // Flexible decoding for various program formats
+    init(from decoder: Decoder) throws {
+        // Try object first
+        if let container = try? decoder.container(keyedBy: CodingKeys.self) {
+            name = try container.decodeIfPresent(String.self, forKey: .name)
+            programID = try container.decodeIfPresent(Int.self, forKey: .programID)
+            description = try container.decodeIfPresent(String.self, forKey: .description)
+        } else if let stringValue = try? decoder.singleValueContainer().decode(String.self) {
+            // It's just a string
+            name = stringValue
+            programID = nil
+            description = nil
+        } else {
+            name = nil
+            programID = nil
+            description = nil
+        }
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case programID = "program_id"
+        case description
     }
 }
 
@@ -343,7 +406,7 @@ struct HMGLLocationResponse: Codable {
     let count: Int
     let searchParams: HMGLSearchParams?
     let results: [HMGLLocation]
-    
+
     enum CodingKeys: String, CodingKey {
         case count
         case searchParams = "search_params"
@@ -355,7 +418,7 @@ struct HMGLSearchParams: Codable {
     let lat: Double?
     let lng: Double?
     let radiusMiles: Double?
-    
+
     enum CodingKeys: String, CodingKey {
         case lat, lng
         case radiusMiles = "radius_miles"
@@ -369,7 +432,7 @@ struct HMGLStatsResponse: Codable {
     let countyLocations: Int
     let topCities: [HMGLCityCount]
     let topOrganizations: [HMGLOrgCount]
-    
+
     enum CodingKeys: String, CodingKey {
         case totalLocations = "total_locations"
         case withCoordinates = "with_coordinates"
@@ -382,25 +445,25 @@ struct HMGLStatsResponse: Codable {
 struct HMGLCityCount: Codable, Identifiable {
     let city: String
     let count: Int
-    
+
     var id: String { city }
 }
 
 struct HMGLOrgCount: Codable, Identifiable {
     let organization: String
     let count: Int
-    
+
     var id: String { organization }
 }
 
 // MARK: - AnyCodable for flexible JSON
 struct AnyCodable: Codable {
     let value: Any
-    
+
     init(_ value: Any) {
         self.value = value
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let string = try? container.decode(String.self) {
@@ -419,7 +482,7 @@ struct AnyCodable: Codable {
             value = NSNull()
         }
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         if let string = value as? String {
