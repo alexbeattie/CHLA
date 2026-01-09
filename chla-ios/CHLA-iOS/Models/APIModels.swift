@@ -294,6 +294,7 @@ struct HMGLLocation: Codable, Identifiable {
     let longitude: Double?
     let fullAddress: String?
     let primaryPhone: String?
+    let primaryPhoneClean: String?
     let tags: [HMGLTag]?
     let programs: [HMGLProgram]?
 
@@ -319,8 +320,10 @@ struct HMGLLocation: Codable, Identifiable {
         case latitude, longitude
         case fullAddress = "full_address"
         case primaryPhone = "primary_phone"
+        case primaryPhoneClean = "primary_phone_clean"
         case tags, programs
         case phones, hours, email
+        case hoursClean = "hours_clean"
         case descriptionHtml = "description_html"
         case descriptionClean = "description_clean"
         case url, imgurl
@@ -338,6 +341,11 @@ struct HMGLLocation: Codable, Identifiable {
     /// Clean description display
     var displayDescription: String? {
         descriptionClean ?? descriptionHtml
+    }
+
+    /// Clean phone display
+    var displayPhone: String? {
+        primaryPhoneClean ?? primaryPhone
     }
 
     /// Display name with fallback

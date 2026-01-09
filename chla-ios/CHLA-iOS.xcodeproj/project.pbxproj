@@ -19,7 +19,7 @@
 		4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */; };
 		5D76754352E7C07BA12CA586 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */; };
 		783B182E2F118618008C41F0 /* HMGLLocationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B182D2F118618008C41F0 /* HMGLLocationsView.swift */; };
-		783B18302F118647008C41F0 /* HMGLLocationStore 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B182F2F118647008C41F0 /* HMGLLocationStore 2.swift */; };
+		783B18322F1189C3008C41F0 /* HMGLLocationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B18312F1189C3008C41F0 /* HMGLLocationStore.swift */; };
 		7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306D53C14B3C1FAEC3E125CB /* Formatters.swift */; };
 		7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */; };
 		8655A013D36520C7E627B87C /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1CAAF9621905B2CA8C4526 /* FAQView.swift */; };
@@ -53,7 +53,7 @@
 		49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectionsMapView.swift; sourceTree = "<group>"; };
 		5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		783B182D2F118618008C41F0 /* HMGLLocationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMGLLocationsView.swift; sourceTree = "<group>"; };
-		783B182F2F118647008C41F0 /* HMGLLocationStore 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HMGLLocationStore 2.swift"; sourceTree = "<group>"; };
+		783B18312F1189C3008C41F0 /* HMGLLocationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMGLLocationStore.swift; sourceTree = "<group>"; };
 		799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
 		7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
@@ -169,7 +169,7 @@
 		B6CC92C3BBCC5142AB3C96B7 /* Stores */ = {
 			isa = PBXGroup;
 			children = (
-				783B182F2F118647008C41F0 /* HMGLLocationStore 2.swift */,
+				783B18312F1189C3008C41F0 /* HMGLLocationStore.swift */,
 				7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */,
 				B31DBE152BC605E5607045F5 /* RegionalCenterStore.swift */,
 			);
@@ -293,7 +293,7 @@
 				9133652FAD1A98671B50825E /* LocationService.swift in Sources */,
 				400B622708BD81DA6D9E3444 /* MapContainerView.swift in Sources */,
 				100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */,
-				783B18302F118647008C41F0 /* HMGLLocationStore 2.swift in Sources */,
+				783B18322F1189C3008C41F0 /* HMGLLocationStore.swift in Sources */,
 				0A1B2C3D4E5F6A7B8C9D0E1F /* ModernSearchView.swift in Sources */,
 				783B182E2F118618008C41F0 /* HMGLLocationsView.swift in Sources */,
 				4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */,

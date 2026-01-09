@@ -458,6 +458,7 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
     # Cleaned fields
     hours_clean = serializers.SerializerMethodField()
     description_clean = serializers.SerializerMethodField()
+    primary_phone_clean = serializers.SerializerMethodField()
 
     class Meta:
         model = HMGLLocation
@@ -493,6 +494,7 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
             # Computed fields
             "full_address",
             "primary_phone",
+            "primary_phone_clean",
             "distance",
         ]
 
@@ -503,14 +505,21 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
         return obj.distance_miles
 
     def get_hours_clean(self, obj):
-        """Strip HTML from hours field"""
+        """Strip HTML and format hours nicely"""
         import re
 
         if obj.hours:
             # Replace <br> with newline, strip other tags
             clean = re.sub(r"<br\s*/?>", "\n", obj.hours)
             clean = re.sub(r"<[^>]+>", "", clean)
+            # Split on semicolons and format as lines
+            parts = [p.strip() for p in clean.split(";") if p.strip()]
+            if len(parts) > 1:
+                return "\n".join(parts)
             return clean.strip()
+        # Fall back to hour_list if available
+        if obj.hour_list:
+            return "\n".join(obj.hour_list)
         return None
 
     def get_description_clean(self, obj):
@@ -521,6 +530,23 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
             clean = re.sub(r"<br\s*/?>", "\n", obj.description_html)
             clean = re.sub(r"<[^>]+>", "", clean)
             return clean.strip()
+        return None
+
+    def get_primary_phone_clean(self, obj):
+        """Extract clean primary phone number"""
+        import re
+
+        # Try phone_list first
+        if obj.phone_list and len(obj.phone_list) > 0:
+            return obj.phone_list[0]
+
+        # Try to extract first phone from phones field
+        if obj.phones:
+            # Find phone numbers in format (xxx) xxx-xxxx or xxx-xxx-xxxx
+            match = re.search(r"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}", obj.phones)
+            if match:
+                return match.group()
+            return obj.phones[:50]  # Truncate if no pattern found
         return None
 
 

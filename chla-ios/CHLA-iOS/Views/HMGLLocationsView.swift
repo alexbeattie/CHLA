@@ -347,68 +347,54 @@ struct HMGLMapView: View {
     @Binding var selectedLocation: HMGLLocation?
     let userLocation: CLLocation?
 
-    @State private var region: MKCoordinateRegion
-    @State private var selectedAnnotation: HMGLLocation?
-
-    init(locations: [HMGLLocation], selectedLocation: Binding<HMGLLocation?>, userLocation: CLLocation?) {
-        self.locations = locations
-        self._selectedLocation = selectedLocation
-        self.userLocation = userLocation
-
-        // Default to LA if no user location
-        let center = userLocation?.coordinate ?? CLLocationCoordinate2D(latitude: 34.0522, longitude: -118.2437)
-        self._region = State(initialValue: MKCoordinateRegion(
-            center: center,
-            span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-        ))
-    }
+    @State private var mapPosition: MapCameraPosition = .automatic
 
     var body: some View {
-        Map(coordinateRegion: $region, annotationItems: mappableLocations) { location in
-            MapAnnotation(coordinate: location.coordinate) {
-                Button {
-                    selectedLocation = location.hmglLocation
-                } label: {
-                    VStack(spacing: 2) {
-                        Image(systemName: "mappin.circle.fill")
-                            .font(.title)
-                            .foregroundStyle(Color.accentBlue)
-                            .background(Circle().fill(.white).padding(4))
+        Map(position: $mapPosition) {
+            // User location
+            if let userLoc = userLocation {
+                Annotation("You", coordinate: userLoc.coordinate) {
+                    Circle()
+                        .fill(Color.blue)
+                        .frame(width: 12, height: 12)
+                        .overlay(Circle().stroke(.white, lineWidth: 2))
+                }
+            }
 
-                        Text(location.hmglLocation.displayName)
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .lineLimit(1)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 2)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Capsule())
+            // Location pins
+            ForEach(mappableLocations) { location in
+                Annotation(location.hmglLocation.displayName, coordinate: location.coordinate) {
+                    Button {
+                        selectedLocation = location.hmglLocation
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color.accentBlue)
+                                .frame(width: 30, height: 30)
+                            Image(systemName: "building.2")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.white)
+                        }
+                        .shadow(radius: 2)
                     }
                 }
             }
         }
-        .ignoresSafeArea(edges: .bottom)
-        .overlay(alignment: .bottomTrailing) {
-            // Recenter button
-            Button {
-                if let loc = userLocation {
-                    withAnimation {
-                        region.center = loc.coordinate
-                    }
-                }
-            } label: {
-                Image(systemName: "location.fill")
-                    .font(.title2)
-                    .padding(12)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
-                    .shadow(radius: 4)
-            }
-            .padding()
+        .mapStyle(.standard)
+        .mapControls {
+            MapUserLocationButton()
+            MapCompass()
+            MapScaleView()
+        }
+        .onAppear {
+            centerOnLocations()
+        }
+        .onChange(of: locations.count) { _, _ in
+            centerOnLocations()
         }
         .overlay(alignment: .top) {
             // Location count badge
-            Text("\(locations.count) locations")
+            Text("\(mappableLocations.count) locations on map")
                 .font(.caption)
                 .fontWeight(.medium)
                 .padding(.horizontal, 12)
@@ -416,6 +402,33 @@ struct HMGLMapView: View {
                 .background(.ultraThinMaterial)
                 .clipShape(Capsule())
                 .padding(.top, 8)
+        }
+    }
+
+    private func centerOnLocations() {
+        guard !mappableLocations.isEmpty else { return }
+
+        // Calculate bounds of all locations
+        let lats = mappableLocations.map { $0.coordinate.latitude }
+        let lngs = mappableLocations.map { $0.coordinate.longitude }
+
+        let minLat = lats.min() ?? 34.0
+        let maxLat = lats.max() ?? 34.1
+        let minLng = lngs.min() ?? -118.3
+        let maxLng = lngs.max() ?? -118.2
+
+        let center = CLLocationCoordinate2D(
+            latitude: (minLat + maxLat) / 2,
+            longitude: (minLng + maxLng) / 2
+        )
+
+        let span = MKCoordinateSpan(
+            latitudeDelta: max(0.02, (maxLat - minLat) * 1.3),
+            longitudeDelta: max(0.02, (maxLng - minLng) * 1.3)
+        )
+
+        withAnimation {
+            mapPosition = .region(MKCoordinateRegion(center: center, span: span))
         }
     }
 
@@ -521,8 +534,14 @@ struct HMGLLocationDetailView: View {
                 HMGLDetailRow(icon: "mappin.circle.fill", title: "Address", value: address)
             }
 
-            if let phone = location.primaryPhone ?? location.phones, !phone.isEmpty {
+            if let phone = location.displayPhone, !phone.isEmpty {
                 HMGLDetailRow(icon: "phone.fill", title: "Phone", value: phone, isPhone: true)
+            }
+
+            // Show additional phones if available
+            if let phones = location.phones, !phones.isEmpty,
+               phones != location.displayPhone {
+                HMGLDetailRow(icon: "phone.badge.plus", title: "All Phones", value: formatPhones(phones))
             }
 
             if let email = location.email, !email.isEmpty {
@@ -575,6 +594,17 @@ struct HMGLLocationDetailView: View {
             }
         }
     }
+    
+    private func formatPhones(_ phones: String) -> String {
+        // Split on common delimiters and format as lines
+        let parts = phones
+            .replacingOccurrences(of: ",", with: "\n")
+            .replacingOccurrences(of: ";", with: "\n")
+            .split(separator: "\n")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        return parts.joined(separator: "\n")
+    }
 }
 
 struct HMGLTagView: View {
@@ -600,6 +630,10 @@ struct HMGLDetailRow: View {
     var isLink: Bool = false
 
     @Environment(\.openURL) private var openURL
+    
+    private var lines: [String] {
+        value.split(separator: "\n").map { String($0).trimmingCharacters(in: .whitespaces) }
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -608,20 +642,26 @@ struct HMGLDetailRow: View {
                 .foregroundStyle(Color.accentBlue)
                 .frame(width: 24)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
                 if isPhone {
-                    Button {
-                        if let url = URL(string: "tel:\(value.replacingOccurrences(of: " ", with: ""))") {
-                            openURL(url)
+                    // Show each phone on its own line, tappable
+                    ForEach(lines, id: \.self) { line in
+                        Button {
+                            // Extract just the phone number for dialing
+                            let digits = line.filter { $0.isNumber || $0 == "+" }
+                            if !digits.isEmpty, let url = URL(string: "tel:\(digits)") {
+                                openURL(url)
+                            }
+                        } label: {
+                            Text(line)
+                                .font(.subheadline)
+                                .foregroundStyle(Color.accentBlue)
+                                .multilineTextAlignment(.leading)
                         }
-                    } label: {
-                        Text(value)
-                            .font(.subheadline)
-                            .foregroundStyle(Color.accentBlue)
                     }
                 } else if isLink {
                     Button {
@@ -639,8 +679,11 @@ struct HMGLDetailRow: View {
                             .lineLimit(1)
                     }
                 } else {
-                    Text(value)
-                        .font(.subheadline)
+                    // For hours or other multiline content
+                    ForEach(lines, id: \.self) { line in
+                        Text(line)
+                            .font(.subheadline)
+                    }
                 }
             }
         }
