@@ -1686,16 +1686,19 @@ class HMGLLocationViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Use PostGIS spatial query with the geom field
         from django.contrib.gis.geos import Point
-        from django.contrib.gis.measure import D
         from django.contrib.gis.db.models.functions import Distance as DistanceFunc
 
         point = Point(lng, lat, srid=4326)
-        radius_distance = D(mi=radius)
+        
+        # Convert miles to degrees (approximate: 1 degree ≈ 69 miles at equator)
+        # Works well for California latitudes
+        radius_degrees = radius / 69.0
 
-        # Query locations with geom field using PostGIS
+        # Query locations with geom field using PostGIS (dwithin with degrees)
         locations = (
-            HMGLLocation.objects
-            .filter(geom__isnull=False, geom__dwithin=(point, radius_distance))
+            HMGLLocation.objects.filter(
+                geom__isnull=False, geom__dwithin=(point, radius_degrees)
+            )
             .annotate(calculated_distance=DistanceFunc("geom", point))
             .order_by("calculated_distance")[:limit]
         )

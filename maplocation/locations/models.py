@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.gis.measure import Distance
+from django.contrib.postgres.fields import ArrayField
 from decimal import Decimal
 import math
 import uuid
@@ -802,12 +803,9 @@ class HMGLLocation(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     friendly_url = models.TextField(blank=True, null=True)
     geojson = models.JSONField(blank=True, null=True)
-    phone_list = models.JSONField(
-        blank=True, null=True
-    )  # PostgreSQL text[] stored as JSON
-    hour_list = models.JSONField(
-        blank=True, null=True
-    )  # PostgreSQL text[] stored as JSON
+    # PostgreSQL text[] arrays
+    phone_list = ArrayField(models.TextField(), blank=True, null=True)
+    hour_list = ArrayField(models.TextField(), blank=True, null=True)
     distance_miles = models.FloatField(blank=True, null=True)
     custom_attributes = models.JSONField(blank=True, null=True)
     programs = models.JSONField(blank=True, null=True)
