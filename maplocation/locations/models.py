@@ -781,6 +781,7 @@ class HMGLLocation(models.Model):
     Maps to the hmgl.location table in PostgreSQL.
     This is an unmanaged model - Django won't create/alter the table.
     """
+
     location_id = models.BigIntegerField(primary_key=True)
     name = models.TextField(blank=True, null=True)
     phones = models.TextField(blank=True, null=True)
@@ -801,15 +802,19 @@ class HMGLLocation(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     friendly_url = models.TextField(blank=True, null=True)
     geojson = models.JSONField(blank=True, null=True)
-    phone_list = models.JSONField(blank=True, null=True)  # PostgreSQL text[] stored as JSON
-    hour_list = models.JSONField(blank=True, null=True)   # PostgreSQL text[] stored as JSON
+    phone_list = models.JSONField(
+        blank=True, null=True
+    )  # PostgreSQL text[] stored as JSON
+    hour_list = models.JSONField(
+        blank=True, null=True
+    )  # PostgreSQL text[] stored as JSON
     distance_miles = models.FloatField(blank=True, null=True)
     custom_attributes = models.JSONField(blank=True, null=True)
     programs = models.JSONField(blank=True, null=True)
     tags = models.JSONField(blank=True, null=True)
     tag_types = models.JSONField(blank=True, null=True)
-    # Note: geom field (PostGIS geometry) is excluded for simplicity
-    # It can be added later with gis_models.PointField if needed
+    # PostGIS geometry field - Point(longitude, latitude) in SRID 4326 (WGS84)
+    geom = gis_models.PointField(srid=4326, blank=True, null=True)
 
     class Meta:
         managed = False  # Django won't manage this table

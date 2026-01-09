@@ -1684,22 +1684,26 @@ class HMGLLocationViewSet(viewsets.ReadOnlyModelViewSet):
         radius = float(request.query_params.get("radius", 25))
         limit = int(request.query_params.get("limit", 50))
 
-        # Calculate distance using Haversine formula in SQL
-        # Note: This uses a simplified calculation; for production, use PostGIS
-        distance_sql = f"""
-            3959 * acos(
-                cos(radians({lat})) * cos(radians(latitude)) *
-                cos(radians(longitude) - radians({lng})) +
-                sin(radians({lat})) * sin(radians(latitude))
-            )
-        """
+        # Use PostGIS spatial query with the geom field
+        from django.contrib.gis.geos import Point
+        from django.contrib.gis.measure import D
+        from django.contrib.gis.db.models.functions import Distance as DistanceFunc
 
+        point = Point(lng, lat, srid=4326)
+        radius_distance = D(mi=radius)
+
+        # Query locations with geom field using PostGIS
         locations = (
-            HMGLLocation.objects.filter(latitude__isnull=False, longitude__isnull=False)
-            .annotate(calculated_distance=RawSQL(distance_sql, ()))
-            .filter(calculated_distance__lte=radius)
+            HMGLLocation.objects
+            .filter(geom__isnull=False, geom__dwithin=(point, radius_distance))
+            .annotate(calculated_distance=DistanceFunc("geom", point))
             .order_by("calculated_distance")[:limit]
         )
+
+        # Convert distance to miles for serializer
+        for loc in locations:
+            if loc.calculated_distance:
+                loc.calculated_distance = loc.calculated_distance.mi
 
         serializer = HMGLLocationSerializer(locations, many=True)
         return Response(

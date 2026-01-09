@@ -444,16 +444,17 @@ class ProviderV2WriteSerializer(serializers.ModelSerializer):
 # HMGL (Help Me Grow LA) Location Serializers
 # ============================================================================
 
+
 class HMGLLocationSerializer(serializers.ModelSerializer):
     """Serializer for Help Me Grow LA locations from hmgl.location table"""
-    
+
     # Computed fields
     full_address = serializers.ReadOnlyField()
     primary_phone = serializers.ReadOnlyField()
-    
+
     # Distance field (dynamically added for proximity searches)
     distance = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = HMGLLocation
         fields = [
@@ -488,20 +489,20 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
             "primary_phone",
             "distance",
         ]
-    
+
     def get_distance(self, obj):
         """Get distance in miles if available from query"""
-        if hasattr(obj, 'calculated_distance') and obj.calculated_distance is not None:
+        if hasattr(obj, "calculated_distance") and obj.calculated_distance is not None:
             return round(float(obj.calculated_distance), 2)
         return obj.distance_miles
 
 
 class HMGLLocationListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views (excludes heavy fields)"""
-    
+
     full_address = serializers.ReadOnlyField()
     primary_phone = serializers.ReadOnlyField()
-    
+
     class Meta:
         model = HMGLLocation
         fields = [
@@ -522,14 +523,14 @@ class HMGLLocationListSerializer(serializers.ModelSerializer):
 
 class HMGLLocationGeoJSONSerializer(serializers.Serializer):
     """Serializer that returns GeoJSON Feature format for mapping"""
-    
+
     def to_representation(self, obj):
         if obj.latitude and obj.longitude:
             return {
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "coordinates": [obj.longitude, obj.latitude]
+                    "coordinates": [obj.longitude, obj.latitude],
                 },
                 "properties": {
                     "id": obj.location_id,
@@ -543,6 +544,6 @@ class HMGLLocationGeoJSONSerializer(serializers.Serializer):
                     "url": obj.url,
                     "programs": obj.programs,
                     "tags": obj.tags,
-                }
+                },
             }
         return None
