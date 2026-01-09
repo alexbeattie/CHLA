@@ -534,21 +534,31 @@ class HMGLLocationSerializer(serializers.ModelSerializer):
 
     def get_primary_phone_clean(self, obj):
         """Extract and format phone numbers - one per line"""
+        import re
 
-        # Try phone_list first
-        if obj.phone_list and len(obj.phone_list) > 0:
-            return "\n".join(obj.phone_list)
-
-        # Parse the phones field which has format: "Label1 (xxx) xxx-xxxx, Label2 (xxx) xxx-xxxx"
+        # Prefer the phones field (phone_list is often incorrectly split)
         if obj.phones:
-            # Split by comma, keeping label with each phone
-            parts = []
-            for part in obj.phones.split(","):
-                part = part.strip()
-                if part:
-                    parts.append(part)
-            if parts:
-                return "\n".join(parts)
+            # Decode HTML entities first
+            phones = obj.phones.replace("&amp;", "&")
+
+            # Find all phone entries: text followed by phone number in format (xxx) xxx-xxxx
+            pattern = r"([^,]*?\(\d{3}\)\s*\d{3}[-.]?\d{4})"
+            matches = re.findall(pattern, phones)
+
+            if matches:
+                # Clean up each match
+                cleaned = [m.strip().strip(",").strip() for m in matches]
+                return "\n".join(cleaned)
+
+            # Fallback: just return the phones field cleaned
+            return phones
+
+        # Fall back to phone_list if phones is empty
+        if obj.phone_list and len(obj.phone_list) > 0:
+            # Filter out fragments that don't contain phone numbers
+            valid = [p for p in obj.phone_list if re.search(r"\(\d{3}\)", p)]
+            if valid:
+                return "\n".join(valid)
 
         return None
 
@@ -603,3 +613,4 @@ class HMGLLocationGeoJSONSerializer(serializers.Serializer):
                 },
             }
         return None
+
