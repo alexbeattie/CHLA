@@ -773,3 +773,68 @@ class ProviderServiceModel(models.Model):
 
     def __str__(self):
         return f"{self.provider.name} - {self.service_model.name}"
+
+
+class HMGLLocation(models.Model):
+    """
+    Model for Help Me Grow LA location data.
+    Maps to the hmgl.location table in PostgreSQL.
+    This is an unmanaged model - Django won't create/alter the table.
+    """
+    location_id = models.BigIntegerField(primary_key=True)
+    name = models.TextField(blank=True, null=True)
+    phones = models.TextField(blank=True, null=True)
+    hours = models.TextField(blank=True, null=True)
+    email = models.TextField(blank=True, null=True)
+    description_html = models.TextField(blank=True, null=True)
+    organization = models.TextField(blank=True, null=True)
+    is_county = models.BooleanField(blank=True, null=True)
+    operated_by_label = models.TextField(blank=True, null=True)
+    address1 = models.TextField(blank=True, null=True)
+    address2 = models.TextField(blank=True, null=True)
+    city = models.TextField(blank=True, null=True)
+    state = models.TextField(blank=True, null=True)
+    zip = models.TextField(blank=True, null=True)
+    url = models.TextField(blank=True, null=True)
+    imgurl = models.TextField(blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    friendly_url = models.TextField(blank=True, null=True)
+    geojson = models.JSONField(blank=True, null=True)
+    phone_list = models.JSONField(blank=True, null=True)  # PostgreSQL text[] stored as JSON
+    hour_list = models.JSONField(blank=True, null=True)   # PostgreSQL text[] stored as JSON
+    distance_miles = models.FloatField(blank=True, null=True)
+    custom_attributes = models.JSONField(blank=True, null=True)
+    programs = models.JSONField(blank=True, null=True)
+    tags = models.JSONField(blank=True, null=True)
+    tag_types = models.JSONField(blank=True, null=True)
+    # Note: geom field (PostGIS geometry) is excluded for simplicity
+    # It can be added later with gis_models.PointField if needed
+
+    class Meta:
+        managed = False  # Django won't manage this table
+        db_table = 'hmgl"."location'  # Schema-qualified table name
+
+    def __str__(self):
+        return self.name or f"Location {self.location_id}"
+
+    @property
+    def full_address(self):
+        """Combine address fields into a single string"""
+        parts = [self.address1]
+        if self.address2:
+            parts.append(self.address2)
+        if self.city:
+            parts.append(self.city)
+        if self.state:
+            parts.append(self.state)
+        if self.zip:
+            parts.append(self.zip)
+        return ", ".join(filter(None, parts))
+
+    @property
+    def primary_phone(self):
+        """Get the first phone number from the list"""
+        if self.phone_list and len(self.phone_list) > 0:
+            return self.phone_list[0]
+        return self.phones

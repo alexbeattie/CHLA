@@ -28,6 +28,7 @@ from .models import (
     ProviderServiceModel,
     ProviderRegionalCenter,
     ProviderV2,
+    HMGLLocation,
 )
 from .serializers import (
     LocationCategorySerializer,
@@ -44,6 +45,9 @@ from .serializers import (
     ServiceAreaSerializer,
     ProviderV2Serializer,
     ProviderV2WriteSerializer,
+    HMGLLocationSerializer,
+    HMGLLocationListSerializer,
+    HMGLLocationGeoJSONSerializer,
 )
 import math
 from rest_framework.decorators import api_view
@@ -1622,3 +1626,271 @@ def api_documentation(request):
     }
 
     return Response(docs)
+
+
+# ============================================================================
+# HMGL (Help Me Grow LA) Location ViewSet
+# ============================================================================
+
+
+class HMGLLocationViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for Help Me Grow LA locations from the hmgl.location table.
+
+    Provides read-only access to HMGL location data with filtering,
+    search, and proximity search capabilities.
+    """
+
+    queryset = HMGLLocation.objects.all()
+    serializer_class = HMGLLocationSerializer
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = ["city", "state", "is_county", "organization"]
+    search_fields = ["name", "organization", "city", "address1", "description_html"]
+    ordering_fields = ["name", "city", "organization", "location_id"]
+    ordering = ["name"]
+
+    def get_serializer_class(self):
+        """Use lightweight serializer for list views"""
+        if self.action == "list":
+            return HMGLLocationListSerializer
+        return HMGLLocationSerializer
+
+    @action(detail=False, methods=["get"])
+    def nearby(self, request):
+        """
+        Find HMGL locations near given coordinates.
+
+        Query Parameters:
+            lat (float): Latitude (required)
+            lng (float): Longitude (required)
+            radius (float): Search radius in miles (default: 25)
+            limit (int): Maximum results (default: 50)
+
+        Returns: List of locations ordered by distance
+        """
+        try:
+            lat = float(request.query_params.get("lat"))
+            lng = float(request.query_params.get("lng"))
+        except (TypeError, ValueError):
+            return Response(
+                {"error": "lat and lng parameters are required and must be numeric"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        radius = float(request.query_params.get("radius", 25))
+        limit = int(request.query_params.get("limit", 50))
+
+        # Calculate distance using Haversine formula in SQL
+        # Note: This uses a simplified calculation; for production, use PostGIS
+        distance_sql = f"""
+            3959 * acos(
+                cos(radians({lat})) * cos(radians(latitude)) *
+                cos(radians(longitude) - radians({lng})) +
+                sin(radians({lat})) * sin(radians(latitude))
+            )
+        """
+
+        locations = (
+            HMGLLocation.objects.filter(latitude__isnull=False, longitude__isnull=False)
+            .annotate(calculated_distance=RawSQL(distance_sql, ()))
+            .filter(calculated_distance__lte=radius)
+            .order_by("calculated_distance")[:limit]
+        )
+
+        serializer = HMGLLocationSerializer(locations, many=True)
+        return Response(
+            {
+                "count": len(serializer.data),
+                "search_params": {
+                    "lat": lat,
+                    "lng": lng,
+                    "radius_miles": radius,
+                },
+                "results": serializer.data,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def by_city(self, request):
+        """
+        Get HMGL locations filtered by city.
+
+        Query Parameters:
+            city (str): City name (required, case-insensitive)
+
+        Returns: List of locations in the specified city
+        """
+        city = request.query_params.get("city")
+        if not city:
+            return Response(
+                {"error": "city parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        locations = HMGLLocation.objects.filter(city__iexact=city).order_by("name")
+        serializer = HMGLLocationListSerializer(locations, many=True)
+        return Response(
+            {
+                "city": city,
+                "count": len(serializer.data),
+                "results": serializer.data,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def by_zip(self, request):
+        """
+        Get HMGL locations filtered by ZIP code.
+
+        Query Parameters:
+            zip (str): ZIP code (required)
+
+        Returns: List of locations in the specified ZIP code
+        """
+        zip_code = request.query_params.get("zip")
+        if not zip_code:
+            return Response(
+                {"error": "zip parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        locations = HMGLLocation.objects.filter(zip=zip_code).order_by("name")
+        serializer = HMGLLocationListSerializer(locations, many=True)
+        return Response(
+            {
+                "zip": zip_code,
+                "count": len(serializer.data),
+                "results": serializer.data,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def by_program(self, request):
+        """
+        Search HMGL locations by program name.
+
+        Query Parameters:
+            program (str): Program name to search for (required)
+
+        Returns: List of locations with matching programs
+        """
+        program = request.query_params.get("program")
+        if not program:
+            return Response(
+                {"error": "program parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Search in the programs JSON field
+        locations = HMGLLocation.objects.filter(programs__icontains=program).order_by(
+            "name"
+        )
+
+        serializer = HMGLLocationListSerializer(locations, many=True)
+        return Response(
+            {
+                "program": program,
+                "count": len(serializer.data),
+                "results": serializer.data,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def by_tag(self, request):
+        """
+        Search HMGL locations by tag.
+
+        Query Parameters:
+            tag (str): Tag to search for (required)
+
+        Returns: List of locations with matching tags
+        """
+        tag = request.query_params.get("tag")
+        if not tag:
+            return Response(
+                {"error": "tag parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Search in the tags JSON field
+        locations = HMGLLocation.objects.filter(tags__icontains=tag).order_by("name")
+
+        serializer = HMGLLocationListSerializer(locations, many=True)
+        return Response(
+            {
+                "tag": tag,
+                "count": len(serializer.data),
+                "results": serializer.data,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def geojson(self, request):
+        """
+        Get all HMGL locations as GeoJSON FeatureCollection.
+
+        Returns: GeoJSON FeatureCollection with all locations
+        """
+        locations = HMGLLocation.objects.filter(
+            latitude__isnull=False, longitude__isnull=False
+        ).order_by("name")
+
+        features = []
+        serializer = HMGLLocationGeoJSONSerializer(locations, many=True)
+        for feature in serializer.data:
+            if feature:
+                features.append(feature)
+
+        return Response(
+            {
+                "type": "FeatureCollection",
+                "features": features,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def stats(self, request):
+        """
+        Get statistics about HMGL locations.
+
+        Returns: Summary statistics including counts by city, organization, etc.
+        """
+        total = HMGLLocation.objects.count()
+        with_coords = HMGLLocation.objects.filter(
+            latitude__isnull=False, longitude__isnull=False
+        ).count()
+        county_locations = HMGLLocation.objects.filter(is_county=True).count()
+
+        # Top cities
+        from django.db.models import Count
+
+        top_cities = (
+            HMGLLocation.objects.exclude(city__isnull=True)
+            .exclude(city="")
+            .values("city")
+            .annotate(count=Count("location_id"))
+            .order_by("-count")[:10]
+        )
+
+        # Top organizations
+        top_orgs = (
+            HMGLLocation.objects.exclude(organization__isnull=True)
+            .exclude(organization="")
+            .values("organization")
+            .annotate(count=Count("location_id"))
+            .order_by("-count")[:10]
+        )
+
+        return Response(
+            {
+                "total_locations": total,
+                "with_coordinates": with_coords,
+                "county_locations": county_locations,
+                "top_cities": list(top_cities),
+                "top_organizations": list(top_orgs),
+            }
+        )

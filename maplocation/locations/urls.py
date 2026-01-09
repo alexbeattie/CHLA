@@ -20,6 +20,9 @@ router.register(r"funding-sources", views.FundingSourceViewSet)
 router.register(r"insurance-carriers", views.InsuranceCarrierViewSet)
 router.register(r"service-models", views.ServiceDeliveryModelViewSet)
 
+# HMGL (Help Me Grow LA) locations from external hmgl.location table
+router.register(r"hmgl-locations", views.HMGLLocationViewSet, basename="hmgl-locations")
+
 urlpatterns = [
     path("", include(router.urls)),
     path("health/", views.health_check, name="health-check"),

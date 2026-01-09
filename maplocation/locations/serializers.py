@@ -18,6 +18,7 @@ from .models import (
     ProviderServiceModel,
     ProviderRegionalCenter,
     ProviderV2,
+    HMGLLocation,
 )
 
 
@@ -117,15 +118,15 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
             "zip_codes",  # Array of ZIP codes served
             "service_areas",  # Array of cities/communities served
         ]
-    
+
     def to_representation(self, instance):
         """Ensure zip_codes and service_areas are always included"""
         data = super().to_representation(instance)
         # Ensure these fields are always present, even if NULL
-        if 'zip_codes' not in data or data['zip_codes'] is None:
-            data['zip_codes'] = []
-        if 'service_areas' not in data or data['service_areas'] is None:
-            data['service_areas'] = []
+        if "zip_codes" not in data or data["zip_codes"] is None:
+            data["zip_codes"] = []
+        if "service_areas" not in data or data["service_areas"] is None:
+            data["service_areas"] = []
         return data
 
     def get_served_providers(self, obj):
@@ -155,7 +156,7 @@ class RegionalCenterSerializer(serializers.ModelSerializer):
 
     def get_distance(self, obj):
         """Get distance in miles if available from PostGIS query"""
-        if hasattr(obj, 'distance') and obj.distance is not None:
+        if hasattr(obj, "distance") and obj.distance is not None:
             # Distance is already converted to miles in the view
             return round(float(obj.distance), 2)
         return None
@@ -293,7 +294,7 @@ class ProviderV2Serializer(serializers.ModelSerializer):
     coverage_areas = serializers.ReadOnlyField()
 
     # New normalized insurance field
-    insurance_carriers = serializers.ReadOnlyField(source='insurance_carriers_list')
+    insurance_carriers = serializers.ReadOnlyField(source="insurance_carriers_list")
 
     # Distance field (dynamically added when using PostGIS queries)
     distance = serializers.SerializerMethodField()
@@ -338,7 +339,7 @@ class ProviderV2Serializer(serializers.ModelSerializer):
 
     def get_distance(self, obj):
         """Get distance in miles if available from PostGIS query"""
-        if hasattr(obj, 'distance') and obj.distance is not None:
+        if hasattr(obj, "distance") and obj.distance is not None:
             # Distance is already converted to miles in the view
             return round(float(obj.distance), 2)
         return None
@@ -346,22 +347,22 @@ class ProviderV2Serializer(serializers.ModelSerializer):
     def get_serving_regional_centers(self, obj):
         """Get regional centers serving this provider"""
         return []  # Temporarily simplified
-    
+
     def to_representation(self, instance):
         """
         Override to add default values for NULL diagnoses_treated and age_groups.
         This allows the interface to work while admin fills in real data.
         """
         data = super().to_representation(instance)
-        
+
         # Default diagnoses_treated to ["Other"] if NULL or empty
-        if not data.get('diagnoses_treated'):
-            data['diagnoses_treated'] = ["Other"]
-        
+        if not data.get("diagnoses_treated"):
+            data["diagnoses_treated"] = ["Other"]
+
         # Default age_groups to ["All Ages"] if NULL or empty
-        if not data.get('age_groups'):
-            data['age_groups'] = ["All Ages"]
-        
+        if not data.get("age_groups"):
+            data["age_groups"] = ["All Ages"]
+
         return data
 
 
@@ -437,3 +438,111 @@ class ProviderV2WriteSerializer(serializers.ModelSerializer):
 # Provider serializer for write operations (create, update, delete)
 # REMOVED: Old ProviderWriteSerializer and ProviderGeoSerializer
 # Use ProviderV2WriteSerializer instead
+
+
+# ============================================================================
+# HMGL (Help Me Grow LA) Location Serializers
+# ============================================================================
+
+class HMGLLocationSerializer(serializers.ModelSerializer):
+    """Serializer for Help Me Grow LA locations from hmgl.location table"""
+    
+    # Computed fields
+    full_address = serializers.ReadOnlyField()
+    primary_phone = serializers.ReadOnlyField()
+    
+    # Distance field (dynamically added for proximity searches)
+    distance = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = HMGLLocation
+        fields = [
+            "location_id",
+            "name",
+            "phones",
+            "hours",
+            "email",
+            "description_html",
+            "organization",
+            "is_county",
+            "operated_by_label",
+            "address1",
+            "address2",
+            "city",
+            "state",
+            "zip",
+            "url",
+            "imgurl",
+            "latitude",
+            "longitude",
+            "friendly_url",
+            "phone_list",
+            "hour_list",
+            "distance_miles",
+            "custom_attributes",
+            "programs",
+            "tags",
+            "tag_types",
+            # Computed fields
+            "full_address",
+            "primary_phone",
+            "distance",
+        ]
+    
+    def get_distance(self, obj):
+        """Get distance in miles if available from query"""
+        if hasattr(obj, 'calculated_distance') and obj.calculated_distance is not None:
+            return round(float(obj.calculated_distance), 2)
+        return obj.distance_miles
+
+
+class HMGLLocationListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for list views (excludes heavy fields)"""
+    
+    full_address = serializers.ReadOnlyField()
+    primary_phone = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = HMGLLocation
+        fields = [
+            "location_id",
+            "name",
+            "organization",
+            "city",
+            "state",
+            "zip",
+            "latitude",
+            "longitude",
+            "full_address",
+            "primary_phone",
+            "tags",
+            "programs",
+        ]
+
+
+class HMGLLocationGeoJSONSerializer(serializers.Serializer):
+    """Serializer that returns GeoJSON Feature format for mapping"""
+    
+    def to_representation(self, obj):
+        if obj.latitude and obj.longitude:
+            return {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [obj.longitude, obj.latitude]
+                },
+                "properties": {
+                    "id": obj.location_id,
+                    "name": obj.name,
+                    "organization": obj.organization,
+                    "address": obj.full_address,
+                    "city": obj.city,
+                    "state": obj.state,
+                    "zip": obj.zip,
+                    "phone": obj.primary_phone,
+                    "url": obj.url,
+                    "programs": obj.programs,
+                    "tags": obj.tags,
+                }
+            }
+        return None
