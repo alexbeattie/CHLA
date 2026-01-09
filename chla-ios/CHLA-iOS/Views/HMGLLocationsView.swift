@@ -117,7 +117,12 @@ struct HMGLLocationsView: View {
                             HMGLMapView(
                                 locations: sortedLocations,
                                 selectedLocation: $selectedLocation,
-                                userLocation: locationManager.location
+                                userLocation: locationManager.location,
+                                onSearchNearby: {
+                                    Task {
+                                        await loadNearby()
+                                    }
+                                }
                             )
                         }
                     }
@@ -346,6 +351,7 @@ struct HMGLMapView: View {
     let locations: [HMGLLocation]
     @Binding var selectedLocation: HMGLLocation?
     let userLocation: CLLocation?
+    let onSearchNearby: () -> Void
 
     @State private var mapPosition: MapCameraPosition = .automatic
 
@@ -354,10 +360,15 @@ struct HMGLMapView: View {
             // User location
             if let userLoc = userLocation {
                 Annotation("You", coordinate: userLoc.coordinate) {
-                    Circle()
-                        .fill(Color.blue)
-                        .frame(width: 12, height: 12)
-                        .overlay(Circle().stroke(.white, lineWidth: 2))
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 14, height: 14)
+                            .overlay(Circle().stroke(.white, lineWidth: 2))
+                    }
                 }
             }
 
@@ -382,15 +393,11 @@ struct HMGLMapView: View {
         }
         .mapStyle(.standard)
         .mapControls {
-            MapUserLocationButton()
             MapCompass()
             MapScaleView()
         }
         .onAppear {
-            centerOnLocations()
-        }
-        .onChange(of: locations.count) { _, _ in
-            centerOnLocations()
+            centerOnUser()
         }
         .overlay(alignment: .top) {
             // Location count badge
@@ -403,32 +410,61 @@ struct HMGLMapView: View {
                 .clipShape(Capsule())
                 .padding(.top, 8)
         }
+        .overlay(alignment: .bottom) {
+            HStack(spacing: 12) {
+                // Center on me button
+                Button {
+                    centerOnUser()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "location.fill")
+                        Text("My Location")
+                    }
+                    .font(.subheadline.weight(.medium))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
+                    .shadow(radius: 4)
+                }
+
+                // Search nearby button
+                Button {
+                    onSearchNearby()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "magnifyingglass")
+                        Text("Search Nearby")
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.accentBlue)
+                    .clipShape(Capsule())
+                    .shadow(radius: 4)
+                }
+            }
+            .padding(.bottom, 20)
+        }
     }
 
-    private func centerOnLocations() {
-        guard !mappableLocations.isEmpty else { return }
-
-        // Calculate bounds of all locations
-        let lats = mappableLocations.map { $0.coordinate.latitude }
-        let lngs = mappableLocations.map { $0.coordinate.longitude }
-
-        let minLat = lats.min() ?? 34.0
-        let maxLat = lats.max() ?? 34.1
-        let minLng = lngs.min() ?? -118.3
-        let maxLng = lngs.max() ?? -118.2
-
-        let center = CLLocationCoordinate2D(
-            latitude: (minLat + maxLat) / 2,
-            longitude: (minLng + maxLng) / 2
-        )
-
-        let span = MKCoordinateSpan(
-            latitudeDelta: max(0.02, (maxLat - minLat) * 1.3),
-            longitudeDelta: max(0.02, (maxLng - minLng) * 1.3)
-        )
-
-        withAnimation {
-            mapPosition = .region(MKCoordinateRegion(center: center, span: span))
+    private func centerOnUser() {
+        if let userLoc = userLocation {
+            withAnimation {
+                mapPosition = .region(MKCoordinateRegion(
+                    center: userLoc.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                ))
+            }
+        } else {
+            // Default to LA
+            withAnimation {
+                mapPosition = .region(MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: 34.0522, longitude: -118.2437),
+                    span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+                ))
+            }
         }
     }
 
@@ -594,7 +630,7 @@ struct HMGLLocationDetailView: View {
             }
         }
     }
-    
+
     private func formatPhones(_ phones: String) -> String {
         // Split on common delimiters and format as lines
         let parts = phones
@@ -630,7 +666,7 @@ struct HMGLDetailRow: View {
     var isLink: Bool = false
 
     @Environment(\.openURL) private var openURL
-    
+
     private var lines: [String] {
         value.split(separator: "\n").map { String($0).trimmingCharacters(in: .whitespaces) }
     }
