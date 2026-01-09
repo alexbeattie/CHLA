@@ -28,8 +28,12 @@ actor APIService {
     }
 
     /// Current environment - change this for different builds
-    /// Using production API (AWS) for both debug and release builds
+    /// Set to .development to test with local Django server
+    #if DEBUG
+    private let environment: Environment = .development
+    #else
     private let environment: Environment = .production
+    #endif
 
     /// Shared singleton instance
     static let shared = APIService()
@@ -233,6 +237,71 @@ actor APIService {
     /// Get all service delivery models
     func getServiceDeliveryModels() async throws -> [ServiceDeliveryModel] {
         let url = URL(string: "\(baseURL)/service-models/")!
+        return try await fetch(url: url)
+    }
+
+    // MARK: - HMGL (Help Me Grow LA) Location Endpoints
+    
+    /// Get all HMGL locations (paginated list view)
+    func getHMGLLocations() async throws -> [HMGLLocation] {
+        let url = URL(string: "\(baseURL)/hmgl-locations/")!
+        let response: PaginatedResponse<HMGLLocation> = try await fetch(url: url)
+        return response.results
+    }
+    
+    /// Get a single HMGL location by ID
+    func getHMGLLocation(id: Int) async throws -> HMGLLocation {
+        let url = URL(string: "\(baseURL)/hmgl-locations/\(id)/")!
+        return try await fetch(url: url)
+    }
+    
+    /// Search HMGL locations near a location
+    func getHMGLLocationsNearby(
+        latitude: Double,
+        longitude: Double,
+        radiusMiles: Double = 10
+    ) async throws -> HMGLLocationResponse {
+        var components = URLComponents(string: "\(baseURL)/hmgl-locations/nearby/")!
+        components.queryItems = [
+            URLQueryItem(name: "lat", value: String(latitude)),
+            URLQueryItem(name: "lng", value: String(longitude)),
+            URLQueryItem(name: "radius", value: String(radiusMiles)),
+            URLQueryItem(name: "limit", value: "50")
+        ]
+        return try await fetch(url: components.url!)
+    }
+    
+    /// Get HMGL locations by city
+    func getHMGLLocationsByCity(city: String) async throws -> HMGLLocationResponse {
+        var components = URLComponents(string: "\(baseURL)/hmgl-locations/by_city/")!
+        components.queryItems = [URLQueryItem(name: "city", value: city)]
+        return try await fetch(url: components.url!)
+    }
+    
+    /// Get HMGL locations by ZIP code
+    func getHMGLLocationsByZip(zip: String) async throws -> HMGLLocationResponse {
+        var components = URLComponents(string: "\(baseURL)/hmgl-locations/by_zip/")!
+        components.queryItems = [URLQueryItem(name: "zip", value: zip)]
+        return try await fetch(url: components.url!)
+    }
+    
+    /// Search HMGL locations by program
+    func getHMGLLocationsByProgram(program: String) async throws -> HMGLLocationResponse {
+        var components = URLComponents(string: "\(baseURL)/hmgl-locations/by_program/")!
+        components.queryItems = [URLQueryItem(name: "program", value: program)]
+        return try await fetch(url: components.url!)
+    }
+    
+    /// Search HMGL locations by tag
+    func getHMGLLocationsByTag(tag: String) async throws -> HMGLLocationResponse {
+        var components = URLComponents(string: "\(baseURL)/hmgl-locations/by_tag/")!
+        components.queryItems = [URLQueryItem(name: "tag", value: tag)]
+        return try await fetch(url: components.url!)
+    }
+    
+    /// Get HMGL statistics
+    func getHMGLStats() async throws -> HMGLStatsResponse {
+        let url = URL(string: "\(baseURL)/hmgl-locations/stats/")!
         return try await fetch(url: url)
     }
 

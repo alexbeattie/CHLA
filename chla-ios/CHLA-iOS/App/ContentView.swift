@@ -857,6 +857,35 @@ struct MoreView: View {
     var body: some View {
         NavigationStack {
             List {
+                // HMGL Resources Section
+                Section {
+                    NavigationLink {
+                        HMGLLocationsView()
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Help Me Grow LA")
+                                Text("16,000+ community resources")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "building.2.crop.circle.fill")
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.purple, .blue],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
+                    }
+                } header: {
+                    Text("Community Resources")
+                } footer: {
+                    Text("Browse locations from the Help Me Grow LA database")
+                }
+                
                 Section {
                     NavigationLink {
                         FAQView()

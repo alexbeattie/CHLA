@@ -280,3 +280,158 @@ struct APIError: Codable {
     let detail: String?
     let message: String?
 }
+
+// MARK: - HMGL (Help Me Grow LA) Location
+/// Represents a location from the Help Me Grow LA database
+struct HMGLLocation: Codable, Identifiable {
+    let locationId: Int
+    let name: String?
+    let organization: String?
+    let city: String?
+    let state: String?
+    let zip: String?
+    let latitude: Double?
+    let longitude: Double?
+    let fullAddress: String?
+    let primaryPhone: String?
+    let tags: [String]?
+    let programs: [String]?
+    
+    // Additional fields from detail view
+    let phones: String?
+    let hours: String?
+    let email: String?
+    let descriptionHtml: String?
+    let url: String?
+    let imgurl: String?
+    let phoneList: [String]?
+    let hourList: [String]?
+    let customAttributes: [String: AnyCodable]?
+    let distance: Double?
+    
+    var id: Int { locationId }
+    
+    enum CodingKeys: String, CodingKey {
+        case locationId = "location_id"
+        case name, organization, city, state, zip
+        case latitude, longitude
+        case fullAddress = "full_address"
+        case primaryPhone = "primary_phone"
+        case tags, programs
+        case phones, hours, email
+        case descriptionHtml = "description_html"
+        case url, imgurl
+        case phoneList = "phone_list"
+        case hourList = "hour_list"
+        case customAttributes = "custom_attributes"
+        case distance
+    }
+    
+    /// Display name with fallback
+    var displayName: String {
+        name ?? organization ?? "Unknown Location"
+    }
+    
+    /// Formatted location string
+    var locationString: String {
+        [city, state].compactMap { $0 }.joined(separator: ", ")
+    }
+}
+
+// MARK: - HMGL Location Response
+struct HMGLLocationResponse: Codable {
+    let count: Int
+    let searchParams: HMGLSearchParams?
+    let results: [HMGLLocation]
+    
+    enum CodingKeys: String, CodingKey {
+        case count
+        case searchParams = "search_params"
+        case results
+    }
+}
+
+struct HMGLSearchParams: Codable {
+    let lat: Double?
+    let lng: Double?
+    let radiusMiles: Double?
+    
+    enum CodingKeys: String, CodingKey {
+        case lat, lng
+        case radiusMiles = "radius_miles"
+    }
+}
+
+// MARK: - HMGL Stats Response
+struct HMGLStatsResponse: Codable {
+    let totalLocations: Int
+    let withCoordinates: Int
+    let countyLocations: Int
+    let topCities: [HMGLCityCount]
+    let topOrganizations: [HMGLOrgCount]
+    
+    enum CodingKeys: String, CodingKey {
+        case totalLocations = "total_locations"
+        case withCoordinates = "with_coordinates"
+        case countyLocations = "county_locations"
+        case topCities = "top_cities"
+        case topOrganizations = "top_organizations"
+    }
+}
+
+struct HMGLCityCount: Codable, Identifiable {
+    let city: String
+    let count: Int
+    
+    var id: String { city }
+}
+
+struct HMGLOrgCount: Codable, Identifiable {
+    let organization: String
+    let count: Int
+    
+    var id: String { organization }
+}
+
+// MARK: - AnyCodable for flexible JSON
+struct AnyCodable: Codable {
+    let value: Any
+    
+    init(_ value: Any) {
+        self.value = value
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let string = try? container.decode(String.self) {
+            value = string
+        } else if let int = try? container.decode(Int.self) {
+            value = int
+        } else if let double = try? container.decode(Double.self) {
+            value = double
+        } else if let bool = try? container.decode(Bool.self) {
+            value = bool
+        } else if let array = try? container.decode([AnyCodable].self) {
+            value = array.map { $0.value }
+        } else if let dict = try? container.decode([String: AnyCodable].self) {
+            value = dict.mapValues { $0.value }
+        } else {
+            value = NSNull()
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        if let string = value as? String {
+            try container.encode(string)
+        } else if let int = value as? Int {
+            try container.encode(int)
+        } else if let double = value as? Double {
+            try container.encode(double)
+        } else if let bool = value as? Bool {
+            try container.encode(bool)
+        } else {
+            try container.encodeNil()
+        }
+    }
+}

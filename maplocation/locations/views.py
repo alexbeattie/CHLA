@@ -1689,7 +1689,7 @@ class HMGLLocationViewSet(viewsets.ReadOnlyModelViewSet):
         from django.contrib.gis.db.models.functions import Distance as DistanceFunc
 
         point = Point(lng, lat, srid=4326)
-        
+
         # Convert miles to degrees (approximate: 1 degree ≈ 69 miles at equator)
         # Works well for California latitudes
         radius_degrees = radius / 69.0
