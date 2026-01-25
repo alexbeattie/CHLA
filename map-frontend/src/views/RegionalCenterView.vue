@@ -4,9 +4,9 @@
     <section class="hero-section" :style="{ background: `linear-gradient(135deg, ${rcData.color} 0%, ${rcData.colorDark} 100%)` }">
       <div class="container">
         <div class="breadcrumb">
-          <router-link to="/">Home</router-link>
+          <router-link to="/">{{ $t('regionalCenter.home') }}</router-link>
           <span class="separator">›</span>
-          <router-link to="/regional-centers">Regional Centers</router-link>
+          <router-link to="/regional-centers">{{ $t('nav.regionalCenters') }}</router-link>
           <span class="separator">›</span>
           <span>{{ rcData.name }}</span>
         </div>
@@ -15,15 +15,15 @@
         <div class="hero-stats">
           <div class="stat">
             <i class="bi bi-hospital"></i>
-            <span>{{ rcData.providerCount }}+ Providers</span>
+            <span>{{ rcData.providerCount }}+ {{ $t('regionalCenter.resources') }}</span>
           </div>
           <div class="stat">
             <i class="bi bi-geo-alt"></i>
-            <span>{{ rcData.citiesCount }} Cities Served</span>
+            <span>{{ rcData.citiesCount }} {{ $t('regionalCenter.citiesServed') }}</span>
           </div>
           <div class="stat">
             <i class="bi bi-people"></i>
-            <span>{{ rcData.population }} Residents</span>
+            <span>{{ rcData.population }} {{ $t('regionalCenter.residents') }}</span>
           </div>
         </div>
         
@@ -31,7 +31,7 @@
         <div class="hero-cta">
           <button @click="searchProviders" class="btn btn-primary btn-lg btn-hero">
             <i class="bi bi-map me-2"></i>
-            View All {{ rcData.shortName }} Providers
+            {{ $t('regionalCenter.viewAllResources', { name: rcData.shortName }) }}
           </button>
         </div>
       </div>
@@ -41,20 +41,20 @@
     <section class="quick-search-section">
       <div class="container">
         <div class="search-card">
-          <h2>Find Providers in {{ rcData.shortName }}</h2>
-          <p>Enter your ZIP code to see ABA therapy providers near you</p>
+          <h2>{{ $t('regionalCenter.findResourcesIn', { name: rcData.shortName }) }}</h2>
+          <p>{{ $t('regionalCenter.enterZipToSee') }}</p>
           <div class="search-form">
             <input 
               type="text" 
               v-model="zipCode" 
-              placeholder="Enter ZIP code (e.g., 91789)"
+              :placeholder="$t('regionalCenter.zipPlaceholder')"
               @keyup.enter="searchByZip"
               maxlength="5"
               class="zip-input"
             />
             <button @click="searchByZip" class="btn btn-primary">
               <i class="bi bi-search me-2"></i>
-              Search Providers
+              {{ $t('regionalCenter.searchResourcesBtn') }}
             </button>
           </div>
         </div>
@@ -67,20 +67,20 @@
         
         <!-- About This Regional Center -->
         <div class="content-block">
-          <h2>About {{ rcData.name }}</h2>
+          <h2>{{ $t('regionalCenter.aboutRc', { name: rcData.name }) }}</h2>
           <div class="rc-info-grid">
             <div class="rc-description">
               <p v-html="rcData.description"></p>
               
               <div class="contact-info">
-                <h3>Contact Information</h3>
+                <h3>{{ $t('regionalCenter.contactInfo') }}</h3>
                 <div class="contact-item">
                   <i class="bi bi-telephone-fill"></i>
                   <a :href="`tel:${rcData.phone}`">{{ rcData.phoneFormatted }}</a>
                 </div>
                 <div class="contact-item">
                   <i class="bi bi-globe"></i>
-                  <a :href="rcData.website" target="_blank" rel="noopener noreferrer">Visit Website</a>
+                  <a :href="rcData.website" target="_blank" rel="noopener noreferrer">{{ $t('regionalCenter.visitWebsite') }}</a>
                 </div>
                 <div class="contact-item">
                   <i class="bi bi-geo-alt-fill"></i>
@@ -90,7 +90,7 @@
             </div>
 
             <div class="rc-highlights">
-              <h3>Service Highlights</h3>
+              <h3>{{ $t('regionalCenter.serviceHighlights') }}</h3>
               <ul class="highlights-list">
                 <li v-for="highlight in rcData.highlights" :key="highlight">
                   <i class="bi bi-check-circle-fill"></i>
@@ -108,11 +108,11 @@
               <i class="bi bi-map"></i>
             </div>
             <div class="cta-content">
-              <h3>Ready to Find Providers?</h3>
-              <p>View all ABA therapy providers serving {{ rcData.shortName }} areas on our interactive map.</p>
+              <h3>{{ $t('regionalCenter.readyToFindResources') }}</h3>
+              <p>{{ $t('regionalCenter.viewAllAbaResources', { name: rcData.shortName }) }}</p>
               <button @click="searchProviders" class="btn btn-primary">
                 <i class="bi bi-map me-2"></i>
-                View All {{ rcData.shortName }} Providers
+                {{ $t('regionalCenter.viewAllResources', { name: rcData.shortName }) }}
               </button>
             </div>
           </div>
@@ -120,8 +120,8 @@
 
         <!-- Cities & ZIP Codes Served -->
         <div class="content-block">
-          <h2>Cities & Communities Served</h2>
-          <p>{{ rcData.name }} serves the following areas in Los Angeles County:</p>
+          <h2>{{ $t('regionalCenter.citiesCommunities') }}</h2>
+          <p>{{ $t('regionalCenter.citiesServedIntro', { name: rcData.name }) }}</p>
           <div class="cities-grid">
             <div v-for="city in displayedCities" :key="city" class="city-chip">
               <i class="bi bi-geo-alt"></i>
@@ -131,20 +131,20 @@
           <div v-if="rcData.cities.length > 15" class="text-center mt-3">
             <button @click="toggleCities" class="btn btn-outline-secondary btn-sm">
               <i :class="showAllCities ? 'bi bi-chevron-up' : 'bi bi-chevron-down'" class="me-1"></i>
-              {{ showAllCities ? 'Show Less' : `Show All ${rcData.cities.length} Cities` }}
+              {{ showAllCities ? $t('regionalCenter.showLess') : $t('regionalCenter.showAllCities', { count: rcData.cities.length }) }}
             </button>
           </div>
           
           <div class="zip-section">
-            <h3>ZIP Codes in {{ rcData.shortName }}</h3>
-            <p class="text-muted">The following ZIP codes are served by {{ rcData.name }}:</p>
+            <h3>{{ $t('regionalCenter.zipCodesIn', { name: rcData.shortName }) }}</h3>
+            <p class="text-muted">{{ $t('regionalCenter.zipCodesServed', { name: rcData.name }) }}</p>
             <div class="zip-codes">
               <span v-for="zip in displayedZips" :key="zip" class="zip-badge">{{ zip }}</span>
             </div>
             <div v-if="rcData.zipCodes.length > 30" class="text-center mt-3">
               <button @click="toggleZips" class="btn btn-outline-secondary btn-sm">
                 <i :class="showAllZips ? 'bi bi-chevron-up' : 'bi bi-chevron-down'" class="me-1"></i>
-                {{ showAllZips ? 'Show Less' : `Show All ${rcData.zipCodes.length} ZIP Codes` }}
+                {{ showAllZips ? $t('regionalCenter.showLess') : $t('regionalCenter.showAllZips', { count: rcData.zipCodes.length }) }}
               </button>
             </div>
           </div>
@@ -152,91 +152,91 @@
 
         <!-- Services Available -->
         <div class="content-block highlight-block">
-          <h2>Services Available Through {{ rcData.shortName }}</h2>
-          <p>Individuals served by {{ rcData.name }} may be eligible for:</p>
+          <h2>{{ $t('regionalCenter.servicesAvailable', { name: rcData.shortName }) }}</h2>
+          <p>{{ $t('regionalCenter.eligibleFor', { name: rcData.name }) }}</p>
           <div class="services-grid">
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-clipboard2-pulse"></i>
               </div>
-              <h3>ABA Therapy</h3>
-              <p>Applied Behavior Analysis for autism and developmental disabilities</p>
+              <h3>{{ $t('regionalCenter.abaTherapy') }}</h3>
+              <p>{{ $t('regionalCenter.abaTherapyDesc') }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-chat-dots"></i>
               </div>
-              <h3>Speech Therapy</h3>
-              <p>Communication and language development services</p>
+              <h3>{{ $t('regionalCenter.speechTherapy') }}</h3>
+              <p>{{ $t('regionalCenter.speechTherapyDesc') }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-activity"></i>
               </div>
-              <h3>Occupational Therapy</h3>
-              <p>Daily living skills and sensory integration</p>
+              <h3>{{ $t('regionalCenter.occupationalTherapy') }}</h3>
+              <p>{{ $t('regionalCenter.occupationalTherapyDesc') }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-person-walking"></i>
               </div>
-              <h3>Physical Therapy</h3>
-              <p>Mobility and motor skill development</p>
+              <h3>{{ $t('regionalCenter.physicalTherapy') }}</h3>
+              <p>{{ $t('regionalCenter.physicalTherapyDesc') }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-people"></i>
               </div>
-              <h3>Social Skills Groups</h3>
-              <p>Peer interaction and social development</p>
+              <h3>{{ $t('regionalCenter.socialSkillsGroups') }}</h3>
+              <p>{{ $t('regionalCenter.socialSkillsGroupsDesc') }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-house-heart"></i>
               </div>
-              <h3>Respite Care</h3>
-              <p>Temporary relief for families and caregivers</p>
+              <h3>{{ $t('regionalCenter.respiteCare') }}</h3>
+              <p>{{ $t('regionalCenter.respiteCareDesc') }}</p>
             </div>
           </div>
         </div>
 
         <!-- How to Get Services -->
         <div class="content-block">
-          <h2>How to Access Services</h2>
+          <h2>{{ $t('regionalCenter.howToAccessServices') }}</h2>
           <div class="steps">
             <div class="step">
               <div class="step-number">1</div>
               <div class="step-content">
-                <h3>Contact {{ rcData.shortName }}</h3>
-                <p>Call {{ rcData.phoneFormatted }} or visit their website to schedule an intake appointment.</p>
+                <h3>{{ $t('regionalCenter.contactRc', { name: rcData.shortName }) }}</h3>
+                <p>{{ $t('regionalCenter.contactRcDesc', { phone: rcData.phoneFormatted }) }}</p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">2</div>
               <div class="step-content">
-                <h3>Intake Assessment</h3>
-                <p>Meet with a service coordinator to discuss your child's needs and determine eligibility.</p>
+                <h3>{{ $t('regionalCenter.intakeAssessment') }}</h3>
+                <p>{{ $t('regionalCenter.intakeAssessmentDesc') }}</p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">3</div>
               <div class="step-content">
-                <h3>Develop IPP</h3>
-                <p>Work with your team to create an Individualized Program Plan outlining services and supports.</p>
+                <h3>{{ $t('regionalCenter.developIpp') }}</h3>
+                <p>{{ $t('regionalCenter.developIppDesc') }}</p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">4</div>
               <div class="step-content">
-                <h3>Choose Providers</h3>
-                <p>Select providers from our map that accept {{ rcData.shortName }} funding and serve your area.</p>
+                <h3>{{ $t('regionalCenter.chooseResources') }}</h3>
+                <p>{{ $t('regionalCenter.chooseResourcesDesc', { name: rcData.shortName }) }}</p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">5</div>
               <div class="step-content">
-                <h3>Begin Services</h3>
-                <p>Start receiving authorized services from your chosen providers.</p>
+                <h3>{{ $t('regionalCenter.beginServices') }}</h3>
+                <p>{{ $t('regionalCenter.beginServicesDesc') }}</p>
               </div>
             </div>
           </div>
@@ -244,24 +244,24 @@
 
         <!-- CTA Section -->
         <div class="cta-section">
-          <h2>Find ABA Therapy Providers in {{ rcData.shortName }}</h2>
-          <p>View all providers on our interactive map that serve {{ rcData.shortName }} areas.</p>
+          <h2>{{ $t('regionalCenter.findAbaResources', { name: rcData.shortName }) }}</h2>
+          <p>{{ $t('regionalCenter.viewResourcesOnMap', { name: rcData.shortName }) }}</p>
           <div class="cta-buttons">
             <button @click="searchProviders" class="btn btn-primary btn-lg">
               <i class="bi bi-map me-2"></i>
-              View All {{ rcData.shortName }} Providers
+              {{ $t('regionalCenter.viewAllResources', { name: rcData.shortName }) }}
             </button>
             <router-link to="/faq" class="btn btn-outline-light btn-lg">
               <i class="bi bi-question-circle me-2"></i>
-              Learn More
+              {{ $t('regionalCenter.learnMore') }}
             </router-link>
           </div>
         </div>
 
         <!-- Other Regional Centers -->
         <div class="content-block">
-          <h2>Other LA County Regional Centers</h2>
-          <p>Not in {{ rcData.shortName }}? Find your Regional Center:</p>
+          <h2>{{ $t('regionalCenter.otherRcTitle') }}</h2>
+          <p>{{ $t('regionalCenter.notInRc', { name: rcData.shortName }) }}</p>
           <div class="rc-links-grid">
             <router-link 
               v-for="rc in otherRegionalCenters" 
@@ -284,6 +284,7 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { REGIONAL_CENTERS } from '@/data/regionalCenters';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.kinddhelp.com';
@@ -292,6 +293,7 @@ export default {
   name: 'RegionalCenterView',
   
   setup() {
+    const { t } = useI18n();
     const route = useRoute();
     const router = useRouter();
     const zipCode = ref('');
@@ -437,6 +439,7 @@ export default {
     });
     
     return {
+      t,
       rcData,
       otherRegionalCenters,
       zipCode,
