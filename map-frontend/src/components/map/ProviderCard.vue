@@ -34,16 +34,16 @@
     <div v-if="distance !== null" class="provider-distance-section">
       <div class="provider-distance">
         <i class="bi bi-signpost-2"></i>
-        <span>{{ formattedDistance }} away</span>
+        <span>{{ formattedDistance }} {{ $t("providerCard.away") }}</span>
       </div>
       <button
         class="btn-get-directions"
         @click.stop="handleGetDirections"
-        :aria-label="`Get driving directions to ${provider.name}`"
-        title="Get turn-by-turn driving directions"
+        :aria-label="$t('providerCard.getDirectionsTo', { name: provider.name })"
+        :title="$t('providerCard.directionsTitle')"
       >
         <i class="bi bi-pin-map-fill"></i>
-        <span>Directions</span>
+        <span>{{ $t("providerCard.directions") }}</span>
       </button>
     </div>
 
@@ -70,7 +70,7 @@
           @click.stop
           class="contact-link"
         >
-          Website
+          {{ $t("providerCard.website") }}
         </a>
       </div>
     </div>
@@ -79,7 +79,7 @@
     <div v-if="showInsurance && insuranceTypes.length > 0" class="provider-insurance">
       <div class="insurance-label">
         <i class="bi bi-credit-card"></i>
-        <span>Accepts:</span>
+        <span>{{ $t("providerCard.accepts") }}</span>
       </div>
       <div class="insurance-badges">
         <span
@@ -97,7 +97,7 @@
     <div v-if="showTherapies && provider.therapy_types && provider.therapy_types.length > 0" class="provider-therapies">
       <div class="therapies-label">
         <i class="bi bi-clipboard2-pulse"></i>
-        <span>Services:</span>
+        <span>{{ $t("providerCard.services") }}</span>
       </div>
       <div class="therapies-list">
         <span
@@ -111,7 +111,7 @@
           v-if="provider.therapy_types.length > maxTherapiesToShow"
           class="therapy-chip more-chip"
         >
-          +{{ provider.therapy_types.length - maxTherapiesToShow }} more
+          +{{ provider.therapy_types.length - maxTherapiesToShow }} {{ $t("providerCard.more") }}
         </span>
       </div>
     </div>
@@ -120,7 +120,7 @@
     <div v-if="showAgeGroups && provider.age_groups && provider.age_groups.length > 0" class="provider-ages">
       <div class="ages-label">
         <i class="bi bi-people"></i>
-        <span>Ages:</span>
+        <span>{{ $t("providerCard.ages") }}</span>
       </div>
       <div class="ages-list">
         {{ provider.age_groups.join(', ') }}
@@ -130,7 +130,7 @@
     <!-- No Coordinates Warning -->
     <div v-if="!hasCoordinates" class="no-coordinates-warning">
       <i class="bi bi-exclamation-triangle"></i>
-      <span>Location not available on map</span>
+      <span>{{ $t("providerCard.locationNotAvailable") }}</span>
     </div>
   </div>
 </template>

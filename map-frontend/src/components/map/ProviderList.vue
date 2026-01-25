@@ -5,10 +5,10 @@
       <div class="header-content">
         <h2 class="list-title">
           <i class="bi bi-hospital"></i>
-          <span>Providers</span>
+          <span>{{ $t("provider.providers") }}</span>
         </h2>
         <div v-if="!loading && providers.length > 0" class="provider-count">
-          {{ providers.length }} {{ providers.length === 1 ? 'result' : 'results' }}
+          {{ providers.length }} {{ providers.length === 1 ? $t("sidebar.result") : $t("sidebar.results") }}
         </div>
       </div>
 

@@ -13,53 +13,77 @@
 
         <div class="navbar-brand">
           <router-link to="/" class="kindd-text-logo-link">
-          <span class="kindd-text-logo">KINDD</span>
+            <span class="kindd-text-logo">KINDD</span>
           </router-link>
           <span class="brand-separator d-none d-md-inline">|</span>
-          <span class="brand-subtitle d-none d-md-inline">ABA Provider Map</span>
+          <span class="brand-subtitle d-none d-md-inline">ABA Resource Navigator</span>
         </div>
 
         <nav class="navbar-links d-none d-md-flex">
           <router-link to="/regional-centers" class="nav-link">
             <i class="bi bi-building me-1"></i>
-            Regional Centers
+            {{ $t("nav.regionalCenters") }}
           </router-link>
           <router-link to="/faq" class="nav-link">
             <i class="bi bi-question-circle me-1"></i>
-            FAQ
+            {{ $t("nav.faq") }}
           </router-link>
           <router-link to="/about" class="nav-link">
             <i class="bi bi-info-circle me-1"></i>
-            About
+            {{ $t("nav.about") }}
           </router-link>
         </nav>
 
         <div class="navbar-actions">
           <!-- Mobile Navigation Menu -->
           <div class="mobile-nav-menu d-md-none">
-            <button class="btn-icon" @click="toggleMobileNav" :class="{ active: showMobileNav }">
+            <button
+              class="btn-icon"
+              @click="toggleMobileNav"
+              :class="{ active: showMobileNav }"
+            >
               <i class="bi bi-three-dots-vertical"></i>
             </button>
             <div v-if="showMobileNav" class="mobile-nav-dropdown">
-              <router-link to="/regional-centers" class="mobile-nav-item" @click="showMobileNav = false">
+              <router-link
+                to="/regional-centers"
+                class="mobile-nav-item"
+                @click="showMobileNav = false"
+              >
                 <i class="bi bi-building me-2"></i>
-                Regional Centers
+                {{ $t("nav.regionalCenters") }}
               </router-link>
-              <router-link to="/faq" class="mobile-nav-item" @click="showMobileNav = false">
+              <router-link
+                to="/faq"
+                class="mobile-nav-item"
+                @click="showMobileNav = false"
+              >
                 <i class="bi bi-question-circle me-2"></i>
-                FAQ
+                {{ $t("nav.faq") }}
               </router-link>
-              <router-link to="/about" class="mobile-nav-item" @click="showMobileNav = false">
+              <router-link
+                to="/about"
+                class="mobile-nav-item"
+                @click="showMobileNav = false"
+              >
                 <i class="bi bi-info-circle me-2"></i>
-                About
+                {{ $t("nav.about") }}
               </router-link>
+            </div>
           </div>
-        </div>
 
-          <button class="btn-start-over" @click="handleStartOver" title="Start Over">
+          <button
+            class="btn-start-over"
+            @click="handleStartOver"
+            :title="$t('nav.startOver')"
+          >
             <i class="bi bi-arrow-counterclockwise"></i>
-            <span class="d-none d-md-inline">Start Over</span>
+            <span class="d-none d-md-inline">{{ $t("nav.startOver") }}</span>
           </button>
+
+          <!-- Language Switcher -->
+          <language-switcher class="ms-2" />
+
           <button class="btn-icon" @click="toggleUserMenu" v-if="isAuthenticated">
             <i class="bi bi-person-circle"></i>
           </button>
@@ -70,7 +94,7 @@
     <!-- Search Bar -->
     <div v-if="!showOnboarding" class="search-bar-wrapper">
       <search-bar
-        placeholder="Enter city or ZIP code"
+        :placeholder="$t('search.placeholder')"
         :show-results-summary="true"
         :auto-focus="false"
         @search="handleNewSearch"
@@ -112,7 +136,7 @@
             />
           </div>
           <div class="chla-mission">
-            <p class="chla-tagline">We create hope and build healthier futures</p>
+            <p class="chla-tagline">{{ $t("sidebar.tagline") }}</p>
           </div>
         </div>
 
@@ -128,7 +152,7 @@
               @click="setDisplayType('regionalCenters')"
             >
               <i class="bi bi-building me-1"></i>
-              <span>Regional Centers</span>
+              <span>{{ $t("sidebar.regionalCenters") }}</span>
             </button>
             <button
               class="btn flex-grow-1"
@@ -139,20 +163,20 @@
               @click="setDisplayType('providers')"
             >
               <i class="bi bi-hospital me-1"></i>
-              <span>Services</span>
+              <span>{{ $t("sidebar.services") }}</span>
             </button>
           </div>
         </div>
 
         <!-- Profile Summary Component (Collapsible) -->
-        <div class="collapsible-section mb-3" v-if="userData.age || userData.diagnosis || displayRegionalCenter">
-          <div
-            class="collapsible-header"
-            @click="toggleSection('profile')"
-          >
+        <div
+          class="collapsible-section mb-3"
+          v-if="userData.age || userData.diagnosis || displayRegionalCenter"
+        >
+          <div class="collapsible-header" @click="toggleSection('profile')">
             <div class="d-flex align-items-center">
               <i class="bi bi-person-circle text-primary me-2"></i>
-              <strong>Your Profile</strong>
+              <strong>{{ $t("sidebar.yourProfile") }}</strong>
             </div>
             <i
               class="bi toggle-icon"
@@ -171,13 +195,10 @@
         <!-- Simple Search (Collapsible) -->
         <!-- Search Section (only show for providers) -->
         <div v-if="displayType === 'providers'" class="collapsible-section mb-3">
-          <div
-            class="collapsible-header"
-            @click="toggleSection('search')"
-          >
+          <div class="collapsible-header" @click="toggleSection('search')">
             <div class="d-flex align-items-center">
               <i class="bi bi-search text-secondary me-2"></i>
-              <strong>Search Services</strong>
+              <strong>{{ $t("sidebar.searchServices") }}</strong>
             </div>
             <i
               class="bi toggle-icon"
@@ -191,7 +212,7 @@
                   type="text"
                   class="form-control"
                   v-model.trim="searchText"
-                  placeholder="ZIP, address, provider, service..."
+                  :placeholder="$t('sidebar.searchPlaceholder')"
                   @keyup.enter="updateFilteredLocations"
                   @input="debounceSearch"
                   @focus="console.log('Search input focused')"
@@ -202,7 +223,7 @@
                   class="btn btn-outline-secondary"
                   type="button"
                   @click="clearSearch"
-                  title="Clear search"
+                  :title="$t('sidebar.clearSearch')"
                 >
                   <i class="bi bi-x"></i>
                 </button>
@@ -214,14 +235,12 @@
                 >
                   <i class="bi bi-search" v-if="!loading"></i>
                   <div class="spinner-border spinner-border-sm" role="status" v-else>
-                    <span class="visually-hidden">Searching...</span>
+                    <span class="visually-hidden">{{ $t("sidebar.searching") }}</span>
                   </div>
                 </button>
               </div>
               <div class="small text-muted mt-2" v-if="displayType === 'providers'">
-                <em
-                  >Try: ZIP (90210), address, provider name, or service (ABA, speech therapy)</em
-                >
+                <em>{{ $t("sidebar.searchHint") }}</em>
               </div>
               <!-- Error Message Display -->
               <div v-if="error" class="alert alert-danger mt-2 mb-0 py-2" role="alert">
@@ -234,33 +253,29 @@
 
         <!-- Location Notice -->
         <!-- Location Notice - Only show if location not detected and no profile -->
-        <div 
-          class="location-notice mb-3" 
+        <div
+          class="location-notice mb-3"
           v-if="!userLocation.detected && !userData.age && !userData.diagnosis"
         >
           <div class="form-control border-info bg-info bg-opacity-10">
             <div class="d-flex align-items-start gap-2">
               <i class="bi bi-info-circle text-info mt-1"></i>
               <div class="flex-grow-1">
-                <div class="fw-semibold">Showing All LA County Providers</div>
+                <div class="fw-semibold">{{ $t("sidebar.showingAllResources") }}</div>
                 <div class="small text-muted mt-1">
-                  Set up your profile or search by ZIP code for personalized results
+                  {{ $t("sidebar.setUpProfile") }}
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-
         <!-- Filter Section (Collapsible) -->
         <div class="collapsible-section mb-3">
-          <div
-            class="collapsible-header"
-            @click="toggleSection('filters')"
-          >
+          <div class="collapsible-header" @click="toggleSection('filters')">
             <div class="d-flex align-items-center">
               <i class="bi bi-funnel-fill text-warning me-2"></i>
-              <strong>Filters</strong>
+              <strong>{{ $t("common.filters") }}</strong>
             </div>
             <i
               class="bi toggle-icon"
@@ -278,7 +293,8 @@
                       >"
                     </span>
                     <span v-else>
-                      Distance Radius: <strong>{{ radius }} miles</strong>
+                      {{ $t("sidebar.distanceRadius") }}:
+                      <strong>{{ radius }} {{ $t("common.miles") }}</strong>
                     </span>
                   </label>
                   <span class="badge bg-info small"
@@ -310,14 +326,10 @@
                 @reset="handleFilterReset"
               />
 
-              <!-- Browse All Providers Link -->
+              <!-- Browse All Resources Link -->
               <div class="mt-3 text-center">
-                <a
-                  href="#"
-                  class="browse-all-link"
-                  @click.prevent="loadAllProviders"
-                >
-                  Browse all providers without filters
+                <a href="#" class="browse-all-link" @click.prevent="loadAllProviders">
+                  {{ $t("sidebar.browseAll") }}
                 </a>
               </div>
             </div>
@@ -329,131 +341,147 @@
           <!-- Sticky Header -->
           <div class="results-sticky-header">
             <div class="info-card-header">
-                <div class="d-flex align-items-center flex-grow-1">
-                  <i
-                    :class="displayType === 'regionalCenters' ? 'bi bi-building-fill text-info me-2' : 'bi bi-list-ul text-success me-2'"
-                  ></i>
-                  <strong>
-                    {{
-                      displayType === "locations"
-                        ? "Locations"
-                        : displayType === "regionalCenters"
-                        ? "Regional Centers"
-                        : "Providers"
-                    }}
-                  </strong>
-                  <span
-                    :class="displayType === 'regionalCenters' ? 'badge bg-info ms-2' : 'badge bg-success ms-2'"
-                  >
-                    {{
-                      displayType === "locations"
-                        ? filteredLocations.length
-                        : displayType === "regionalCenters"
-                        ? (regionalCenterData?.regionalCenters?.length || 0)
-                        : filteredProviders.length
-                    }}
-                  </span>
-                </div>
-                <!-- PDF Download Button -->
-                <button 
-                  v-if="displayType === 'providers' && filteredProviders.length > 0"
-                  @click="downloadProviderPDF"
-                  class="btn-download-pdf"
-                  title="Download provider list as PDF"
+              <div class="d-flex align-items-center flex-grow-1">
+                <i
+                  :class="
+                    displayType === 'regionalCenters'
+                      ? 'bi bi-building-fill text-info me-2'
+                      : 'bi bi-list-ul text-success me-2'
+                  "
+                ></i>
+                <strong>
+                  {{
+                    displayType === "locations"
+                      ? "Locations"
+                      : displayType === "regionalCenters"
+                      ? $t("nav.regionalCenters")
+                      : $t("provider.providers")
+                  }}
+                </strong>
+                <span
+                  :class="
+                    displayType === 'regionalCenters'
+                      ? 'badge bg-info ms-2'
+                      : 'badge bg-success ms-2'
+                  "
                 >
-                  <i class="bi bi-file-earmark-pdf"></i>
-                  <span class="d-none d-md-inline ms-1">PDF</span>
-                </button>
+                  {{
+                    displayType === "locations"
+                      ? filteredLocations.length
+                      : displayType === "regionalCenters"
+                      ? regionalCenterData?.regionalCenters?.length || 0
+                      : filteredProviders.length
+                  }}
+                </span>
               </div>
+              <!-- PDF Download Button -->
+              <button
+                v-if="displayType === 'providers' && filteredProviders.length > 0"
+                @click="downloadProviderPDF"
+                class="btn-download-pdf"
+                title="Download provider list as PDF"
+              >
+                <i class="bi bi-file-earmark-pdf"></i>
+                <span class="d-none d-md-inline ms-1">PDF</span>
+              </button>
+            </div>
           </div>
 
           <!-- Scrollable Results Content -->
           <div class="results-content">
             <!-- Nearest Regional Centers -->
-          <div
-            v-if="displayType === 'regionalCenters' && nearestRegionalCenters.length > 0"
-            class="regional-centers-section"
-          >
-            <!-- Sticky Regional Centers Header -->
-            <div class="regional-centers-sticky-header">
-              <div class="info-card-header">
-                <i class="bi bi-geo-alt-fill text-white me-2"></i>
-                <strong>Nearest Regional Centers</strong>
+            <div
+              v-if="
+                displayType === 'regionalCenters' && nearestRegionalCenters.length > 0
+              "
+              class="regional-centers-section"
+            >
+              <!-- Sticky Regional Centers Header -->
+              <div class="regional-centers-sticky-header">
+                <div class="info-card-header">
+                  <i class="bi bi-geo-alt-fill text-white me-2"></i>
+                  <strong>Nearest Regional Centers</strong>
+                </div>
               </div>
-            </div>
 
-            <!-- Regional Centers List -->
-            <div class="regional-centers-list-content">
-              <div class="nearest-centers-list">
-                <div
-                  v-for="(center, index) in nearestRegionalCenters"
-                  :key="`nearest-${center.name}-${index}`"
-                  class="nearest-center-item clickable"
-                  @click="openRegionalCenterDetails(center)"
-                >
-                  <div class="d-flex align-items-center justify-content-between w-100">
-                    <div class="d-flex align-items-center">
-                      <span
-                        class="color-indicator me-2"
-                        :style="`background-color: ${center.color}; width: 12px; height: 12px; border-radius: 50%; display: inline-block;`"
-                      ></span>
-                      <span>{{ center.name }}</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                      <span class="badge bg-secondary">{{ center.distance }} mi</span>
-                      <i class="bi bi-chevron-right text-muted"></i>
+              <!-- Regional Centers List -->
+              <div class="regional-centers-list-content">
+                <div class="nearest-centers-list">
+                  <div
+                    v-for="(center, index) in nearestRegionalCenters"
+                    :key="`nearest-${center.name}-${index}`"
+                    class="nearest-center-item clickable"
+                    @click="openRegionalCenterDetails(center)"
+                  >
+                    <div class="d-flex align-items-center justify-content-between w-100">
+                      <div class="d-flex align-items-center">
+                        <span
+                          class="color-indicator me-2"
+                          :style="`background-color: ${center.color}; width: 12px; height: 12px; border-radius: 50%; display: inline-block;`"
+                        ></span>
+                        <span>{{ center.name }}</span>
+                      </div>
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary">{{ center.distance }} mi</span>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Provider List -->
-          <provider-list
-            v-if="providerStore && displayType === 'providers'"
-            :providers="paginatedProviders"
-            :selected-id="providerStore.selectedProviderId"
-            :loading="providerStore.loading"
-            :show-distance="true"
-            :auto-scroll-to-selected="true"
-            :show-load-more="true"
-            :has-more="hasMoreProviders"
-            @provider-select="handleProviderSelect"
-            @get-directions="handleGetDirections"
-            @load-more="loadMoreProviders"
-          />
+            <!-- Provider List -->
+            <provider-list
+              v-if="providerStore && displayType === 'providers'"
+              :providers="paginatedProviders"
+              :selected-id="providerStore.selectedProviderId"
+              :loading="providerStore.loading"
+              :show-distance="true"
+              :auto-scroll-to-selected="true"
+              :show-load-more="true"
+              :has-more="hasMoreProviders"
+              @provider-select="handleProviderSelect"
+              @get-directions="handleGetDirections"
+              @load-more="loadMoreProviders"
+            />
 
-          <!-- Providers section in Regional Centers tab -->
-          <div
-            v-if="displayType === 'regionalCenters' && providerStore && providerStore.providers.length > 0"
-            class="providers-section-regional-centers"
-          >
-            <!-- Sticky Providers Header -->
-            <div class="providers-sticky-header">
-              <div class="info-card-header">
-                <i class="bi bi-hospital-fill text-success me-2"></i>
-                <strong>Providers</strong>
-                <span class="badge bg-success ms-2">{{ providerStore.providers.length }}</span>
+            <!-- Providers section in Regional Centers tab -->
+            <div
+              v-if="
+                displayType === 'regionalCenters' &&
+                providerStore &&
+                providerStore.providers.length > 0
+              "
+              class="providers-section-regional-centers"
+            >
+              <!-- Sticky Resources Header -->
+              <div class="providers-sticky-header">
+                <div class="info-card-header">
+                  <i class="bi bi-hospital-fill text-success me-2"></i>
+                  <strong>{{ $t("provider.providers") }}</strong>
+                  <span class="badge bg-success ms-2">{{
+                    providerStore.providers.length
+                  }}</span>
+                </div>
+              </div>
+
+              <!-- Providers List -->
+              <div class="providers-list-content">
+                <provider-list
+                  :providers="paginatedProviders"
+                  :selected-id="providerStore.selectedProviderId"
+                  :loading="providerStore.loading"
+                  :show-distance="true"
+                  :auto-scroll-to-selected="true"
+                  :show-load-more="true"
+                  :has-more="hasMoreProviders"
+                  @provider-select="handleProviderSelect"
+                  @get-directions="handleGetDirections"
+                  @load-more="loadMoreProviders"
+                />
               </div>
             </div>
-
-            <!-- Providers List -->
-            <div class="providers-list-content">
-              <provider-list
-                :providers="paginatedProviders"
-                :selected-id="providerStore.selectedProviderId"
-                :loading="providerStore.loading"
-                :show-distance="true"
-                :auto-scroll-to-selected="true"
-                :show-load-more="true"
-                :has-more="hasMoreProviders"
-                @provider-select="handleProviderSelect"
-                @get-directions="handleGetDirections"
-                @load-more="loadMoreProviders"
-              />
-            </div>
-          </div>
           </div>
           <!-- End results-content -->
         </div>
@@ -464,7 +492,11 @@
     <!-- End Sidebar Container -->
 
     <!-- Map Container -->
-    <div class="map-container-wrapper" :class="{ 'with-search': showMobileSearch }" @click="handleMapClick">
+    <div
+      class="map-container-wrapper"
+      :class="{ 'with-search': showMobileSearch }"
+      @click="handleMapClick"
+    >
       <!-- Map Canvas -->
       <map-canvas
         ref="mapCanvas"
@@ -509,7 +541,6 @@
         @close="closeRegionalCenterDetails"
         @get-directions="handleGetDirections"
       />
-
     </div>
   </div>
 </template>
@@ -524,16 +555,46 @@ import FundingInfoPanel from "@/components/FundingInfoPanel.vue";
 import OnboardingFlow from "@/components/OnboardingFlow.vue";
 import { authService } from "@/services/auth.js";
 import { getApiRoot } from "@/utils/api.js";
-import { getLACountyBounds, isPointInBounds, calculateProviderBounds, calculateDistance as haversineDistance } from "@/utils/geo.js";
-import { formatDescription, formatInsurance, formatLanguages, formatHours, formatHoursObject } from "@/utils/formatting.js";
+import {
+  getLACountyBounds,
+  isPointInBounds,
+  calculateProviderBounds,
+  calculateDistance as haversineDistance,
+} from "@/utils/geo.js";
+import {
+  formatDescription,
+  formatInsurance,
+  formatLanguages,
+  formatHours,
+  formatHoursObject,
+} from "@/utils/formatting.js";
 import { createMinimalPopup } from "@/utils/popup-minimal.js";
 import { generateProviderPDF } from "@/utils/pdfGenerator.js";
-import { isLACountyZip, isInLACounty, extractZipCode as detectStandaloneZip, extractZipFromAddress, looksLikeAddress, isValidCaliforniaCoordinate } from "@/utils/validation.js";
+import {
+  isLACountyZip,
+  isInLACounty,
+  extractZipCode as detectStandaloneZip,
+  extractZipFromAddress,
+  looksLikeAddress,
+  isValidCaliforniaCoordinate,
+} from "@/utils/validation.js";
 import { sampleProviders } from "@/utils/sampleData.js";
 import { hslToHex, stringToColor } from "@/utils/colors.js";
 import { geocodeAddress } from "@/utils/map/geocoding";
-import { DIAGNOSIS_OPTIONS, THERAPY_OPTIONS, LA_COUNTY_CENTER, LA_COUNTY_BOUNDS } from "@/constants/filters.js";
-import { buildProviderQueryParams, buildProviderUrl, hasActiveFilters, filterValidProviders, filterProvidersInLACounty, LA_COUNTY_MAP_BOUNDS } from "@/services/providerService.js";
+import {
+  DIAGNOSIS_OPTIONS,
+  THERAPY_OPTIONS,
+  LA_COUNTY_CENTER,
+  LA_COUNTY_BOUNDS,
+} from "@/constants/filters.js";
+import {
+  buildProviderQueryParams,
+  buildProviderUrl,
+  hasActiveFilters,
+  filterValidProviders,
+  filterProvidersInLACounty,
+  LA_COUNTY_MAP_BOUNDS,
+} from "@/services/providerService.js";
 
 // Extracted components
 import MapCanvas from "@/components/map/MapCanvas.vue";
@@ -546,6 +607,7 @@ import DirectionsPanel from "@/components/map/DirectionsPanel.vue";
 import FilterPanel from "@/components/map/FilterPanel.vue";
 import SidebarPanel from "@/components/SidebarPanel.vue";
 import ProfileSummary from "@/components/ProfileSummary.vue";
+import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 
 // Pinia stores
 import { useProviderStore } from "@/stores/providerStore";
@@ -564,14 +626,14 @@ import {
   getRegionalCentersList,
   getRegionalCenterColor,
   getRegionalCenterCoordinates,
-  getRegionalCenterMapboxCoords
+  getRegionalCenterMapboxCoords,
 } from "@/constants/regionalCenters";
 import {
   calculateDistance,
   extractZipCode,
   isValidZipCode,
   normalizeCoordinates,
-  toLngLatArray
+  toLngLatArray,
 } from "@/utils/map/coordinates";
 
 // Flag to use actual API data instead of sample data - set to false to query the database
@@ -602,6 +664,7 @@ export default {
     FilterPanel,
     SidebarPanel,
     ProfileSummary,
+    LanguageSwitcher,
   },
 
   data() {
@@ -617,7 +680,6 @@ export default {
       // Composables (initialized in created())
       geolocation: null,
       regionalCenterData: null,
-
 
       // Mapbox token for MapCanvas component
       mapboxAccessToken:
@@ -698,7 +760,7 @@ export default {
       },
       diagnosisOptions: DIAGNOSIS_OPTIONS,
       therapyOptions: THERAPY_OPTIONS,
-      
+
       // LA County constants (exposed for template access)
       LA_COUNTY_CENTER: LA_COUNTY_CENTER,
       LA_COUNTY_BOUNDS: LA_COUNTY_BOUNDS,
@@ -814,7 +876,7 @@ export default {
         name: "Detecting location...",
         address: null,
         phone: null,
-        website: null
+        website: null,
       };
     },
 
@@ -931,53 +993,53 @@ export default {
     // IMPORTANT: These MUST match ProviderV2 choices in models.py
     this.filterStore.setAvailableOptions({
       therapyTypes: [
-        'ABA therapy',
-        'Speech therapy',
-        'Occupational therapy',
-        'Physical therapy',
-        'Feeding therapy',
-        'Parent child interaction therapy/parent training behavior management'
+        "ABA therapy",
+        "Speech therapy",
+        "Occupational therapy",
+        "Physical therapy",
+        "Feeding therapy",
+        "Parent child interaction therapy/parent training behavior management",
       ],
       diagnoses: [
-        'Autism Spectrum Disorder',
-        'Global Development Delay',
-        'Intellectual Disability',
-        'Speech and Language Disorder',
-        'ADHD',
-        'Sensory Processing Disorder',
-        'Down Syndrome',
-        'Cerebral Palsy',
-        'Other'
+        "Autism Spectrum Disorder",
+        "Global Development Delay",
+        "Intellectual Disability",
+        "Speech and Language Disorder",
+        "ADHD",
+        "Sensory Processing Disorder",
+        "Down Syndrome",
+        "Cerebral Palsy",
+        "Other",
       ],
       insuranceTypes: [
-        'Medi-Cal',
-        'Regional Center',
-        'Blue Cross',
-        'Blue Shield',
-        'Anthem',
-        'Aetna',
-        'Cigna',
-        'Kaiser Permanente',
-        'United Healthcare',
-        'Health Net',
-        'L.A. Care',
-        'CalOptima',
-        'Molina',
-        'Magellan',
-        'Medicaid',
-        'Medicare',
-        'Beacon',
-        'MHN',
-        'Optum',
-        'Humana',
-        'Tricare',
-        'Inland Empire Health Plan',
-        'The Holman Group',
-        'United Behavioral Health',
-        'Covered California',
-        'Self-determination programs',
-        'Kaiser/Easterseal'
-      ]
+        "Medi-Cal",
+        "Regional Center",
+        "Blue Cross",
+        "Blue Shield",
+        "Anthem",
+        "Aetna",
+        "Cigna",
+        "Kaiser Permanente",
+        "United Healthcare",
+        "Health Net",
+        "L.A. Care",
+        "CalOptima",
+        "Molina",
+        "Magellan",
+        "Medicaid",
+        "Medicare",
+        "Beacon",
+        "MHN",
+        "Optum",
+        "Humana",
+        "Tricare",
+        "Inland Empire Health Plan",
+        "The Holman Group",
+        "United Behavioral Health",
+        "Covered California",
+        "Self-determination programs",
+        "Kaiser/Easterseal",
+      ],
     });
     console.log("[MapView] Available filter options initialized");
 
@@ -1023,33 +1085,43 @@ export default {
 
           // Check for URL query parameters (e.g., from "View All RC Providers" button)
           const queryParams = this.$route.query;
-          const hasRegionalCenterQuery = queryParams.regionalCenter || (queryParams.q && queryParams.q.includes('Regional Center'));
-          
+          const hasRegionalCenterQuery =
+            queryParams.regionalCenter ||
+            (queryParams.q && queryParams.q.includes("Regional Center"));
+
           if (hasRegionalCenterQuery) {
             // User clicked "View All [Regional Center] Providers" button
             const rcName = queryParams.regionalCenter || queryParams.q;
             console.log(`[MapView] Loading providers for Regional Center: ${rcName}`);
-            
+
             try {
               // Ensure regional centers are loaded first
-              if (!this.regionalCenterData.regionalCenters || this.regionalCenterData.regionalCenters.length === 0) {
-                console.log('[MapView] Regional centers not loaded yet, waiting...');
+              if (
+                !this.regionalCenterData.regionalCenters ||
+                this.regionalCenterData.regionalCenters.length === 0
+              ) {
+                console.log("[MapView] Regional centers not loaded yet, waiting...");
                 await this.regionalCenterData.fetchRegionalCenters();
               }
-              
-              console.log(`[MapView] Available regional centers:`, this.regionalCenterData.regionalCenters.map(rc => rc.name || rc.regional_center));
-              
+
+              console.log(
+                `[MapView] Available regional centers:`,
+                this.regionalCenterData.regionalCenters.map(
+                  (rc) => rc.name || rc.regional_center
+                )
+              );
+
               // Find the regional center data to get its coordinates
               const regionalCenter = this.regionalCenterData.findByName(rcName);
               console.log(`[MapView] Found regional center:`, regionalCenter);
-              
+
               if (regionalCenter) {
                 // Update user location to the regional center's coordinates for map centering
                 if (regionalCenter.latitude && regionalCenter.longitude) {
                   this.userLocation.latitude = regionalCenter.latitude;
                   this.userLocation.longitude = regionalCenter.longitude;
                 }
-                
+
                 // Search providers using the regional center's ZIP codes
                 // The backend's by_regional_center endpoint filters by ZIP codes, not coordinates
                 if (regionalCenter.zip_codes && regionalCenter.zip_codes.length > 0) {
@@ -1062,35 +1134,42 @@ export default {
                   const rcId = regionalCenter.id || regionalCenter.center_id;
                   console.log(`[MapView] Searching by regional center ID: ${rcId}`);
                   // Use searchProviders with regional center ID parameter
-                  await this.providerStore.searchProviders({ 
-                    regionalCenterId: rcId 
+                  await this.providerStore.searchProviders({
+                    regionalCenterId: rcId,
                   });
                 } else {
-                  console.warn('[MapView] Regional center has no ZIP codes or ID, using coordinate search');
+                  console.warn(
+                    "[MapView] Regional center has no ZIP codes or ID, using coordinate search"
+                  );
                   await this.providerStore.searchByLocation(
                     regionalCenter.latitude,
                     regionalCenter.longitude,
                     50
                   );
                 }
-                
+
                 // Set the search text to show what we're filtering by (display only)
                 this.searchText = rcName;
-                
+
                 // Update user address to reflect the regional center context
                 this.userData.address = `${rcName} Service Area`;
-                
+
                 // Optionally filter to only show providers that accept regional center funding
                 this.filterOptions.acceptsRegionalCenter = true;
-                
-                console.log(`[MapView] Loaded ${this.providerStore.providers.length} providers for ${rcName}`);
+
+                console.log(
+                  `[MapView] Loaded ${this.providerStore.providers.length} providers for ${rcName}`
+                );
               } else {
                 console.warn(`[MapView] Regional center not found: ${rcName}`);
                 // Fallback to default behavior
                 await this.loadDefaultProviders();
               }
             } catch (error) {
-              console.error(`[MapView] Error loading providers for Regional Center ${rcName}:`, error);
+              console.error(
+                `[MapView] Error loading providers for Regional Center ${rcName}:`,
+                error
+              );
               // Fallback to default behavior
               await this.loadDefaultProviders();
             }
@@ -1149,50 +1228,62 @@ export default {
         const searchInfo = {
           location: null,
           regionalCenter: null,
-          filters: {}
+          filters: {},
         };
-        
+
         // Determine search location/context
         if (this.userLocation && this.userLocation.zipCode) {
           searchInfo.location = `ZIP ${this.userLocation.zipCode}`;
         } else if (this.userLocation && this.userLocation.coordinates) {
-          searchInfo.location = `${this.userLocation.coordinates.lat.toFixed(4)}, ${this.userLocation.coordinates.lng.toFixed(4)}`;
+          searchInfo.location = `${this.userLocation.coordinates.lat.toFixed(
+            4
+          )}, ${this.userLocation.coordinates.lng.toFixed(4)}`;
         }
-        
+
         // Check if we're filtering by regional center
         if (this.regionalCenterData && this.regionalCenterData.primaryCenter) {
           searchInfo.regionalCenter = this.regionalCenterData.primaryCenter.regional_center;
         }
-        
+
         // Gather active filters
         if (this.filterStore) {
-          if (this.filterStore.filterOptions.therapies && this.filterStore.filterOptions.therapies.length > 0) {
+          if (
+            this.filterStore.filterOptions.therapies &&
+            this.filterStore.filterOptions.therapies.length > 0
+          ) {
             searchInfo.filters.therapies = this.filterStore.filterOptions.therapies;
           }
-          if (this.filterStore.filterOptions.insuranceTypes && this.filterStore.filterOptions.insuranceTypes.length > 0) {
+          if (
+            this.filterStore.filterOptions.insuranceTypes &&
+            this.filterStore.filterOptions.insuranceTypes.length > 0
+          ) {
             searchInfo.filters.insurances = this.filterStore.filterOptions.insuranceTypes;
           }
-          if (this.filterStore.filterOptions.diagnoses && this.filterStore.filterOptions.diagnoses.length > 0) {
+          if (
+            this.filterStore.filterOptions.diagnoses &&
+            this.filterStore.filterOptions.diagnoses.length > 0
+          ) {
             searchInfo.filters.diagnoses = this.filterStore.filterOptions.diagnoses;
           }
         }
-        
+
         // Generate PDF with all visible providers (not just paginated)
         const filename = generateProviderPDF(this.filteredProviders, searchInfo);
-        
+
         console.log(`✅ PDF generated: ${filename}`);
-        
+
         // Track download event
         if (window.gtag) {
-          window.gtag('event', 'download_pdf', {
-            event_category: 'Provider List',
-            event_label: searchInfo.regionalCenter || searchInfo.location || 'General Search',
-            value: this.filteredProviders.length
+          window.gtag("event", "download_pdf", {
+            event_category: "Provider List",
+            event_label:
+              searchInfo.regionalCenter || searchInfo.location || "General Search",
+            value: this.filteredProviders.length,
           });
         }
       } catch (error) {
-        console.error('❌ Error generating PDF:', error);
-        alert('Sorry, there was an error generating the PDF. Please try again.');
+        console.error("❌ Error generating PDF:", error);
+        alert("Sorry, there was an error generating the PDF. Please try again.");
       }
     },
 
@@ -1216,7 +1307,7 @@ export default {
         therapies: [],
         hasInsurance: null,
         hasRegionalCenter: null,
-        address: null
+        address: null,
       };
 
       // Clear location data
@@ -1225,7 +1316,7 @@ export default {
         longitude: null,
         accuracy: null,
         detected: false,
-        error: null
+        error: null,
       };
 
       // Clear search and filters
@@ -1245,7 +1336,7 @@ export default {
       this.closeDirections();
 
       // Reset display to regional centers
-      this.displayType = 'regionalCenters';
+      this.displayType = "regionalCenters";
 
       // Show onboarding
       this.showOnboarding = true;
@@ -1272,7 +1363,7 @@ export default {
       }
 
       // Update user address and regional center when searching by location
-      if (searchData.query && searchData.type === 'location') {
+      if (searchData.query && searchData.type === "location") {
         this.userData.address = searchData.query;
         console.log("📍 Search triggered address update, finding regional center...");
         await this.findUserRegionalCenter();
@@ -1307,7 +1398,7 @@ export default {
             if (zipMatch) {
               // Geocode ZIP to get coordinates for radius filtering
               await this.ensureZipCodeCoordinates(zipMatch[0]);
-              
+
               // Use location-based search if we have coordinates, otherwise ZIP search
               if (this.userLocation?.latitude) {
                 await this.providerStore.searchByLocation(
@@ -1331,7 +1422,9 @@ export default {
           }
 
           // MapCanvas watches providerStore and updates markers automatically
-          console.log(`✅ Filters applied: ${this.providerStore.providers.length} providers found`);
+          console.log(
+            `✅ Filters applied: ${this.providerStore.providers.length} providers found`
+          );
         }
       } catch (error) {
         console.error("[MapView] Error re-fetching providers:", error);
@@ -1352,7 +1445,9 @@ export default {
           if (zipMatch) {
             await this.providerStore.searchByZipCode(zipMatch[0]);
             // MapCanvas handles marker updates automatically
-            console.log(`✅ Filters reset: ${this.providerStore.providers.length} providers shown`);
+            console.log(
+              `✅ Filters reset: ${this.providerStore.providers.length} providers shown`
+            );
           }
         } else if (this.userLocation?.latitude) {
           await this.providerStore.searchByLocation(
@@ -1361,7 +1456,9 @@ export default {
             this.radius || 25
           );
           // MapCanvas handles marker updates automatically
-          console.log(`✅ Filters reset: ${this.providerStore.providers.length} providers shown`);
+          console.log(
+            `✅ Filters reset: ${this.providerStore.providers.length} providers shown`
+          );
         }
       } catch (error) {
         console.error("[MapView] Error re-fetching providers after reset:", error);
@@ -1374,7 +1471,9 @@ export default {
     loadMoreProviders() {
       console.log("[MapView] Loading more providers");
       this.currentProviderPage += 1;
-      console.log(`📄 Now showing page ${this.currentProviderPage} (${this.paginatedProviders.length} of ${this.providerStore.providers.length} providers)`);
+      console.log(
+        `📄 Now showing page ${this.currentProviderPage} (${this.paginatedProviders.length} of ${this.providerStore.providers.length} providers)`
+      );
     },
 
     /**
@@ -1391,7 +1490,11 @@ export default {
      * @param {boolean} fromMarker - Whether this was triggered by a marker click (popup already open)
      */
     handleProviderSelect(providerId, fromMarker = false) {
-      console.log("[MapView] Provider selected", providerId, fromMarker ? "(from marker)" : "(from sidebar)");
+      console.log(
+        "[MapView] Provider selected",
+        providerId,
+        fromMarker ? "(from marker)" : "(from sidebar)"
+      );
 
       // Update provider store selection
       this.providerStore.selectProvider(providerId);
@@ -1404,7 +1507,7 @@ export default {
       if (isMobile && this.showMobileSidebar) {
         console.log("[MapView] Mobile: Closing sidebar to show map");
         this.showMobileSidebar = false;
-        
+
         // Only open popup if this wasn't triggered by a marker click
         // (marker clicks already open the popup in MapCanvas)
         if (!fromMarker) {
@@ -1420,17 +1523,17 @@ export default {
       }
 
       // Center map on selected provider with smooth animation
-      const provider = this.providerStore.providers.find(p => p.id === providerId);
+      const provider = this.providerStore.providers.find((p) => p.id === providerId);
       if (provider && provider.latitude && provider.longitude && this.mapInstance) {
         // Use easeTo for smooth, gentle animation instead of jarring snap
         this.mapInstance.easeTo({
           center: [parseFloat(provider.longitude), parseFloat(provider.latitude)],
           zoom: 14,
-          duration: 2000,  // 2 second smooth animation
+          duration: 2000, // 2 second smooth animation
           easing(t) {
             // Smooth bezier ease-in-out curve
             return t * t * (3.0 - 2.0 * t);
-          }
+          },
         });
       }
     },
@@ -1442,8 +1545,10 @@ export default {
       if (!this.providerStore || !providerId) return;
 
       // Find the index of the selected provider in the full list
-      const providerIndex = this.providerStore.providers.findIndex(p => p.id === providerId);
-      
+      const providerIndex = this.providerStore.providers.findIndex(
+        (p) => p.id === providerId
+      );
+
       if (providerIndex === -1) {
         console.warn(`[MapView] Provider ${providerId} not found in provider list`);
         return;
@@ -1451,12 +1556,16 @@ export default {
 
       // Calculate which page this provider is on
       const providerPage = Math.ceil((providerIndex + 1) / this.providersPerPage);
-      
-      console.log(`[MapView] Provider ${providerId} is at index ${providerIndex}, needs page ${providerPage}, current page ${this.currentProviderPage}`);
+
+      console.log(
+        `[MapView] Provider ${providerId} is at index ${providerIndex}, needs page ${providerPage}, current page ${this.currentProviderPage}`
+      );
 
       // Load more pages if needed
       if (providerPage > this.currentProviderPage) {
-        console.log(`[MapView] Loading pages up to ${providerPage} to show selected provider`);
+        console.log(
+          `[MapView] Loading pages up to ${providerPage} to show selected provider`
+        );
         this.currentProviderPage = providerPage;
       }
     },
@@ -1489,13 +1598,13 @@ export default {
      */
     handleMarkerClick(provider) {
       console.log("[MapView] Marker clicked", provider.id);
-      
+
       // On mobile, close sidebar to reveal map and popup
       const isMobile = window.innerWidth < 768;
       if (isMobile && this.showMobileSidebar) {
         this.showMobileSidebar = false;
       }
-      
+
       // Pass true for fromMarker to avoid re-opening popup (already open from MapCanvas)
       this.handleProviderSelect(provider.id, true);
     },
@@ -1531,7 +1640,7 @@ export default {
       this.directionsError = null;
 
       // Small delay to ensure route is removed from map before drawing new one
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Extract provider from data (could be direct provider object or coordinates object)
       const provider = data.provider || data;
@@ -1556,27 +1665,42 @@ export default {
 
       console.log("🗺️ [MapView] Determining origin for directions...");
       console.log("🗺️ [MapView] - GPS detected:", this.userLocation.detected);
-      console.log("🗺️ [MapView] - GPS coords:", this.userLocation.latitude, this.userLocation.longitude);
+      console.log(
+        "🗺️ [MapView] - GPS coords:",
+        this.userLocation.latitude,
+        this.userLocation.longitude
+      );
       console.log("🗺️ [MapView] - MapStore coords:", this.mapStore?.userLocation);
 
       // First priority: GPS location if detected
-      if (this.userLocation.detected && this.userLocation.latitude && this.userLocation.longitude) {
+      if (
+        this.userLocation.detected &&
+        this.userLocation.latitude &&
+        this.userLocation.longitude
+      ) {
         originLat = this.userLocation.latitude;
         originLng = this.userLocation.longitude;
         originName = "Your Location (GPS)";
-        console.log("✅ [MapView] Using GPS location as origin:", { lat: originLat, lng: originLng });
+        console.log("✅ [MapView] Using GPS location as origin:", {
+          lat: originLat,
+          lng: originLng,
+        });
       }
       // Second priority: mapStore user location (from geocoding/ZIP search - the blue marker)
       else if (this.mapStore?.userLocation?.lat && this.mapStore?.userLocation?.lng) {
         originLat = this.mapStore.userLocation.lat;
         originLng = this.mapStore.userLocation.lng;
         originName = "Your Search Location";
-        console.log("✅ [MapView] Using mapStore location (blue marker) as origin:", { lat: originLat, lng: originLng });
+        console.log("✅ [MapView] Using mapStore location (blue marker) as origin:", {
+          lat: originLat,
+          lng: originLng,
+        });
       }
       // No valid user location available
       else {
         console.error("❌ [MapView] No user location available for directions");
-        this.directionsError = "Please enter a ZIP code or allow location access to get directions.";
+        this.directionsError =
+          "Please enter a ZIP code or allow location access to get directions.";
         this.showDirections = true;
         return;
       }
@@ -1609,7 +1733,11 @@ export default {
         );
 
         console.log("🗺️ [MapView] Received directions:", directions);
-        console.log("🗺️ [MapView] Driving distance:", directions.distance.toFixed(1), "mi");
+        console.log(
+          "🗺️ [MapView] Driving distance:",
+          directions.distance.toFixed(1),
+          "mi"
+        );
 
         this.currentDirections = directions;
         this.directionsRoute = directions.route;
@@ -1677,12 +1805,16 @@ export default {
      * Handle regional center click/selection
      */
     handleRegionalCenterClick(regionalCenter) {
-      console.log('[MapView] Regional center selected:', regionalCenter);
+      console.log("[MapView] Regional center selected:", regionalCenter);
 
       // Calculate distance if user location available
       let distance = null;
-      if (this.userLocation?.latitude && this.userLocation?.longitude &&
-          regionalCenter.latitude && regionalCenter.longitude) {
+      if (
+        this.userLocation?.latitude &&
+        this.userLocation?.longitude &&
+        regionalCenter.latitude &&
+        regionalCenter.longitude
+      ) {
         distance = haversineDistance(
           this.userLocation.latitude,
           this.userLocation.longitude,
@@ -1701,7 +1833,7 @@ export default {
         this.mapInstance.easeTo({
           center: [regionalCenter.longitude, regionalCenter.latitude],
           zoom: 13,
-          duration: 1500
+          duration: 1500,
         });
       }
     },
@@ -1711,17 +1843,20 @@ export default {
      * Fetches full regional center data and displays it
      */
     async openRegionalCenterDetails(centerBasicInfo) {
-      console.log('[MapView] Opening regional center details for:', centerBasicInfo.name);
+      console.log("[MapView] Opening regional center details for:", centerBasicInfo.name);
 
       // Fetch full regional center data using the composable
       const fullRegionalCenter = this.regionalCenterData.findByName(centerBasicInfo.name);
 
       if (!fullRegionalCenter) {
-        console.error('[MapView] Could not find full data for regional center:', centerBasicInfo.name);
+        console.error(
+          "[MapView] Could not find full data for regional center:",
+          centerBasicInfo.name
+        );
         return;
       }
 
-      console.log('[MapView] Full regional center data:', fullRegionalCenter);
+      console.log("[MapView] Full regional center data:", fullRegionalCenter);
 
       // Convert to format expected by handleRegionalCenterClick
       const regionalCenter = {
@@ -1746,13 +1881,13 @@ export default {
      */
     addRegionalCenterMarkers() {
       if (!this.mapInstance) {
-        console.log('[MapView] Map not ready, skipping regional center markers');
+        console.log("[MapView] Map not ready, skipping regional center markers");
         return;
       }
 
       // Remove existing regional center markers
       if (this.regionalCenterMarkers) {
-        this.regionalCenterMarkers.forEach(marker => marker.remove());
+        this.regionalCenterMarkers.forEach((marker) => marker.remove());
       }
       this.regionalCenterMarkers = [];
 
@@ -1761,7 +1896,7 @@ export default {
 
       console.log(`[MapView] Adding ${regionalCenters.length} regional center markers`);
 
-      regionalCenters.forEach(center => {
+      regionalCenters.forEach((center) => {
         const lat = center.latitude || center.coordinates?.lat;
         const lng = center.longitude || center.coordinates?.lng;
 
@@ -1771,16 +1906,16 @@ export default {
         }
 
         // Create marker element
-        const el = document.createElement('div');
-        el.className = 'regional-center-marker';
-        el.style.width = '24px';
-        el.style.height = '24px';
-        el.style.borderRadius = '50%';
-        el.style.backgroundColor = '#10b981'; // Green for regional centers
-        el.style.border = '3px solid white';
-        el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.4)';
-        el.style.cursor = 'pointer';
-        el.style.zIndex = '100';
+        const el = document.createElement("div");
+        el.className = "regional-center-marker";
+        el.style.width = "24px";
+        el.style.height = "24px";
+        el.style.borderRadius = "50%";
+        el.style.backgroundColor = "#10b981"; // Green for regional centers
+        el.style.border = "3px solid white";
+        el.style.boxShadow = "0 2px 6px rgba(0,0,0,0.4)";
+        el.style.cursor = "pointer";
+        el.style.zIndex = "100";
 
         // Create marker
         const marker = new mapboxgl.Marker(el)
@@ -1788,7 +1923,7 @@ export default {
           .addTo(this.mapInstance);
 
         // Click handler
-        el.addEventListener('click', (event) => {
+        el.addEventListener("click", (event) => {
           event.stopPropagation(); // Prevent map click from closing the panel
           console.log(`[MapView] Regional center marker clicked: ${center.name}`);
           this.openRegionalCenterDetails(center);
@@ -1797,7 +1932,9 @@ export default {
         this.regionalCenterMarkers.push(marker);
       });
 
-      console.log(`[MapView] Added ${this.regionalCenterMarkers.length} regional center markers`);
+      console.log(
+        `[MapView] Added ${this.regionalCenterMarkers.length} regional center markers`
+      );
     },
 
     /**
@@ -1914,12 +2051,9 @@ export default {
       const coordinates = route.geometry.coordinates;
 
       // Create bounds
-      const bounds = coordinates.reduce(
-        (bounds, coord) => {
-          return bounds.extend(coord);
-        },
-        new mapboxgl.LngLatBounds(coordinates[0], coordinates[0])
-      );
+      const bounds = coordinates.reduce((bounds, coord) => {
+        return bounds.extend(coord);
+      }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
 
       // Fit map to bounds
       this.mapInstance.fitBounds(bounds, {
@@ -1940,7 +2074,7 @@ export default {
 
       // Create bounds from all provider coordinates
       const bounds = new mapboxgl.LngLatBounds();
-      providers.forEach(provider => {
+      providers.forEach((provider) => {
         bounds.extend([provider.longitude, provider.latitude]);
       });
 
@@ -1949,8 +2083,8 @@ export default {
       this.mapInstance.fitBounds(bounds, {
         padding: 80,
         maxZoom: 12,
-        minZoom: 8.5,  // Never zoom out past this (prevents showing entire states)
-        duration: 1000  // Smooth animation
+        minZoom: 8.5, // Never zoom out past this (prevents showing entire states)
+        duration: 1000, // Smooth animation
       });
     },
 
@@ -2015,7 +2149,6 @@ export default {
 
         console.warn("[MapView] No ZIP code found in geocoding response");
         return null;
-
       } catch (error) {
         console.warn("[MapView] Error getting user ZIP code:", error.message);
         return null;
@@ -2212,9 +2345,7 @@ export default {
     // Convenience: fetch LA County geometry and show colored ZIPs immediately
     async showLAZipColorsOnly() {
       try {
-        const countiesResponse = await fetch(
-          `${getApiRoot()}/api/california-counties/`
-        );
+        const countiesResponse = await fetch(`${getApiRoot()}/api/california-counties/`);
         if (!countiesResponse.ok) return;
         const countiesData = await countiesResponse.json();
         const laCounty = countiesData.features.find(
@@ -2493,7 +2624,7 @@ export default {
       this.showMobileSearch = false;
       this.showMobileNav = false;
     },
-    
+
     // Toggle mobile navigation menu
     toggleMobileNav() {
       this.showMobileNav = !this.showMobileNav;
@@ -2530,12 +2661,12 @@ export default {
         // UNIVERSAL SEARCH: Handle different types of input
         if (this.searchText && this.searchText.trim()) {
           const query = this.searchText.trim();
-          
+
           // Detect if it's a standalone ZIP code (5 digits)
           const zipCode = detectStandaloneZip(query);
           if (zipCode) {
             console.log("📮 ZIP code detected:", zipCode);
-            
+
             // Validate ZIP is in LA County (9xxxx range)
             if (!isLACountyZip(zipCode)) {
               console.warn("⚠️ ZIP code is outside LA County service area");
@@ -2543,16 +2674,16 @@ export default {
               this.loading = false;
               return;
             }
-            
+
             // Update user address with ZIP
             this.userData.address = `Los Angeles, CA ${zipCode}`;
-            
+
             // Find regional center for this ZIP
             await this.findUserRegionalCenter();
-            
+
             // Load providers for this ZIP's regional center using correct method
             await this.providerStore.searchByZipCode(zipCode);
-            
+
             // Center map on the ZIP code location
             const coords = await this.geocodeTextToCoords(`${zipCode}, CA`);
             if (coords && this.mapInstance) {
@@ -2560,17 +2691,19 @@ export default {
                 center: [coords.lng, coords.lat],
                 zoom: 11,
                 duration: 2000,
-                easing(t) { return t * t * (3.0 - 2.0 * t); }
+                easing(t) {
+                  return t * t * (3.0 - 2.0 * t);
+                },
               });
             }
             return;
           }
-          
+
           // Check if it looks like an address (contains comma, or street number, or city/state)
           // This catches: "123 Main St", "Main St, LA", "Los Angeles, CA", etc.
           if (looksLikeAddress(query)) {
             console.log("📍 Address detected:", query);
-            
+
             // Only check for ZIP code if it appears AFTER "CA" or at the end
             // This prevents street numbers (15767 Main St) from being mistaken as ZIP codes
             const addressZip = extractZipFromAddress(query);
@@ -2580,50 +2713,58 @@ export default {
               this.loading = false;
               return;
             }
-            
+
             // Try to geocode the address
             const coords = await this.geocodeTextToCoords(query);
             if (coords) {
               // Validate that location is in LA County area
               if (!isInLACounty(coords.lat, coords.lng)) {
                 console.warn("⚠️ Location is outside LA County service area");
-                this.error = "This location is outside our Los Angeles County service area. Please search for an LA County address.";
+                this.error =
+                  "This location is outside our Los Angeles County service area. Please search for an LA County address.";
                 this.loading = false;
                 return;
               }
-              
+
               this.userData.address = query;
               await this.findUserRegionalCenter();
-              
+
               // Search providers at this location with current radius
-              await this.providerStore.searchByLocation(coords.lat, coords.lng, this.radius);
-              
+              await this.providerStore.searchByLocation(
+                coords.lat,
+                coords.lng,
+                this.radius
+              );
+
               // Center map on the location (only if not adjusting radius)
               if (this.mapInstance && !this.isAdjustingRadius) {
                 this.mapInstance.easeTo({
                   center: [coords.lng, coords.lat],
                   zoom: 12,
                   duration: 2000,
-                  easing(t) { return t * t * (3.0 - 2.0 * t); }
+                  easing(t) {
+                    return t * t * (3.0 - 2.0 * t);
+                  },
                 });
               }
             } else {
-              this.error = "Could not find that location. Please try a different address.";
+              this.error =
+                "Could not find that location. Please try a different address.";
             }
             return;
           }
-          
+
           // Text search for providers (names, services, etc.)
           console.log("📝 Text search for providers:", query);
           await this.providerStore.searchWithFilters({
             searchText: query,
             lat: this.userLocation?.latitude || 34.0522,
             lng: this.userLocation?.longitude || -118.2437,
-            radius: this.radius
+            radius: this.radius,
           });
           return;
         }
-        
+
         // RADIUS CHANGE: If no search text but we have searchCoordinates, re-search with new radius
         if (!this.searchText && this.providerStore.searchCoordinates) {
           console.log("📏 Radius changed - re-searching with new radius:", this.radius);
@@ -2652,25 +2793,28 @@ export default {
       // If we're showing providers, refetch from API with filters
       if (this.displayType === "providers") {
         // Store current map state to preserve zoom level only when adjusting radius
-        const currentMapState = (this.isAdjustingRadius && this.map) ? {
-          center: this.map.getCenter(),
-          zoom: this.map.getZoom()
-        } : null;
-        
+        const currentMapState =
+          this.isAdjustingRadius && this.map
+            ? {
+                center: this.map.getCenter(),
+                zoom: this.map.getZoom(),
+              }
+            : null;
+
         if (currentMapState) {
           console.log("🔍 Preserving map state for radius adjustment:", currentMapState);
         }
-        
+
         await this.fetchProviders();
-        
-          // Restore map state after providers are loaded (only for radius adjustments)
-          if (currentMapState && this.map) {
-            console.log("🔍 Restoring map state after radius change:", currentMapState);
-            this.map.setCenter(currentMapState.center);
-            this.map.setZoom(currentMapState.zoom);
-          }
-          // Reset the flag
-          this.isAdjustingRadius = false;
+
+        // Restore map state after providers are loaded (only for radius adjustments)
+        if (currentMapState && this.map) {
+          console.log("🔍 Restoring map state after radius change:", currentMapState);
+          this.map.setCenter(currentMapState.center);
+          this.map.setZoom(currentMapState.zoom);
+        }
+        // Reset the flag
+        this.isAdjustingRadius = false;
       } else {
         // For other types, just update markers
         this.$nextTick(() => {
@@ -2681,13 +2825,13 @@ export default {
 
     // Debounce search to prevent too many updates
     debounceSearch() {
-      console.log('🔍 debounceSearch called, searchText:', this.searchText);
+      console.log("🔍 debounceSearch called, searchText:", this.searchText);
       if (this.searchDebounce) {
         clearTimeout(this.searchDebounce);
       }
 
       this.searchDebounce = setTimeout(() => {
-        console.log('🔍 Executing search with text:', this.searchText);
+        console.log("🔍 Executing search with text:", this.searchText);
         // Clear any pending map movements to prevent conflicts
         if (this.map) {
           this.map.stop();
@@ -2700,11 +2844,11 @@ export default {
     async onRadiusChange() {
       // Prevent duplicate calls if already adjusting
       if (this.isAdjustingRadius) {
-        console.log('⚠️ Radius change already in progress, skipping');
+        console.log("⚠️ Radius change already in progress, skipping");
         return;
       }
 
-      console.log('🔍 Radius changed to:', this.radius, 'miles');
+      console.log("🔍 Radius changed to:", this.radius, "miles");
       this.isAdjustingRadius = true;
 
       // Calculate appropriate zoom level based on radius
@@ -2721,7 +2865,11 @@ export default {
       else targetZoom = 8.5;
 
       // Adjust map zoom centered on user's location
-      if (this.mapInstance && this.userLocation?.latitude && this.userLocation?.longitude) {
+      if (
+        this.mapInstance &&
+        this.userLocation?.latitude &&
+        this.userLocation?.longitude
+      ) {
         // Always center on user's location when radius changes
         this.mapInstance.easeTo({
           center: [this.userLocation.longitude, this.userLocation.latitude], // User's location
@@ -2730,16 +2878,28 @@ export default {
           easing(t) {
             // Smooth easing function (ease-in-out)
             return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-          }
+          },
         });
-        console.log(`📍 Smoothly adjusting map zoom to ${targetZoom} for ${this.radius} mile radius centered on user location (${this.userLocation.latitude}, ${this.userLocation.longitude})`);
+        console.log(
+          `📍 Smoothly adjusting map zoom to ${targetZoom} for ${this.radius} mile radius centered on user location (${this.userLocation.latitude}, ${this.userLocation.longitude})`
+        );
       }
 
       // Re-fetch providers with new radius
-      if (this.providerStore && this.userLocation?.latitude && this.userLocation?.longitude) {
+      if (
+        this.providerStore &&
+        this.userLocation?.latitude &&
+        this.userLocation?.longitude
+      ) {
         try {
-          const filterParams = this.filterStore ? this.filterStore.buildFilterParams() : {};
-          console.log('[MapView] Re-fetching providers with new radius:', this.radius, 'miles');
+          const filterParams = this.filterStore
+            ? this.filterStore.buildFilterParams()
+            : {};
+          console.log(
+            "[MapView] Re-fetching providers with new radius:",
+            this.radius,
+            "miles"
+          );
 
           await this.providerStore.searchByLocation(
             this.userLocation.latitude,
@@ -2749,19 +2909,25 @@ export default {
           );
 
           // Check for duplicate IDs
-          const providerIds = this.providerStore.providers.map(p => p.id);
+          const providerIds = this.providerStore.providers.map((p) => p.id);
           const uniqueIds = new Set(providerIds);
           if (providerIds.length !== uniqueIds.size) {
-            console.error(`⚠️ DUPLICATE PROVIDER IDs DETECTED! Total: ${providerIds.length}, Unique: ${uniqueIds.size}`);
-            const duplicates = providerIds.filter((id, index) => providerIds.indexOf(id) !== index);
-            console.error('Duplicate IDs:', duplicates);
+            console.error(
+              `⚠️ DUPLICATE PROVIDER IDs DETECTED! Total: ${providerIds.length}, Unique: ${uniqueIds.size}`
+            );
+            const duplicates = providerIds.filter(
+              (id, index) => providerIds.indexOf(id) !== index
+            );
+            console.error("Duplicate IDs:", duplicates);
           }
 
           // Update map markers
           // MapCanvas handles marker updates automatically
-          console.log(`✅ Updated providers with ${this.providerStore.providers.length} results within ${this.radius} miles`);
+          console.log(
+            `✅ Updated providers with ${this.providerStore.providers.length} results within ${this.radius} miles`
+          );
         } catch (error) {
-          console.error('[MapView] Error updating radius:', error);
+          console.error("[MapView] Error updating radius:", error);
         }
       }
 
@@ -2775,7 +2941,7 @@ export default {
           resolve();
           return;
         }
-        
+
         const checkMap = () => {
           if (this.map && this.map.isStyleLoaded()) {
             resolve();
@@ -2803,7 +2969,7 @@ export default {
      */
     async loadAllProviders() {
       try {
-        console.log('🌍 Loading all providers without filters...');
+        console.log("🌍 Loading all providers without filters...");
         await this.providerStore.loadAllProviders();
         console.log(`✅ Loaded all ${this.providerStore.providerCount} providers`);
 
@@ -2813,11 +2979,11 @@ export default {
         }
 
         // Clear user location/address to indicate we're viewing all providers
-        this.userData.address = '';
-        this.userData.zipCode = '';
+        this.userData.address = "";
+        this.userData.zipCode = "";
       } catch (error) {
-        console.error('❌ Error loading all providers:', error);
-        this.error = 'Failed to load providers. Please try again.';
+        console.error("❌ Error loading all providers:", error);
+        this.error = "Failed to load providers. Please try again.";
       }
     },
 
@@ -2831,7 +2997,7 @@ export default {
         try {
           // Try to detect user's ZIP first
           const userZipCode = await this.getUserZipCode();
-          
+
           if (userZipCode) {
             // Use user's actual ZIP
             console.log(`[MapView] Loading providers for user's ZIP: ${userZipCode}`);
@@ -2839,23 +3005,31 @@ export default {
             // Update address with user's ZIP
             this.userData.address = `Los Angeles, CA ${userZipCode}`;
             await this.findUserRegionalCenter();
-            
+
             // Geocode ZIP to enable radius filtering
             await this.ensureZipCodeCoordinates(userZipCode);
           } else {
             // Fall back to default LA County ZIP if detection fails
             const defaultZip = "90001";
-            console.log(`[MapView] No user location detected, using default ZIP: ${defaultZip}`);
+            console.log(
+              `[MapView] No user location detected, using default ZIP: ${defaultZip}`
+            );
             await this.providerStore.searchByZipCode(defaultZip);
             // Geocode default ZIP too
             await this.ensureZipCodeCoordinates(defaultZip);
           }
-          
-          console.log(`[MapView] Loaded ${this.providerStore.providers.length} providers`);
+
+          console.log(
+            `[MapView] Loaded ${this.providerStore.providers.length} providers`
+          );
         } catch (error) {
           console.error("[MapView] Error loading initial providers:", error);
           // Fallback to comprehensive search
-          await this.providerStore.searchByLocation(LA_COUNTY_CENTER.lat, LA_COUNTY_CENTER.lng, 25);
+          await this.providerStore.searchByLocation(
+            LA_COUNTY_CENTER.lat,
+            LA_COUNTY_CENTER.lng,
+            25
+          );
         }
       }
     },
@@ -2876,14 +3050,16 @@ export default {
     async ensureZipCodeCoordinates(zipCode) {
       // If we already have coordinates, no need to geocode
       if (this.userLocation?.latitude && this.userLocation?.longitude) {
-        console.log(`✅ Already have coordinates: ${this.userLocation.latitude}, ${this.userLocation.longitude}`);
+        console.log(
+          `✅ Already have coordinates: ${this.userLocation.latitude}, ${this.userLocation.longitude}`
+        );
         return;
       }
 
       try {
         console.log(`📍 Geocoding ZIP ${zipCode} to enable radius filtering...`);
         const coords = await this.geocodeTextToCoords(`${zipCode}, CA`);
-        
+
         if (coords) {
           this.userLocation.latitude = coords.lat;
           this.userLocation.longitude = coords.lng;
@@ -2923,16 +3099,16 @@ export default {
       // Extract ZIP code from address using utility
       const zipCode = extractZipCode(this.userData.address);
       console.log(`Extracted ZIP code: ${zipCode}`);
-      
+
       if (!zipCode) {
         console.log("No ZIP code found in address:", this.userData.address);
         console.log("Address breakdown:", {
           fullAddress: this.userData.address,
           length: this.userData.address.length,
           hasNumbers: /\d/.test(this.userData.address),
-          allNumbers: this.userData.address.match(/\d+/g)
+          allNumbers: this.userData.address.match(/\d+/g),
         });
-        
+
         // Try to find regional center using coordinates instead
         console.log("Attempting coordinate-based regional center lookup...");
         return await this.findRegionalCenterByCoordinates();
@@ -2950,7 +3126,10 @@ export default {
           website: regionalCenter.website,
           ...regionalCenter,
         };
-        console.log("User regional center found via composable:", this.userRegionalCenter);
+        console.log(
+          "User regional center found via composable:",
+          this.userRegionalCenter
+        );
         return this.userRegionalCenter;
       } else {
         console.log("No regional center found for ZIP code:", zipCode);
@@ -2993,7 +3172,11 @@ export default {
           website: result.center.website,
           ...result.center,
         };
-        console.log(`Found regional center by coordinates: ${result.center.name} (${result.distance.toFixed(2)} miles)`);
+        console.log(
+          `Found regional center by coordinates: ${
+            result.center.name
+          } (${result.distance.toFixed(2)} miles)`
+        );
         return this.userRegionalCenter;
       } else {
         console.log("No regional center found for coordinates");
@@ -3006,7 +3189,6 @@ export default {
         return this.userRegionalCenter;
       }
     },
-
 
     // Set display type
     setDisplayType(type) {
@@ -3287,8 +3469,8 @@ export default {
           let coords = null;
           try {
             const result = await geocodeAddress(String(zip), this.mapboxAccessToken, {
-              types: ['postcode'],
-              bbox: [-119.5, 33.5, -117.0, 34.8]
+              types: ["postcode"],
+              bbox: [-119.5, 33.5, -117.0, 34.8],
             });
             if (result) coords = { lat: result.lat, lng: result.lng };
           } catch (_) {}
@@ -3391,7 +3573,7 @@ export default {
         // Update user address if available
         if (this.geolocation.userLocation.value?.address) {
           this.userData.address = this.geolocation.userLocation.value.address;
-          
+
           // Re-find regional center with the newly detected address
           console.log("📍 Address updated, finding regional center...");
           await this.findUserRegionalCenter();
@@ -3406,7 +3588,9 @@ export default {
         // User can manually search their location if they want different results
       } else {
         console.warn("⚠️ Geolocation failed, using fallback");
-        this.setFallbackLocation(this.geolocation.userLocation?.value?.error || "Location detection failed");
+        this.setFallbackLocation(
+          this.geolocation.userLocation?.value?.error || "Location detection failed"
+        );
       }
     },
 
@@ -3554,9 +3738,9 @@ export default {
         displayType: this.displayType,
         providersLength: this.providers.length,
         showOnboarding: this.showOnboarding,
-        filterOptions: this.filterOptions
+        filterOptions: this.filterOptions,
       });
-      
+
       this.loading = true;
       this.error = null;
 
@@ -3566,7 +3750,7 @@ export default {
         // If using local data, use sample data
         if (USE_LOCAL_DATA_ONLY) {
           console.log("Using local data instead of API");
-          
+
           // Set providers
           if (this.providerStore) {
             this.providerStore.providers = sampleProviders;
@@ -3579,7 +3763,7 @@ export default {
 
           if (this.searchText && this.searchText.trim() !== "") {
             let searchLocation = this.getLocationFromSearch(this.searchText.trim());
-            
+
             if (searchLocation && searchLocation.needsGeocoding) {
               console.log(`🔍 Geocoding ZIP code: ${searchLocation.zipCode}`);
               const nom = await this.geocodeTextToCoords(searchLocation.zipCode);
@@ -3588,11 +3772,13 @@ export default {
               const nom = await this.geocodeTextToCoords(this.searchText.trim());
               if (nom) searchLocation = nom;
             }
-            
+
             if (searchLocation && searchLocation.lat && searchLocation.lng) {
               searchLat = searchLocation.lat;
               searchLng = searchLocation.lng;
-              console.log(`🔍 Using geocoded location for "${this.searchText}": ${searchLat}, ${searchLng}`);
+              console.log(
+                `🔍 Using geocoded location for "${this.searchText}": ${searchLat}, ${searchLng}`
+              );
             }
           }
 
@@ -3604,7 +3790,7 @@ export default {
             filterOptions: this.filterOptions,
             userData: this.userData,
             searchLat,
-            searchLng
+            searchLng,
           });
 
           const hasSpecificFilters = hasActiveFilters(this.filterOptions);
@@ -3621,9 +3807,11 @@ export default {
           // Build URL using service
           const url = buildProviderUrl(this.searchText, queryParams);
           const isZipSearch = this.searchText && /^\d{5}$/.test(this.searchText.trim());
-          
+
           if (isZipSearch) {
-            console.log(`🎯 Using REGIONAL CENTER filtering for ZIP: ${this.searchText.trim()}`);
+            console.log(
+              `🎯 Using REGIONAL CENTER filtering for ZIP: ${this.searchText.trim()}`
+            );
           }
 
           if (hasSpecificFilters) {
@@ -3657,7 +3845,9 @@ export default {
               this.providerStore.providers = response.data.results;
             }
             console.log(
-              `✅ Loaded ${this.providers.length} providers from regional center: ${response.data.regional_center?.name || 'Unknown'}`
+              `✅ Loaded ${this.providers.length} providers from regional center: ${
+                response.data.regional_center?.name || "Unknown"
+              }`
             );
             console.log(`🎯 Regional center has ${response.data.count} total providers`);
           } else if (response.data && Array.isArray(response.data)) {
@@ -3668,21 +3858,29 @@ export default {
             console.log(
               `✅ Loaded ${this.providers.length} providers from API (direct array)`
             );
-            
+
             // If no providers found, try fallback strategies
             if (this.providers.length === 0) {
               console.log("🔍 No providers found, trying fallback strategies...");
-              
+
               if (this.searchText && this.searchText.trim() !== "") {
                 // Try broader search with just the search term
                 console.log("🔍 Trying broader search with search term...");
-                const broadUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?q=${this.searchText}`;
+                const broadUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?q=${
+                  this.searchText
+                }`;
                 console.log("🔍 Trying broader search URL:", broadUrl);
                 try {
                   const broadResponse = await axios.get(broadUrl);
                   console.log("🔍 Broader search response:", broadResponse.data);
-                  if (broadResponse.data && Array.isArray(broadResponse.data) && broadResponse.data.length > 0) {
-                    console.log(`🔍 Found ${broadResponse.data.length} providers in broader search`);
+                  if (
+                    broadResponse.data &&
+                    Array.isArray(broadResponse.data) &&
+                    broadResponse.data.length > 0
+                  ) {
+                    console.log(
+                      `🔍 Found ${broadResponse.data.length} providers in broader search`
+                    );
                     if (this.providerStore) {
                       this.providerStore.providers = broadResponse.data;
                     }
@@ -3691,11 +3889,13 @@ export default {
                   console.log("🔍 Broader search failed:", broadError);
                 }
               }
-              
+
               // If still no results, try getting providers within a reasonable radius
               if (this.providers.length === 0) {
-                console.log("🔍 No results in broader search, trying to get nearby providers...");
-                
+                console.log(
+                  "🔍 No results in broader search, trying to get nearby providers..."
+                );
+
                 // Try to get providers within a larger radius (50 miles) of the search location
                 if (searchLat && searchLng) {
                   const nearbyUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${searchLat}&lng=${searchLng}&radius=50`;
@@ -3703,27 +3903,46 @@ export default {
                   try {
                     const nearbyResponse = await axios.get(nearbyUrl);
                     console.log("🔍 Nearby providers response:", nearbyResponse.data);
-                    if (nearbyResponse.data && Array.isArray(nearbyResponse.data) && nearbyResponse.data.length > 0) {
-                      console.log(`🔍 Found ${nearbyResponse.data.length} nearby providers`);
+                    if (
+                      nearbyResponse.data &&
+                      Array.isArray(nearbyResponse.data) &&
+                      nearbyResponse.data.length > 0
+                    ) {
+                      console.log(
+                        `🔍 Found ${nearbyResponse.data.length} nearby providers`
+                      );
                       if (this.providerStore) {
                         this.providerStore.providers = nearbyResponse.data;
                       }
                     }
                   } catch (nearbyError) {
-                    console.log("🔍 Nearby providers search failed (ignoring):", nearbyError.message);
+                    console.log(
+                      "🔍 Nearby providers search failed (ignoring):",
+                      nearbyError.message
+                    );
                     // Silently fail - this is just a fallback
                   }
                 }
-                
+
                 // If still no results, try getting LA County providers only as last resort
                 if (this.providers.length === 0) {
-                  console.log("🔍 No nearby providers found, trying to get LA County providers only...");
-                  const laCountyUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${LA_COUNTY_CENTER.lat}&lng=${LA_COUNTY_CENTER.lng}&radius=50`;
+                  console.log(
+                    "🔍 No nearby providers found, trying to get LA County providers only..."
+                  );
+                  const laCountyUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${
+                    LA_COUNTY_CENTER.lat
+                  }&lng=${LA_COUNTY_CENTER.lng}&radius=50`;
                   try {
                     const laResponse = await axios.get(laCountyUrl);
                     console.log("🔍 LA County providers response:", laResponse.data);
-                    if (laResponse.data && Array.isArray(laResponse.data) && laResponse.data.length > 0) {
-                      console.log(`🔍 Found ${laResponse.data.length} LA County providers`);
+                    if (
+                      laResponse.data &&
+                      Array.isArray(laResponse.data) &&
+                      laResponse.data.length > 0
+                    ) {
+                      console.log(
+                        `🔍 Found ${laResponse.data.length} LA County providers`
+                      );
                       if (this.providerStore) {
                         this.providerStore.providers = laResponse.data;
                       }
@@ -3742,44 +3961,52 @@ export default {
               console.log(
                 `🔍 Search results for "${this.searchText}": ${this.providers.length} matches`
               );
-              
+
               // Debug: Check if providers are in LA County area
               if (this.providers.length > 0) {
                 const providersInLA = filterProvidersInLACounty(this.providers);
-                console.log(`🔍 Providers in LA County: ${providersInLA.length}/${this.providers.length}`);
+                console.log(
+                  `🔍 Providers in LA County: ${providersInLA.length}/${this.providers.length}`
+                );
                 if (providersInLA.length === 0) {
-                  console.log("⚠️ No providers found in LA County area - search may be too broad");
+                  console.log(
+                    "⚠️ No providers found in LA County area - search may be too broad"
+                  );
                 }
               }
             }
 
             // If we're showing providers (especially after fallback), set reasonable map bounds
             // Skip map bounds changes during initial load to prevent jankiness
-            if (this.providers.length > 0 && !this.isMapMoving && !this.isInitialPageLoad) {
+            if (
+              this.providers.length > 0 &&
+              !this.isMapMoving &&
+              !this.isInitialPageLoad
+            ) {
               console.log("🔍 Setting reasonable map bounds for providers...");
 
               // Set flag to prevent conflicting movements
               this.isMapMoving = true;
-              
+
               // Stop any existing map movements to prevent conflicts
               if (this.map) {
                 this.map.stop();
               }
-              
+
               // If we have a search location, try to center on that first
               if (this.searchText && this.searchText.trim() !== "") {
                 const searchLocation = this.getLocationFromSearch(this.searchText.trim());
                 if (searchLocation && searchLocation.lat && searchLocation.lng) {
                   console.log("🔍 Centering on search location first");
-                  
+
                   // Use a single smooth movement to search location
                   this.map.flyTo({
                     center: [searchLocation.lng, searchLocation.lat],
                     zoom: 11,
                     duration: 1500, // Slightly longer for smoother movement
-                    essential: true // This movement is considered essential
+                    essential: true, // This movement is considered essential
                   });
-                  
+
                   // Reset flag after movement completes
                   setTimeout(() => {
                     this.isMapMoving = false;
@@ -3787,7 +4014,7 @@ export default {
                   return; // Don't do bounds calculation if we have a search location
                 }
               }
-              
+
               // Calculate bounds from actual provider locations
               const bounds = calculateProviderBounds(this.providers);
               if (bounds) {
@@ -3796,7 +4023,7 @@ export default {
                   padding: 50, // Add some padding around the bounds
                   maxZoom: 12, // Don't zoom in too much
                   duration: 1500, // Slightly longer for smoother movement
-                  essential: true // This movement is considered essential
+                  essential: true, // This movement is considered essential
                 });
               } else {
                 // Fallback to LA County area if no valid coordinates
@@ -3805,10 +4032,10 @@ export default {
                   padding: 50,
                   maxZoom: 10,
                   duration: 1500,
-                  essential: true
+                  essential: true,
                 });
               }
-              
+
               // Reset flag after movement completes
               setTimeout(() => {
                 this.isMapMoving = false;
@@ -3933,7 +4160,10 @@ export default {
       } catch (error) {
         // Only show error if we don't already have providers loaded
         if (this.providers && this.providers.length > 0) {
-          console.log("⚠️ Search fallback failed, but keeping existing providers:", error.message);
+          console.log(
+            "⚠️ Search fallback failed, but keeping existing providers:",
+            error.message
+          );
         } else {
           console.error("Error loading providers:", error);
           this.error = "Failed to load providers";
@@ -3963,18 +4193,23 @@ export default {
         this.loading = false;
 
         // Force marker update after data change with proper timing
-        console.log(`🎯 fetchProviders() completed with ${this.providers.length} providers`);
+        console.log(
+          `🎯 fetchProviders() completed with ${this.providers.length} providers`
+        );
         console.log(`🎯 About to update markers with ${this.providers.length} providers`);
-        console.log(`🎯 Provider details:`, this.providers.slice(0, 2).map(p => ({
-          name: p.name,
-          lat: p.latitude,
-          lng: p.longitude
-        })));
-        
+        console.log(
+          `🎯 Provider details:`,
+          this.providers.slice(0, 2).map((p) => ({
+            name: p.name,
+            lat: p.latitude,
+            lng: p.longitude,
+          }))
+        );
+
         this.$nextTick(() => {
           // MapCanvas handles marker updates automatically
           console.log(`🗺️ Markers updated for ${this.providers.length} providers`);
-          
+
           // Fetch driving distances asynchronously after providers are loaded
           this.updateProviderDrivingDistances();
         });
@@ -3987,19 +4222,29 @@ export default {
      */
     async updateProviderDrivingDistances() {
       // Check if we have a user location
-      if (!this.userLocation || !this.userLocation.latitude || !this.userLocation.longitude) {
+      if (
+        !this.userLocation ||
+        !this.userLocation.latitude ||
+        !this.userLocation.longitude
+      ) {
         console.log("⚠️ No user location, skipping driving distance updates");
         return;
       }
 
-      console.log(`🚗 Fetching driving distances for ${this.providers.length} providers...`);
+      console.log(
+        `🚗 Fetching driving distances for ${this.providers.length} providers...`
+      );
 
       // Fetch distances for all providers in parallel (limited to first 50 for performance)
       const providersToUpdate = this.providers
-        .filter(p => p.latitude && p.longitude && !isNaN(p.latitude) && !isNaN(p.longitude))
+        .filter(
+          (p) => p.latitude && p.longitude && !isNaN(p.latitude) && !isNaN(p.longitude)
+        )
         .slice(0, 50); // Limit to first 50 to avoid rate limits
 
-      console.log(`🚗 Updating ${providersToUpdate.length} providers with driving distances`);
+      console.log(
+        `🚗 Updating ${providersToUpdate.length} providers with driving distances`
+      );
 
       // Batch update with a small delay between requests to avoid rate limiting
       for (let i = 0; i < providersToUpdate.length; i++) {
@@ -4009,32 +4254,36 @@ export default {
             [this.userLocation.longitude, this.userLocation.latitude],
             [provider.longitude, provider.latitude]
           );
-          
+
           // Update the provider in the store to trigger reactivity
-          const providerIndex = this.providers.findIndex(p => p.id === provider.id);
+          const providerIndex = this.providers.findIndex((p) => p.id === provider.id);
           if (providerIndex !== -1) {
             // In Vue 3, direct assignment works with Proxy reactivity
             // Replace the entire provider object to ensure reactivity
             this.providerStore.providers[providerIndex] = {
               ...this.providers[providerIndex],
-              drivingDistance: distance
+              drivingDistance: distance,
             };
             console.log(`✅ Updated ${provider.name}: ${distance.toFixed(1)} mi driving`);
           }
-          
+
           // Small delay to avoid rate limiting (50ms between requests)
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise((resolve) => setTimeout(resolve, 50));
         } catch (error) {
-          console.warn(`⚠️ Failed to fetch driving distance for ${provider.name}:`, error.message);
+          console.warn(
+            `⚠️ Failed to fetch driving distance for ${provider.name}:`,
+            error.message
+          );
           // Keep the Haversine distance as fallback (already calculated in ProviderList)
         }
       }
 
-      console.log(`✅ Finished updating driving distances for ${providersToUpdate.length} providers`);
+      console.log(
+        `✅ Finished updating driving distances for ${providersToUpdate.length} providers`
+      );
     },
 
     // Fetch regional centers
-
 
     // Fetch service areas
     async fetchServiceAreas() {
@@ -4248,7 +4497,7 @@ export default {
         console.error("Map not available");
         return;
       }
-      
+
       if (!this.serviceAreas || !this.serviceAreas.features) {
         console.error("Service areas data not available");
         console.error("serviceAreas:", this.serviceAreas);
@@ -4289,9 +4538,7 @@ export default {
         );
 
         // Add California counties source using our production API
-        const countiesResponse = await fetch(
-          `${getApiRoot()}/api/california-counties/`
-        );
+        const countiesResponse = await fetch(`${getApiRoot()}/api/california-counties/`);
         const countiesData = await countiesResponse.json();
 
         // Enhance counties data with regional center counts
@@ -4487,16 +4734,16 @@ export default {
     // Add LA ZIP codes overlay to map
     async addLAZipCodesToMap() {
       try {
-      if (!this.map) {
+        if (!this.map) {
           console.warn("Map not available for LA ZIP codes overlay");
-        return;
-      }
+          return;
+        }
 
         // Ensure map is loaded first
-      if (!this.map.loaded()) {
-        this.map.once("load", () => this.addLAZipCodesToMap());
-        return;
-      }
+        if (!this.map.loaded()) {
+          this.map.once("load", () => this.addLAZipCodesToMap());
+          return;
+        }
 
         // Clean up any existing layers/sources first
         this.removeLAZipCodesFromMap();
@@ -4649,7 +4896,7 @@ export default {
         const colorMatch = [
           "match",
           ["get", "REGIONALCENTER"],
-          ...centerNames.flatMap(rc => [rc.name, rc.color]),
+          ...centerNames.flatMap((rc) => [rc.name, rc.color]),
           "#9e9e9e", // Default color for unknown centers
         ];
 
@@ -5194,7 +5441,7 @@ export default {
           .addTo(this.map);
 
         // Add click handler to toggle popup
-        marker.getElement().addEventListener('click', () => {
+        marker.getElement().addEventListener("click", () => {
           console.log(`🖱️ Marker clicked: ${item.name}`);
           marker.togglePopup();
         });
@@ -5217,7 +5464,6 @@ export default {
         return { created: false, reason: "exception", error };
       }
     },
-
 
     // Center map on location when clicked in list
     centerMapOnLocation(location) {
@@ -5255,7 +5501,11 @@ export default {
           age: this.userData.age,
           diagnosis: this.userData.diagnosis,
           therapy: this.userData.therapies ? this.userData.therapies[0] : undefined,
-          insurance: this.userData.hasInsurance ? 'insurance' : (this.userData.hasRegionalCenter ? 'regional center' : undefined)
+          insurance: this.userData.hasInsurance
+            ? "insurance"
+            : this.userData.hasRegionalCenter
+            ? "regional center"
+            : undefined,
         });
         console.log("🎉 Synced userData to filterStore");
       }
@@ -5264,7 +5514,7 @@ export default {
       if (data.userLocation) {
         this.userData.address = data.userLocation;
         console.log("🎉 Set address to:", data.userLocation);
-        
+
         // Geocode ZIP to enable radius filtering
         const zipMatch = data.userLocation.match(/\d{5}/);
         if (zipMatch) {
@@ -5274,7 +5524,10 @@ export default {
 
       // Use filtered providers from onboarding instead of fetching all providers
       if (data.filteredProviders && data.filteredProviders.length > 0) {
-        console.log("🎉 Using filtered providers from onboarding:", data.filteredProviders.length);
+        console.log(
+          "🎉 Using filtered providers from onboarding:",
+          data.filteredProviders.length
+        );
 
         // Update providerStore for new component architecture
         if (this.providerStore) {
@@ -5282,7 +5535,11 @@ export default {
           if (data.matchedRegionalCenter) {
             this.providerStore.regionalCenterInfo = data.matchedRegionalCenter;
           }
-          console.log("🎉 Updated providerStore with", data.filteredProviders.length, "providers");
+          console.log(
+            "🎉 Updated providerStore with",
+            data.filteredProviders.length,
+            "providers"
+          );
         }
 
         // providerStore is now the source of truth, no need for separate assignment
@@ -5364,9 +5621,9 @@ export default {
         // Use proper Mapbox geocoding (not hardcoded data)
         const result = await geocodeAddress(address, this.mapboxAccessToken, {
           proximity: { lat: 34.0522, lng: -118.2437 }, // Bias to LA
-          bbox: [-119.5, 33.5, -117.0, 34.8] // LA County bounds
+          bbox: [-119.5, 33.5, -117.0, 34.8], // LA County bounds
         });
-        
+
         if (result) {
           this.userLocation = {
             latitude: result.lat,
@@ -5390,16 +5647,16 @@ export default {
       // Use proper Mapbox geocoding
       let result = await geocodeAddress(searchText, this.mapboxAccessToken, {
         proximity: { lat: 34.0522, lng: -118.2437 },
-        bbox: [-119.5, 33.5, -117.0, 34.8]
+        bbox: [-119.5, 33.5, -117.0, 34.8],
       });
-      
+
       // If that fails and it looks like a ZIP code, try to geocode it
       if (!result && /^\d{5}(-\d{4})?$/.test(searchText.trim())) {
         console.log(`🔍 ZIP code detected: ${searchText}, attempting geocoding...`);
         // Return a promise-like object that will be handled by the caller
         return { needsGeocoding: true, zipCode: searchText.trim() };
       }
-      
+
       return result;
     },
 
@@ -5409,7 +5666,7 @@ export default {
       // Note: MapCanvas component handles map initialization
       // this.initMap() is deprecated
       // The map is already initialized by MapCanvas component
-      
+
       // Note: We don't automatically fly to user location to avoid jarring map movement
       // Users can manually navigate to their location if needed
 
@@ -5442,7 +5699,7 @@ export default {
       } else {
         console.log("📊 Using providers from onboarding:", this.providers.length);
       }
-      
+
       // Force marker update after data is loaded
       console.log("🎯 Updating markers after onboarding...");
       this.$nextTick(() => {
@@ -5455,12 +5712,12 @@ export default {
     closeAllPopups() {
       if (this.map) {
         // Close all popups
-        this.map.getStyle().layers.forEach(layer => {
-          if (layer.type === 'fill' || layer.type === 'line') {
+        this.map.getStyle().layers.forEach((layer) => {
+          if (layer.type === "fill" || layer.type === "line") {
             // This will close any popups associated with polygon layers
-            const popups = document.querySelectorAll('.mapboxgl-popup');
-            popups.forEach(popup => {
-              if (popup.querySelector('.provider-popup-container')) {
+            const popups = document.querySelectorAll(".mapboxgl-popup");
+            popups.forEach((popup) => {
+              if (popup.querySelector(".provider-popup-container")) {
                 // This is a regional center popup, close it
                 popup.remove();
               }
@@ -5472,4 +5729,3 @@ export default {
   },
 };
 </script>
-

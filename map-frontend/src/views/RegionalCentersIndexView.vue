@@ -3,9 +3,9 @@
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="container">
-        <h1 class="page-title">Los Angeles County Regional Centers</h1>
+        <h1 class="page-title">{{ $t("regionalCenter.pageTitle") }}</h1>
         <p class="page-subtitle">
-          Find your Regional Center and explore ABA therapy providers in your service area
+          {{ $t("regionalCenter.pageSubtitle") }}
         </p>
       </div>
     </section>
@@ -14,13 +14,13 @@
     <section class="quick-finder-section">
       <div class="container">
         <div class="finder-card">
-          <h2>Find Your Regional Center</h2>
-          <p>Enter your ZIP code to discover which Regional Center serves your area</p>
+          <h2>{{ $t("regionalCenter.findYour") }}</h2>
+          <p>{{ $t("regionalCenter.enterZip") }}</p>
           <div class="zip-finder">
             <input
               type="text"
               v-model="zipCode"
-              placeholder="Enter ZIP code"
+              :placeholder="$t('regionalCenter.enterZipPlaceholder')"
               @keyup.enter="findRegionalCenter"
               maxlength="5"
               class="zip-input"
@@ -32,7 +32,7 @@
               :disabled="loading || detectingLocation"
             >
               <i class="bi bi-search me-2"></i>
-              Find My RC
+              {{ $t("regionalCenter.findMyRC") }}
             </button>
             <button
               @click="useMyLocation"
@@ -45,24 +45,24 @@
                 "
                 class="me-2"
               ></i>
-              {{ detectingLocation ? "Detecting..." : "Use My Location" }}
+              {{ detectingLocation ? $t("regionalCenter.detecting") : $t("regionalCenter.useMyLocation") }}
             </button>
           </div>
           <div v-if="foundRC" class="found-result">
             <i class="bi bi-check-circle-fill"></i>
             <span
-              >Your ZIP code is served by <strong>{{ foundRC.shortName }}</strong></span
+              >{{ $t("regionalCenter.yourZipServedBy") }} <strong>{{ foundRC.shortName }}</strong></span
             >
             <router-link
               :to="`/regional-centers/${foundRC.slug}`"
               class="btn btn-sm btn-outline-primary ms-3"
             >
-              View Details →
+              {{ $t("regionalCenter.viewDetails") }} →
             </router-link>
           </div>
           <div v-if="notFound" class="not-found-result">
             <i class="bi bi-x-circle-fill"></i>
-            <span>ZIP code not found in LA County. Please verify and try again.</span>
+            <span>{{ $t("regionalCenter.zipNotFound") }}</span>
           </div>
         </div>
       </div>
@@ -73,35 +73,30 @@
       <div class="container">
         <!-- What are Regional Centers -->
         <div class="content-block intro-block">
-          <h2>What are Regional Centers?</h2>
+          <h2>{{ $t("regionalCenter.whatAreRC") }}</h2>
           <p class="lead">
-            Regional Centers are nonprofit agencies funded by the State of California to
-            provide services and support to individuals with developmental disabilities
-            and their families.
+            {{ $t("regionalCenter.whatAreRCText") }}
           </p>
           <div class="info-grid">
             <div class="info-card">
               <i class="bi bi-geo-alt-fill"></i>
-              <h3>Geographic Assignment</h3>
+              <h3>{{ $t("regionalCenter.geographicAssignment") }}</h3>
               <p>
-                Your Regional Center is determined by your ZIP code, not your choice. Each
-                area is served by one specific Regional Center.
+                {{ $t("regionalCenter.geographicAssignmentText") }}
               </p>
             </div>
             <div class="info-card">
               <i class="bi bi-currency-dollar"></i>
-              <h3>Free Services</h3>
+              <h3>{{ $t("regionalCenter.freeServices") }}</h3>
               <p>
-                Services through Regional Centers are free for eligible individuals with
-                developmental disabilities.
+                {{ $t("regionalCenter.freeServicesText") }}
               </p>
             </div>
             <div class="info-card">
               <i class="bi bi-people-fill"></i>
-              <h3>Comprehensive Support</h3>
+              <h3>{{ $t("regionalCenter.comprehensiveSupport") }}</h3>
               <p>
-                Regional Centers coordinate access to ABA therapy, respite care, support
-                services, and more.
+                {{ $t("regionalCenter.comprehensiveSupportText") }}
               </p>
             </div>
           </div>
@@ -109,10 +104,9 @@
 
         <!-- 7 Regional Centers -->
         <div class="content-block">
-          <h2>LA County's 7 Regional Centers</h2>
+          <h2>{{ $t("regionalCenter.la7Centers") }}</h2>
           <p>
-            Los Angeles County is served by 7 Regional Centers, each covering specific
-            geographic areas:
+            {{ $t("regionalCenter.la7CentersText") }}
           </p>
 
           <div class="rc-grid">
@@ -152,68 +146,62 @@
 
         <!-- Map Visualization -->
         <div class="content-block highlight-block">
-          <h2>Interactive Service Area Map</h2>
+          <h2>{{ $t("regionalCenter.interactiveMap") }}</h2>
           <p>
-            See all provider locations and Regional Center boundaries on our interactive
-            map.
+            {{ $t("regionalCenter.interactiveMapText") }}
           </p>
           <router-link to="/" class="btn btn-primary btn-lg">
             <i class="bi bi-map me-2"></i>
-            Explore the Map
+            {{ $t("about.exploreMap") }}
           </router-link>
         </div>
 
         <!-- How to Get Services -->
         <div class="content-block">
-          <h2>How to Access Regional Center Services</h2>
+          <h2>{{ $t("regionalCenter.howToAccess") }}</h2>
           <div class="steps">
             <div class="step">
               <div class="step-number">1</div>
               <div class="step-content">
-                <h3>Determine Your Regional Center</h3>
+                <h3>{{ $t("regionalCenter.step1") }}</h3>
                 <p>
-                  Use the ZIP code finder above or check the list to find your Regional
-                  Center.
+                  {{ $t("regionalCenter.step1Desc") }}
                 </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">2</div>
               <div class="step-content">
-                <h3>Contact Your Regional Center</h3>
+                <h3>{{ $t("regionalCenter.step2") }}</h3>
                 <p>
-                  Call your Regional Center to schedule an intake appointment and discuss
-                  eligibility.
+                  {{ $t("regionalCenter.step2Desc") }}
                 </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">3</div>
               <div class="step-content">
-                <h3>Eligibility Assessment</h3>
+                <h3>{{ $t("regionalCenter.step3") }}</h3>
                 <p>
-                  Complete an assessment to determine if you qualify for services
-                  (developmental disability must begin before age 18).
+                  {{ $t("regionalCenter.step3Desc") }}
                 </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">4</div>
               <div class="step-content">
-                <h3>Develop Service Plan</h3>
+                <h3>{{ $t("regionalCenter.step4") }}</h3>
                 <p>
-                  Work with your service coordinator to create an Individualized Program
-                  Plan (IPP).
+                  {{ $t("regionalCenter.step4Desc") }}
                 </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">5</div>
               <div class="step-content">
-                <h3>Choose Providers</h3>
+                <h3>{{ $t("regionalCenter.step5") }}</h3>
                 <p>
-                  Select providers from our map that accept your Regional Center's
-                  funding.
+                  {{ $t("regionalCenter.step5Desc") }}
                 </p>
               </div>
             </div>
@@ -222,16 +210,16 @@
 
         <!-- CTA Section -->
         <div class="cta-section">
-          <h2>Ready to Find ABA Therapy Providers?</h2>
-          <p>Search our map to find providers in your Regional Center's service area.</p>
+          <h2>{{ $t("regionalCenter.readyToFindABA") }}</h2>
+          <p>{{ $t("regionalCenter.searchOurMap") }}</p>
           <div class="cta-buttons">
             <router-link to="/" class="btn btn-primary btn-lg">
               <i class="bi bi-map me-2"></i>
-              Search Providers
+              {{ $t("regionalCenter.searchResources") }}
             </router-link>
             <router-link to="/faq" class="btn btn-outline-light btn-lg">
               <i class="bi bi-question-circle me-2"></i>
-              Read FAQ
+              {{ $t("about.readFaq") }}
             </router-link>
           </div>
         </div>

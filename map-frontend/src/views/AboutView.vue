@@ -3,9 +3,9 @@
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="container">
-        <h1 class="page-title">About KINDD Provider Map</h1>
+        <h1 class="page-title">{{ $t("about.title") }}</h1>
         <p class="page-subtitle">
-          Helping families in Los Angeles County find ABA therapy and developmental disability services
+          {{ $t("about.subtitle") }}
         </p>
       </div>
     </section>
@@ -16,77 +16,77 @@
         
         <!-- Mission -->
         <div class="content-block">
-          <h2>Our Mission</h2>
+          <h2>{{ $t("about.mission") }}</h2>
           <p class="lead">
-            We create hope and build healthier futures by connecting families with the autism and developmental disability services they need.
+            {{ $t("about.missionText") }}
           </p>
           <p>
-            KINDD (Kids in Need of Developmental Disabilities) is a free, interactive map developed by <strong>Children's Hospital Los Angeles</strong> to help families find ABA therapy providers and autism services across Los Angeles County.
+            {{ $t("about.missionDescription") }}
           </p>
         </div>
 
         <!-- What We Do -->
         <div class="content-block">
-          <h2>What We Do</h2>
+          <h2>{{ $t("about.whatWeDo") }}</h2>
           <div class="feature-grid">
             <div class="feature-card">
               <div class="feature-icon">
                 <i class="bi bi-map-fill"></i>
               </div>
-              <h3>Interactive Map</h3>
-              <p>Visualize provider locations geographically and see your Regional Center boundaries.</p>
+              <h3>{{ $t("about.interactiveMap") }}</h3>
+              <p>{{ $t("about.interactiveMapDesc") }}</p>
             </div>
 
             <div class="feature-card">
               <div class="feature-icon">
                 <i class="bi bi-geo-alt-fill"></i>
               </div>
-              <h3>Location-Based Search</h3>
-              <p>Automatically find providers near you based on your ZIP code or current location.</p>
+              <h3>{{ $t("about.locationSearch") }}</h3>
+              <p>{{ $t("about.locationSearchDesc") }}</p>
             </div>
 
             <div class="feature-card">
               <div class="feature-icon">
                 <i class="bi bi-funnel-fill"></i>
               </div>
-              <h3>Smart Filters</h3>
-              <p>Search by insurance accepted, therapy types, age groups, and diagnoses treated.</p>
+              <h3>{{ $t("about.smartFilters") }}</h3>
+              <p>{{ $t("about.smartFiltersDesc") }}</p>
             </div>
 
             <div class="feature-card">
               <div class="feature-icon">
                 <i class="bi bi-building"></i>
               </div>
-              <h3>Regional Center Integration</h3>
-              <p>Understand which Regional Center serves your area and find their providers.</p>
+              <h3>{{ $t("about.rcIntegration") }}</h3>
+              <p>{{ $t("about.rcIntegrationDesc") }}</p>
             </div>
 
             <div class="feature-card">
               <div class="feature-icon">
                 <i class="bi bi-phone-fill"></i>
               </div>
-              <h3>Quick Contact</h3>
-              <p>Get phone numbers, websites, and directions with one click.</p>
+              <h3>{{ $t("about.quickContact") }}</h3>
+              <p>{{ $t("about.quickContactDesc") }}</p>
             </div>
 
             <div class="feature-card">
               <div class="feature-icon">
                 <i class="bi bi-phone"></i>
               </div>
-              <h3>Mobile-Friendly</h3>
-              <p>Works seamlessly on phones, tablets, and desktops for search on-the-go.</p>
+              <h3>{{ $t("about.mobileFriendly") }}</h3>
+              <p>{{ $t("about.mobileFriendlyDesc") }}</p>
             </div>
           </div>
         </div>
 
         <!-- Regional Centers Explained -->
         <div class="content-block highlight-block">
-          <h2>Understanding Regional Centers</h2>
+          <h2>{{ $t("about.understandingRC") }}</h2>
           <p>
-            <strong>Regional Centers are nonprofit agencies</strong> funded by the State of California to provide services and support to individuals with developmental disabilities. They are the gateway to free or low-cost services for eligible families.
+            {{ $t("about.rcExplanation") }}
           </p>
           
-          <h3>LA County's 7 Regional Centers</h3>
+          <h3>{{ $t("about.la7Centers") }}</h3>
           <div class="rc-grid">
             <div class="rc-card">
               <h4>San Gabriel/Pomona</h4>
@@ -128,37 +128,37 @@
 
         <!-- How It Works -->
         <div class="content-block">
-          <h2>How the Map Works</h2>
+          <h2>{{ $t("about.howItWorks") }}</h2>
           <div class="steps">
             <div class="step">
               <div class="step-number">1</div>
               <div class="step-content">
-                <h3>Enter Your Location</h3>
-                <p>Allow location access or enter your ZIP code to find providers near you.</p>
+                <h3>{{ $t("about.step1Title") }}</h3>
+                <p>{{ $t("about.step1Desc") }}</p>
               </div>
             </div>
 
             <div class="step">
               <div class="step-number">2</div>
               <div class="step-content">
-                <h3>See Your Regional Center</h3>
-                <p>The map automatically shows which Regional Center serves your area.</p>
+                <h3>{{ $t("about.step2Title") }}</h3>
+                <p>{{ $t("about.step2Desc") }}</p>
               </div>
             </div>
 
             <div class="step">
               <div class="step-number">3</div>
               <div class="step-content">
-                <h3>Filter Providers</h3>
-                <p>Use filters to narrow results by insurance, therapy types, and more.</p>
+                <h3>{{ $t("about.step3Title") }}</h3>
+                <p>{{ $t("about.step3Desc") }}</p>
               </div>
             </div>
 
             <div class="step">
               <div class="step-number">4</div>
               <div class="step-content">
-                <h3>Connect with Providers</h3>
-                <p>View provider details, get directions, and contact them directly.</p>
+                <h3>{{ $t("about.step4Title") }}</h3>
+                <p>{{ $t("about.step4Desc") }}</p>
               </div>
             </div>
           </div>
@@ -166,8 +166,8 @@
 
         <!-- Who We Serve -->
         <div class="content-block">
-          <h2>Who We Serve</h2>
-          <p>KINDD helps families seeking services for children and adults with:</p>
+          <h2>{{ $t("about.whoWeServe") }}</h2>
+          <p>{{ $t("about.whoWeServeText") }}</p>
           <div class="diagnosis-grid">
             <div class="diagnosis-item">
               <i class="bi bi-check-circle-fill"></i>
@@ -203,16 +203,13 @@
               <img src="@/assets/chla-logo.svg" alt="Children's Hospital Los Angeles" class="chla-logo" />
             </div>
             <div>
-              <h2>About Children's Hospital Los Angeles</h2>
+              <h2>{{ $t("about.aboutCHLA") }}</h2>
               <p>
-                <strong>Children's Hospital Los Angeles (CHLA)</strong> has been a leader in pediatric healthcare for over 120 years. As one of the top children's hospitals in the nation, CHLA is committed to creating hope and building healthier futures for children and families.
-              </p>
-              <p>
-                CHLA developed the KINDD Provider Map as part of our mission to improve access to care for all children, including those with autism and developmental disabilities. We believe every family deserves easy access to quality services.
+                {{ $t("about.chlaDescription") }}
               </p>
               <p>
                 <a href="https://www.chla.org" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary">
-                  Learn More About CHLA <i class="bi bi-arrow-right"></i>
+                  {{ $t("about.learnMoreCHLA") }} <i class="bi bi-arrow-right"></i>
                 </a>
               </p>
             </div>
@@ -221,38 +218,38 @@
 
         <!-- Free to Use -->
         <div class="content-block highlight-block">
-          <h2>Free to Use, No Registration Required</h2>
+          <h2>{{ $t("about.freeToUse") }}</h2>
           <p>
-            KINDD is completely free to use. There are no fees, subscriptions, or registration required. We don't sell your data or charge providers to be listed. Our goal is simply to help families find the services they need.
+            {{ $t("about.freeToUseText") }}
           </p>
           <div class="stats-grid">
             <div class="stat-card">
               <div class="stat-number">370+</div>
-              <div class="stat-label">Verified Providers</div>
+              <div class="stat-label">{{ $t("about.verifiedResources") }}</div>
             </div>
             <div class="stat-card">
               <div class="stat-number">7</div>
-              <div class="stat-label">Regional Centers Covered</div>
+              <div class="stat-label">{{ $t("about.rcCovered") }}</div>
             </div>
             <div class="stat-card">
               <div class="stat-number">100%</div>
-              <div class="stat-label">Free to Use</div>
+              <div class="stat-label">{{ $t("about.percentFree") }}</div>
             </div>
           </div>
         </div>
 
         <!-- CTA Section -->
         <div class="cta-section">
-          <h2>Ready to Find a Provider?</h2>
-          <p>Start your search now - it only takes a few seconds.</p>
+          <h2>{{ $t("about.readyToFind") }}</h2>
+          <p>{{ $t("about.startSearch") }}</p>
           <div class="cta-buttons">
             <router-link to="/" class="btn btn-primary btn-lg">
               <i class="bi bi-map me-2"></i>
-              Explore the Map
+              {{ $t("about.exploreMap") }}
             </router-link>
             <router-link to="/faq" class="btn btn-outline-light btn-lg">
               <i class="bi bi-question-circle me-2"></i>
-              Read FAQ
+              {{ $t("about.readFaq") }}
             </router-link>
           </div>
         </div>
