@@ -248,7 +248,13 @@ class LLMService: ObservableObject {
         // Don't set Accept header - DRF returns 406 for text/event-stream
         request.timeoutInterval = 120
 
-        var body: [String: Any] = ["query": query]
+        // Get device locale for AI response language
+        let locale = Locale.current.language.languageCode?.identifier ?? "en"
+        
+        var body: [String: Any] = [
+            "query": query,
+            "locale": locale  // Pass locale to backend for AI language
+        ]
         if let context = context {
             var contextDict: [String: Any] = [:]
             if let zip = context.zipCode { contextDict["zip_code"] = zip }

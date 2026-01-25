@@ -21,17 +21,19 @@ struct ChatView: View {
     @State private var exportText = ""
     @State private var userZipCode: String?
 
-    // Quick prompt suggestions
-    private let quickPrompts = [
-        ("🔍", "Find providers", "Find ABA providers near me"),
-        ("📋", "Assessment", "How do I get a Regional Center assessment?"),
-        ("🏥", "My RC", "Which Regional Center serves my area?"),
-        ("👶", "Early Start", "What is Early Start and who qualifies?"),
-        ("💊", "Insurance", "What insurance covers ABA therapy?"),
-        ("📅", "Waitlists", "How long are therapy waitlists?"),
-        ("🎂", "Age 3 transition", "What happens when my child turns 3?"),
-        ("🗣️", "Speech", "Find speech therapy providers")
-    ]
+    // Quick prompt suggestions - computed property for localization
+    private var quickPrompts: [(String, String, String)] {
+        [
+            ("🔍", L10n.Chat.findProviders, L10n.Chat.suggestion1),
+            ("📋", L10n.Chat.assessment, "chat.assessmentPrompt".localized),
+            ("🏥", L10n.Chat.myRC, L10n.Chat.suggestion2),
+            ("👶", L10n.Chat.earlyStart, L10n.Chat.suggestion4),
+            ("💊", L10n.Chat.insurance, L10n.Chat.suggestion3),
+            ("📅", L10n.Chat.waitlists, "chat.waitlistsPrompt".localized),
+            ("🎂", L10n.Chat.age3Transition, "chat.age3Prompt".localized),
+            ("🗣️", L10n.Chat.speech, "chat.speechPrompt".localized)
+        ]
+    }
 
     var body: some View {
         NavigationStack {
@@ -96,7 +98,7 @@ struct ChatView: View {
                     onCancel: { llmService.cancelStreaming() }
                 )
             }
-            .navigationTitle("Ask KiNDD")
+            .navigationTitle(L10n.Chat.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -131,7 +133,7 @@ struct ChatView: View {
                             Button(role: .destructive) {
                                 showingClearConfirmation = true
                             } label: {
-                                Label("Clear Chat", systemImage: "trash")
+                                Label(L10n.Chat.clearChat, systemImage: "trash")
                             }
                         }
 
@@ -144,11 +146,11 @@ struct ChatView: View {
                     }
                 }
             }
-            .confirmationDialog("Clear Chat", isPresented: $showingClearConfirmation) {
-                Button("Clear All Messages", role: .destructive) {
+            .confirmationDialog(L10n.Chat.clearConfirmTitle, isPresented: $showingClearConfirmation) {
+                Button(L10n.Chat.clearChat, role: .destructive) {
                     llmService.clearChat()
                 }
-                Button("Cancel", role: .cancel) {}
+                Button(L10n.Common.cancel, role: .cancel) {}
             }
             .sheet(isPresented: $showingExportSheet) {
                 ShareSheet(items: [exportText])

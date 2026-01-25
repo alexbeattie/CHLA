@@ -55,7 +55,8 @@
 "resources.loading" = "Loading resources...";
 "resources.noResults" = "No Resources Found";
 "resources.noResultsDescription" = "Try adjusting your search filters or expanding your search radius.";
-"resources.found" = "%d resource(s) found";
+"resources.foundSingular" = "%d resource found";
+"resources.foundPlural" = "%d resources found";
 "resources.clearSearch" = "Clear search";
 "resources.popularSearches" = "Popular Searches";
 "resources.sortBy" = "Sort by";
@@ -131,3 +132,33 @@
 "error.network" = "Network error. Please check your connection.";
 "error.loadingFailed" = "Failed to load data. Please try again.";
 "error.locationDenied" = "Location access denied. Enable in Settings.";
+
+// MARK: - Chat / AI Assistant
+"chat.title" = "Ask KiNDD";
+"chat.inputPlaceholder" = "Ask about services, providers...";
+"chat.send" = "Send";
+"chat.cancel" = "Cancel";
+"chat.clearChat" = "Clear Chat";
+"chat.clearConfirmTitle" = "Clear Conversation";
+"chat.clearConfirmMessage" = "This will delete all messages. This action cannot be undone.";
+"chat.welcomeTitle" = "Hi! I'm KiNDD";
+"chat.welcomeSubtitle" = "Your AI assistant for finding developmental disability resources in LA County";
+"chat.welcomeHint" = "Try asking me about:";
+"chat.suggestion1" = "Find ABA providers near me";
+"chat.suggestion2" = "Which Regional Center serves my ZIP code?";
+"chat.suggestion3" = "What insurance covers ABA therapy?";
+"chat.suggestion4" = "How do I get started with Early Intervention?";
+"chat.findProviders" = "Find providers";
+"chat.assessment" = "Assessment";
+"chat.myRC" = "My RC";
+"chat.earlyStart" = "Early Start";
+"chat.insurance" = "Insurance";
+"chat.waitlists" = "Waitlists";
+"chat.age3Transition" = "Age 3 transition";
+"chat.speech" = "Speech";
+"chat.copied" = "Copied!";
+"chat.thinking" = "Thinking...";
+"chat.assessmentPrompt" = "How do I get a Regional Center assessment?";
+"chat.waitlistsPrompt" = "How long are therapy waitlists?";
+"chat.age3Prompt" = "What happens when my child turns 3?";
+"chat.speechPrompt" = "Find speech therapy providers";

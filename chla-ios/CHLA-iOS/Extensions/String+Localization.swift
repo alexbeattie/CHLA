@@ -81,7 +81,8 @@ enum L10n {
         static let noResults = "resources.noResults".localized
         static let noResultsDescription = "resources.noResultsDescription".localized
         static func found(_ count: Int) -> String {
-            "resources.found".localized(with: count)
+            let key = count == 1 ? "resources.foundSingular" : "resources.foundPlural"
+            return key.localized(with: count)
         }
         static let clearSearch = "resources.clearSearch".localized
         static let popularSearches = "resources.popularSearches".localized
@@ -168,5 +169,33 @@ enum L10n {
         static let network = "error.network".localized
         static let loadingFailed = "error.loadingFailed".localized
         static let locationDenied = "error.locationDenied".localized
+    }
+    
+    // MARK: - Chat / AI Assistant
+    enum Chat {
+        static let title = "chat.title".localized
+        static let inputPlaceholder = "chat.inputPlaceholder".localized
+        static let send = "chat.send".localized
+        static let cancel = "chat.cancel".localized
+        static let clearChat = "chat.clearChat".localized
+        static let clearConfirmTitle = "chat.clearConfirmTitle".localized
+        static let clearConfirmMessage = "chat.clearConfirmMessage".localized
+        static let welcomeTitle = "chat.welcomeTitle".localized
+        static let welcomeSubtitle = "chat.welcomeSubtitle".localized
+        static let welcomeHint = "chat.welcomeHint".localized
+        static let suggestion1 = "chat.suggestion1".localized
+        static let suggestion2 = "chat.suggestion2".localized
+        static let suggestion3 = "chat.suggestion3".localized
+        static let suggestion4 = "chat.suggestion4".localized
+        static let findProviders = "chat.findProviders".localized
+        static let assessment = "chat.assessment".localized
+        static let myRC = "chat.myRC".localized
+        static let earlyStart = "chat.earlyStart".localized
+        static let insurance = "chat.insurance".localized
+        static let waitlists = "chat.waitlists".localized
+        static let age3Transition = "chat.age3Transition".localized
+        static let speech = "chat.speech".localized
+        static let copied = "chat.copied".localized
+        static let thinking = "chat.thinking".localized
     }
 }

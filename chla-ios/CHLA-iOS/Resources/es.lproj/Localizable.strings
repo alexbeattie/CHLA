@@ -55,7 +55,8 @@
 "resources.loading" = "Cargando recursos...";
 "resources.noResults" = "No Se Encontraron Recursos";
 "resources.noResultsDescription" = "Intente ajustar sus filtros de búsqueda o ampliar su radio de búsqueda.";
-"resources.found" = "%d recurso(s) encontrado(s)";
+"resources.foundSingular" = "%d recurso encontrado";
+"resources.foundPlural" = "%d recursos encontrados";
 "resources.clearSearch" = "Borrar búsqueda";
 "resources.popularSearches" = "Búsquedas Populares";
 "resources.sortBy" = "Ordenar por";
@@ -131,3 +132,33 @@
 "error.network" = "Error de red. Por favor verifique su conexión.";
 "error.loadingFailed" = "Error al cargar datos. Por favor intente de nuevo.";
 "error.locationDenied" = "Acceso a ubicación denegado. Habilite en Configuración.";
+
+// MARK: - Chat / AI Assistant
+"chat.title" = "Pregunta a KiNDD";
+"chat.inputPlaceholder" = "Pregunta sobre servicios, recursos...";
+"chat.send" = "Enviar";
+"chat.cancel" = "Cancelar";
+"chat.clearChat" = "Borrar Chat";
+"chat.clearConfirmTitle" = "Borrar Conversación";
+"chat.clearConfirmMessage" = "Esto eliminará todos los mensajes. Esta acción no se puede deshacer.";
+"chat.welcomeTitle" = "¡Hola! Soy KiNDD";
+"chat.welcomeSubtitle" = "Tu asistente de IA para encontrar recursos de discapacidades del desarrollo en el Condado de LA";
+"chat.welcomeHint" = "Intenta preguntarme sobre:";
+"chat.suggestion1" = "Encontrar proveedores de ABA cerca de mí";
+"chat.suggestion2" = "¿Qué Centro Regional sirve mi código postal?";
+"chat.suggestion3" = "¿Qué seguro cubre la terapia ABA?";
+"chat.suggestion4" = "¿Cómo empiezo con la Intervención Temprana?";
+"chat.findProviders" = "Buscar recursos";
+"chat.assessment" = "Evaluación";
+"chat.myRC" = "Mi CR";
+"chat.earlyStart" = "Early Start";
+"chat.insurance" = "Seguro";
+"chat.waitlists" = "Listas de espera";
+"chat.age3Transition" = "Transición a los 3 años";
+"chat.speech" = "Habla";
+"chat.copied" = "¡Copiado!";
+"chat.thinking" = "Pensando...";
+"chat.assessmentPrompt" = "¿Cómo obtengo una evaluación del Centro Regional?";
+"chat.waitlistsPrompt" = "¿Cuánto tiempo son las listas de espera de terapia?";
+"chat.age3Prompt" = "¿Qué pasa cuando mi hijo cumple 3 años?";
+"chat.speechPrompt" = "Encontrar proveedores de terapia del habla";
