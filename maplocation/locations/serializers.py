@@ -285,6 +285,10 @@ class ProviderV2Serializer(serializers.ModelSerializer):
     city = serializers.ReadOnlyField()
     state = serializers.ReadOnlyField()
     zip_code = serializers.ReadOnlyField()
+
+    # Convert DecimalField to float for mobile clients
+    latitude = serializers.SerializerMethodField()
+    longitude = serializers.SerializerMethodField()
     age_groups_served = serializers.ReadOnlyField()
     diagnoses_served = serializers.ReadOnlyField()
     website_domain = serializers.ReadOnlyField()
@@ -336,6 +340,18 @@ class ProviderV2Serializer(serializers.ModelSerializer):
             "serving_regional_centers",
             "distance",  # Distance in miles (when using PostGIS queries)
         ]
+
+    def get_latitude(self, obj):
+        """Convert DecimalField to float for JSON serialization"""
+        if obj.latitude is not None:
+            return float(obj.latitude)
+        return None
+
+    def get_longitude(self, obj):
+        """Convert DecimalField to float for JSON serialization"""
+        if obj.longitude is not None:
+            return float(obj.longitude)
+        return None
 
     def get_distance(self, obj):
         """Get distance in miles if available from PostGIS query"""
