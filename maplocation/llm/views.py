@@ -14,7 +14,7 @@ from django.utils.decorators import method_decorator
 from django.http import StreamingHttpResponse
 
 from .query import answer_query, explain_eligibility, find_providers_by_criteria
-from .bedrock import test_connection, chat_completion_streaming
+from .bedrock import test_connection, chat_completion_streaming, get_system_prompt_for_locale
 
 
 class AskKiNDDView(APIView):
@@ -48,6 +48,7 @@ class AskKiNDDView(APIView):
     def post(self, request):
         query = request.data.get("query")
         user_context = request.data.get("context", {})
+        locale = request.data.get("locale", "en")  # Get locale from request
 
         if not query:
             return Response(
@@ -61,7 +62,7 @@ class AskKiNDDView(APIView):
             )
 
         try:
-            result = answer_query(query, user_context)
+            result = answer_query(query, user_context, locale=locale)
             return Response(
                 {
                     "query": query,
@@ -249,6 +250,7 @@ class StreamingAskView(APIView):
     def post(self, request):
         query = request.data.get("query")
         user_context = request.data.get("context", {})
+        locale = request.data.get("locale", "en")  # Get locale from request
 
         if not query:
             return Response(
@@ -302,10 +304,14 @@ class StreamingAskView(APIView):
 
 {user_context_str}"""
 
+                # Get locale-specific system prompt
+                system_prompt = get_system_prompt_for_locale(locale)
+
                 # Stream from Claude
                 for chunk in chat_completion_streaming(
                     user_message=query,
                     context=full_context,
+                    system_prompt=system_prompt,
                 ):
                     # Send each chunk as SSE event
                     yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
@@ -347,6 +353,7 @@ class AgentAskView(APIView):
     def post(self, request):
         query = request.data.get("query")
         user_context = request.data.get("context", {})
+        locale = request.data.get("locale", "en")  # Get locale from request
 
         if not query:
             return Response(
@@ -356,7 +363,7 @@ class AgentAskView(APIView):
         try:
             from .agent import chat_with_agent
 
-            result = chat_with_agent(query, user_context)
+            result = chat_with_agent(query, user_context, locale=locale)
             return Response(
                 {
                     "query": query,
@@ -366,9 +373,9 @@ class AgentAskView(APIView):
                 }
             )
 
-        except ImportError as e:
+        except ImportError:
             # Strands not installed - fall back to regular query
-            result = answer_query(query, user_context)
+            result = answer_query(query, user_context, locale=locale)
             return Response(
                 {
                     "query": query,

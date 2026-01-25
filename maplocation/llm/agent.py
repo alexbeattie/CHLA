@@ -343,7 +343,7 @@ def list_therapy_types() -> str:
 # KINDD AGENT - Main agent with tools and streaming
 # ============================================================================
 
-KINDD_SYSTEM_PROMPT = """You are KiNDD, an expert navigator for neurodevelopmental services in Los Angeles County.
+KINDD_SYSTEM_PROMPT_EN = """You are KiNDD, an expert navigator for neurodevelopmental services in Los Angeles County.
 
 ## Your Role
 You help families and clinicians find developmental therapy services and navigate the Regional Center system. You have access to a database of real providers in LA County.
@@ -374,9 +374,56 @@ You have tools to:
 
 When asked about providers, ALWAYS use the search_providers tool first."""
 
+KINDD_SYSTEM_PROMPT_ES = """Eres KiNDD, un navegador experto para servicios de neurodesarrollo en el Condado de Los Ángeles.
 
-def create_kindd_agent() -> Agent:
-    """Create the KiNDD agent with Bedrock and tools."""
+IMPORTANTE: Responde siempre en español.
+
+## Tu Rol
+Ayudas a familias y profesionales a encontrar servicios de terapia del desarrollo y navegar el sistema de Centros Regionales. Tienes acceso a una base de datos de proveedores reales en el Condado de LA.
+
+## Tus Herramientas
+Tienes herramientas para:
+- **search_providers**: Encontrar proveedores por tipo de terapia, ubicación y criterios
+- **get_regional_center**: Determinar qué Centro Regional sirve un código postal
+- **get_provider_details**: Obtener información completa sobre un proveedor específico
+- **check_eligibility**: Evaluar elegibilidad para servicios del Centro Regional
+- **list_therapy_types**: Explicar los tipos de terapia disponibles
+
+## Pautas
+1. **Usa tus herramientas** - Siempre busca en la base de datos en lugar de inventar nombres de proveedores
+2. **Sé específico** - Cita nombres reales de proveedores e información de contacto de los resultados de búsqueda
+3. **Reconoce limitaciones** - Si los datos pueden estar desactualizados, dilo
+4. **Sé empático** - Las familias que navegan estos sistemas a menudo están estresadas
+5. **Da los próximos pasos** - Siempre termina con recomendaciones accionables
+
+## Centros Regionales en el Condado de LA
+- Westside Regional Center (WRC) - área de Santa Monica
+- Harbor Regional Center (HRC) - área de Harbor/South Bay
+- South Central Los Angeles Regional Center (SCLARC) - South LA
+- Eastern Los Angeles Regional Center (ELARC) - East LA
+- North Los Angeles County Regional Center (NLACRC) - SFV, Santa Clarita
+- Frank D. Lanterman Regional Center - área de Glendale, Pasadena
+- San Gabriel/Pomona Regional Center (SGPRC) - SGV, Pomona
+
+Cuando te pregunten sobre proveedores, SIEMPRE usa la herramienta search_providers primero."""
+
+# Default for backwards compatibility
+KINDD_SYSTEM_PROMPT = KINDD_SYSTEM_PROMPT_EN
+
+
+def get_agent_system_prompt_for_locale(locale: str = "en") -> str:
+    """Get the agent system prompt for the given locale."""
+    if locale.startswith("es"):
+        return KINDD_SYSTEM_PROMPT_ES
+    return KINDD_SYSTEM_PROMPT_EN
+
+
+def create_kindd_agent(locale: str = "en") -> Agent:
+    """Create the KiNDD agent with Bedrock and tools.
+    
+    Args:
+        locale: Language code (e.g., "en", "es") for response language
+    """
 
     # Use Claude 3.5 Sonnet via Bedrock
     model = BedrockModel(
@@ -384,9 +431,12 @@ def create_kindd_agent() -> Agent:
         region_name="us-west-2",
     )
 
+    # Get locale-specific system prompt
+    system_prompt = get_agent_system_prompt_for_locale(locale)
+
     agent = Agent(
         model=model,
-        system_prompt=KINDD_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         tools=[
             search_providers,
             get_regional_center,
@@ -403,13 +453,20 @@ def chat_with_agent(
     user_message: str,
     user_context: Optional[dict] = None,
     conversation_history: Optional[list] = None,
+    locale: str = "en",
 ) -> dict:
     """
     Non-streaming chat with the KiNDD agent.
 
+    Args:
+        user_message: The user's message
+        user_context: Optional context (zip_code, child_age, etc.)
+        conversation_history: Optional previous messages
+        locale: Language code (e.g., "en", "es") for response language
+
     Returns full response with tool usage info.
     """
-    agent = create_kindd_agent()
+    agent = create_kindd_agent(locale=locale)
 
     # Enhance message with user context
     if user_context:

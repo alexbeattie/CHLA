@@ -8,7 +8,7 @@ questions about neurodevelopmental services.
 from django.db import connection
 from typing import Optional
 from locations.models import ProviderV2, RegionalCenter
-from .bedrock import generate_embedding, chat_completion
+from .bedrock import generate_embedding, chat_completion, get_system_prompt_for_locale
 
 
 def semantic_search(query: str, limit: int = 15) -> list[ProviderV2]:
@@ -143,6 +143,7 @@ def answer_query(
     user_query: str,
     user_context: Optional[dict] = None,
     conversation_history: Optional[list] = None,
+    locale: str = "en",
 ) -> dict:
     """
     Main RAG pipeline: retrieve relevant providers, then answer with LLM.
@@ -151,6 +152,7 @@ def answer_query(
         user_query: Natural language question
         user_context: Dict with zip_code, child_age, diagnosis, insurance, etc.
         conversation_history: Previous messages for multi-turn chat
+        locale: Language code (e.g., "en", "es") for response language
 
     Returns:
         {
@@ -187,9 +189,11 @@ def answer_query(
 
 {user_context_str}"""
 
-    # Step 4: Get LLM response
+    # Step 4: Get locale-specific system prompt and LLM response
+    system_prompt = get_system_prompt_for_locale(locale)
     answer = chat_completion(
         user_message=user_query,
+        system_prompt=system_prompt,
         context=full_context,
         conversation_history=conversation_history,
     )
