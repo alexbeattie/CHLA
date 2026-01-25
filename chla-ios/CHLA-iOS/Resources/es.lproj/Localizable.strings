@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings (Spanish)
+  CHLA-iOS / KINDD
+  
+  Spanish translations for the app
+*/
+
+// MARK: - Common
+"common.search" = "Buscar";
+"common.cancel" = "Cancelar";
+"common.close" = "Cerrar";
+"common.save" = "Guardar";
+"common.loading" = "Cargando...";
+"common.error" = "Error";
+"common.refresh" = "Actualizar";
+"common.clearAll" = "Borrar Todo";
+"common.seeAll" = "Ver Todo";
+"common.continue" = "Continuar";
+"common.settings" = "Configuración";
+
+// MARK: - Navigation / Tabs
+"nav.home" = "Inicio";
+"nav.map" = "Mapa";
+"nav.regions" = "Regiones";
+"nav.browse" = "Explorar";
+"nav.more" = "Más";
+
+// MARK: - Home View
+"home.resourceNavigator" = "Navegador de Recursos";
+"home.tagline" = "Encuentre servicios de discapacidades del desarrollo\nen el Condado de Los Ángeles";
+"home.enterZip" = "Ingrese código postal";
+"home.quickActions" = "Acciones Rápidas";
+"home.nearMe" = "Cerca de Mí";
+"home.useLocation" = "Usar ubicación";
+"home.map" = "Mapa";
+"home.explore" = "Explorar";
+"home.browse" = "Explorar";
+"home.allResources" = "Todos los recursos";
+"home.therapyTypes" = "Tipos de Terapia";
+"home.yourRegionalCenter" = "Su Centro Regional";
+"home.laCountyRegionalCenters" = "Centros Regionales del Condado de LA";
+"home.7RegionalCenters" = "7 Centros Regionales";
+"home.findYourCenter" = "Encuentre su centro por ubicación";
+"home.atAGlance" = "De un Vistazo";
+"home.resources" = "Recursos";
+"home.centers" = "Centros";
+"home.free" = "Gratis";
+"home.always" = "Siempre";
+"home.changePreferences" = "Cambiar Mis Preferencias";
+"home.changePreferencesMessage" = "Esto lo guiará a través de la configuración para actualizar su ubicación, grupo de edad y preferencias de terapia.";
+
+// MARK: - Resource/Provider List
+"resources.title" = "Recursos";
+"resources.searchPrompt" = "Buscar recursos, servicios o código postal";
+"resources.loading" = "Cargando recursos...";
+"resources.noResults" = "No Se Encontraron Recursos";
+"resources.noResultsDescription" = "Intente ajustar sus filtros de búsqueda o ampliar su radio de búsqueda.";
+"resources.found" = "%d recurso(s) encontrado(s)";
+"resources.clearSearch" = "Borrar búsqueda";
+"resources.popularSearches" = "Búsquedas Populares";
+"resources.sortBy" = "Ordenar por";
+"resources.distance" = "Distancia";
+"resources.name" = "Nombre";
+
+// MARK: - Provider Card
+"provider.away" = "de distancia";
+"provider.directions" = "Direcciones";
+"provider.website" = "Sitio Web";
+"provider.services" = "Servicios";
+"provider.ages" = "Edades";
+"provider.accepts" = "Acepta";
+"provider.more" = "más";
+"provider.call" = "Llamar";
+"provider.getDirections" = "Obtener Direcciones";
+
+// MARK: - Regional Centers
+"rc.title" = "Centros Regionales";
+"rc.laCounty" = "Condado de Los Ángeles";
+"rc.findByZip" = "Buscar por Código Postal";
+"rc.viewOnMap" = "Ver en Mapa";
+"rc.contact" = "Contacto";
+"rc.website" = "Sitio Web";
+"rc.servesAreas" = "Sirve áreas";
+
+// MARK: - Filters
+"filters.title" = "Filtros";
+"filters.therapyType" = "Tipo de Terapia";
+"filters.ageGroup" = "Grupo de Edad";
+"filters.insurance" = "Seguro";
+"filters.diagnosis" = "Diagnóstico";
+"filters.apply" = "Aplicar Filtros";
+"filters.reset" = "Reiniciar";
+
+// MARK: - Therapy Types
+"therapy.aba" = "Terapia ABA";
+"therapy.speech" = "Terapia del habla";
+"therapy.occupational" = "Terapia ocupacional";
+"therapy.physical" = "Terapia física";
+
+// MARK: - About
+"about.title" = "Acerca de KINDD";
+"about.mission" = "Nuestra Misión";
+"about.missionText" = "Creamos esperanza y construimos futuros más saludables conectando a las familias con los servicios de autismo y discapacidades del desarrollo que necesitan.";
+"about.version" = "Versión";
+"about.contact" = "Contáctenos";
+"about.website" = "Visitar Sitio Web";
+
+// MARK: - FAQ
+"faq.title" = "Preguntas Frecuentes";
+"faq.subtitle" = "Preguntas Frecuentes";
+
+// MARK: - Onboarding
+"onboarding.welcome" = "Bienvenido a KINDD";
+"onboarding.welcomeSubtitle" = "Encuentre recursos de discapacidades del desarrollo en el Condado de Los Ángeles";
+"onboarding.getStarted" = "Comenzar";
+"onboarding.skip" = "Omitir";
+"onboarding.next" = "Siguiente";
+"onboarding.done" = "Listo";
+"onboarding.locationTitle" = "Habilitar Ubicación";
+"onboarding.locationSubtitle" = "Encuentre recursos cerca de usted";
+
+// MARK: - Settings
+"settings.title" = "Configuración";
+"settings.resetOnboarding" = "Reiniciar Introducción";
+"settings.about" = "Acerca de";
+"settings.faq" = "Preguntas Frecuentes";
+"settings.privacy" = "Política de Privacidad";
+"settings.terms" = "Términos de Servicio";
+
+// MARK: - Errors
+"error.network" = "Error de red. Por favor verifique su conexión.";
+"error.loadingFailed" = "Error al cargar datos. Por favor intente de nuevo.";
+"error.locationDenied" = "Acceso a ubicación denegado. Habilite en Configuración.";

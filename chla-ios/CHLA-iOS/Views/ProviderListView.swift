@@ -81,11 +81,11 @@ struct ProviderListView: View {
                     providerList
                 }
             }
-            .navigationTitle("Resources")
+            .navigationTitle(L10n.Resources.title)
             .searchable(
                 text: $searchText,
                 placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search resources, services, or ZIP code"
+                prompt: L10n.Resources.searchPrompt
             ) {
                 // Search suggestions
                 if !currentSuggestions.isEmpty {
@@ -97,7 +97,7 @@ struct ProviderListView: View {
 
                 // Popular searches when empty
                 if searchText.isEmpty {
-                    Section("Popular Searches") {
+                    Section(L10n.Resources.popularSearches) {
                         ForEach(SearchStateManager.popularSearches.prefix(4), id: \.self) { search in
                             Label(search, systemImage: "magnifyingglass")
                                 .searchCompletion(search)
@@ -238,18 +238,18 @@ struct ProviderListView: View {
         VStack(spacing: 16) {
             ProgressView()
                 .scaleEffect(1.5)
-            Text("Loading resources...")
+            Text(L10n.Resources.loading)
                 .foregroundStyle(.secondary)
         }
     }
 
     private var emptyView: some View {
         ContentUnavailableView {
-            Label("No Resources Found", systemImage: "building.2")
+            Label(L10n.Resources.noResults, systemImage: "building.2")
         } description: {
-            Text("Try adjusting your search filters or expanding your search radius.")
+            Text(L10n.Resources.noResultsDescription)
         } actions: {
-            Button("Refresh") {
+            Button(L10n.Common.refresh) {
                 Task { await refreshProviders() }
             }
             .buttonStyle(.borderedProminent)
@@ -296,7 +296,7 @@ struct ProviderListView: View {
     private var resultsHeader: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("\(filteredProviders.count) resource\(filteredProviders.count == 1 ? "" : "s") found")
+                Text(L10n.Resources.found(filteredProviders.count))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
@@ -306,7 +306,7 @@ struct ProviderListView: View {
                     Button {
                         searchText = ""
                     } label: {
-                        Text("Clear search")
+                        Text(L10n.Resources.clearSearch)
                             .font(.caption)
                             .foregroundColor(.accentBlue)
                     }
@@ -343,7 +343,7 @@ struct ProviderListView: View {
                                     Task { await refreshProviders() }
                                 }
                             } label: {
-                                Text("Clear All")
+                                Text(L10n.Common.clearAll)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }

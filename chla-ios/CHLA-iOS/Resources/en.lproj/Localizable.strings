@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings (English)
+  CHLA-iOS / KINDD
+  
+  English translations for the app
+*/
+
+// MARK: - Common
+"common.search" = "Search";
+"common.cancel" = "Cancel";
+"common.close" = "Close";
+"common.save" = "Save";
+"common.loading" = "Loading...";
+"common.error" = "Error";
+"common.refresh" = "Refresh";
+"common.clearAll" = "Clear All";
+"common.seeAll" = "See All";
+"common.continue" = "Continue";
+"common.settings" = "Settings";
+
+// MARK: - Navigation / Tabs
+"nav.home" = "Home";
+"nav.map" = "Map";
+"nav.regions" = "Regions";
+"nav.browse" = "Browse";
+"nav.more" = "More";
+
+// MARK: - Home View
+"home.resourceNavigator" = "Resource Navigator";
+"home.tagline" = "Find developmental disability services\nin Los Angeles County";
+"home.enterZip" = "Enter ZIP code";
+"home.quickActions" = "Quick Actions";
+"home.nearMe" = "Near Me";
+"home.useLocation" = "Use location";
+"home.map" = "Map";
+"home.explore" = "Explore";
+"home.browse" = "Browse";
+"home.allResources" = "All resources";
+"home.therapyTypes" = "Therapy Types";
+"home.yourRegionalCenter" = "Your Regional Center";
+"home.laCountyRegionalCenters" = "LA County Regional Centers";
+"home.7RegionalCenters" = "7 Regional Centers";
+"home.findYourCenter" = "Find your center by location";
+"home.atAGlance" = "At a Glance";
+"home.resources" = "Resources";
+"home.centers" = "Centers";
+"home.free" = "Free";
+"home.always" = "Always";
+"home.changePreferences" = "Change My Preferences";
+"home.changePreferencesMessage" = "This will guide you through the setup to update your location, age group, and therapy preferences.";
+
+// MARK: - Resource/Provider List
+"resources.title" = "Resources";
+"resources.searchPrompt" = "Search resources, services, or ZIP code";
+"resources.loading" = "Loading resources...";
+"resources.noResults" = "No Resources Found";
+"resources.noResultsDescription" = "Try adjusting your search filters or expanding your search radius.";
+"resources.found" = "%d resource(s) found";
+"resources.clearSearch" = "Clear search";
+"resources.popularSearches" = "Popular Searches";
+"resources.sortBy" = "Sort by";
+"resources.distance" = "Distance";
+"resources.name" = "Name";
+
+// MARK: - Provider Card
+"provider.away" = "away";
+"provider.directions" = "Directions";
+"provider.website" = "Website";
+"provider.services" = "Services";
+"provider.ages" = "Ages";
+"provider.accepts" = "Accepts";
+"provider.more" = "more";
+"provider.call" = "Call";
+"provider.getDirections" = "Get Directions";
+
+// MARK: - Regional Centers
+"rc.title" = "Regional Centers";
+"rc.laCounty" = "Los Angeles County";
+"rc.findByZip" = "Find by ZIP Code";
+"rc.viewOnMap" = "View on Map";
+"rc.contact" = "Contact";
+"rc.website" = "Website";
+"rc.servesAreas" = "Serves areas";
+
+// MARK: - Filters
+"filters.title" = "Filters";
+"filters.therapyType" = "Therapy Type";
+"filters.ageGroup" = "Age Group";
+"filters.insurance" = "Insurance";
+"filters.diagnosis" = "Diagnosis";
+"filters.apply" = "Apply Filters";
+"filters.reset" = "Reset";
+
+// MARK: - Therapy Types
+"therapy.aba" = "ABA therapy";
+"therapy.speech" = "Speech therapy";
+"therapy.occupational" = "Occupational therapy";
+"therapy.physical" = "Physical therapy";
+
+// MARK: - About
+"about.title" = "About KINDD";
+"about.mission" = "Our Mission";
+"about.missionText" = "We create hope and build healthier futures by connecting families with the autism and developmental disability services they need.";
+"about.version" = "Version";
+"about.contact" = "Contact Us";
+"about.website" = "Visit Website";
+
+// MARK: - FAQ
+"faq.title" = "FAQ";
+"faq.subtitle" = "Frequently Asked Questions";
+
+// MARK: - Onboarding
+"onboarding.welcome" = "Welcome to KINDD";
+"onboarding.welcomeSubtitle" = "Find developmental disability resources in Los Angeles County";
+"onboarding.getStarted" = "Get Started";
+"onboarding.skip" = "Skip";
+"onboarding.next" = "Next";
+"onboarding.done" = "Done";
+"onboarding.locationTitle" = "Enable Location";
+"onboarding.locationSubtitle" = "Find resources near you";
+
+// MARK: - Settings
+"settings.title" = "Settings";
+"settings.resetOnboarding" = "Reset Onboarding";
+"settings.about" = "About";
+"settings.faq" = "FAQ";
+"settings.privacy" = "Privacy Policy";
+"settings.terms" = "Terms of Service";
+
+// MARK: - Errors
+"error.network" = "Network error. Please check your connection.";
+"error.loadingFailed" = "Failed to load data. Please try again.";
+"error.locationDenied" = "Location access denied. Enable in Settings.";

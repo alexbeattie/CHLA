@@ -190,7 +190,7 @@ struct HomeView: View {
                         Button {
                             showResetConfirmation = true
                         } label: {
-                            Label("Change My Preferences", systemImage: "slider.horizontal.3")
+                            Label(L10n.Home.changePreferences, systemImage: "slider.horizontal.3")
                         }
 
                         Divider()
@@ -198,7 +198,7 @@ struct HomeView: View {
                         Button {
                             appState.selectedTab = 4 // Go to More tab
                         } label: {
-                            Label("Settings", systemImage: "gear")
+                            Label(L10n.Common.settings, systemImage: "gear")
                         }
                     } label: {
                         Image(systemName: "sparkle")
@@ -226,11 +226,11 @@ struct HomeView: View {
 
                 // Tagline
                 VStack(spacing: 8) {
-                    Text("Resource Navigator")
+                    Text(L10n.Home.resourceNavigator)
                         .font(.system(size: 22, weight: .semibold, design: .rounded))
                         .foregroundColor(Color(hex: "1E293B"))
 
-                    Text("Find developmental disability services\nin Los Angeles County")
+                    Text(L10n.Home.tagline)
                         .font(.subheadline)
                         .foregroundColor(Color(hex: "64748B"))
                         .multilineTextAlignment(.center)
@@ -245,7 +245,7 @@ struct HomeView: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(Color(hex: "6366F1"))
 
-                        TextField("Enter ZIP code", text: $zipCode)
+                        TextField(L10n.Home.enterZip, text: $zipCode)
                             .keyboardType(.numberPad)
                             .font(.body)
                             .foregroundColor(Color(hex: "1E293B"))
@@ -324,16 +324,16 @@ struct HomeView: View {
         }
         .frame(height: 380)
         .confirmationDialog(
-            "Change My Preferences",
+            L10n.Home.changePreferences,
             isPresented: $showResetConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Continue") {
+            Button(L10n.Common.continueText) {
                 appState.resetOnboarding()
             }
-            Button("Cancel", role: .cancel) {}
+            Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
-            Text("This will guide you through the setup to update your location, age group, and therapy preferences.")
+            Text(L10n.Home.changePreferencesMessage)
         }
         .clipShape(
             RoundedCorner(radius: 32, corners: [.bottomLeft, .bottomRight])
@@ -344,15 +344,15 @@ struct HomeView: View {
     // MARK: - Quick Actions
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Quick Actions")
+            Text(L10n.Home.quickActions)
                 .font(.title3.weight(.semibold))
                 .foregroundColor(.primary)
 
             HStack(spacing: 12) {
                 QuickActionCard(
                     icon: "location.fill",
-                    title: "Near Me",
-                    subtitle: "Use location",
+                    title: L10n.Home.nearMe,
+                    subtitle: L10n.Home.useLocation,
                     color: Color(hex: "3B82F6")
                 ) {
                     NotificationCenter.default.post(name: .useMyLocation, object: nil)
@@ -361,8 +361,8 @@ struct HomeView: View {
 
                 QuickActionCard(
                     icon: "map.fill",
-                    title: "Map",
-                    subtitle: "Explore",
+                    title: L10n.Home.map,
+                    subtitle: L10n.Home.explore,
                     color: Color(hex: "10B981")
                 ) {
                     appState.selectedTab = 1
@@ -370,8 +370,8 @@ struct HomeView: View {
 
                 QuickActionCard(
                     icon: "list.bullet",
-                    title: "Browse",
-                    subtitle: "All providers",
+                    title: L10n.Home.browse,
+                    subtitle: L10n.Home.allResources,
                     color: Color(hex: "8B5CF6")
                 ) {
                     appState.selectedTab = 3
@@ -384,7 +384,7 @@ struct HomeView: View {
     private var therapyTypesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Therapy Types")
+                Text(L10n.Home.therapyTypes)
                     .font(.title3.weight(.semibold))
 
                 Spacer()
@@ -392,7 +392,7 @@ struct HomeView: View {
                 Button {
                     appState.selectedTab = 3 // Browse tab
                 } label: {
-                    Text("See All")
+                    Text(L10n.Common.seeAll)
                         .font(.subheadline.weight(.medium))
                         .foregroundColor(Color(hex: "6366F1"))
                 }
@@ -421,7 +421,7 @@ struct HomeView: View {
     private func yourRegionalCenterSection(_ center: RegionalCenterMatcher.RegionalCenterInfo) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Your Regional Center")
+                Text(L10n.Home.yourRegionalCenter)
                     .font(.title3.weight(.semibold))
 
                 Spacer()
@@ -480,7 +480,7 @@ struct HomeView: View {
     // MARK: - Browse Centers
     private var browseCentersSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("LA County Regional Centers")
+            Text(L10n.Home.laCountyRegionalCenters)
                 .font(.title3.weight(.semibold))
 
             Button {
@@ -499,11 +499,11 @@ struct HomeView: View {
                     .frame(width: 80, alignment: .leading)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("7 Regional Centers")
+                        Text(L10n.Home.sevenRegionalCenters)
                             .font(.headline)
                             .foregroundColor(.primary)
 
-                        Text("Find your center by location")
+                        Text(L10n.Home.findYourCenter)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -528,27 +528,27 @@ struct HomeView: View {
     // MARK: - Stats Section
     private var statsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("At a Glance")
+            Text(L10n.Home.atAGlance)
                 .font(.title3.weight(.semibold))
 
             HStack(spacing: 12) {
                 StatCard(
                     value: "370+",
-                    label: "Providers",
+                    label: L10n.Home.resources,
                     icon: "building.2.fill",
                     color: Color(hex: "6366F1")
                 )
 
                 StatCard(
                     value: "7",
-                    label: "Centers",
+                    label: L10n.Home.centers,
                     icon: "mappin.circle.fill",
                     color: Color(hex: "EC4899")
                 )
 
                 StatCard(
-                    value: "Free",
-                    label: "Always",
+                    value: L10n.Home.free,
+                    label: L10n.Home.always,
                     icon: "heart.fill",
                     color: Color(hex: "10B981")
                 )
