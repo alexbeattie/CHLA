@@ -78,6 +78,8 @@
 		F2B3C4D5E6F70819LLMREF /* LLMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMService.swift; sourceTree = "<group>"; };
 		F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F3C4D5E6F7081ALOCREF /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
+		L10N00003ENSTRINGS /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		L10N00004ESSTRINGS /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -95,6 +97,7 @@
 				5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */,
 				2075D8466FED15932BEE85FD /* Info.plist */,
 				D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */,
+				L10N00002VARIANTGRP /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -252,6 +255,7 @@
 			knownRegions = (
 				Base,
 				en,
+				es,
 			);
 			mainGroup = 10BF7A4DA57D3584A2E10381;
 			minimizedProjectReferenceProxies = 1;
@@ -270,6 +274,7 @@
 			files = (
 				AA4A526410141C30831A38A5 /* Assets.xcassets in Resources */,
 				066B905200A44CF4DA67DA13 /* la_regional_centers.geojson in Resources */,
+				L10N00001LOCALSTRINGS /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -315,6 +320,18 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		L10N00002VARIANTGRP /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				L10N00003ENSTRINGS /* en */,
+				L10N00004ESSTRINGS /* es */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		4AE2292EB90415C35707AFBB /* Debug */ = {
