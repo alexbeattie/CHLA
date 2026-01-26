@@ -1,7 +1,7 @@
 """
 AWS Bedrock integration for KiNDD Resource Navigator.
 
-Uses Claude 3.5 Sonnet for chat/reasoning and Amazon Titan for embeddings.
+Uses Claude Sonnet 4.5 for chat/reasoning and Amazon Titan for embeddings.
 All within your AWS Personal account - no external API keys needed.
 """
 
@@ -67,7 +67,7 @@ def generate_embeddings_batch(texts: list[str]) -> list[list[float]]:
 
 
 # ============================================================================
-# CHAT/REASONING - Claude 3.5 Sonnet
+# CHAT/REASONING - Claude Sonnet 4.5
 # ============================================================================
 
 KINDD_SYSTEM_PROMPT_EN = """You are KiNDD, an expert navigator for neurodevelopmental services in Los Angeles County.
@@ -146,7 +146,7 @@ def chat_completion(
     temperature: float = 0.3,
 ) -> str:
     """
-    Generate a response using Claude 3.5 Sonnet via Bedrock.
+    Generate a response using Claude Sonnet 4.5 via Bedrock.
 
     Args:
         user_message: The user's question
@@ -181,7 +181,7 @@ USER QUESTION: {user_message}"""
 
     # Call Claude via Bedrock
     response = client.invoke_model(
-        modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",  # Claude 3.5 Sonnet v2
+        modelId="anthropic.claude-sonnet-4-5-20250929-v1:0",  # Claude Sonnet 4.5
         contentType="application/json",
         accept="application/json",
         body=json.dumps(
@@ -206,7 +206,7 @@ def chat_completion_streaming(
     max_tokens: int = 1500,
 ):
     """
-    Stream a response from Claude 3.5 Sonnet.
+    Stream a response from Claude Sonnet 4.5.
 
     Yields chunks of text as they're generated.
     Use for real-time chat UX.
@@ -222,7 +222,7 @@ USER QUESTION: {user_message}"""
         full_message = user_message
 
     response = client.invoke_model_with_response_stream(
-        modelId="anthropic.claude-3-5-sonnet-20241022-v2:0",  # Claude 3.5 Sonnet v2
+        modelId="anthropic.claude-sonnet-4-5-20250929-v1:0",  # Claude Sonnet 4.5
         contentType="application/json",
         accept="application/json",
         body=json.dumps(
@@ -270,7 +270,7 @@ def test_connection():
 
         # Test Claude
         response = chat_completion("Say 'Hello from KiNDD!' in one sentence.")
-        print(f"✅ Claude 3.5 Sonnet working - Response: {response[:100]}...")
+        print(f"✅ Claude Sonnet 4.5 working - Response: {response[:100]}...")
 
         return True
     except Exception as e:
