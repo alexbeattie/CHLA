@@ -155,8 +155,8 @@ class LLMService: ObservableObject {
         #if targetEnvironment(simulator)
         self.baseURL = "http://127.0.0.1:8000/api/llm"
         #else
-        // Physical device - use Mac's local IP
-        self.baseURL = "http://192.168.1.194:8000/api/llm"
+        // Physical device - use production API
+        self.baseURL = "https://api.kinddhelp.com/api/llm"
         #endif
         #else
         self.baseURL = "https://api.kinddhelp.com/api/llm"

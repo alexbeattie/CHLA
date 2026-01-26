@@ -27,13 +27,19 @@ actor APIService {
         }
     }
 
-    /// Current environment - change this for different builds
-    /// Set to .development to test with local Django server
-    #if DEBUG
-    private let environment: Environment = .development
-    #else
-    private let environment: Environment = .production
-    #endif
+    /// Current environment - automatically selects based on build and device type
+    /// Simulator uses local server, physical device uses production
+    private let environment: Environment = {
+        #if DEBUG
+        #if targetEnvironment(simulator)
+        return .development  // Simulator can use localhost
+        #else
+        return .production   // Physical device needs production API
+        #endif
+        #else
+        return .production   // Release builds always use production
+        #endif
+    }()
 
     /// Shared singleton instance
     static let shared = APIService()
