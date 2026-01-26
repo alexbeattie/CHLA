@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KINDD</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_resources">Recursos</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Navegador de Recursos KINDD</string>
+    <string name="home_tagline">Creamos esperanza y construimos futuros más saludables</string>
+    <string name="home_subtitle">Encuentre terapia ABA y servicios de autismo en el Condado de Los Ángeles</string>
+    <string name="enter_zip">Ingrese Código Postal</string>
+    <string name="search">Buscar</string>
+    <string name="quick_actions">Acciones Rápidas</string>
+    <string name="find_resources_nearby">Encontrar Recursos Cercanos</string>
+    <string name="find_nearby_desc">Buscar por su ubicación</string>
+    <string name="browse_by_therapy">Explorar por Terapia</string>
+    <string name="browse_therapy_desc">Filtrar por tipo de terapia</string>
+    <string name="regional_centers">Centros Regionales</string>
+    <string name="regional_centers_desc">Encuentre su Centro Regional</string>
+    <string name="ask_kindd">Preguntar a KINDD</string>
+    <string name="ask_kindd_desc">Asistencia con IA</string>
+    <string name="therapy_types">Tipos de Terapia</string>
+    <string name="aba_therapy">Terapia ABA</string>
+    <string name="speech_therapy">Terapia del Habla</string>
+    <string name="occupational_therapy">Terapia Ocupacional</string>
+    <string name="physical_therapy">Fisioterapia</string>
+
+    <!-- Map Screen -->
+    <string name="map_title">Mapa de Recursos</string>
+    <string name="search_resources">Buscar recursos</string>
+    <string name="filter">Filtrar</string>
+    <string name="filters">Filtros</string>
+    <string name="clear_filters">Limpiar Filtros</string>
+    <string name="apply_filters">Aplicar Filtros</string>
+    <string name="no_resources_found">No se encontraron recursos</string>
+    <string name="try_adjusting_filters">Intente ajustar sus filtros o área de búsqueda</string>
+    <string name="my_location">Mi Ubicación</string>
+
+    <!-- Provider List -->
+    <string name="resources_title">Recursos</string>
+    <string name="resources_found">%d recursos encontrados</string>
+    <string name="resource_found">%d recurso encontrado</string>
+    <string name="search_placeholder">Buscar por nombre, servicio o ubicación</string>
+    <string name="loading">Cargando…</string>
+    <string name="error_loading">Error al cargar recursos</string>
+    <string name="retry">Reintentar</string>
+
+    <!-- Provider Detail -->
+    <string name="provider_details">Detalles del Recurso</string>
+    <string name="contact">Contacto</string>
+    <string name="phone">Teléfono</string>
+    <string name="email">Correo Electrónico</string>
+    <string name="website">Sitio Web</string>
+    <string name="address">Dirección</string>
+    <string name="get_directions">Obtener Direcciones</string>
+    <string name="call_now">Llamar Ahora</string>
+    <string name="visit_website">Visitar Sitio Web</string>
+    <string name="services">Servicios</string>
+    <string name="insurance_accepted">Seguros Aceptados</string>
+    <string name="age_groups">Grupos de Edad</string>
+    <string name="diagnoses_treated">Diagnósticos Tratados</string>
+    <string name="distance_away">a %s</string>
+
+    <!-- Regional Centers -->
+    <string name="regional_centers_title">Centros Regionales del Condado de LA</string>
+    <string name="regional_centers_subtitle">Encuentre su Centro Regional y explore recursos en su área de servicio</string>
+    <string name="find_your_rc">Encuentre Su Centro Regional</string>
+    <string name="enter_zip_to_find">Ingrese su código postal para encontrar su Centro Regional</string>
+    <string name="zip_served_by">Su código postal es atendido por</string>
+    <string name="view_details">Ver Detalles</string>
+    <string name="la_7_centers">Los 7 Centros Regionales del Condado de LA</string>
+
+    <!-- Chat -->
+    <string name="chat_title">Preguntar a KINDD</string>
+    <string name="chat_subtitle">Ayuda con IA para encontrar servicios</string>
+    <string name="chat_placeholder">Pregúntame sobre terapia ABA…</string>
+    <string name="send">Enviar</string>
+    <string name="clear_chat">Limpiar Chat</string>
+    <string name="clear_chat_confirm">¿Está seguro de que desea borrar el historial del chat?</string>
+    <string name="suggestion_find_providers">Encontrar proveedores de ABA cerca de mí</string>
+    <string name="suggestion_insurance">¿Qué seguros aceptan los proveedores?</string>
+    <string name="suggestion_regional_center">¿Qué es un Centro Regional?</string>
+    <string name="suggestion_eligibility">¿Cómo verifico la elegibilidad?</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="appearance">Apariencia</string>
+    <string name="dark_mode">Modo Oscuro</string>
+    <string name="language">Idioma</string>
+    <string name="notifications">Notificaciones</string>
+    <string name="about">Acerca de</string>
+    <string name="faq">Preguntas Frecuentes</string>
+    <string name="privacy_policy">Política de Privacidad</string>
+    <string name="terms_of_service">Términos de Servicio</string>
+    <string name="version">Versión</string>
+    <string name="reset_onboarding">Reiniciar Introducción</string>
+
+    <!-- About -->
+    <string name="about_title">Acerca de KINDD</string>
+    <string name="about_mission">Nuestra Misión</string>
+    <string name="about_mission_text">Creamos esperanza y construimos futuros más saludables conectando a las familias con los servicios de autismo y discapacidades del desarrollo que necesitan.</string>
+    <string name="about_chla">Acerca de Children\'s Hospital Los Angeles</string>
+    <string name="about_chla_text">KINDD es desarrollado por Children\'s Hospital Los Angeles para ayudar a las familias a encontrar recursos de terapia ABA y servicios de autismo en el Condado de Los Ángeles.</string>
+    <string name="free_to_use">Gratis para Usar</string>
+    <string name="no_registration">No requiere registro</string>
+
+    <!-- FAQ -->
+    <string name="faq_title">Preguntas Frecuentes</string>
+    <string name="faq_subtitle">Todo lo que necesita saber sobre terapia ABA, Centros Regionales y cómo encontrar recursos</string>
+
+    <!-- Onboarding -->
+    <string name="welcome">Bienvenido</string>
+    <string name="welcome_to_kindd">Bienvenido a KINDD</string>
+    <string name="onboarding_subtitle">Encuentre recursos de terapia ABA en el Condado de Los Ángeles</string>
+    <string name="use_my_location">Usar Mi Ubicación</string>
+    <string name="enter_location_manually">Ingresar Ubicación Manualmente</string>
+    <string name="skip">Omitir</string>
+    <string name="next">Siguiente</string>
+    <string name="get_started">Comenzar</string>
+
+    <!-- Common -->
+    <string name="cancel">Cancelar</string>
+    <string name="close">Cerrar</string>
+    <string name="save">Guardar</string>
+    <string name="ok">OK</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+    <string name="back">Atrás</string>
+    <string name="error">Error</string>
+    <string name="success">Éxito</string>
+    <string name="mile">milla</string>
+    <string name="miles">millas</string>
+</resources>
