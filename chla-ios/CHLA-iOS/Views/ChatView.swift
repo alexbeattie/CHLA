@@ -1248,7 +1248,6 @@ import UniformTypeIdentifiers
 
 struct DocumentPicker: UIViewControllerRepresentable {
     let onDocumentPicked: (Data, String) -> Void  // (data, fileExtension)
-    @Environment(\.dismiss) private var dismiss
     
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
         // Support images, PDFs, and common document types
@@ -1273,14 +1272,14 @@ struct DocumentPicker: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self)
+        Coordinator(onDocumentPicked: onDocumentPicked)
     }
     
     class Coordinator: NSObject, UIDocumentPickerDelegate {
-        let parent: DocumentPicker
+        let onDocumentPicked: (Data, String) -> Void
         
-        init(parent: DocumentPicker) {
-            self.parent = parent
+        init(onDocumentPicked: @escaping (Data, String) -> Void) {
+            self.onDocumentPicked = onDocumentPicked
         }
         
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
@@ -1293,17 +1292,14 @@ struct DocumentPicker: UIViewControllerRepresentable {
             do {
                 let data = try Data(contentsOf: url)
                 let fileExtension = url.pathExtension.lowercased()
-                parent.onDocumentPicked(data, fileExtension)
+                onDocumentPicked(data, fileExtension)
             } catch {
                 print("Error reading document: \(error)")
             }
-            
-            parent.dismiss()
+            // Note: UIDocumentPickerViewController auto-dismisses after picking/cancelling
         }
         
-        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-            parent.dismiss()
-        }
+        // Note: documentPickerWasCancelled is called after auto-dismiss, no action needed
     }
 }
 
