@@ -550,16 +550,19 @@ struct SuggestionChip: View {
 
                 Text(text)
                     .font(.subheadline)
-                    .foregroundColor(Color.primary)
+                    .foregroundColor(Color(uiColor: .label))
                     .multilineTextAlignment(.leading)
 
                 Spacer()
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color.white)
+            .padding(.vertical, 14)
+            .background(Color(uiColor: .systemBackground))
             .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.05), radius: 4, y: 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(uiColor: .separator), lineWidth: 0.5)
+            )
         }
         .buttonStyle(PlainButtonStyle())
     }
