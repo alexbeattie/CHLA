@@ -416,7 +416,7 @@ class ImageAnalysisView(APIView):
     }
     """
     
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Consistent with other LLM endpoints
     
     def post(self, request):
         image_data = request.data.get("image")
