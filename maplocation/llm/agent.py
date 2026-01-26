@@ -425,9 +425,9 @@ def create_kindd_agent(locale: str = "en") -> Agent:
         locale: Language code (e.g., "en", "es") for response language
     """
 
-    # Use Claude 3.5 Sonnet v2 via Bedrock
+    # Use Claude Sonnet 4.5 via Bedrock inference profile
     model = BedrockModel(
-        model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
+        model_id="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
         region_name="us-west-2",
     )
 
