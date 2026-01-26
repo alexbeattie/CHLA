@@ -106,7 +106,8 @@ struct ChatView: View {
                     isStreaming: llmService.messages.last?.isStreaming == true,
                     onSend: { sendMessage(inputText) },
                     onCancel: { llmService.cancelStreaming() },
-                    onPhoto: { showingImageTypeSheet = true },
+                    onPhoto: { showingImagePicker = true },
+                    onCamera: { showingCamera = true },
                     onFiles: { showingDocumentPicker = true }
                 )
             }
@@ -917,32 +918,37 @@ struct ChatInputBar: View {
     let onSend: () -> Void
     let onCancel: () -> Void
     var onPhoto: (() -> Void)? = nil
+    var onCamera: (() -> Void)? = nil
     var onFiles: (() -> Void)? = nil
+    
+    @State private var showingAttachmentOptions = false
 
     var body: some View {
         VStack(spacing: 0) {
             Divider()
 
             HStack(spacing: 8) {
-                // Photo/Files button with menu
-                Menu {
-                    Button {
-                        onPhoto?()
-                    } label: {
-                        Label("Photo Library", systemImage: "photo.on.rectangle")
-                    }
-                    
-                    Button {
-                        onFiles?()
-                    } label: {
-                        Label("Choose File", systemImage: "folder")
-                    }
+                // Photo/Files button with action sheet
+                Button {
+                    showingAttachmentOptions = true
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 28))
                         .foregroundColor(isLoading ? Color(uiColor: .secondaryLabel) : Color(hex: "6366F1"))
                 }
                 .disabled(isLoading || isStreaming)
+                .confirmationDialog("Add Attachment", isPresented: $showingAttachmentOptions) {
+                    Button("Photo Library") {
+                        onPhoto?()
+                    }
+                    Button("Take Photo") {
+                        onCamera?()
+                    }
+                    Button("Choose File") {
+                        onFiles?()
+                    }
+                    Button("Cancel", role: .cancel) {}
+                }
                 
                 // Text field
                 HStack {
