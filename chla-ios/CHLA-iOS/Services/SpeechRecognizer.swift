@@ -107,7 +107,40 @@ class SpeechRecognizer: ObservableObject {
         recognitionRequest.shouldReportPartialResults = true
         recognitionRequest.addsPunctuation = true
         
-        // Start recognition task
+        // Configure audio input - get input node and format first
+        let inputNode = audioEngine.inputNode
+        let recordingFormat = inputNode.outputFormat(forBus: 0)
+        
+        // Validate the audio format is usable (channelCount > 0 and valid sample rate)
+        guard recordingFormat.channelCount > 0 else {
+            error = "No audio input available. Please check microphone permissions."
+            return
+        }
+        
+        guard recordingFormat.sampleRate > 0 else {
+            error = "Invalid audio format. Please restart the app and try again."
+            return
+        }
+        
+        // Install tap on input node before starting engine
+        // This configures the audio graph before we prepare/start
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
+            self?.recognitionRequest?.append(buffer)
+        }
+        
+        // Prepare and start audio engine
+        audioEngine.prepare()
+        
+        do {
+            try audioEngine.start()
+        } catch {
+            // Clean up the tap we just installed since start failed
+            inputNode.removeTap(onBus: 0)
+            self.error = "Failed to start audio engine: \(error.localizedDescription)"
+            return
+        }
+        
+        // Start recognition task after audio engine is running
         recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
             Task { @MainActor in
                 guard let self = self else { return }
@@ -127,31 +160,7 @@ class SpeechRecognizer: ObservableObject {
             }
         }
         
-        // Prepare audio engine first (required before accessing input node format)
-        audioEngine.prepare()
-        
-        // Configure audio input
-        let inputNode = audioEngine.inputNode
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
-        
-        // Validate the audio format has valid channels
-        guard recordingFormat.channelCount > 0 else {
-            error = "No audio input available. Please check microphone permissions."
-            return
-        }
-        
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
-            self.recognitionRequest?.append(buffer)
-        }
-        
-        // Start audio engine
-        do {
-            try audioEngine.start()
-            isRecording = true
-        } catch {
-            self.error = "Failed to start audio engine: \(error.localizedDescription)"
-            stopRecording()
-        }
+        isRecording = true
     }
     
     func stopRecording() {

@@ -16,6 +16,9 @@ struct ChatView: View {
     @StateObject private var locationService = LocationService()
     @StateObject private var speechRecognizer = SpeechRecognizer()
     @StateObject private var textToSpeech = TextToSpeech()
+    
+    // Track text that existed before recording started (for proper speech appending)
+    @State private var textBeforeRecording: String = ""
     @EnvironmentObject var appState: AppState
     @State private var inputText = ""
     @FocusState private var isFocused: Bool
@@ -73,8 +76,14 @@ struct ChatView: View {
                             ForEach(llmService.messages) { message in
                                 MessageBubble(
                                     message: message,
-                                    onLike: { llmService.setFeedback(message.id, feedback: .liked) },
-                                    onDislike: { llmService.setFeedback(message.id, feedback: .disliked) },
+                                    onLike: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        llmService.setFeedback(message.id, feedback: .liked)
+                                    },
+                                    onDislike: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        llmService.setFeedback(message.id, feedback: .disliked)
+                                    },
                                     onCopy: {
                                         if let text = llmService.copyMessage(message.id) {
                                             UIPasteboard.general.string = text
@@ -82,10 +91,12 @@ struct ChatView: View {
                                         }
                                     },
                                     onShare: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                         exportText = message.content
                                         showingExportSheet = true
                                     },
                                     onSpeak: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                         if textToSpeech.isSpeaking {
                                             textToSpeech.stop()
                                         } else {
@@ -121,18 +132,32 @@ struct ChatView: View {
                     onSend: { sendMessage(inputText) },
                     onCancel: { llmService.cancelStreaming() },
                     onAttachment: { showingAttachmentTypeSheet = true },
-                    onMicTap: { speechRecognizer.toggleRecording() }
+                    onMicTap: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        if !speechRecognizer.isRecording {
+                            // Capture existing text before starting to record
+                            textBeforeRecording = inputText
+                        }
+                        speechRecognizer.toggleRecording()
+                    }
                 )
                 .onChange(of: speechRecognizer.transcript) { _, newTranscript in
+                    // The transcript is cumulative (all speech so far), so we combine
+                    // the text that existed before recording with the current transcript
                     if !newTranscript.isEmpty {
-                        // Append to existing text if user has already typed something
-                        if inputText.isEmpty {
+                        if textBeforeRecording.isEmpty {
                             inputText = newTranscript
                         } else {
                             // Add space separator if existing text doesn't end with space
-                            let separator = inputText.hasSuffix(" ") ? "" : " "
-                            inputText = inputText + separator + newTranscript
+                            let separator = textBeforeRecording.hasSuffix(" ") ? "" : " "
+                            inputText = textBeforeRecording + separator + newTranscript
                         }
+                    }
+                }
+                .onChange(of: speechRecognizer.isRecording) { _, isRecording in
+                    // When recording stops, clear the saved text (transcript is finalized)
+                    if !isRecording {
+                        textBeforeRecording = ""
                     }
                 }
             }
@@ -335,6 +360,19 @@ struct ChatView: View {
     private func sendMessage(_ text: String) {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
+
+        // Haptic feedback on send
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        
+        // Stop TTS if speaking
+        if textToSpeech.isSpeaking {
+            textToSpeech.stop()
+        }
+        
+        // Stop recording if active
+        if speechRecognizer.isRecording {
+            speechRecognizer.stopRecording()
+        }
 
         inputText = ""
         isFocused = false
@@ -568,7 +606,10 @@ struct AttachmentTypeButton: View {
     let action: () -> Void
     
     var body: some View {
-        Button(action: action) {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        } label: {
             HStack(spacing: 16) {
                 Image(systemName: type.icon)
                     .font(.system(size: 24))
