@@ -22,14 +22,16 @@ struct ChatView: View {
     @State private var exportText = ""
     @State private var userZipCode: String?
     
-    // Image picker state
+    // Attachment flow state (Step 1: Type, Step 2: Source)
+    @State private var showingAttachmentTypeSheet = false  // Step 1: Choose analysis type
+    @State private var showingSourceOptions = false         // Step 2: Choose source
+    @State private var pendingAnalysisType: ImageAnalysisType = .document
+    
+    // Image/Document picker state
     @State private var showingImagePicker = false
     @State private var showingCamera = false
-    @State private var showingImageTypeSheet = false
-    @State private var showingImageAnalysisSheet = false
     @State private var showingDocumentPicker = false
     @State private var selectedImage: UIImage?
-    @State private var selectedImageType: ImageAnalysisType = .insuranceCard
 
     // Quick prompt suggestions - computed property for localization
     private var quickPrompts: [(String, String, String)] {
@@ -106,9 +108,7 @@ struct ChatView: View {
                     isStreaming: llmService.messages.last?.isStreaming == true,
                     onSend: { sendMessage(inputText) },
                     onCancel: { llmService.cancelStreaming() },
-                    onPhoto: { showingImagePicker = true },
-                    onCamera: { showingCamera = true },
-                    onFiles: { showingDocumentPicker = true }
+                    onAttachment: { showingAttachmentTypeSheet = true }
                 )
             }
             .navigationTitle(L10n.Chat.title)
@@ -168,16 +168,28 @@ struct ChatView: View {
             .sheet(isPresented: $showingExportSheet) {
                 ShareSheet(items: [exportText])
             }
-            .confirmationDialog("Analyze Image", isPresented: $showingImageTypeSheet) {
-                Button("📷 Take Photo") {
-                    showingCamera = true
-                }
-                Button("🖼️ Choose from Library") {
+            // Step 1: Choose what type of document to analyze
+            .sheet(isPresented: $showingAttachmentTypeSheet) {
+                AttachmentTypeSheet(onTypeSelected: { type in
+                    pendingAnalysisType = type
+                    // Small delay to allow sheet to dismiss before showing dialog
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showingSourceOptions = true
+                    }
+                })
+            }
+            // Step 2: Choose source (Photo Library, Camera, Files)
+            .confirmationDialog("Choose Source", isPresented: $showingSourceOptions) {
+                Button("Photo Library") {
                     showingImagePicker = true
                 }
+                Button("Take Photo") {
+                    showingCamera = true
+                }
+                Button("Choose File") {
+                    showingDocumentPicker = true
+                }
                 Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("Upload a photo of your insurance card, IEP, or other document")
             }
             .sheet(isPresented: $showingImagePicker) {
                 ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
@@ -185,29 +197,17 @@ struct ChatView: View {
             .fullScreenCover(isPresented: $showingCamera) {
                 ImagePicker(image: $selectedImage, sourceType: .camera)
             }
-            .sheet(isPresented: $showingImageAnalysisSheet) {
-                if let image = selectedImage {
-                    ImageAnalysisSheet(
-                        image: IdentifiableImage(image: image),
-                        onAnalyze: { type in
-                            analyzeSelectedImage(type: type)
-                        },
-                        onCancel: {
-                            selectedImage = nil
-                        }
-                    )
-                }
-            }
             .onChange(of: selectedImage) { _, newImage in
                 if newImage != nil {
-                    showingImageAnalysisSheet = true
+                    // Directly analyze with pre-selected type - no need for second sheet
+                    analyzeSelectedImage(type: pendingAnalysisType)
                 }
             }
             .sheet(isPresented: $showingDocumentPicker) {
                 DocumentPicker { data, fileExtension in
                     // Handle different file types
                     if let image = UIImage(data: data) {
-                        // It's an image - delay setting to allow document picker to dismiss first
+                        // It's an image - delay to allow picker to dismiss, then analyze
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             selectedImage = image
                         }
@@ -470,7 +470,7 @@ struct AnalysisTypeButton: View {
                 Spacer()
                 
                 Image(systemName: "chevron.right")
-                    .foregroundColor(Color(uiColor: .tertiaryLabel))
+                    .foregroundColor(Color(uiColor: .secondaryLabel))
             }
             .padding(16)
             .background(Color(uiColor: .secondarySystemBackground))
@@ -487,6 +487,97 @@ struct AnalysisTypeButton: View {
             return "Analyze IEP, Regional Center letters, medical reports"
         case .general:
             return "Ask any question about the image"
+        }
+    }
+}
+
+// MARK: - Attachment Type Sheet (Step 1: Choose what to analyze)
+
+struct AttachmentTypeSheet: View {
+    let onTypeSelected: (ImageAnalysisType) -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("What would you like to analyze?")
+                    .font(.title3.weight(.semibold))
+                    .foregroundColor(Color(uiColor: .label))
+                    .padding(.top, 8)
+                
+                VStack(spacing: 12) {
+                    ForEach(ImageAnalysisType.allCases, id: \.rawValue) { type in
+                        AttachmentTypeButton(type: type) {
+                            dismiss()
+                            onTypeSelected(type)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                
+                Spacer()
+            }
+            .padding(.top, 20)
+            .navigationTitle("Add Attachment")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(Color(uiColor: .label))
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+}
+
+struct AttachmentTypeButton: View {
+    let type: ImageAnalysisType
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                Image(systemName: type.icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(Color(hex: "6366F1"))
+                    .frame(width: 50, height: 50)
+                    .background(Color(hex: "6366F1").opacity(0.15))
+                    .cornerRadius(12)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(type.title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(uiColor: .label))
+                    
+                    Text(typeDescription)
+                        .font(.caption)
+                        .foregroundColor(Color(uiColor: .secondaryLabel))
+                        .lineLimit(2)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(Color(uiColor: .secondaryLabel))
+            }
+            .padding(16)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .cornerRadius(16)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+    
+    private var typeDescription: String {
+        switch type {
+        case .insuranceCard:
+            return "Extract plan name, member ID, coverage"
+        case .document:
+            return "IEP, RC letters, medical reports"
+        case .general:
+            return "Ask any question about an image"
         }
     }
 }
@@ -925,37 +1016,21 @@ struct ChatInputBar: View {
     let isStreaming: Bool
     let onSend: () -> Void
     let onCancel: () -> Void
-    var onPhoto: (() -> Void)? = nil
-    var onCamera: (() -> Void)? = nil
-    var onFiles: (() -> Void)? = nil
-    
-    @State private var showingAttachmentOptions = false
+    var onAttachment: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
             Divider()
 
             HStack(spacing: 8) {
-                // Photo/Files button with action sheet
-                Button {
-                    showingAttachmentOptions = true
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundColor(isLoading ? Color(uiColor: .secondaryLabel) : Color(hex: "6366F1"))
-                }
-                .disabled(isLoading || isStreaming)
-                .confirmationDialog("Add Attachment", isPresented: $showingAttachmentOptions) {
-                    Button("Photo Library") {
-                        onPhoto?()
+                // Attachment button - opens type selection first
+                if let onAttachment = onAttachment {
+                    Button(action: onAttachment) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(isLoading ? Color(uiColor: .secondaryLabel) : Color(hex: "6366F1"))
                     }
-                    Button("Take Photo") {
-                        onCamera?()
-                    }
-                    Button("Choose File") {
-                        onFiles?()
-                    }
-                    Button("Cancel", role: .cancel) {}
+                    .disabled(isLoading || isStreaming)
                 }
                 
                 // Text field
