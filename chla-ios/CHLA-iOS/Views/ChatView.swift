@@ -828,7 +828,7 @@ struct MessageActionsBar: View {
             } label: {
                 Image(systemName: feedback == .liked ? "hand.thumbsup.fill" : "hand.thumbsup")
                     .font(.system(size: 14))
-                    .foregroundColor(feedback == .liked ? Color(hex: "22C55E") : Color(uiColor: .tertiaryLabel))
+                    .foregroundColor(feedback == .liked ? Color(hex: "22C55E") : Color(uiColor: .secondaryLabel))
             }
 
             // Dislike
@@ -837,7 +837,7 @@ struct MessageActionsBar: View {
             } label: {
                 Image(systemName: feedback == .disliked ? "hand.thumbsdown.fill" : "hand.thumbsdown")
                     .font(.system(size: 14))
-                    .foregroundColor(feedback == .disliked ? Color(hex: "EF4444") : Color(uiColor: .tertiaryLabel))
+                    .foregroundColor(feedback == .disliked ? Color(hex: "EF4444") : Color(uiColor: .secondaryLabel))
             }
 
             Divider()
@@ -849,7 +849,7 @@ struct MessageActionsBar: View {
             } label: {
                 Image(systemName: "doc.on.doc")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(uiColor: .tertiaryLabel))
+                    .foregroundColor(Color(uiColor: .secondaryLabel))
             }
 
             // Share
@@ -858,7 +858,7 @@ struct MessageActionsBar: View {
             } label: {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(uiColor: .tertiaryLabel))
+                    .foregroundColor(Color(uiColor: .secondaryLabel))
             }
 
             Spacer()
