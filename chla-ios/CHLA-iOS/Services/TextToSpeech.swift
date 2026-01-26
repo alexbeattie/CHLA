@@ -136,7 +136,7 @@ class TextToSpeech: ObservableObject {
     }
     
     // Delegate to track speech state
-    private class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
+    private final class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate, @unchecked Sendable {
         weak var parent: TextToSpeech?
         
         init(parent: TextToSpeech) {

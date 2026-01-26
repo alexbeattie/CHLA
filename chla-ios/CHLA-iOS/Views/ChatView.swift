@@ -51,7 +51,7 @@ struct ChatView: View {
         let hour = Calendar.current.component(.hour, from: Date())
         let hasHistory = !conversationHistory.conversations.isEmpty
         let hasActiveConversation = !llmService.messages.isEmpty
-        let userRC = appState.userRegionalCenter
+        let userRC = appState.selectedRegionalCenter?.name
         let userZip = userZipCode ?? appState.userZipCode
         
         // Context: Time-based greeting prompts
@@ -67,7 +67,7 @@ struct ChatView: View {
         }
         
         // Context: Regional Center known
-        if let rc = userRC, !rc.isEmpty {
+        if let rc = userRC {
             prompts.append(("🏥", "My RC", "What services does \(rc) Regional Center offer?"))
         }
         
