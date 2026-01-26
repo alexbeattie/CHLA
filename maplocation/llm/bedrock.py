@@ -243,6 +243,104 @@ USER QUESTION: {user_message}"""
 
 
 # ============================================================================
+# VISION - Image Analysis with Claude Sonnet 4.5
+# ============================================================================
+
+
+INSURANCE_CARD_PROMPT = """Analyze this insurance card image and extract the following information:
+
+1. **Insurance Company/Plan Name**
+2. **Member ID / Subscriber ID**
+3. **Group Number** (if visible)
+4. **Plan Type** (HMO, PPO, Medi-Cal, etc.)
+5. **Effective Date** (if visible)
+6. **Any relevant phone numbers** (member services, claims)
+
+If any information is not visible or unclear, indicate that.
+
+After extracting the info, briefly explain:
+- Whether this insurance typically covers ABA therapy, speech therapy, or OT
+- Any special considerations for neurodevelopmental services in California
+"""
+
+DOCUMENT_ANALYSIS_PROMPT = """Analyze this document image. 
+
+Identify what type of document it is (IEP, Regional Center letter, medical report, etc.) and summarize the key information relevant to a family seeking neurodevelopmental services.
+
+Focus on:
+- Services mentioned or approved
+- Eligibility determinations
+- Important dates or deadlines
+- Action items for the family
+"""
+
+
+def analyze_image(
+    image_base64: str,
+    prompt: str = "What do you see in this image?",
+    media_type: str = "image/jpeg",
+    max_tokens: int = 1500,
+) -> str:
+    """
+    Analyze an image using Claude Sonnet 4.5's vision capabilities.
+    
+    Args:
+        image_base64: Base64-encoded image data
+        prompt: Question or instruction about the image
+        media_type: MIME type (image/jpeg, image/png, image/gif, image/webp)
+        max_tokens: Maximum response length
+    
+    Returns:
+        Claude's analysis of the image
+    """
+    client = get_bedrock_client()
+    
+    messages = [{
+        "role": "user",
+        "content": [
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": media_type,
+                    "data": image_base64,
+                }
+            },
+            {
+                "type": "text",
+                "text": prompt
+            }
+        ]
+    }]
+    
+    response = client.invoke_model(
+        modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        contentType="application/json",
+        accept="application/json",
+        body=json.dumps({
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": max_tokens,
+            "temperature": 0.2,  # Low temp for accurate extraction
+            "system": KINDD_SYSTEM_PROMPT,
+            "messages": messages,
+        }),
+    )
+    
+    result = json.loads(response["body"].read())
+    return result["content"][0]["text"]
+
+
+def analyze_insurance_card(image_base64: str, media_type: str = "image/jpeg") -> str:
+    """Analyze an insurance card image and extract relevant information."""
+    return analyze_image(image_base64, INSURANCE_CARD_PROMPT, media_type)
+
+
+def analyze_document(image_base64: str, media_type: str = "image/jpeg") -> str:
+    """Analyze a document image (IEP, Regional Center letter, etc.)."""
+    return analyze_image(image_base64, DOCUMENT_ANALYSIS_PROMPT, media_type)
+
+
+# ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================
 

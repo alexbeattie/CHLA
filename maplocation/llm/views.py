@@ -391,3 +391,75 @@ class AgentAskView(APIView):
                 {"error": f"Agent error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class ImageAnalysisView(APIView):
+    """
+    POST /api/llm/analyze-image/
+    
+    Analyze an uploaded image using Claude's vision capabilities.
+    
+    Request body:
+    {
+        "image": "<base64-encoded image data>",
+        "type": "insurance_card" | "document" | "general",
+        "prompt": "Optional custom prompt for 'general' type"
+    }
+    
+    Supported image formats: JPEG, PNG, GIF, WebP
+    Max image size: ~20MB (after base64 encoding)
+    
+    Response:
+    {
+        "analysis": "...",
+        "type": "insurance_card"
+    }
+    """
+    
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        image_data = request.data.get("image")
+        analysis_type = request.data.get("type", "general")
+        custom_prompt = request.data.get("prompt")
+        
+        if not image_data:
+            return Response(
+                {"error": "Image data is required. Send base64-encoded image in 'image' field."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Detect media type from base64 header or default to JPEG
+        media_type = "image/jpeg"
+        if image_data.startswith("data:"):
+            # Handle data URL format: data:image/png;base64,xxxxx
+            header, image_data = image_data.split(",", 1)
+            if "image/png" in header:
+                media_type = "image/png"
+            elif "image/gif" in header:
+                media_type = "image/gif"
+            elif "image/webp" in header:
+                media_type = "image/webp"
+        
+        try:
+            from .bedrock import analyze_insurance_card, analyze_document, analyze_image
+            
+            if analysis_type == "insurance_card":
+                result = analyze_insurance_card(image_data, media_type)
+            elif analysis_type == "document":
+                result = analyze_document(image_data, media_type)
+            else:
+                # General analysis with optional custom prompt
+                prompt = custom_prompt or "Describe what you see in this image and how it might be relevant to someone seeking neurodevelopmental services."
+                result = analyze_image(image_data, prompt, media_type)
+            
+            return Response({
+                "analysis": result,
+                "type": analysis_type,
+            })
+            
+        except Exception as e:
+            return Response(
+                {"error": f"Image analysis failed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

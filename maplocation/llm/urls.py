@@ -10,6 +10,7 @@ from .views import (
     LLMHealthView,
     StreamingAskView,
     AgentAskView,
+    ImageAnalysisView,
 )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path("eligibility/", EligibilityCheckView.as_view(), name="llm-eligibility"),
     path("search/", SmartSearchView.as_view(), name="llm-search"),
     path("health/", LLMHealthView.as_view(), name="llm-health"),
+    path("analyze-image/", ImageAnalysisView.as_view(), name="llm-analyze-image"),  # Vision
 ]
