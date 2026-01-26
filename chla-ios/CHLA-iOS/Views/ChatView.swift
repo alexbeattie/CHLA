@@ -396,7 +396,7 @@ struct ImageAnalysisSheet: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("What would you like to analyze?")
                         .font(.headline)
-                        .foregroundColor(Color(hex: "1E293B"))
+                        .foregroundColor(Color.primary)
                     
                     ForEach(ImageAnalysisType.allCases, id: \.rawValue) { type in
                         AnalysisTypeButton(type: type) {
@@ -441,17 +441,17 @@ struct AnalysisTypeButton: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(type.title)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "1E293B"))
+                        .foregroundColor(Color.primary)
                     
                     Text(typeDescription)
                         .font(.caption)
-                        .foregroundColor(Color(hex: "64748B"))
+                        .foregroundColor(Color.secondary)
                 }
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
-                    .foregroundColor(Color(hex: "94A3B8"))
+                    .foregroundColor(Color(uiColor: .tertiaryLabel))
             }
             .padding(16)
             .background(Color.white)
@@ -507,11 +507,11 @@ struct WelcomeCard: View {
 
                 Text("Ask KiNDD")
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hex: "1E293B"))
+                    .foregroundColor(Color.primary)
 
                 Text("I can help you find developmental\nservices in Los Angeles County")
                     .font(.subheadline)
-                    .foregroundColor(Color(hex: "64748B"))
+                    .foregroundColor(Color.secondary)
                     .multilineTextAlignment(.center)
             }
 
@@ -520,7 +520,7 @@ struct WelcomeCard: View {
                 Text("Try asking:")
                     .font(.caption)
                     .fontWeight(.semibold)
-                    .foregroundColor(Color(hex: "64748B"))
+                    .foregroundColor(Color.secondary)
                     .padding(.leading, 4)
 
                 ForEach(suggestions, id: \.self) { suggestion in
@@ -531,7 +531,7 @@ struct WelcomeCard: View {
             }
         }
         .padding(24)
-        .background(Color(hex: "F8FAFC"))
+        .background(Color(uiColor: .secondarySystemBackground))
         .cornerRadius(20)
     }
 }
@@ -550,7 +550,7 @@ struct SuggestionChip: View {
 
                 Text(text)
                     .font(.subheadline)
-                    .foregroundColor(Color(hex: "1E293B"))
+                    .foregroundColor(Color.primary)
                     .multilineTextAlignment(.leading)
 
                 Spacer()
@@ -736,7 +736,7 @@ struct MessageBubble: View {
                                     .scaleEffect(0.7)
                                 Text("Typing...")
                                     .font(.caption2)
-                                    .foregroundColor(Color(hex: "94A3B8"))
+                                    .foregroundColor(Color(uiColor: .tertiaryLabel))
                             }
                             .transition(.opacity.combined(with: .scale(scale: 0.8)))
                         }
@@ -779,26 +779,26 @@ struct MessageBubble: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            : AnyShapeStyle(Color(hex: "F1F5F9"))
+                            : AnyShapeStyle(Color(uiColor: .tertiarySystemBackground))
                     )
                     .cornerRadius(18)
                 }
 
                 Text(message.timestamp, style: .time)
                     .font(.caption2)
-                    .foregroundColor(Color(hex: "94A3B8"))
+                    .foregroundColor(Color(uiColor: .tertiaryLabel))
             }
 
             if message.role == .user {
                 // User Avatar
                 ZStack {
                     Circle()
-                        .fill(Color(hex: "E2E8F0"))
+                        .fill(Color(uiColor: .separator))
                         .frame(width: 36, height: 36)
 
                     Image(systemName: "person.fill")
                         .font(.system(size: 16))
-                        .foregroundColor(Color(hex: "64748B"))
+                        .foregroundColor(Color.secondary)
                 }
             }
 
@@ -826,7 +826,7 @@ struct MessageActionsBar: View {
             } label: {
                 Image(systemName: feedback == .liked ? "hand.thumbsup.fill" : "hand.thumbsup")
                     .font(.system(size: 14))
-                    .foregroundColor(feedback == .liked ? Color(hex: "22C55E") : Color(hex: "94A3B8"))
+                    .foregroundColor(feedback == .liked ? Color(hex: "22C55E") : Color(uiColor: .tertiaryLabel))
             }
 
             // Dislike
@@ -835,7 +835,7 @@ struct MessageActionsBar: View {
             } label: {
                 Image(systemName: feedback == .disliked ? "hand.thumbsdown.fill" : "hand.thumbsdown")
                     .font(.system(size: 14))
-                    .foregroundColor(feedback == .disliked ? Color(hex: "EF4444") : Color(hex: "94A3B8"))
+                    .foregroundColor(feedback == .disliked ? Color(hex: "EF4444") : Color(uiColor: .tertiaryLabel))
             }
 
             Divider()
@@ -847,7 +847,7 @@ struct MessageActionsBar: View {
             } label: {
                 Image(systemName: "doc.on.doc")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "94A3B8"))
+                    .foregroundColor(Color(uiColor: .tertiaryLabel))
             }
 
             // Share
@@ -856,7 +856,7 @@ struct MessageActionsBar: View {
             } label: {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "94A3B8"))
+                    .foregroundColor(Color(uiColor: .tertiaryLabel))
             }
 
             Spacer()
@@ -874,7 +874,7 @@ struct TypingIndicator: View {
         HStack(spacing: 4) {
             ForEach(0..<3) { index in
                 Circle()
-                    .fill(Color(hex: "94A3B8"))
+                    .fill(Color(uiColor: .tertiaryLabel))
                     .frame(width: 8, height: 8)
                     .scaleEffect(animating ? 1.0 : 0.5)
                     .animation(
@@ -887,7 +887,7 @@ struct TypingIndicator: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
-        .background(Color(hex: "F1F5F9"))
+        .background(Color(uiColor: .tertiarySystemBackground))
         .cornerRadius(18)
         .onAppear {
             animating = true
@@ -933,7 +933,7 @@ struct ChatInputBar: View {
                         .padding(.vertical, 12)
                         .disabled(isStreaming)
                 }
-                .background(Color(hex: "F1F5F9"))
+                .background(Color(uiColor: .tertiarySystemBackground))
                 .cornerRadius(24)
 
                 // Send/Cancel button
@@ -944,7 +944,7 @@ struct ChatInputBar: View {
                                 isStreaming
                                     ? AnyShapeStyle(Color(hex: "EF4444"))
                                     : (text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading
-                                        ? AnyShapeStyle(Color(hex: "E2E8F0"))
+                                        ? AnyShapeStyle(Color(uiColor: .separator))
                                         : AnyShapeStyle(LinearGradient(
                                             colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
                                             startPoint: .topLeading,
@@ -965,7 +965,7 @@ struct ChatInputBar: View {
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(
                                     text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                        ? Color(hex: "94A3B8")
+                                        ? Color(uiColor: .tertiaryLabel)
                                         : .white
                                 )
                         }
@@ -1000,7 +1000,7 @@ struct PromptCapsulesBar: View {
             .padding(.vertical, 8)
         }
         .background(
-            Color(hex: "F8FAFC")
+            Color(uiColor: .secondarySystemBackground)
                 .shadow(color: Color.black.opacity(0.05), radius: 2, y: 2)
         )
     }
@@ -1031,7 +1031,7 @@ struct PromptCapsule: View {
             )
             .overlay(
                 Capsule()
-                    .strokeBorder(Color(hex: "E2E8F0"), lineWidth: 1)
+                    .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
             )
         }
         .buttonStyle(ScaleButtonStyle())
@@ -1068,7 +1068,7 @@ struct LinkDetectingText: View {
     var body: some View {
         Text(parseContent())
             .font(.body)
-            .foregroundColor(isUserMessage ? .white : Color(hex: "1E293B"))
+            .foregroundColor(isUserMessage ? .white : Color.primary)
             .tint(isUserMessage ? .white.opacity(0.9) : Color(hex: "6366F1"))
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)  // Preserve line breaks

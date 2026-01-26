@@ -46,6 +46,37 @@ extension Color {
 
     /// Tertiary text color
     static let textTertiary = Color(uiColor: .tertiaryLabel)
+    
+    // MARK: - Adaptive UI Colors (Light/Dark Mode)
+    
+    /// Adaptive card background - white in light, dark gray in dark
+    static let cardBackground = Color(uiColor: .systemBackground)
+    
+    /// Adaptive page background - light gray in light, black in dark
+    static let pageBackground = Color(uiColor: .systemGroupedBackground)
+    
+    /// Adaptive secondary page background
+    static let pageBackgroundSecondary = Color(uiColor: .secondarySystemGroupedBackground)
+    
+    /// Adaptive border color
+    static let adaptiveBorder = Color(uiColor: .separator)
+    
+    /// Adaptive subtle background for hero sections
+    static var heroBackground: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(uiColor: .systemBackground),
+                Color(uiColor: .secondarySystemBackground)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+    
+    /// Adaptive decorative circle opacity
+    static func decorativeCircle(_ baseColor: Color, opacity: Double = 0.1) -> Color {
+        baseColor.opacity(opacity)
+    }
 
     // MARK: - Regional Center Colors
 

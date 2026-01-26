@@ -63,15 +63,8 @@ struct HomeView: View {
             }
         }
         .background(
-            LinearGradient(
-                colors: [
-                    Color(hex: "F8FAFC"),
-                    Color(hex: "F1F5F9")
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            Color.pageBackground
+                .ignoresSafeArea()
         )
         .simultaneousGesture(
             DragGesture()
@@ -156,12 +149,12 @@ struct HomeView: View {
     // MARK: - Hero Section
     private var heroSection: some View {
         ZStack {
-            // Light clean gradient background
+            // Adaptive gradient background
             LinearGradient(
                 colors: [
-                    Color.white,
-                    Color(hex: "F1F5F9"),
-                    Color(hex: "E2E8F0")
+                    Color(uiColor: .systemBackground),
+                    Color(uiColor: .secondarySystemBackground),
+                    Color(uiColor: .tertiarySystemBackground)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -169,13 +162,13 @@ struct HomeView: View {
 
             // Decorative subtle circles
             Circle()
-                .fill(Color(hex: "3B82F6").opacity(0.06))
+                .fill(Color(hex: "3B82F6").opacity(0.08))
                 .frame(width: 300, height: 300)
                 .offset(x: 150, y: -100)
                 .blur(radius: 20)
 
             Circle()
-                .fill(Color(hex: "EC4899").opacity(0.04))
+                .fill(Color(hex: "EC4899").opacity(0.06))
                 .frame(width: 200, height: 200)
                 .offset(x: -120, y: 50)
                 .blur(radius: 20)
@@ -228,11 +221,11 @@ struct HomeView: View {
                 VStack(spacing: 8) {
                     Text(L10n.Home.resourceNavigator)
                         .font(.system(size: 22, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(hex: "1E293B"))
+                        .foregroundColor(.primary)
 
                     Text(L10n.Home.tagline)
                         .font(.subheadline)
-                        .foregroundColor(Color(hex: "64748B"))
+                        .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
                 .opacity(animateHero ? 1 : 0)
@@ -248,7 +241,7 @@ struct HomeView: View {
                         TextField(L10n.Home.enterZip, text: $zipCode)
                             .keyboardType(.numberPad)
                             .font(.body)
-                            .foregroundColor(Color(hex: "1E293B"))
+                            .foregroundColor(.primary)
                             .focused($isZipFocused)
                             .onChange(of: zipCode) { _, newZip in
                                 // Limit to 5 digits
@@ -269,7 +262,7 @@ struct HomeView: View {
                                 detectedCenter = nil
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(Color(hex: "94A3B8"))
+                                    .foregroundColor(.secondary)
                             }
                         }
 
@@ -279,7 +272,7 @@ struct HomeView: View {
                         } label: {
                             Image(systemName: "arrow.right.circle.fill")
                                 .font(.system(size: 24))
-                                .foregroundColor(zipCode.count == 5 ? Color(hex: "6366F1") : Color(hex: "CBD5E1"))
+                                .foregroundColor(zipCode.count == 5 ? Color(hex: "6366F1") : .secondary)
                         }
                         .disabled(zipCode.count != 5)
                     }
@@ -287,9 +280,9 @@ struct HomeView: View {
                     .padding(.vertical, 14)
                     .background {
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(.white)
+                            .fill(Color(uiColor: .secondarySystemBackground))
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(isZipFocused ? Color(hex: "6366F1") : Color(hex: "E2E8F0"), lineWidth: isZipFocused ? 2 : 1)
+                            .stroke(isZipFocused ? Color(hex: "6366F1") : Color(uiColor: .separator), lineWidth: isZipFocused ? 2 : 1)
                     }
                     .shadow(color: .black.opacity(0.08), radius: 12, y: 6)
 
@@ -303,7 +296,7 @@ struct HomeView: View {
                             Text(center.name)
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundColor(Color(hex: "64748B"))
+                                .foregroundColor(.secondary)
 
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.caption)
@@ -346,7 +339,6 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(L10n.Home.quickActions)
                 .font(.title3.weight(.semibold))
-                .foregroundColor(.primary)
 
             HStack(spacing: 12) {
                 QuickActionCard(
