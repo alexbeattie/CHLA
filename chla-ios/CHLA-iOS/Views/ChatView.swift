@@ -9,6 +9,7 @@
 import SwiftUI
 import CoreLocation
 import UIKit
+import PhotosUI
 
 struct ChatView: View {
     @StateObject private var llmService = LLMService.shared
@@ -20,6 +21,13 @@ struct ChatView: View {
     @State private var showingExportSheet = false
     @State private var exportText = ""
     @State private var userZipCode: String?
+    
+    // Image picker state
+    @State private var showingImagePicker = false
+    @State private var showingCamera = false
+    @State private var showingImageTypeSheet = false
+    @State private var selectedImage: UIImage?
+    @State private var selectedImageType: ImageAnalysisType = .insuranceCard
 
     // Quick prompt suggestions - computed property for localization
     private var quickPrompts: [(String, String, String)] {
@@ -95,7 +103,8 @@ struct ChatView: View {
                     isLoading: llmService.isLoading,
                     isStreaming: llmService.messages.last?.isStreaming == true,
                     onSend: { sendMessage(inputText) },
-                    onCancel: { llmService.cancelStreaming() }
+                    onCancel: { llmService.cancelStreaming() },
+                    onPhoto: { showingImageTypeSheet = true }
                 )
             }
             .navigationTitle(L10n.Chat.title)
@@ -154,6 +163,34 @@ struct ChatView: View {
             }
             .sheet(isPresented: $showingExportSheet) {
                 ShareSheet(items: [exportText])
+            }
+            .confirmationDialog("Analyze Image", isPresented: $showingImageTypeSheet) {
+                Button("📷 Take Photo") {
+                    showingCamera = true
+                }
+                Button("🖼️ Choose from Library") {
+                    showingImagePicker = true
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Upload a photo of your insurance card, IEP, or other document")
+            }
+            .sheet(isPresented: $showingImagePicker) {
+                ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
+            }
+            .fullScreenCover(isPresented: $showingCamera) {
+                ImagePicker(image: $selectedImage, sourceType: .camera)
+            }
+            .sheet(item: $selectedImageBinding) { image in
+                ImageAnalysisSheet(
+                    image: image,
+                    onAnalyze: { type in
+                        analyzeSelectedImage(type: type)
+                    },
+                    onCancel: {
+                        selectedImage = nil
+                    }
+                )
             }
             .onAppear {
                 fetchUserZipCode()
@@ -258,6 +295,178 @@ struct ChatView: View {
 
         Task {
             await llmService.ask(query, context: context)
+        }
+    }
+    
+    // MARK: - Image Analysis
+    
+    private var selectedImageBinding: Binding<IdentifiableImage?> {
+        Binding(
+            get: { selectedImage.map { IdentifiableImage(image: $0) } },
+            set: { selectedImage = $0?.image }
+        )
+    }
+    
+    private func analyzeSelectedImage(type: ImageAnalysisType) {
+        guard let image = selectedImage,
+              let imageData = image.jpegData(compressionQuality: 0.8) else {
+            return
+        }
+        
+        selectedImage = nil
+        
+        Task {
+            await llmService.analyzeImage(imageData, type: type)
+        }
+    }
+}
+
+// MARK: - Identifiable Image Wrapper
+
+struct IdentifiableImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
+}
+
+// MARK: - Image Picker
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    let sourceType: UIImagePickerController.SourceType
+    @Environment(\.dismiss) private var dismiss
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = context.coordinator
+        picker.allowsEditing = false
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.image = image
+            }
+            parent.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
+    }
+}
+
+// MARK: - Image Analysis Sheet
+
+struct ImageAnalysisSheet: View {
+    let image: IdentifiableImage
+    let onAnalyze: (ImageAnalysisType) -> Void
+    let onCancel: () -> Void
+    
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Image preview
+                Image(uiImage: image.image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 300)
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                    .padding(.horizontal)
+                
+                // Analysis type selection
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("What would you like to analyze?")
+                        .font(.headline)
+                        .foregroundColor(Color(hex: "1E293B"))
+                    
+                    ForEach(ImageAnalysisType.allCases, id: \.rawValue) { type in
+                        AnalysisTypeButton(type: type) {
+                            dismiss()
+                            onAnalyze(type)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                
+                Spacer()
+            }
+            .padding(.top, 20)
+            .navigationTitle("Analyze Image")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                        onCancel()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct AnalysisTypeButton: View {
+    let type: ImageAnalysisType
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                Image(systemName: type.icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(Color(hex: "6366F1"))
+                    .frame(width: 44, height: 44)
+                    .background(Color(hex: "EEF2FF"))
+                    .cornerRadius(12)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(type.title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "1E293B"))
+                    
+                    Text(typeDescription)
+                        .font(.caption)
+                        .foregroundColor(Color(hex: "64748B"))
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(Color(hex: "94A3B8"))
+            }
+            .padding(16)
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+    
+    private var typeDescription: String {
+        switch type {
+        case .insuranceCard:
+            return "Extract plan name, member ID, and coverage info"
+        case .document:
+            return "Analyze IEP, Regional Center letters, medical reports"
+        case .general:
+            return "Ask any question about the image"
         }
     }
 }
@@ -693,12 +902,26 @@ struct ChatInputBar: View {
     let isStreaming: Bool
     let onSend: () -> Void
     let onCancel: () -> Void
+    var onPhoto: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
             Divider()
 
             HStack(spacing: 12) {
+                // Photo button
+                if let onPhoto = onPhoto {
+                    Button(action: onPhoto) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(isLoading ? Color(hex: "CBD5E1") : Color(hex: "6366F1"))
+                            .frame(width: 44, height: 44)
+                            .background(Color(hex: "EEF2FF"))
+                            .cornerRadius(22)
+                    }
+                    .disabled(isLoading || isStreaming)
+                }
+                
                 // Text field
                 HStack {
                     TextField("Ask about services...", text: $text, axis: .vertical)

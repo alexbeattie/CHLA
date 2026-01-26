@@ -51,6 +51,10 @@
 	<string>NDD Resources uses your location to find healthcare resources near you.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>NDD Resources uses your location to find healthcare resources near you.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>KiNDD uses your camera to scan insurance cards and documents for analysis.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>KiNDD needs access to your photos to analyze insurance cards and documents.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIDeviceFamily</key>

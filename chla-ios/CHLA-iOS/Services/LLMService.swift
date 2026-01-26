@@ -107,6 +107,33 @@ struct UserContext: Codable {
     }
 }
 
+struct ImageAnalysisResponse: Codable {
+    let analysis: String
+    let type: String
+}
+
+enum ImageAnalysisType: String, CaseIterable {
+    case insuranceCard = "insurance_card"
+    case document = "document"
+    case general = "general"
+    
+    var title: String {
+        switch self {
+        case .insuranceCard: return "Insurance Card"
+        case .document: return "Document (IEP, Letter)"
+        case .general: return "General Photo"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .insuranceCard: return "creditcard"
+        case .document: return "doc.text"
+        case .general: return "photo"
+        }
+    }
+}
+
 // MARK: - LLM Service
 
 @MainActor
@@ -197,6 +224,100 @@ class LLMService: ObservableObject {
         return nil
     }
 
+    // MARK: - Image Analysis
+    
+    func analyzeImage(_ imageData: Data, type: ImageAnalysisType, prompt: String? = nil) async {
+        isLoading = true
+        error = nil
+        
+        // Add user message indicating image upload
+        let userMessage = ChatMessage(
+            role: .user,
+            content: "📷 Analyzing \(type.title.lowercased())..."
+        )
+        messages.append(userMessage)
+        
+        // Add loading placeholder
+        let loadingMessage = ChatMessage(role: .assistant, content: "", isLoading: true)
+        messages.append(loadingMessage)
+        
+        do {
+            let response = try await sendImageAnalysis(imageData, type: type, prompt: prompt)
+            
+            // Remove loading message and add real response
+            messages.removeAll { $0.isLoading }
+            let assistantMessage = ChatMessage(
+                role: .assistant,
+                content: response.analysis
+            )
+            messages.append(assistantMessage)
+            
+        } catch {
+            messages.removeAll { $0.isLoading }
+            addErrorMessage(error.localizedDescription)
+        }
+        
+        isLoading = false
+    }
+    
+    private func sendImageAnalysis(_ imageData: Data, type: ImageAnalysisType, prompt: String?) async throws -> ImageAnalysisResponse {
+        let urlString = "\(baseURL)/analyze-image/"
+        print("🟡 Image Analysis Request to: \(urlString)")
+        
+        guard let url = URL(string: urlString) else {
+            throw LLMError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 120  // Longer timeout for image processing
+        
+        // Encode image as base64
+        let base64Image = imageData.base64EncodedString()
+        
+        // Detect image type from data
+        var mediaType = "image/jpeg"
+        if imageData.count > 8 {
+            let header = [UInt8](imageData.prefix(8))
+            if header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47 {
+                mediaType = "image/png"
+            }
+        }
+        
+        // Build request with data URL format
+        let dataURL = "data:\(mediaType);base64,\(base64Image)"
+        
+        var body: [String: Any] = [
+            "image": dataURL,
+            "type": type.rawValue
+        ]
+        
+        if let prompt = prompt {
+            body["prompt"] = prompt
+        }
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw LLMError.invalidResponse
+        }
+        
+        print("🟢 Image Analysis Status: \(httpResponse.statusCode)")
+        
+        guard httpResponse.statusCode == 200 else {
+            if let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let errorMessage = errorJson["error"] as? String {
+                throw LLMError.serverError(errorMessage)
+            }
+            throw LLMError.httpError(httpResponse.statusCode)
+        }
+        
+        return try JSONDecoder().decode(ImageAnalysisResponse.self, from: data)
+    }
+    
     func exportConversation(userZipCode: String? = nil, regionalCenter: String? = nil) -> String {
         var export = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         export += "       KiNDD Chat Export\n"
