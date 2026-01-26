@@ -207,8 +207,10 @@ struct ChatView: View {
                 DocumentPicker { data, fileExtension in
                     // Handle different file types
                     if let image = UIImage(data: data) {
-                        // It's an image - use the image analysis flow
-                        selectedImage = image
+                        // It's an image - delay setting to allow document picker to dismiss first
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            selectedImage = image
+                        }
                     } else {
                         // It's a document (PDF, Word, etc.) - use document analysis endpoint
                         Task {
@@ -1171,6 +1173,7 @@ import UniformTypeIdentifiers
 
 struct DocumentPicker: UIViewControllerRepresentable {
     let onDocumentPicked: (Data, String) -> Void  // (data, fileExtension)
+    @Environment(\.dismiss) private var dismiss
     
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
         // Support images, PDFs, and common document types
@@ -1195,14 +1198,14 @@ struct DocumentPicker: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(onDocumentPicked: onDocumentPicked)
+        Coordinator(parent: self)
     }
     
     class Coordinator: NSObject, UIDocumentPickerDelegate {
-        let onDocumentPicked: (Data, String) -> Void
+        let parent: DocumentPicker
         
-        init(onDocumentPicked: @escaping (Data, String) -> Void) {
-            self.onDocumentPicked = onDocumentPicked
+        init(parent: DocumentPicker) {
+            self.parent = parent
         }
         
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
@@ -1215,10 +1218,16 @@ struct DocumentPicker: UIViewControllerRepresentable {
             do {
                 let data = try Data(contentsOf: url)
                 let fileExtension = url.pathExtension.lowercased()
-                onDocumentPicked(data, fileExtension)
+                parent.onDocumentPicked(data, fileExtension)
             } catch {
                 print("Error reading document: \(error)")
             }
+            
+            parent.dismiss()
+        }
+        
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+            parent.dismiss()
         }
     }
 }
