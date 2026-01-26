@@ -1055,68 +1055,82 @@ struct MarkdownTextView: View {
     let isUserMessage: Bool
 
     var body: some View {
-        // Use LinkDetectingText which preserves formatting better
-        // and makes phone numbers/URLs clickable
-        LinkDetectingText(content: content, isUserMessage: isUserMessage)
-    }
-}
-
-// MARK: - Link Detecting Text
-
-struct LinkDetectingText: View {
-    let content: String
-    let isUserMessage: Bool
-
-    var body: some View {
-        Text(parseContent())
+        Text(parseMarkdown())
             .font(.body)
-            .foregroundColor(isUserMessage ? .white : Color.primary)
+            .foregroundColor(isUserMessage ? .white : Color(uiColor: .label))
             .tint(isUserMessage ? .white.opacity(0.9) : Color(hex: "6366F1"))
             .textSelection(.enabled)
-            .fixedSize(horizontal: false, vertical: true)  // Preserve line breaks
+            .fixedSize(horizontal: false, vertical: true)
     }
-
-    private func parseContent() -> AttributedString {
-        // Preserve line breaks by keeping newlines intact
+    
+    private func parseMarkdown() -> AttributedString {
+        // Convert asterisk-based markdown to proper formatting
+        let processed = processMarkdownSyntax(content)
+        
+        // Try to parse as markdown first
+        if let attributed = try? AttributedString(markdown: processed, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
+            var result = attributed
+            // Add link styling and phone detection
+            addLinkStyling(&result)
+            return result
+        }
+        
+        // Fallback to basic text with link detection
         var result = AttributedString(content)
-
+        addLinkStyling(&result)
+        return result
+    }
+    
+    private func processMarkdownSyntax(_ text: String) -> String {
+        var result = text
+        
+        // Convert **text** to proper bold (already markdown)
+        // Convert *text* to proper italic (already markdown)
+        // Convert bullet points: "• " or "- " at line start
+        
+        // Replace "• " with "- " for consistent markdown bullets
+        result = result.replacingOccurrences(of: "• ", with: "- ")
+        
+        return result
+    }
+    
+    private func addLinkStyling(_ attributed: inout AttributedString) {
+        let plainString = String(attributed.characters)
+        
         // Detect URLs
         let urlPattern = #"https?://[^\s\)\]\>\"\']+"#
         if let regex = try? NSRegularExpression(pattern: urlPattern, options: []) {
-            let range = NSRange(content.startIndex..., in: content)
-            let matches = regex.matches(in: content, options: [], range: range)
+            let range = NSRange(plainString.startIndex..., in: plainString)
+            let matches = regex.matches(in: plainString, options: [], range: range)
 
             for match in matches.reversed() {
-                if let stringRange = Range(match.range, in: content),
-                   let attributedRange = Range(stringRange, in: result),
-                   let url = URL(string: String(content[stringRange])) {
-                    result[attributedRange].link = url
-                    result[attributedRange].underlineStyle = .single
-                    result[attributedRange].foregroundColor = isUserMessage ? .white : UIColor(Color(hex: "6366F1"))
+                if let stringRange = Range(match.range, in: plainString),
+                   let attributedRange = Range(stringRange, in: attributed),
+                   let url = URL(string: String(plainString[stringRange])) {
+                    attributed[attributedRange].link = url
+                    attributed[attributedRange].underlineStyle = .single
                 }
             }
         }
 
-        // Detect phone numbers (various formats)
+        // Detect phone numbers
         let phonePattern = #"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"#
         if let regex = try? NSRegularExpression(pattern: phonePattern, options: []) {
-            let range = NSRange(content.startIndex..., in: content)
-            let matches = regex.matches(in: content, options: [], range: range)
+            let range = NSRange(plainString.startIndex..., in: plainString)
+            let matches = regex.matches(in: plainString, options: [], range: range)
 
             for match in matches.reversed() {
-                if let stringRange = Range(match.range, in: content),
-                   let attributedRange = Range(stringRange, in: result) {
-                    let phoneNumber = String(content[stringRange]).replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
+                if let stringRange = Range(match.range, in: plainString),
+                   let attributedRange = Range(stringRange, in: attributed) {
+                    let phoneNumber = String(plainString[stringRange]).replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
                     if let url = URL(string: "tel:\(phoneNumber)") {
-                        result[attributedRange].link = url
-                        result[attributedRange].underlineStyle = .single
-                        result[attributedRange].foregroundColor = isUserMessage ? .white : UIColor(Color(hex: "22C55E"))  // Green for phone
+                        attributed[attributedRange].link = url
+                        attributed[attributedRange].underlineStyle = .single
+                        attributed[attributedRange].foregroundColor = isUserMessage ? .white : UIColor(Color(hex: "22C55E"))
                     }
                 }
             }
         }
-
-        return result
     }
 }
 
