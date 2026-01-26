@@ -27,6 +27,7 @@ struct ChatView: View {
     @State private var showingCamera = false
     @State private var showingImageTypeSheet = false
     @State private var showingImageAnalysisSheet = false
+    @State private var showingDocumentPicker = false
     @State private var selectedImage: UIImage?
     @State private var selectedImageType: ImageAnalysisType = .insuranceCard
 
@@ -105,7 +106,8 @@ struct ChatView: View {
                     isStreaming: llmService.messages.last?.isStreaming == true,
                     onSend: { sendMessage(inputText) },
                     onCancel: { llmService.cancelStreaming() },
-                    onPhoto: { showingImageTypeSheet = true }
+                    onPhoto: { showingImageTypeSheet = true },
+                    onFiles: { showingDocumentPicker = true }
                 )
             }
             .navigationTitle(L10n.Chat.title)
@@ -198,6 +200,14 @@ struct ChatView: View {
             .onChange(of: selectedImage) { _, newImage in
                 if newImage != nil {
                     showingImageAnalysisSheet = true
+                }
+            }
+            .sheet(isPresented: $showingDocumentPicker) {
+                DocumentPicker { imageData in
+                    // Convert picked document to image data for analysis
+                    if let image = UIImage(data: imageData) {
+                        selectedImage = image
+                    }
                 }
             }
             .onAppear {
@@ -907,24 +917,32 @@ struct ChatInputBar: View {
     let onSend: () -> Void
     let onCancel: () -> Void
     var onPhoto: (() -> Void)? = nil
+    var onFiles: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
             Divider()
 
-            HStack(spacing: 12) {
-                // Photo button
-                if let onPhoto = onPhoto {
-                    Button(action: onPhoto) {
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(isLoading ? Color(hex: "CBD5E1") : Color(hex: "6366F1"))
-                            .frame(width: 44, height: 44)
-                            .background(Color(hex: "EEF2FF"))
-                            .cornerRadius(22)
+            HStack(spacing: 8) {
+                // Photo/Files button with menu
+                Menu {
+                    Button {
+                        onPhoto?()
+                    } label: {
+                        Label("Photo Library", systemImage: "photo.on.rectangle")
                     }
-                    .disabled(isLoading || isStreaming)
+                    
+                    Button {
+                        onFiles?()
+                    } label: {
+                        Label("Choose File", systemImage: "folder")
+                    }
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(isLoading ? Color(uiColor: .secondaryLabel) : Color(hex: "6366F1"))
                 }
+                .disabled(isLoading || isStreaming)
                 
                 // Text field
                 HStack {
@@ -933,9 +951,10 @@ struct ChatInputBar: View {
                         .lineLimit(1...5)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
+                        .foregroundColor(Color(uiColor: .label))
                         .disabled(isStreaming)
                 }
-                .background(Color(uiColor: .tertiarySystemBackground))
+                .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(24)
 
                 // Send/Cancel button
@@ -946,7 +965,7 @@ struct ChatInputBar: View {
                                 isStreaming
                                     ? AnyShapeStyle(Color(hex: "EF4444"))
                                     : (text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading
-                                        ? AnyShapeStyle(Color(uiColor: .separator))
+                                        ? AnyShapeStyle(Color(uiColor: .quaternaryLabel))
                                         : AnyShapeStyle(LinearGradient(
                                             colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
                                             startPoint: .topLeading,
@@ -967,7 +986,7 @@ struct ChatInputBar: View {
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(
                                     text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                        ? Color(uiColor: .tertiaryLabel)
+                                        ? Color(uiColor: .secondaryLabel)
                                         : .white
                                 )
                         }
@@ -977,7 +996,7 @@ struct ChatInputBar: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color.white)
+            .background(Color(uiColor: .systemBackground))
         }
     }
 }
@@ -1129,6 +1148,51 @@ struct MarkdownTextView: View {
                         attributed[attributedRange].foregroundColor = isUserMessage ? .white : UIColor(Color(hex: "22C55E"))
                     }
                 }
+            }
+        }
+    }
+}
+
+// MARK: - Document Picker
+
+import UniformTypeIdentifiers
+
+struct DocumentPicker: UIViewControllerRepresentable {
+    let onDocumentPicked: (Data) -> Void
+    
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let supportedTypes: [UTType] = [.image, .pdf, .jpeg, .png, .heic]
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: supportedTypes)
+        picker.delegate = context.coordinator
+        picker.allowsMultipleSelection = false
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onDocumentPicked: onDocumentPicked)
+    }
+    
+    class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let onDocumentPicked: (Data) -> Void
+        
+        init(onDocumentPicked: @escaping (Data) -> Void) {
+            self.onDocumentPicked = onDocumentPicked
+        }
+        
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            guard let url = urls.first else { return }
+            
+            // Access the security-scoped resource
+            guard url.startAccessingSecurityScopedResource() else { return }
+            defer { url.stopAccessingSecurityScopedResource() }
+            
+            do {
+                let data = try Data(contentsOf: url)
+                onDocumentPicked(data)
+            } catch {
+                print("Error reading document: \(error)")
             }
         }
     }
