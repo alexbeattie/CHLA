@@ -15,6 +15,7 @@ struct ChatView: View {
     @StateObject private var llmService = LLMService.shared
     @StateObject private var locationService = LocationService()
     @StateObject private var speechRecognizer = SpeechRecognizer()
+    @StateObject private var textToSpeech = TextToSpeech()
     @EnvironmentObject var appState: AppState
     @State private var inputText = ""
     @FocusState private var isFocused: Bool
@@ -84,6 +85,14 @@ struct ChatView: View {
                                         exportText = message.content
                                         showingExportSheet = true
                                     },
+                                    onSpeak: {
+                                        if textToSpeech.isSpeaking {
+                                            textToSpeech.stop()
+                                        } else {
+                                            textToSpeech.speak(message.content)
+                                        }
+                                    },
+                                    isSpeaking: textToSpeech.isSpeaking,
                                     onAction: { action in
                                         handleAction(action)
                                     }
@@ -116,7 +125,14 @@ struct ChatView: View {
                 )
                 .onChange(of: speechRecognizer.transcript) { _, newTranscript in
                     if !newTranscript.isEmpty {
-                        inputText = newTranscript
+                        // Append to existing text if user has already typed something
+                        if inputText.isEmpty {
+                            inputText = newTranscript
+                        } else {
+                            // Add space separator if existing text doesn't end with space
+                            let separator = inputText.hasSuffix(" ") ? "" : " "
+                            inputText = inputText + separator + newTranscript
+                        }
                     }
                 }
             }
@@ -776,6 +792,8 @@ struct MessageBubble: View {
     var onDislike: (() -> Void)?
     var onCopy: (() -> Void)?
     var onShare: (() -> Void)?
+    var onSpeak: (() -> Void)?
+    var isSpeaking: Bool = false
     var onAction: ((ChatAction) -> Void)?
 
     @State private var showActions = false
@@ -888,7 +906,9 @@ struct MessageBubble: View {
                                 onLike: onLike,
                                 onDislike: onDislike,
                                 onCopy: onCopy,
-                                onShare: onShare
+                                onShare: onShare,
+                                onSpeak: onSpeak,
+                                isSpeaking: isSpeaking
                             )
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
@@ -943,6 +963,8 @@ struct MessageActionsBar: View {
     var onDislike: (() -> Void)?
     var onCopy: (() -> Void)?
     var onShare: (() -> Void)?
+    var onSpeak: (() -> Void)?
+    var isSpeaking: Bool = false
 
     var body: some View {
         HStack(spacing: 16) {
@@ -966,6 +988,15 @@ struct MessageActionsBar: View {
 
             Divider()
                 .frame(height: 16)
+
+            // Speak / Stop speaking
+            Button {
+                onSpeak?()
+            } label: {
+                Image(systemName: isSpeaking ? "speaker.wave.2.fill" : "speaker.wave.2")
+                    .font(.system(size: 14))
+                    .foregroundColor(isSpeaking ? Color(hex: "6366F1") : Color(uiColor: .secondaryLabel))
+            }
 
             // Copy
             Button {

@@ -127,9 +127,18 @@ class SpeechRecognizer: ObservableObject {
             }
         }
         
+        // Prepare audio engine first (required before accessing input node format)
+        audioEngine.prepare()
+        
         // Configure audio input
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
+        
+        // Validate the audio format has valid channels
+        guard recordingFormat.channelCount > 0 else {
+            error = "No audio input available. Please check microphone permissions."
+            return
+        }
         
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
             self.recognitionRequest?.append(buffer)
@@ -137,7 +146,6 @@ class SpeechRecognizer: ObservableObject {
         
         // Start audio engine
         do {
-            audioEngine.prepare()
             try audioEngine.start()
             isRecording = true
         } catch {
