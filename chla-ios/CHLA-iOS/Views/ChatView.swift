@@ -204,10 +204,16 @@ struct ChatView: View {
                 }
             }
             .sheet(isPresented: $showingDocumentPicker) {
-                DocumentPicker { imageData in
-                    // Convert picked document to image data for analysis
-                    if let image = UIImage(data: imageData) {
+                DocumentPicker { data, fileExtension in
+                    // Handle different file types
+                    if let image = UIImage(data: data) {
+                        // It's an image - use the image analysis flow
                         selectedImage = image
+                    } else {
+                        // It's a document (PDF, Word, etc.) - analyze as document
+                        Task {
+                            await llmService.analyzeImage(data, type: .document, prompt: "This is a \(fileExtension.uppercased()) document. Please analyze its contents.")
+                        }
                     }
                 }
             }
@@ -1164,10 +1170,22 @@ struct MarkdownTextView: View {
 import UniformTypeIdentifiers
 
 struct DocumentPicker: UIViewControllerRepresentable {
-    let onDocumentPicked: (Data) -> Void
+    let onDocumentPicked: (Data, String) -> Void  // (data, fileExtension)
     
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let supportedTypes: [UTType] = [.image, .pdf, .jpeg, .png, .heic]
+        // Support images, PDFs, and common document types
+        var supportedTypes: [UTType] = [
+            .image, .pdf, .jpeg, .png, .heic, .gif, .webP,
+            .plainText, .rtf
+        ]
+        // Add Word document types if available
+        if let docx = UTType("org.openxmlformats.wordprocessingml.document") {
+            supportedTypes.append(docx)
+        }
+        if let doc = UTType("com.microsoft.word.doc") {
+            supportedTypes.append(doc)
+        }
+        
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: supportedTypes)
         picker.delegate = context.coordinator
         picker.allowsMultipleSelection = false
@@ -1181,9 +1199,9 @@ struct DocumentPicker: UIViewControllerRepresentable {
     }
     
     class Coordinator: NSObject, UIDocumentPickerDelegate {
-        let onDocumentPicked: (Data) -> Void
+        let onDocumentPicked: (Data, String) -> Void
         
-        init(onDocumentPicked: @escaping (Data) -> Void) {
+        init(onDocumentPicked: @escaping (Data, String) -> Void) {
             self.onDocumentPicked = onDocumentPicked
         }
         
@@ -1196,7 +1214,8 @@ struct DocumentPicker: UIViewControllerRepresentable {
             
             do {
                 let data = try Data(contentsOf: url)
-                onDocumentPicked(data)
+                let fileExtension = url.pathExtension.lowercased()
+                onDocumentPicked(data, fileExtension)
             } catch {
                 print("Error reading document: \(error)")
             }
