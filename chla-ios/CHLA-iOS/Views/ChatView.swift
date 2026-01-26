@@ -43,8 +43,40 @@ struct ChatView: View {
     @State private var selectedImage: UIImage?
 
     // Quick prompt suggestions - computed property for localization
+    // Smart context-aware prompts
     private var quickPrompts: [(String, String, String)] {
-        [
+        var prompts: [(String, String, String)] = []
+        
+        let hour = Calendar.current.component(.hour, from: Date())
+        let hasHistory = !conversationHistory.conversations.isEmpty
+        let hasActiveConversation = !llmService.messages.isEmpty
+        let userRC = appState.userRegionalCenter
+        let userZip = userZipCode ?? appState.userZipCode
+        
+        // Context: Time-based greeting prompts
+        if hour < 12 && !hasActiveConversation {
+            prompts.append(("☀️", "Morning Start", "What early intervention services should I consider for my child?"))
+        } else if hour >= 17 && !hasActiveConversation {
+            prompts.append(("🌙", "Evening Help", "Can you summarize the key services available for developmental delays?"))
+        }
+        
+        // Context: Returning user - different prompts
+        if hasHistory && !hasActiveConversation {
+            prompts.append(("👋", "Continue", "I have some follow-up questions from our last conversation."))
+        }
+        
+        // Context: Regional Center known
+        if let rc = userRC, !rc.isEmpty {
+            prompts.append(("🏥", "My RC", "What services does \(rc) Regional Center offer?"))
+        }
+        
+        // Context: ZIP code known - local providers
+        if let zip = userZip, !zip.isEmpty {
+            prompts.append(("📍", "Near Me", "Find providers near \(zip)"))
+        }
+        
+        // Core prompts - always show these
+        let corePrompts: [(String, String, String)] = [
             ("🔍", L10n.Chat.findProviders, L10n.Chat.suggestion1),
             ("📋", L10n.Chat.assessment, "chat.assessmentPrompt".localized),
             ("🏥", L10n.Chat.myRC, L10n.Chat.suggestion2),
@@ -54,6 +86,19 @@ struct ChatView: View {
             ("🎂", L10n.Chat.age3Transition, "chat.age3Prompt".localized),
             ("🗣️", L10n.Chat.speech, "chat.speechPrompt".localized)
         ]
+        
+        // Add core prompts, skipping duplicates based on context already added
+        for core in corePrompts {
+            // Skip "My RC" if we already added a personalized RC prompt
+            if core.1 == L10n.Chat.myRC && userRC != nil { continue }
+            // Skip "Find Providers" if we already added a localized one
+            if core.1 == L10n.Chat.findProviders && userZip != nil { continue }
+            
+            prompts.append(core)
+        }
+        
+        // Limit to 8 prompts for UI
+        return Array(prompts.prefix(8))
     }
 
     var body: some View {
