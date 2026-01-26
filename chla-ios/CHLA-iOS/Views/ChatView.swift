@@ -17,6 +17,7 @@ struct ChatView: View {
     @StateObject private var speechRecognizer = SpeechRecognizer()
     @StateObject private var textToSpeech = TextToSpeech()
     @StateObject private var conversationHistory = ConversationHistory()
+    @StateObject private var userMemory = UserMemory()
     
     // Track text that existed before recording started (for proper speech appending)
     @State private var textBeforeRecording: String = ""
@@ -99,6 +100,19 @@ struct ChatView: View {
         
         // Limit to 8 prompts for UI
         return Array(prompts.prefix(8))
+    }
+    
+    // Count of remembered items for display
+    private var memoryItemCount: Int {
+        var count = 0
+        if userMemory.context.childAge != nil { count += 1 }
+        if userMemory.context.childName != nil { count += 1 }
+        count += userMemory.context.diagnoses.count
+        count += userMemory.context.therapyInterests.count
+        if userMemory.context.regionalCenter != nil { count += 1 }
+        if userMemory.context.insuranceType != nil { count += 1 }
+        if userMemory.context.zipCode != nil { count += 1 }
+        return count
     }
 
     var body: some View {
@@ -267,6 +281,27 @@ struct ChatView: View {
 
                         Toggle(isOn: $llmService.useStreaming) {
                             Label("Streaming Mode", systemImage: "waveform")
+                        }
+                        
+                        Divider()
+                        
+                        // Memory section
+                        if userMemory.context.hasContent {
+                            Menu {
+                                Text(userMemory.context.contextSummary)
+                                    .font(.caption)
+                                
+                                Divider()
+                                
+                                Button(role: .destructive) {
+                                    userMemory.clearAll()
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                } label: {
+                                    Label("Clear Memory", systemImage: "brain")
+                                }
+                            } label: {
+                                Label("Memory (\(memoryItemCount))", systemImage: "brain.head.profile")
+                            }
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -485,17 +520,29 @@ struct ChatView: View {
 
         inputText = ""
         isFocused = false
+        
+        // Extract context from user message for memory
+        userMemory.extractContextFromMessage(query)
 
         // Build context from app state - prioritize local userZipCode from location
-        let effectiveZip = userZipCode ?? appState.userZipCode
+        let effectiveZip = userZipCode ?? appState.userZipCode ?? userMemory.context.zipCode
         print("📍 Sending query with ZIP: \(effectiveZip ?? "none")")
 
+        // Merge app state with remembered context
+        let childAgeString: String? = {
+            if let age = appState.userChildAge {
+                return "\(age) years old"
+            }
+            return userMemory.context.childAge
+        }()
+        
         let context = UserContext(
             zipCode: effectiveZip,
-            childAge: appState.userChildAge,
-            diagnosis: appState.userDiagnosis ?? appState.searchFilters.diagnosis,
-            insurance: appState.userInsurance ?? appState.searchFilters.insurance,
-            currentServices: nil
+            childAge: childAgeString,
+            diagnosis: appState.userDiagnosis ?? appState.searchFilters.diagnosis ?? userMemory.context.diagnoses.first,
+            insurance: appState.userInsurance ?? appState.searchFilters.insurance ?? userMemory.context.insuranceType,
+            currentServices: nil,
+            memoryContext: userMemory.llmContextInjection  // Inject remembered context
         )
 
         Task {

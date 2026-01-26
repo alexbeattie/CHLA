@@ -93,10 +93,11 @@ struct SSEChunk: Codable {
 
 struct UserContext: Codable {
     var zipCode: String?
-    var childAge: Int?
+    var childAge: String?  // Can be "2 years old", "18 months", etc.
     var diagnosis: String?
     var insurance: String?
     var currentServices: [String]?
+    var memoryContext: String?  // Injected context from UserMemory
 
     enum CodingKeys: String, CodingKey {
         case zipCode = "zip_code"
@@ -104,6 +105,7 @@ struct UserContext: Codable {
         case diagnosis
         case insurance
         case currentServices = "current_services"
+        case memoryContext = "memory_context"
     }
 }
 

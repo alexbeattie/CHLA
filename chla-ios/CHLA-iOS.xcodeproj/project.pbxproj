@@ -41,6 +41,7 @@
 		SPEECH001RECOGNIZERBLD /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */; };
 		TTS00001SERVICEBLD /* TextToSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = TTS00001SERVICEREF /* TextToSpeech.swift */; };
 		CONVHIST01SERVICEBLD /* ConversationHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CONVHIST01SERVICEREF /* ConversationHistory.swift */; };
+		USRMEM001SERVICEBLD /* UserMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = USRMEM001SERVICEREF /* UserMemory.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +80,7 @@
 		SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
 		TTS00001SERVICEREF /* TextToSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeech.swift; sourceTree = "<group>"; };
 		CONVHIST01SERVICEREF /* ConversationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistory.swift; sourceTree = "<group>"; };
+		USRMEM001SERVICEREF /* UserMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMemory.swift; sourceTree = "<group>"; };
 		F3C4D5E6F7081ALOCREF /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
 		L10N00003ENSTRINGS /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "CHLA-iOS/Resources/en.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
 		L10N00004ESSTRINGS /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = "CHLA-iOS/Resources/es.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
@@ -114,6 +116,7 @@
 				SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */,
 				TTS00001SERVICEREF /* TextToSpeech.swift */,
 				CONVHIST01SERVICEREF /* ConversationHistory.swift */,
+				USRMEM001SERVICEREF /* UserMemory.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -319,6 +322,7 @@
 				SPEECH001RECOGNIZERBLD /* SpeechRecognizer.swift in Sources */,
 				TTS00001SERVICEBLD /* TextToSpeech.swift in Sources */,
 				CONVHIST01SERVICEBLD /* ConversationHistory.swift in Sources */,
+				USRMEM001SERVICEBLD /* UserMemory.swift in Sources */,
 				F3C4D5E6F7081ALOCBLD /* String+Localization.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
