@@ -11,6 +11,7 @@ from .views import (
     StreamingAskView,
     AgentAskView,
     ImageAnalysisView,
+    DocumentAnalysisView,
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path("search/", SmartSearchView.as_view(), name="llm-search"),
     path("health/", LLMHealthView.as_view(), name="llm-health"),
     path("analyze-image/", ImageAnalysisView.as_view(), name="llm-analyze-image"),  # Vision
+    path("analyze-document/", DocumentAnalysisView.as_view(), name="llm-analyze-document"),  # Documents
 ]

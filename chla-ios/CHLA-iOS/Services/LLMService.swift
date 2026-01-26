@@ -112,6 +112,20 @@ struct ImageAnalysisResponse: Codable {
     let type: String
 }
 
+struct DocumentAnalysisResponse: Codable {
+    let analysis: String
+    let fileType: String
+    let textExtracted: Bool
+    let textLength: Int?
+    
+    enum CodingKeys: String, CodingKey {
+        case analysis
+        case fileType = "file_type"
+        case textExtracted = "text_extracted"
+        case textLength = "text_length"
+    }
+}
+
 enum ImageAnalysisType: String, CaseIterable {
     case insuranceCard = "insurance_card"
     case document = "document"
@@ -316,6 +330,88 @@ class LLMService: ObservableObject {
         }
         
         return try JSONDecoder().decode(ImageAnalysisResponse.self, from: data)
+    }
+    
+    // MARK: - Document Analysis
+    
+    func analyzeDocument(_ documentData: Data, fileType: String, prompt: String? = nil) async {
+        isLoading = true
+        error = nil
+        
+        // Add user message indicating document upload
+        let userMessage = ChatMessage(
+            role: .user,
+            content: "📄 Analyzing \(fileType.uppercased()) document..."
+        )
+        messages.append(userMessage)
+        
+        // Add loading placeholder
+        let loadingMessage = ChatMessage(role: .assistant, content: "", isLoading: true)
+        messages.append(loadingMessage)
+        
+        do {
+            let response = try await sendDocumentAnalysis(documentData, fileType: fileType, prompt: prompt)
+            
+            // Remove loading message and add real response
+            messages.removeAll { $0.isLoading }
+            let assistantMessage = ChatMessage(
+                role: .assistant,
+                content: response.analysis
+            )
+            messages.append(assistantMessage)
+            
+        } catch {
+            messages.removeAll { $0.isLoading }
+            addErrorMessage(error.localizedDescription)
+        }
+        
+        isLoading = false
+    }
+    
+    private func sendDocumentAnalysis(_ documentData: Data, fileType: String, prompt: String?) async throws -> DocumentAnalysisResponse {
+        let urlString = "\(baseURL)/analyze-document/"
+        print("🟡 Document Analysis Request to: \(urlString)")
+        
+        guard let url = URL(string: urlString) else {
+            throw LLMError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 120  // Longer timeout for document processing
+        
+        // Encode document as base64
+        let base64Document = documentData.base64EncodedString()
+        
+        var body: [String: Any] = [
+            "document": base64Document,
+            "file_type": fileType
+        ]
+        
+        if let prompt = prompt {
+            body["prompt"] = prompt
+        }
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw LLMError.invalidResponse
+        }
+        
+        print("🟢 Document Analysis Status: \(httpResponse.statusCode)")
+        
+        guard httpResponse.statusCode == 200 else {
+            if let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let errorMessage = errorJson["error"] as? String {
+                throw LLMError.serverError(errorMessage)
+            }
+            throw LLMError.httpError(httpResponse.statusCode)
+        }
+        
+        return try JSONDecoder().decode(DocumentAnalysisResponse.self, from: data)
     }
     
     func exportConversation(userZipCode: String? = nil, regionalCenter: String? = nil) -> String {

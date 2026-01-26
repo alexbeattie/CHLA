@@ -463,3 +463,122 @@ class ImageAnalysisView(APIView):
                 {"error": f"Image analysis failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class DocumentAnalysisView(APIView):
+    """
+    POST /api/llm/analyze-document/
+    
+    Analyze an uploaded document (Word, PDF, text) by extracting text and analyzing.
+    
+    Request body:
+    {
+        "document": "<base64-encoded document data>",
+        "file_type": "docx" | "pdf" | "txt" | "rtf",
+        "prompt": "Optional analysis prompt"
+    }
+    
+    Response:
+    {
+        "analysis": "...",
+        "file_type": "docx",
+        "text_extracted": true
+    }
+    """
+    
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        document_data = request.data.get("document")
+        file_type = request.data.get("file_type", "").lower()
+        custom_prompt = request.data.get("prompt", "")
+        
+        if not document_data:
+            return Response(
+                {"error": "Document data is required. Send base64-encoded document in 'document' field."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        try:
+            import base64
+            import io
+            
+            # Decode base64 document
+            doc_bytes = base64.b64decode(document_data)
+            
+            # Extract text based on file type
+            extracted_text = ""
+            
+            if file_type in ["docx", "doc"]:
+                try:
+                    from docx import Document
+                    doc = Document(io.BytesIO(doc_bytes))
+                    extracted_text = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
+                except Exception as e:
+                    return Response(
+                        {"error": f"Failed to parse Word document: {str(e)}"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                    
+            elif file_type == "pdf":
+                try:
+                    from PyPDF2 import PdfReader
+                    reader = PdfReader(io.BytesIO(doc_bytes))
+                    extracted_text = "\n".join([page.extract_text() or "" for page in reader.pages])
+                except Exception as e:
+                    return Response(
+                        {"error": f"Failed to parse PDF: {str(e)}"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                    
+            elif file_type in ["txt", "rtf", "text"]:
+                try:
+                    extracted_text = doc_bytes.decode("utf-8")
+                except UnicodeDecodeError:
+                    extracted_text = doc_bytes.decode("latin-1")
+                    
+            else:
+                return Response(
+                    {"error": f"Unsupported file type: {file_type}. Supported: docx, pdf, txt"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            if not extracted_text.strip():
+                return Response(
+                    {"error": "No text could be extracted from the document."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            # Truncate if too long
+            max_chars = 50000
+            if len(extracted_text) > max_chars:
+                extracted_text = extracted_text[:max_chars] + "\n\n[Document truncated due to length...]"
+            
+            # Analyze with LLM
+            from .bedrock import chat_completion
+            
+            system_prompt = """You are KiNDD, a helpful assistant for families navigating neurodevelopmental disability services.
+Analyze the following document and provide a helpful summary. Focus on:
+- What type of document this is (IEP, assessment, insurance document, etc.)
+- Key information relevant to the family
+- Any action items or important dates
+- How this relates to services and support available
+
+Be warm, supportive, and use clear language."""
+            
+            user_message = f"{custom_prompt}\n\nDocument content:\n\n{extracted_text}" if custom_prompt else f"Please analyze this document:\n\n{extracted_text}"
+            
+            result = chat_completion(user_message, system_prompt=system_prompt)
+            
+            return Response({
+                "analysis": result,
+                "file_type": file_type,
+                "text_extracted": True,
+                "text_length": len(extracted_text),
+            })
+            
+        except Exception as e:
+            return Response(
+                {"error": f"Document analysis failed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

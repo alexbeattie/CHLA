@@ -11,6 +11,8 @@ psycopg[binary]==3.2.9; python_version >= "3.13"
 whitenoise>=6,<7
 requests==2.32.3
 openpyxl==3.1.5  # Excel file support for data imports
+python-docx==1.1.0  # Word document text extraction
+PyPDF2==3.0.1  # PDF text extraction
 
 # AWS Bedrock LLM Integration
 boto3>=1.34.0  # AWS SDK for Python

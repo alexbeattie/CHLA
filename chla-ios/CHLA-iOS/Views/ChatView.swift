@@ -210,9 +210,9 @@ struct ChatView: View {
                         // It's an image - use the image analysis flow
                         selectedImage = image
                     } else {
-                        // It's a document (PDF, Word, etc.) - analyze as document
+                        // It's a document (PDF, Word, etc.) - use document analysis endpoint
                         Task {
-                            await llmService.analyzeImage(data, type: .document, prompt: "This is a \(fileExtension.uppercased()) document. Please analyze its contents.")
+                            await llmService.analyzeDocument(data, fileType: fileExtension)
                         }
                     }
                 }
