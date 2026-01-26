@@ -333,7 +333,6 @@ struct ChatView: View {
             return
         }
         
-        showingImageAnalysisSheet = false
         selectedImage = nil
         
         Task {
