@@ -204,12 +204,15 @@ struct ChatView: View {
                 }
             }
             .sheet(isPresented: $showingDocumentPicker) {
+                // Capture analysis type at the moment picker is shown to avoid race condition
+                let capturedType = pendingAnalysisType
                 DocumentPicker { data, fileExtension in
                     // Handle different file types
-                    if let image = UIImage(data: data) {
-                        // It's an image - delay to allow picker to dismiss, then analyze
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            selectedImage = image
+                    if let image = UIImage(data: data),
+                       let imageData = image.jpegData(compressionQuality: 0.8) {
+                        // It's an image - analyze directly with captured type
+                        Task {
+                            await llmService.analyzeImage(imageData, type: capturedType)
                         }
                     } else {
                         // It's a document (PDF, Word, etc.) - use document analysis endpoint
