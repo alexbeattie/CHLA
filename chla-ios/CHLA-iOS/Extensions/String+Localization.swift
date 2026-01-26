@@ -3,6 +3,7 @@
 //  CHLA-iOS
 //
 //  Localization helper for SwiftUI
+//  Using hardcoded strings for now - can add .strings file support later
 //
 
 import Foundation
@@ -19,183 +20,182 @@ extension String {
     }
 }
 
-// MARK: - Localization Keys
+// MARK: - Localization Keys (Hardcoded English)
 
-/// Centralized localization keys for type-safety
+/// Centralized localization - hardcoded for reliability
 enum L10n {
     // MARK: - Common
     enum Common {
-        static let search = "common.search".localized
-        static let cancel = "common.cancel".localized
-        static let close = "common.close".localized
-        static let save = "common.save".localized
-        static let loading = "common.loading".localized
-        static let error = "common.error".localized
-        static let refresh = "common.refresh".localized
-        static let clearAll = "common.clearAll".localized
-        static let seeAll = "common.seeAll".localized
-        static let continueText = "common.continue".localized
-        static let settings = "common.settings".localized
+        static let search = "Search"
+        static let cancel = "Cancel"
+        static let close = "Close"
+        static let save = "Save"
+        static let loading = "Loading..."
+        static let error = "Error"
+        static let refresh = "Refresh"
+        static let clearAll = "Clear All"
+        static let seeAll = "See All"
+        static let continueText = "Continue"
+        static let settings = "Settings"
     }
     
     // MARK: - Navigation
     enum Nav {
-        static let home = "nav.home".localized
-        static let map = "nav.map".localized
-        static let regions = "nav.regions".localized
-        static let browse = "nav.browse".localized
-        static let more = "nav.more".localized
+        static let home = "Home"
+        static let map = "Map"
+        static let regions = "Regions"
+        static let browse = "Browse"
+        static let more = "More"
     }
     
     // MARK: - Home
     enum Home {
-        static let resourceNavigator = "home.resourceNavigator".localized
-        static let tagline = "home.tagline".localized
-        static let enterZip = "home.enterZip".localized
-        static let quickActions = "home.quickActions".localized
-        static let nearMe = "home.nearMe".localized
-        static let useLocation = "home.useLocation".localized
-        static let map = "home.map".localized
-        static let explore = "home.explore".localized
-        static let browse = "home.browse".localized
-        static let allResources = "home.allResources".localized
-        static let therapyTypes = "home.therapyTypes".localized
-        static let yourRegionalCenter = "home.yourRegionalCenter".localized
-        static let laCountyRegionalCenters = "home.laCountyRegionalCenters".localized
-        static let sevenRegionalCenters = "home.7RegionalCenters".localized
-        static let findYourCenter = "home.findYourCenter".localized
-        static let atAGlance = "home.atAGlance".localized
-        static let resources = "home.resources".localized
-        static let centers = "home.centers".localized
-        static let free = "home.free".localized
-        static let always = "home.always".localized
-        static let changePreferences = "home.changePreferences".localized
-        static let changePreferencesMessage = "home.changePreferencesMessage".localized
+        static let resourceNavigator = "Resource Navigator"
+        static let tagline = "Find developmental disability services\nin Los Angeles County"
+        static let enterZip = "Enter ZIP code"
+        static let quickActions = "Quick Actions"
+        static let nearMe = "Near Me"
+        static let useLocation = "Use location"
+        static let map = "Map"
+        static let explore = "Explore"
+        static let browse = "Browse"
+        static let allResources = "All resources"
+        static let therapyTypes = "Therapy Types"
+        static let yourRegionalCenter = "Your Regional Center"
+        static let laCountyRegionalCenters = "LA County Regional Centers"
+        static let sevenRegionalCenters = "7 Regional Centers"
+        static let findYourCenter = "Find your center by location"
+        static let atAGlance = "At a Glance"
+        static let resources = "Resources"
+        static let centers = "Centers"
+        static let free = "Free"
+        static let always = "Always"
+        static let changePreferences = "Change My Preferences"
+        static let changePreferencesMessage = "This will guide you through the setup to update your location, age group, and therapy preferences."
     }
     
     // MARK: - Resources
     enum Resources {
-        static let title = "resources.title".localized
-        static let searchPrompt = "resources.searchPrompt".localized
-        static let loading = "resources.loading".localized
-        static let noResults = "resources.noResults".localized
-        static let noResultsDescription = "resources.noResultsDescription".localized
+        static let title = "Resources"
+        static let searchPrompt = "Search resources, services, or ZIP code"
+        static let loading = "Loading resources..."
+        static let noResults = "No Resources Found"
+        static let noResultsDescription = "Try adjusting your search filters or expanding your search radius."
         static func found(_ count: Int) -> String {
-            let key = count == 1 ? "resources.foundSingular" : "resources.foundPlural"
-            return key.localized(with: count)
+            count == 1 ? "\(count) resource found" : "\(count) resources found"
         }
-        static let clearSearch = "resources.clearSearch".localized
-        static let popularSearches = "resources.popularSearches".localized
-        static let sortBy = "resources.sortBy".localized
-        static let distance = "resources.distance".localized
-        static let name = "resources.name".localized
+        static let clearSearch = "Clear search"
+        static let popularSearches = "Popular Searches"
+        static let sortBy = "Sort by"
+        static let distance = "Distance"
+        static let name = "Name"
     }
     
     // MARK: - Provider
     enum Provider {
-        static let away = "provider.away".localized
-        static let directions = "provider.directions".localized
-        static let website = "provider.website".localized
-        static let services = "provider.services".localized
-        static let ages = "provider.ages".localized
-        static let accepts = "provider.accepts".localized
-        static let more = "provider.more".localized
-        static let call = "provider.call".localized
-        static let getDirections = "provider.getDirections".localized
+        static let away = "away"
+        static let directions = "Directions"
+        static let website = "Website"
+        static let services = "Services"
+        static let ages = "Ages"
+        static let accepts = "Accepts"
+        static let more = "more"
+        static let call = "Call"
+        static let getDirections = "Get Directions"
     }
     
     // MARK: - Regional Centers
     enum RC {
-        static let title = "rc.title".localized
-        static let laCounty = "rc.laCounty".localized
-        static let findByZip = "rc.findByZip".localized
-        static let viewOnMap = "rc.viewOnMap".localized
-        static let contact = "rc.contact".localized
-        static let website = "rc.website".localized
-        static let servesAreas = "rc.servesAreas".localized
+        static let title = "Regional Centers"
+        static let laCounty = "Los Angeles County"
+        static let findByZip = "Find by ZIP Code"
+        static let viewOnMap = "View on Map"
+        static let contact = "Contact"
+        static let website = "Website"
+        static let servesAreas = "Serves areas"
     }
     
     // MARK: - Filters
     enum Filters {
-        static let title = "filters.title".localized
-        static let therapyType = "filters.therapyType".localized
-        static let ageGroup = "filters.ageGroup".localized
-        static let insurance = "filters.insurance".localized
-        static let diagnosis = "filters.diagnosis".localized
-        static let apply = "filters.apply".localized
-        static let reset = "filters.reset".localized
+        static let title = "Filters"
+        static let therapyType = "Therapy Type"
+        static let ageGroup = "Age Group"
+        static let insurance = "Insurance"
+        static let diagnosis = "Diagnosis"
+        static let apply = "Apply Filters"
+        static let reset = "Reset"
     }
     
     // MARK: - About
     enum About {
-        static let title = "about.title".localized
-        static let mission = "about.mission".localized
-        static let missionText = "about.missionText".localized
-        static let version = "about.version".localized
-        static let contact = "about.contact".localized
-        static let website = "about.website".localized
+        static let title = "About KINDD"
+        static let mission = "Our Mission"
+        static let missionText = "We create hope and build healthier futures by connecting families with the autism and developmental disability services they need."
+        static let version = "Version"
+        static let contact = "Contact Us"
+        static let website = "Visit Website"
     }
     
     // MARK: - FAQ
     enum FAQ {
-        static let title = "faq.title".localized
-        static let subtitle = "faq.subtitle".localized
+        static let title = "FAQ"
+        static let subtitle = "Frequently Asked Questions"
     }
     
     // MARK: - Onboarding
     enum Onboarding {
-        static let welcome = "onboarding.welcome".localized
-        static let welcomeSubtitle = "onboarding.welcomeSubtitle".localized
-        static let getStarted = "onboarding.getStarted".localized
-        static let skip = "onboarding.skip".localized
-        static let next = "onboarding.next".localized
-        static let done = "onboarding.done".localized
-        static let locationTitle = "onboarding.locationTitle".localized
-        static let locationSubtitle = "onboarding.locationSubtitle".localized
+        static let welcome = "Welcome to KINDD"
+        static let welcomeSubtitle = "Find developmental disability resources in Los Angeles County"
+        static let getStarted = "Get Started"
+        static let skip = "Skip"
+        static let next = "Next"
+        static let done = "Done"
+        static let locationTitle = "Enable Location"
+        static let locationSubtitle = "Find resources near you"
     }
     
     // MARK: - Settings
     enum Settings {
-        static let title = "settings.title".localized
-        static let resetOnboarding = "settings.resetOnboarding".localized
-        static let about = "settings.about".localized
-        static let faq = "settings.faq".localized
-        static let privacy = "settings.privacy".localized
-        static let terms = "settings.terms".localized
+        static let title = "Settings"
+        static let resetOnboarding = "Reset Onboarding"
+        static let about = "About"
+        static let faq = "FAQ"
+        static let privacy = "Privacy Policy"
+        static let terms = "Terms of Service"
     }
     
     // MARK: - Errors
     enum Error {
-        static let network = "error.network".localized
-        static let loadingFailed = "error.loadingFailed".localized
-        static let locationDenied = "error.locationDenied".localized
+        static let network = "Network error. Please check your connection."
+        static let loadingFailed = "Failed to load data. Please try again."
+        static let locationDenied = "Location access denied. Enable in Settings."
     }
     
     // MARK: - Chat / AI Assistant
     enum Chat {
-        static let title = "chat.title".localized
-        static let inputPlaceholder = "chat.inputPlaceholder".localized
-        static let send = "chat.send".localized
-        static let cancel = "chat.cancel".localized
-        static let clearChat = "chat.clearChat".localized
-        static let clearConfirmTitle = "chat.clearConfirmTitle".localized
-        static let clearConfirmMessage = "chat.clearConfirmMessage".localized
-        static let welcomeTitle = "chat.welcomeTitle".localized
-        static let welcomeSubtitle = "chat.welcomeSubtitle".localized
-        static let welcomeHint = "chat.welcomeHint".localized
-        static let suggestion1 = "chat.suggestion1".localized
-        static let suggestion2 = "chat.suggestion2".localized
-        static let suggestion3 = "chat.suggestion3".localized
-        static let suggestion4 = "chat.suggestion4".localized
-        static let findProviders = "chat.findProviders".localized
-        static let assessment = "chat.assessment".localized
-        static let myRC = "chat.myRC".localized
-        static let earlyStart = "chat.earlyStart".localized
-        static let insurance = "chat.insurance".localized
-        static let waitlists = "chat.waitlists".localized
-        static let age3Transition = "chat.age3Transition".localized
-        static let speech = "chat.speech".localized
-        static let copied = "chat.copied".localized
-        static let thinking = "chat.thinking".localized
+        static let title = "Ask KiNDD"
+        static let inputPlaceholder = "Ask about services, providers..."
+        static let send = "Send"
+        static let cancel = "Cancel"
+        static let clearChat = "Clear Chat"
+        static let clearConfirmTitle = "Clear Conversation"
+        static let clearConfirmMessage = "This will delete all messages. This action cannot be undone."
+        static let welcomeTitle = "Hi! I'm KiNDD"
+        static let welcomeSubtitle = "Your AI assistant for finding developmental disability resources in LA County"
+        static let welcomeHint = "Try asking me about:"
+        static let suggestion1 = "Find ABA providers near me"
+        static let suggestion2 = "Which Regional Center serves my ZIP code?"
+        static let suggestion3 = "What insurance covers ABA therapy?"
+        static let suggestion4 = "How do I get started with Early Intervention?"
+        static let findProviders = "Find providers"
+        static let assessment = "Assessment"
+        static let myRC = "My RC"
+        static let earlyStart = "Early Start"
+        static let insurance = "Insurance"
+        static let waitlists = "Waitlists"
+        static let age3Transition = "Age 3 transition"
+        static let speech = "Speech"
+        static let copied = "Copied!"
+        static let thinking = "Thinking..."
     }
 }
