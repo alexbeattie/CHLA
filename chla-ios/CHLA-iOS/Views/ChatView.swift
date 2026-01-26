@@ -26,6 +26,7 @@ struct ChatView: View {
     @State private var showingImagePicker = false
     @State private var showingCamera = false
     @State private var showingImageTypeSheet = false
+    @State private var showingImageAnalysisSheet = false
     @State private var selectedImage: UIImage?
     @State private var selectedImageType: ImageAnalysisType = .insuranceCard
 
@@ -181,16 +182,23 @@ struct ChatView: View {
             .fullScreenCover(isPresented: $showingCamera) {
                 ImagePicker(image: $selectedImage, sourceType: .camera)
             }
-            .sheet(item: $selectedImageBinding) { image in
-                ImageAnalysisSheet(
-                    image: image,
-                    onAnalyze: { type in
-                        analyzeSelectedImage(type: type)
-                    },
-                    onCancel: {
-                        selectedImage = nil
-                    }
-                )
+            .sheet(isPresented: $showingImageAnalysisSheet) {
+                if let image = selectedImage {
+                    ImageAnalysisSheet(
+                        image: IdentifiableImage(image: image),
+                        onAnalyze: { type in
+                            analyzeSelectedImage(type: type)
+                        },
+                        onCancel: {
+                            selectedImage = nil
+                        }
+                    )
+                }
+            }
+            .onChange(of: selectedImage) { _, newImage in
+                if newImage != nil {
+                    showingImageAnalysisSheet = true
+                }
             }
             .onAppear {
                 fetchUserZipCode()
@@ -300,19 +308,13 @@ struct ChatView: View {
     
     // MARK: - Image Analysis
     
-    private var selectedImageBinding: Binding<IdentifiableImage?> {
-        Binding(
-            get: { selectedImage.map { IdentifiableImage(image: $0) } },
-            set: { selectedImage = $0?.image }
-        )
-    }
-    
     private func analyzeSelectedImage(type: ImageAnalysisType) {
         guard let image = selectedImage,
               let imageData = image.jpegData(compressionQuality: 0.8) else {
             return
         }
         
+        showingImageAnalysisSheet = false
         selectedImage = nil
         
         Task {
