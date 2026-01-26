@@ -72,28 +72,27 @@ fun MapScreen(
                     myLocationButtonEnabled = true
                 )
             ) {
-                // Provider markers
-                val markersRendered = remember { mutableStateOf(0) }
-                uiState.providers.forEach { provider ->
-                    if (provider.hasCoordinates) {
-                        markersRendered.value++
-                        Marker(
-                            state = MarkerState(
-                                position = LatLng(provider.latitude!!, provider.longitude!!)
-                            ),
-                            title = provider.name,
-                            snippet = provider.therapyTypes?.firstOrNull() ?: "",
-                            onClick = {
-                                onProviderClick(provider.id)
-                                true
-                            }
-                        )
-                    }
+                // Provider markers - compute count without mutating state during composition
+                val providersWithCoordinates = uiState.providers.filter { it.hasCoordinates }
+                
+                providersWithCoordinates.forEach { provider ->
+                    Marker(
+                        state = MarkerState(
+                            position = LatLng(provider.latitude!!, provider.longitude!!)
+                        ),
+                        title = provider.name,
+                        snippet = provider.therapyTypes?.firstOrNull() ?: "",
+                        onClick = {
+                            onProviderClick(provider.id)
+                            true
+                        }
+                    )
                 }
-                // Log after rendering
-                LaunchedEffect(markersRendered.value) {
-                    if (markersRendered.value > 0) {
-                        Log.d(TAG, "Rendered ${markersRendered.value} markers on map")
+                
+                // Log marker count - LaunchedEffect with stable key
+                LaunchedEffect(providersWithCoordinates.size) {
+                    if (providersWithCoordinates.isNotEmpty()) {
+                        Log.d(TAG, "Rendered ${providersWithCoordinates.size} markers on map")
                     }
                 }
             }
