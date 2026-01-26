@@ -14,6 +14,7 @@ import PhotosUI
 struct ChatView: View {
     @StateObject private var llmService = LLMService.shared
     @StateObject private var locationService = LocationService()
+    @StateObject private var speechRecognizer = SpeechRecognizer()
     @EnvironmentObject var appState: AppState
     @State private var inputText = ""
     @FocusState private var isFocused: Bool
@@ -106,10 +107,17 @@ struct ChatView: View {
                     isFocused: $isFocused,
                     isLoading: llmService.isLoading,
                     isStreaming: llmService.messages.last?.isStreaming == true,
+                    isRecording: speechRecognizer.isRecording,
                     onSend: { sendMessage(inputText) },
                     onCancel: { llmService.cancelStreaming() },
-                    onAttachment: { showingAttachmentTypeSheet = true }
+                    onAttachment: { showingAttachmentTypeSheet = true },
+                    onMicTap: { speechRecognizer.toggleRecording() }
                 )
+                .onChange(of: speechRecognizer.transcript) { _, newTranscript in
+                    if !newTranscript.isEmpty {
+                        inputText = newTranscript
+                    }
+                }
             }
             .navigationTitle(L10n.Chat.title)
             .navigationBarTitleDisplayMode(.inline)
@@ -1016,9 +1024,11 @@ struct ChatInputBar: View {
     var isFocused: FocusState<Bool>.Binding
     let isLoading: Bool
     let isStreaming: Bool
+    var isRecording: Bool = false
     let onSend: () -> Void
     let onCancel: () -> Void
     var onAttachment: (() -> Void)? = nil
+    var onMicTap: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1030,23 +1040,45 @@ struct ChatInputBar: View {
                     Button(action: onAttachment) {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 28))
-                            .foregroundColor(isLoading ? Color(uiColor: .secondaryLabel) : Color(hex: "6366F1"))
+                            .foregroundColor(isLoading || isRecording ? Color(uiColor: .secondaryLabel) : Color(hex: "6366F1"))
                     }
-                    .disabled(isLoading || isStreaming)
+                    .disabled(isLoading || isStreaming || isRecording)
                 }
                 
-                // Text field
-                HStack {
+                // Text field with microphone button
+                HStack(spacing: 8) {
                     TextField("Ask about services...", text: $text, axis: .vertical)
                         .focused(isFocused)
                         .lineLimit(1...5)
-                        .padding(.horizontal, 16)
+                        .padding(.leading, 16)
                         .padding(.vertical, 12)
                         .foregroundColor(Color(uiColor: .label))
-                        .disabled(isStreaming)
+                        .disabled(isStreaming || isRecording)
+                    
+                    // Microphone button (inside text field area)
+                    if let onMicTap = onMicTap {
+                        Button(action: onMicTap) {
+                            Image(systemName: isRecording ? "mic.fill" : "mic")
+                                .font(.system(size: 18))
+                                .foregroundColor(isRecording ? Color(hex: "EF4444") : Color(hex: "6366F1"))
+                                .frame(width: 32, height: 32)
+                                .background(
+                                    Circle()
+                                        .fill(isRecording ? Color(hex: "EF4444").opacity(0.15) : Color(hex: "6366F1").opacity(0.1))
+                                )
+                                .scaleEffect(isRecording ? 1.1 : 1.0)
+                                .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: isRecording)
+                        }
+                        .disabled(isLoading || isStreaming)
+                        .padding(.trailing, 8)
+                    }
                 }
                 .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(24)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(isRecording ? Color(hex: "EF4444") : Color.clear, lineWidth: 2)
+                )
 
                 // Send/Cancel button
                 Button(action: isStreaming ? onCancel : onSend) {
