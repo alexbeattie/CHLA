@@ -16,6 +16,7 @@ struct ChatView: View {
     @StateObject private var locationService = LocationService()
     @StateObject private var speechRecognizer = SpeechRecognizer()
     @StateObject private var textToSpeech = TextToSpeech()
+    @StateObject private var conversationHistory = ConversationHistory()
     
     // Track text that existed before recording started (for proper speech appending)
     @State private var textBeforeRecording: String = ""
@@ -26,6 +27,8 @@ struct ChatView: View {
     @State private var showingExportSheet = false
     @State private var exportText = ""
     @State private var userZipCode: String?
+    @State private var showingHistory = false
+    @State private var currentConversationId: UUID?
     
     // Attachment flow state (Step 1: Type, Step 2: Source)
     @State private var showingAttachmentTypeSheet = false  // Step 1: Choose analysis type
@@ -164,9 +167,26 @@ struct ChatView: View {
             .navigationTitle(L10n.Chat.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // History button on leading side
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingHistory = true
+                    } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         if !llmService.messages.isEmpty {
+                            Button {
+                                saveCurrentConversation()
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            } label: {
+                                Label("Save Chat", systemImage: "square.and.arrow.down")
+                            }
+                            
                             Button {
                                 // Get regional center from last message if available
                                 let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
@@ -208,6 +228,15 @@ struct ChatView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+            }
+            .sheet(isPresented: $showingHistory) {
+                ConversationHistorySheet(
+                    history: conversationHistory,
+                    onSelect: { conversation in
+                        loadConversation(conversation)
+                        showingHistory = false
+                    }
+                )
             }
             .confirmationDialog(L10n.Chat.clearConfirmTitle, isPresented: $showingClearConfirmation) {
                 Button(L10n.Chat.clearChat, role: .destructive) {
@@ -362,6 +391,34 @@ struct ChatView: View {
                 UIApplication.shared.open(url)
             }
         }
+    }
+    
+    // MARK: - Conversation History
+    
+    private func saveCurrentConversation() {
+        let messages = llmService.messages.map { msg in
+            (role: msg.role.rawValue, content: msg.content, timestamp: msg.timestamp)
+        }
+        conversationHistory.saveConversation(messages: messages, existingId: currentConversationId)
+        
+        // Set current ID if this is a new save
+        if currentConversationId == nil && !conversationHistory.conversations.isEmpty {
+            currentConversationId = conversationHistory.conversations.first?.id
+        }
+    }
+    
+    private func loadConversation(_ conversation: SavedConversation) {
+        // Clear current chat
+        llmService.clearChat()
+        
+        // Load messages from saved conversation
+        for msg in conversation.messages {
+            guard let role = ChatMessage.MessageRole(rawValue: msg.role) else { continue }
+            llmService.addRestoredMessage(role: role, content: msg.content, timestamp: msg.timestamp)
+        }
+        
+        // Set current conversation ID
+        currentConversationId = conversation.id
     }
 
     private func sendMessage(_ text: String) {
@@ -1470,6 +1527,114 @@ struct DocumentPicker: UIViewControllerRepresentable {
 }
 
 // Note: ShareSheet is defined in ContentView.swift
+
+// MARK: - Conversation History Sheet
+
+struct ConversationHistorySheet: View {
+    @ObservedObject var history: ConversationHistory
+    let onSelect: (SavedConversation) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var showingClearConfirmation = false
+    
+    var body: some View {
+        NavigationStack {
+            Group {
+                if history.conversations.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 48))
+                            .foregroundColor(Color(uiColor: .tertiaryLabel))
+                        
+                        Text("No Saved Conversations")
+                            .font(.headline)
+                            .foregroundColor(Color(uiColor: .secondaryLabel))
+                        
+                        Text("Save a conversation using the menu\nto see it here.")
+                            .font(.subheadline)
+                            .foregroundColor(Color(uiColor: .tertiaryLabel))
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(history.conversations) { conversation in
+                            ConversationRow(conversation: conversation)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    onSelect(conversation)
+                                }
+                        }
+                        .onDelete { indexSet in
+                            for index in indexSet {
+                                history.deleteConversation(id: history.conversations[index].id)
+                            }
+                        }
+                    }
+                    .listStyle(.insetGrouped)
+                }
+            }
+            .navigationTitle("Chat History")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+                
+                if !history.conversations.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(role: .destructive) {
+                            showingClearConfirmation = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+            }
+            .confirmationDialog("Clear All History?", isPresented: $showingClearConfirmation) {
+                Button("Clear All", role: .destructive) {
+                    history.clearAll()
+                }
+            } message: {
+                Text("This will delete all saved conversations. This action cannot be undone.")
+            }
+        }
+    }
+}
+
+struct ConversationRow: View {
+    let conversation: SavedConversation
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(conversation.title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Color(uiColor: .label))
+                    .lineLimit(1)
+                
+                Spacer()
+                
+                Text(ConversationHistory.formatDate(conversation.updatedAt))
+                    .font(.caption)
+                    .foregroundColor(Color(uiColor: .tertiaryLabel))
+            }
+            
+            Text(conversation.preview)
+                .font(.subheadline)
+                .foregroundColor(Color(uiColor: .secondaryLabel))
+                .lineLimit(2)
+            
+            Text("\(conversation.messages.count) messages")
+                .font(.caption2)
+                .foregroundColor(Color(uiColor: .tertiaryLabel))
+        }
+        .padding(.vertical, 4)
+    }
+}
 
 #Preview {
     ChatView()

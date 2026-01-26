@@ -45,7 +45,7 @@ struct ChatMessage: Identifiable, Equatable {
         self.regionalCenter = regionalCenter
     }
 
-    enum MessageRole {
+    enum MessageRole: String {
         case user
         case assistant
         case system
@@ -220,6 +220,17 @@ class LLMService: ObservableObject {
         messages.removeAll()
         pendingText = ""
         error = nil
+    }
+    
+    // Add a restored message from history
+    func addRestoredMessage(role: ChatMessage.MessageRole, content: String, timestamp: Date) {
+        let message = ChatMessage(
+            role: role,
+            content: content,
+            timestamp: timestamp,
+            isStreaming: false
+        )
+        messages.append(message)
     }
 
     // MARK: - Message Actions

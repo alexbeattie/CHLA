@@ -40,6 +40,7 @@
 		F3C4D5E6F7081ALOCBLD /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C4D5E6F7081ALOCREF /* String+Localization.swift */; };
 		SPEECH001RECOGNIZERBLD /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */; };
 		TTS00001SERVICEBLD /* TextToSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = TTS00001SERVICEREF /* TextToSpeech.swift */; };
+		CONVHIST01SERVICEBLD /* ConversationHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CONVHIST01SERVICEREF /* ConversationHistory.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -77,6 +78,7 @@
 		F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
 		TTS00001SERVICEREF /* TextToSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeech.swift; sourceTree = "<group>"; };
+		CONVHIST01SERVICEREF /* ConversationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistory.swift; sourceTree = "<group>"; };
 		F3C4D5E6F7081ALOCREF /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
 		L10N00003ENSTRINGS /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "CHLA-iOS/Resources/en.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
 		L10N00004ESSTRINGS /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = "CHLA-iOS/Resources/es.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
@@ -111,6 +113,7 @@
 				9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */,
 				SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */,
 				TTS00001SERVICEREF /* TextToSpeech.swift */,
+				CONVHIST01SERVICEREF /* ConversationHistory.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -315,6 +318,7 @@
 				5D76754352E7C07BA12CA586 /* SettingsView.swift in Sources */,
 				SPEECH001RECOGNIZERBLD /* SpeechRecognizer.swift in Sources */,
 				TTS00001SERVICEBLD /* TextToSpeech.swift in Sources */,
+				CONVHIST01SERVICEBLD /* ConversationHistory.swift in Sources */,
 				F3C4D5E6F7081ALOCBLD /* String+Localization.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
