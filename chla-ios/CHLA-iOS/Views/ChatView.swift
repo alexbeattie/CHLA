@@ -354,6 +354,13 @@ struct ChatView: View {
             if let url = URL(string: urlString) {
                 UIApplication.shared.open(url)
             }
+            
+        case .getDirections(let address):
+            // Open in Apple Maps
+            let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            if let url = URL(string: "maps://?daddr=\(encodedAddress)") {
+                UIApplication.shared.open(url)
+            }
         }
     }
 
@@ -757,6 +764,7 @@ enum ChatAction: Identifiable {
     case viewProviderList
     case callPhone(number: String)
     case openWebsite(url: String)
+    case getDirections(address: String)
 
     var id: String {
         switch self {
@@ -766,6 +774,7 @@ enum ChatAction: Identifiable {
         case .viewProviderList: return "list"
         case .callPhone(let num): return "call_\(num)"
         case .openWebsite(let url): return "web_\(url)"
+        case .getDirections(let addr): return "dir_\(addr)"
         }
     }
 
@@ -777,6 +786,7 @@ enum ChatAction: Identifiable {
         case .viewProviderList: return "list.bullet"
         case .callPhone: return "phone"
         case .openWebsite: return "safari"
+        case .getDirections: return "arrow.triangle.turn.up.right.diamond"
         }
     }
 
@@ -790,6 +800,7 @@ enum ChatAction: Identifiable {
         case .viewProviderList: return "Browse All"
         case .callPhone: return "Call Now"
         case .openWebsite: return "Visit Website"
+        case .getDirections: return "Get Directions"
         }
     }
 }
@@ -845,6 +856,17 @@ struct MessageBubble: View {
 
         var actions: [ChatAction] = []
         let content = message.content.lowercased()
+        let originalContent = message.content
+
+        // Detect phone numbers - look for patterns like (XXX) XXX-XXXX or XXX-XXX-XXXX
+        if let phoneNumber = extractPhoneNumber(from: originalContent) {
+            actions.append(.callPhone(number: phoneNumber))
+        }
+        
+        // Detect addresses - look for street addresses with city/state patterns
+        if let address = extractAddress(from: originalContent) {
+            actions.append(.getDirections(address: address))
+        }
 
         // Detect therapy type mentions
         if content.contains("aba") || content.contains("applied behavior") {
@@ -869,8 +891,42 @@ struct MessageBubble: View {
             }
         }
 
-        // Limit to 3 actions
-        return Array(actions.prefix(3))
+        // Limit to 4 actions to accommodate phone + directions
+        return Array(actions.prefix(4))
+    }
+    
+    // Extract first phone number from text
+    private func extractPhoneNumber(from text: String) -> String? {
+        // Pattern for US phone numbers: (XXX) XXX-XXXX, XXX-XXX-XXXX, XXX.XXX.XXXX, XXXXXXXXXX
+        let patterns = [
+            "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}"
+        ]
+        
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+               let range = Range(match.range, in: text) {
+                return String(text[range])
+            }
+        }
+        return nil
+    }
+    
+    // Extract address from text - looks for street number + street name + city/CA patterns
+    private func extractAddress(from text: String) -> String? {
+        // Look for typical address patterns: "1234 Street Name, City, CA"
+        let pattern = "\\d+\\s+[A-Za-z]+(?:\\s+[A-Za-z]+)*(?:,\\s*[A-Za-z\\s]+)?(?:,\\s*CA)?\\s*\\d{5}?"
+        
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+           let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+           let range = Range(match.range, in: text) {
+            let address = String(text[range]).trimmingCharacters(in: .whitespacesAndNewlines)
+            // Only return if it looks like an address (has at least 3 words)
+            if address.split(separator: " ").count >= 3 {
+                return address
+            }
+        }
+        return nil
     }
 
     var body: some View {
