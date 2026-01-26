@@ -27,6 +27,7 @@ struct ChatView: View {
     @State private var showingAttachmentTypeSheet = false  // Step 1: Choose analysis type
     @State private var showingSourceOptions = false         // Step 2: Choose source
     @State private var pendingAnalysisType: ImageAnalysisType = .document
+    @State private var typeWasSelected = false  // Track if user selected a type vs cancelled
     
     // Image/Document picker state
     @State private var showingImagePicker = false
@@ -177,13 +178,16 @@ struct ChatView: View {
                 ShareSheet(items: [exportText])
             }
             // Step 1: Choose what type of document to analyze
-            .sheet(isPresented: $showingAttachmentTypeSheet) {
+            .sheet(isPresented: $showingAttachmentTypeSheet, onDismiss: {
+                // Only show source options if user actually selected a type (not cancelled)
+                if typeWasSelected {
+                    typeWasSelected = false  // Reset flag
+                    showingSourceOptions = true
+                }
+            }) {
                 AttachmentTypeSheet(onTypeSelected: { type in
                     pendingAnalysisType = type
-                    // Small delay to allow sheet to dismiss before showing dialog
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        showingSourceOptions = true
-                    }
+                    typeWasSelected = true  // Mark that a type was selected
                 })
             }
             // Step 2: Choose source (Photo Library, Camera, Files)
