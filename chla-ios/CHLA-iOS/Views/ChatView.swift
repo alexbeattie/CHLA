@@ -435,17 +435,17 @@ struct AnalysisTypeButton: View {
                     .font(.system(size: 24))
                     .foregroundColor(Color(hex: "6366F1"))
                     .frame(width: 44, height: 44)
-                    .background(Color(hex: "EEF2FF"))
+                    .background(Color(hex: "6366F1").opacity(0.15))
                     .cornerRadius(12)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(type.title)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color.primary)
+                        .foregroundColor(Color(uiColor: .label))
                     
                     Text(typeDescription)
                         .font(.caption)
-                        .foregroundColor(Color.secondary)
+                        .foregroundColor(Color(uiColor: .secondaryLabel))
                 }
                 
                 Spacer()
@@ -454,9 +454,8 @@ struct AnalysisTypeButton: View {
                     .foregroundColor(Color(uiColor: .tertiaryLabel))
             }
             .padding(16)
-            .background(Color.white)
+            .background(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(16)
-            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
         }
         .buttonStyle(ScaleButtonStyle())
     }
