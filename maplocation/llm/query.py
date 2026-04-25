@@ -136,6 +136,9 @@ def format_user_context(
         services = ", ".join(user_context["current_services"])
         lines.append(f"- Current Services: {services}")
 
+    if user_context.get("memory_context"):
+        lines.append(f"- Remembered Context: {user_context['memory_context']}")
+
     return "\n".join(lines)
 
 

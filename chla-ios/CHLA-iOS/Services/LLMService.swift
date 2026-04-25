@@ -165,6 +165,19 @@ class LLMService: ObservableObject {
     private var streamingTask: Task<Void, Never>?
     private var pendingText = ""
     private var updateDebounceTask: Task<Void, Never>?
+    
+    /// Get the user's preferred language code for AI responses
+    /// Returns the app's language setting, or device language, or "en" as fallback
+    private static func getCurrentLanguageCode() -> String {
+        // Check if user has set a specific language preference in the app
+        if let saved = UserDefaults.standard.string(forKey: "appLanguage"),
+           let language = AppLanguage(rawValue: saved),
+           let localeId = language.localeIdentifier {
+            return localeId
+        }
+        // Fall back to device language
+        return Locale.current.language.languageCode?.identifier ?? "en"
+    }
 
     init() {
         #if DEBUG
@@ -478,8 +491,8 @@ class LLMService: ObservableObject {
         // Don't set Accept header - DRF returns 406 for text/event-stream
         request.timeoutInterval = 120
 
-        // Get device locale for AI response language
-        let locale = Locale.current.language.languageCode?.identifier ?? "en"
+        // Get user's language preference for AI response language
+        let locale = Self.getCurrentLanguageCode()
         
         var body: [String: Any] = [
             "query": query,
@@ -492,6 +505,7 @@ class LLMService: ObservableObject {
             if let dx = context.diagnosis { contextDict["diagnosis"] = dx }
             if let ins = context.insurance { contextDict["insurance"] = ins }
             if let services = context.currentServices { contextDict["current_services"] = services }
+            if let mem = context.memoryContext { contextDict["memory_context"] = mem }
             body["context"] = contextDict
         }
 
@@ -680,7 +694,11 @@ class LLMService: ObservableObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 60
 
-        var body: [String: Any] = ["query": query]
+        let locale = Self.getCurrentLanguageCode()
+        var body: [String: Any] = [
+            "query": query,
+            "locale": locale
+        ]
 
         if let context = context {
             var contextDict: [String: Any] = [:]
@@ -689,6 +707,7 @@ class LLMService: ObservableObject {
             if let dx = context.diagnosis { contextDict["diagnosis"] = dx }
             if let ins = context.insurance { contextDict["insurance"] = ins }
             if let services = context.currentServices { contextDict["current_services"] = services }
+            if let mem = context.memoryContext { contextDict["memory_context"] = mem }
             body["context"] = contextDict
         }
 

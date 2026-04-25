@@ -10,16 +10,64 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var locationService = LocationService()
+    @ObservedObject private var languageManager = LanguageManager.shared
 
     @State private var showResetAlert = false
     @State private var apiHealthy = false
     @State private var isCheckingAPI = false
 
+    /// App version from bundle
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "\(version) (\(build))"
+    }
+
     var body: some View {
         NavigationStack {
             List {
+                // Language Selection - Prominent at top
+                Section {
+                    Picker(selection: $languageManager.currentLanguage) {
+                        ForEach(AppLanguage.allCases) { language in
+                            HStack {
+                                Text(language.flag)
+                                Text(language.displayName)
+                            }
+                            .tag(language)
+                        }
+                    } label: {
+                        Label {
+                            Text(L10n.Language.title)
+                        } icon: {
+                            Image(systemName: "globe")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                } header: {
+                    Text(L10n.Language.title)
+                } footer: {
+                    Text("Choose your preferred language for the app interface")
+                }
+
                 // Search Preferences
                 Section {
+                    Picker(selection: $appState.userAudienceType) {
+                        Label("Family", systemImage: "person.2.fill").tag("family")
+                        Label("Clinician", systemImage: "clipboard.fill").tag("clinician")
+                    } label: {
+                        Label("App Mode", systemImage: "person.crop.circle.badge.checkmark")
+                    }
+                    .onChange(of: appState.userAudienceType) { _, newValue in
+                        appState.saveUserContext(audienceType: newValue)
+                    }
+
+                    Button {
+                        appState.resetOnboarding()
+                    } label: {
+                        Label("Edit Profile & Onboarding", systemImage: "person.text.rectangle")
+                    }
+
                     NavigationLink {
                         FiltersEditView(filters: $appState.searchFilters)
                     } label: {
@@ -92,6 +140,22 @@ struct SettingsView: View {
                 // Information
                 Section {
                     NavigationLink {
+                        ClinicianResourcesView()
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Clinician Workspace")
+                                Text("Referral-focused Regional Center tools")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "clipboard.fill")
+                                .foregroundColor(.teal)
+                        }
+                    }
+
+                    NavigationLink {
                         AboutView()
                     } label: {
                         Label("About NDD Resources", systemImage: "info.circle.fill")
@@ -135,9 +199,9 @@ struct SettingsView: View {
                 // About App
                 Section {
                     HStack {
-                        Label("Version", systemImage: "app.badge")
+                        Label(L10n.About.version, systemImage: "app.badge")
                         Spacer()
-                        Text("1.0.0")
+                        Text(appVersion)
                             .foregroundStyle(.secondary)
                     }
 
@@ -148,7 +212,7 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 } header: {
-                    Text("About App")
+                    Text(L10n.About.title)
                 }
 
                 // Reset

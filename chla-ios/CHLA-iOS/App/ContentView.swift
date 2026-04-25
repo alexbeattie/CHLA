@@ -227,6 +227,10 @@ struct MainTabView: View {
                 visibilityManager.showUI()
             }
 
+            if appState.userRegionalCenterName != nil {
+                RegionalCenterIdentityRing(color: appState.userRegionalCenterColor)
+            }
+
             // Floating Glass Tab Bar
             LiquidGlassTabBar(
                 selectedTab: $appState.selectedTab,
@@ -312,6 +316,20 @@ struct MainTabView: View {
         case .shareApp:
             showShareSheet = true
         }
+    }
+}
+
+// MARK: - Regional Center Identity
+struct RegionalCenterIdentityRing: View {
+    let color: Color
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 28, style: .continuous)
+            .stroke(color.opacity(0.9), lineWidth: 5)
+            .shadow(color: color.opacity(0.35), radius: 18)
+            .padding(3)
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
     }
 }
 
@@ -643,75 +661,44 @@ struct AppHeader: View {
 
 // MARK: - Regional Centers Tab View
 struct RegionalCentersTabView: View {
-    @State private var selectedView: Int = 0  // 0 = List, 1 = Map
+    @State private var selectedView: Int = 1  // 0 = List, 1 = Map (default to Map)
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     var body: some View {
         ZStack(alignment: .top) {
-            // Background that extends full screen
-            Color(.systemGroupedBackground)
-                .ignoresSafeArea()
-
             // Content
             if selectedView == 0 {
                 // List content - using RegionalCentersView from separate file
                 RegionalCentersView()
-                    .padding(.top, visibilityManager.isHeaderVisible ? 88 : 0)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
-
-                // Header overlay - positioned at top
-                VStack(spacing: 2) {
-                    HStack {
-                        Text("Regional Centers")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                        Spacer()
+                    .safeAreaInset(edge: .top, spacing: 0) {
+                        // Invisible spacer to push content below picker
+                        Color.clear.frame(height: 44)
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 54)
-                    .padding(.bottom, 2)
-
-                    // Segmented Picker
-                    Picker("View", selection: $selectedView) {
-                        Label("List", systemImage: "list.bullet").tag(0)
-                        Label("Map", systemImage: "map").tag(1)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
-                }
-                .background(.ultraThinMaterial)
-                .offset(y: visibilityManager.isHeaderVisible ? 0 : -100)
-                .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
-                } else {
+            } else {
                 // Full screen map
-                    RegionalCenterMapView()
+                RegionalCenterMapView()
+            }
 
-                // Floating picker overlay for map
-                VStack {
-                    VStack(spacing: 8) {
-                        // Floating segmented picker
-                        Picker("View", selection: $selectedView) {
-                            Label("List", systemImage: "list.bullet").tag(0)
-                            Label("Map", systemImage: "map").tag(1)
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 200)
-                        .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    .padding(.top, 60) // Account for status bar
-                    .offset(y: visibilityManager.isHeaderVisible ? 0 : -100)
-                    .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
-
-                    Spacer()
+            // Floating picker overlay - always visible
+            VStack(spacing: 0) {
+                Picker("View", selection: $selectedView) {
+                    Text("List").tag(0)
+                    Text("Map").tag(1)
                 }
+                .pickerStyle(.segmented)
+                .frame(width: 160)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(.ultraThinMaterial)
+                        .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
+                )
+                .padding(.top, 54)
+
+                Spacer()
             }
         }
-        .ignoresSafeArea(edges: .all)
-        .statusBarHidden(selectedView == 1)
+        .ignoresSafeArea(edges: .top)
     }
 }
 
@@ -897,6 +884,22 @@ struct MoreView: View {
 
                 Section {
                     NavigationLink {
+                        ClinicianResourcesView()
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Clinicians")
+                                Text("Referral and Regional Center tools")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "clipboard.fill")
+                                .foregroundColor(.teal)
+                        }
+                    }
+
+                    NavigationLink {
                         SettingsView()
                     } label: {
                         Label("Settings", systemImage: "gear")
@@ -943,6 +946,86 @@ struct MoreView: View {
                     }
             )
         }
+    }
+}
+
+// MARK: - Clinician Resources
+struct ClinicianResourcesView: View {
+    @EnvironmentObject var appState: AppState
+    @State private var zipCode = ""
+    @State private var matchedCenter: RegionalCenterMatcher.RegionalCenterInfo?
+
+    var body: some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Clinician Workspace")
+                        .font(.largeTitle.weight(.bold))
+                    Text("Use ZIP code context to orient families to their Regional Center and start a provider referral search.")
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 8)
+            }
+
+            Section("Regional Center Lookup") {
+                TextField("Family ZIP code", text: $zipCode)
+                    .keyboardType(.numberPad)
+                    .onChange(of: zipCode) { _, newValue in
+                        zipCode = String(newValue.filter(\.isNumber).prefix(5))
+                        updateMatchedCenter()
+                    }
+
+                if let matchedCenter {
+                    HStack(spacing: 12) {
+                        Text(matchedCenter.shortName)
+                            .font(.caption.weight(.black))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(matchedCenter.uiColor, in: Circle())
+                            .overlay(Circle().stroke(.white, lineWidth: 3))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(matchedCenter.name)
+                                .font(.headline)
+                            Text(matchedCenter.phone)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Button {
+                        appState.saveUserContext(
+                            zipCode: zipCode,
+                            audienceType: "clinician",
+                            regionalCenterName: matchedCenter.name,
+                            regionalCenterShortName: matchedCenter.shortName
+                        )
+                    } label: {
+                        Label("Use This Clinician Context", systemImage: "checkmark.circle.fill")
+                    }
+                }
+            }
+
+            Section("Referral Flow") {
+                Label("Confirm the family's ZIP and Regional Center before handoff.", systemImage: "1.circle")
+                Label("Use filters for therapy type, age range, and funding source.", systemImage: "2.circle")
+                Label("Share Regional Center contact details along with provider options.", systemImage: "3.circle")
+            }
+        }
+        .navigationTitle("Clinicians")
+        .onAppear {
+            zipCode = appState.userZipCode ?? ""
+            updateMatchedCenter()
+        }
+    }
+
+    private func updateMatchedCenter() {
+        guard zipCode.count == 5 else {
+            matchedCenter = nil
+            return
+        }
+
+        matchedCenter = RegionalCenterMatcher.shared.findRegionalCenter(forZipCode: zipCode)
     }
 }
 

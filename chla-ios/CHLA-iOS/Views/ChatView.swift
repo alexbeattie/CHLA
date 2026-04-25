@@ -11,6 +11,27 @@ import CoreLocation
 import UIKit
 import PhotosUI
 
+// PreviewEnv.swift (or at the top of ChatView.swift for a quick test)
+enum PreviewEnv {
+    static var isPreview: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        #else
+        return false
+        #endif
+    }
+}
+extension AppState {
+    static func preview() -> AppState {
+        let state = AppState()
+        state.userZipCode = "90012"
+        state.userChildAge = 3
+        state.userInsurance = "Medi-Cal"
+        // Set any other lightweight preview defaults here
+        return state
+    }
+}
+
 struct ChatView: View {
     @StateObject private var llmService = LLMService.shared
     @StateObject private var locationService = LocationService()
@@ -51,7 +72,7 @@ struct ChatView: View {
         let hour = Calendar.current.component(.hour, from: Date())
         let hasHistory = !conversationHistory.conversations.isEmpty
         let hasActiveConversation = !llmService.messages.isEmpty
-        let userRC = appState.selectedRegionalCenter?.name
+        let userRC = appState.selectedRegionalCenter?.regionalCenter
         let userZip = userZipCode ?? appState.userZipCode
         
         // Context: Time-based greeting prompts
@@ -79,13 +100,13 @@ struct ChatView: View {
         // Core prompts - always show these
         let corePrompts: [(String, String, String)] = [
             ("🔍", L10n.Chat.findProviders, L10n.Chat.suggestion1),
-            ("📋", L10n.Chat.assessment, "chat.assessmentPrompt".localized),
+            ("📋", L10n.Chat.assessment, L10n.Chat.assessmentPrompt),
             ("🏥", L10n.Chat.myRC, L10n.Chat.suggestion2),
             ("👶", L10n.Chat.earlyStart, L10n.Chat.suggestion4),
             ("💊", L10n.Chat.insurance, L10n.Chat.suggestion3),
-            ("📅", L10n.Chat.waitlists, "chat.waitlistsPrompt".localized),
-            ("🎂", L10n.Chat.age3Transition, "chat.age3Prompt".localized),
-            ("🗣️", L10n.Chat.speech, "chat.speechPrompt".localized)
+            ("📅", L10n.Chat.waitlists, L10n.Chat.waitlistsPrompt),
+            ("🎂", L10n.Chat.age3Transition, L10n.Chat.age3Prompt),
+            ("🗣️", L10n.Chat.speech, L10n.Chat.speechPrompt)
         ]
         
         // Add core prompts, skipping duplicates based on context already added
@@ -173,7 +194,7 @@ struct ChatView: View {
                                 .id(message.id)
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 10)
                         .padding(.bottom, 100)
                     }
                     .onChange(of: llmService.messages.count) { _, _ in
@@ -385,9 +406,13 @@ struct ChatView: View {
                 }
             }
             .onAppear {
+                // Skip location and other permission/side-effect work in previews
+                guard !PreviewEnv.isPreview else { return }
                 fetchUserZipCode()
             }
             .onChange(of: locationService.currentLocation) { _, location in
+                // Skip reacting to location updates in previews
+                guard !PreviewEnv.isPreview else { return }
                 if let location = location {
                     Task {
                         await updateZipCodeFromLocation(location)
@@ -1063,8 +1088,8 @@ struct MessageBubble: View {
     
     // Extract address from text - looks for street number + street name + city/CA patterns
     private func extractAddress(from text: String) -> String? {
-        // Look for typical address patterns: "1234 Street Name, City, CA"
-        let pattern = "\\d+\\s+[A-Za-z]+(?:\\s+[A-Za-z]+)*(?:,\\s*[A-Za-z\\s]+)?(?:,\\s*CA)?\\s*\\d{5}?"
+        // Look for typical address patterns: "1234 Street Name, City, CA" with optional ZIP
+        let pattern = "\\d+\\s+[A-Za-z]+(?:\\s+[A-Za-z]+)*(?:,\\s*[A-Za-z\\s]+)?(?:,\\s*CA)?(?:\\s*\\d{5})?"
         
         if let regex = try? NSRegularExpression(pattern: pattern, options: []),
            let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
@@ -1079,9 +1104,9 @@ struct MessageBubble: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: 4) {
             if message.role == .user {
-                Spacer(minLength: 40)  // Reduced for wider bubbles
+                Spacer(minLength: 28)  // Leave room for avatar while letting text use more width
             }
 
             if message.role == .assistant || message.role == .system {
@@ -1097,10 +1122,10 @@ struct MessageBubble: View {
                                     endPoint: .bottomTrailing
                                 ))
                         )
-                        .frame(width: 32, height: 32)
+                        .frame(width: 26, height: 26)
 
                     Image(systemName: message.role == .system ? "exclamationmark.triangle" : "sparkles")
-                        .font(.system(size: 14))
+                        .font(.system(size: 11))
                         .foregroundColor(.white)
                 }
             }
@@ -1159,7 +1184,7 @@ struct MessageBubble: View {
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 12)
                     .padding(.vertical, 12)
                     .animation(.easeOut(duration: 0.2), value: message.isStreaming)
                     .background(
@@ -1195,7 +1220,7 @@ struct MessageBubble: View {
             }
 
             if message.role != .user {
-                Spacer(minLength: 20)  // Reduced for wider AI bubbles
+                Spacer(minLength: 0)  // Let assistant responses span more of the available width
             }
         }
     }
@@ -1507,12 +1532,36 @@ struct MarkdownTextView: View {
     private func processMarkdownSyntax(_ text: String) -> String {
         var result = text
         
-        // Convert **text** to proper bold (already markdown)
-        // Convert *text* to proper italic (already markdown)
-        // Convert bullet points: "• " or "- " at line start
+        // Remove markdown headers (## Header -> **Header**)
+        // Convert headers to bold text since inline-only markdown can't render headers
+        let headerPattern = "^#{1,6}\\s*"
+        if let regex = try? NSRegularExpression(pattern: headerPattern, options: .anchorsMatchLines) {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: ""
+            )
+        }
+        
+        // Remove emoji that appear after header markers (## 🤔 -> just the text after)
+        // This handles cases like "## 🤔 What This Means" -> "What This Means"
         
         // Replace "• " with "- " for consistent markdown bullets
         result = result.replacingOccurrences(of: "• ", with: "- ")
+        
+        // Replace horizontal rules (---) with a subtle divider line
+        // Match --- on its own line (with optional whitespace)
+        let hrPattern = "^\\s*-{3,}\\s*$"
+        if let regex = try? NSRegularExpression(pattern: hrPattern, options: .anchorsMatchLines) {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: "\n─────────────────\n"
+            )
+        }
+        
+        // Clean up code blocks that might not render
+        result = result.replacingOccurrences(of: "```", with: "")
         
         return result
     }
@@ -1730,5 +1779,5 @@ struct ConversationRow: View {
 
 #Preview {
     ChatView()
-        .environmentObject(AppState())
+        .environmentObject(AppState.preview())
 }

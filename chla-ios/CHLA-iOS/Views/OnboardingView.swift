@@ -18,6 +18,7 @@ struct OnboardingView: View {
     @State private var selectedDiagnosis: String?
     @State private var selectedTherapies: Set<String> = []
     @State private var selectedInsurance: String?
+    @State private var selectedAudienceType = "family"
     @State private var userRegionalCenter: RegionalCenterMatcher.RegionalCenterInfo?
 
     private let totalSteps = 6 // Added regional center step
@@ -156,6 +157,19 @@ struct OnboardingView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("I am using this as a")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                Picker("Audience", selection: $selectedAudienceType) {
+                    Label("Family", systemImage: "person.2.fill").tag("family")
+                    Label("Clinician", systemImage: "clipboard.fill").tag("clinician")
+                }
+                .pickerStyle(.segmented)
+            }
+            .padding(.horizontal, 32)
 
             Spacer()
             Spacer()
@@ -449,6 +463,14 @@ struct OnboardingView: View {
         appState.searchFilters.diagnosis = selectedDiagnosis
         appState.searchFilters.therapyTypes = Array(selectedTherapies)
         appState.searchFilters.insurance = selectedInsurance
+        appState.saveUserContext(
+            zipCode: zipCode,
+            diagnosis: selectedDiagnosis,
+            insurance: selectedInsurance,
+            audienceType: selectedAudienceType,
+            regionalCenterName: userRegionalCenter?.name,
+            regionalCenterShortName: userRegionalCenter?.shortName
+        )
 
         // Haptic feedback
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)

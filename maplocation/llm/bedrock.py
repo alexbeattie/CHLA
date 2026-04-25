@@ -202,6 +202,7 @@ def chat_completion_streaming(
     user_message: str,
     system_prompt: str = KINDD_SYSTEM_PROMPT,
     context: Optional[str] = None,
+    conversation_history: Optional[list] = None,
     max_tokens: int = 1500,
 ):
     """
@@ -212,6 +213,11 @@ def chat_completion_streaming(
     """
     client = get_bedrock_client()
 
+    messages = []
+
+    if conversation_history:
+        messages.extend(conversation_history)
+
     if context:
         full_message = f"""CONTEXT:
 {context}
@@ -220,8 +226,10 @@ USER QUESTION: {user_message}"""
     else:
         full_message = user_message
 
+    messages.append({"role": "user", "content": full_message})
+
     response = client.invoke_model_with_response_stream(
-        modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",  # Claude Sonnet 4.5 inference profile
+        modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
         contentType="application/json",
         accept="application/json",
         body=json.dumps(
@@ -230,7 +238,7 @@ USER QUESTION: {user_message}"""
                 "max_tokens": max_tokens,
                 "temperature": 0.3,
                 "system": system_prompt,
-                "messages": [{"role": "user", "content": full_message}],
+                "messages": messages,
             }
         ),
     )

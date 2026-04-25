@@ -2,7 +2,8 @@
 //  RegionalCentersView.swift
 //  CHLA-iOS
 //
-//  View for browsing regional centers with full detail pages
+//  View for browsing regional centers - List view only
+//  The Map/List toggle is handled by RegionalCentersTabView in ContentView.swift
 //
 // swiftlint:disable file_length
 
@@ -116,7 +117,6 @@ struct RegionalCentersView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("Regional Centers")
         .searchable(text: $searchText, prompt: "Search centers")
         .sheet(item: $selectedCenter) { center in
             RegionalCenterDetailSheet(center: center)

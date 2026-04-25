@@ -32,6 +32,17 @@ class AppState: ObservableObject {
     @Published var userChildAge: Int?
     @Published var userDiagnosis: String?
     @Published var userInsurance: String?
+    @Published var userAudienceType: String
+    @Published var userRegionalCenterName: String?
+    @Published var userRegionalCenterShortName: String?
+
+    var userRegionalCenterColor: Color {
+        guard let shortName = userRegionalCenterShortName else {
+            return .accentBlue
+        }
+
+        return .regionalCenterColor(for: shortName)
+    }
 
     init() {
         // Check if user has completed onboarding
@@ -43,9 +54,20 @@ class AppState: ObservableObject {
         self.userChildAge = UserDefaults.standard.object(forKey: "userChildAge") as? Int
         self.userDiagnosis = UserDefaults.standard.string(forKey: "userDiagnosis")
         self.userInsurance = UserDefaults.standard.string(forKey: "userInsurance")
+        self.userAudienceType = UserDefaults.standard.string(forKey: "userAudienceType") ?? "family"
+        self.userRegionalCenterName = UserDefaults.standard.string(forKey: "userRegionalCenterName")
+        self.userRegionalCenterShortName = UserDefaults.standard.string(forKey: "userRegionalCenterShortName")
     }
 
-    func saveUserContext(zipCode: String? = nil, childAge: Int? = nil, diagnosis: String? = nil, insurance: String? = nil) {
+    func saveUserContext(
+        zipCode: String? = nil,
+        childAge: Int? = nil,
+        diagnosis: String? = nil,
+        insurance: String? = nil,
+        audienceType: String? = nil,
+        regionalCenterName: String? = nil,
+        regionalCenterShortName: String? = nil
+    ) {
         if let zip = zipCode {
             userZipCode = zip
             UserDefaults.standard.set(zip, forKey: "userZipCode")
@@ -61,6 +83,18 @@ class AppState: ObservableObject {
         if let ins = insurance {
             userInsurance = ins
             UserDefaults.standard.set(ins, forKey: "userInsurance")
+        }
+        if let audience = audienceType {
+            userAudienceType = audience
+            UserDefaults.standard.set(audience, forKey: "userAudienceType")
+        }
+        if let rcName = regionalCenterName {
+            userRegionalCenterName = rcName
+            UserDefaults.standard.set(rcName, forKey: "userRegionalCenterName")
+        }
+        if let rcShortName = regionalCenterShortName {
+            userRegionalCenterShortName = rcShortName
+            UserDefaults.standard.set(rcShortName, forKey: "userRegionalCenterShortName")
         }
     }
 

@@ -19,7 +19,7 @@ This guide walks you through enabling AWS Bedrock in your Personal AWS account f
 3. Click **Manage model access**
 4. Enable these models:
    - ✅ **Amazon** → Titan Text Embeddings V2
-   - ✅ **Anthropic** → Claude 3.5 Sonnet v2
+   - ✅ **Anthropic** → Claude Sonnet 4.5 (via cross-region inference profile)
 5. Click **Save changes**
 6. Wait for access to be granted (usually instant)
 
@@ -33,9 +33,13 @@ aws bedrock put-model-access-configuration \
 
 aws bedrock put-model-access-configuration \
     --region us-west-2 \
-    --model-id anthropic.claude-3-5-sonnet-20241022-v2:0 \
+    --model-id anthropic.claude-sonnet-4-5-20250929-v1:0 \
     --access-configuration enabled
 ```
+
+> **Note:** The codebase uses cross-region inference profiles
+> (`us.anthropic.claude-sonnet-4-5-20250929-v1:0`). Ensure your IAM policy
+> includes the inference profile ARN in addition to the base model ARN.
 
 ---
 
@@ -57,7 +61,8 @@ Your EC2/EB instance needs permissions to call Bedrock. Add this policy:
             ],
             "Resource": [
                 "arn:aws:bedrock:us-west-2::foundation-model/amazon.titan-embed-text-v2:0",
-                "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
+                "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0",
+                "arn:aws:bedrock:us-west-2:*:inference-profile/us.anthropic.claude-sonnet-4-5-20250929-v1:0"
             ]
         }
     ]
@@ -125,7 +130,7 @@ Expected output:
 
 ```
 ✅ Titan Embeddings working - 1024 dimensions
-✅ Claude 3.5 Sonnet working - Response: Hello from KiNDD!...
+✅ Claude Sonnet 4.5 working - Response: Hello from KiNDD!...
 ```
 
 ---
@@ -172,10 +177,10 @@ curl -X POST http://localhost:8000/api/llm/ask/ \
 | Service           | Usage                      | Monthly Cost      |
 | ----------------- | -------------------------- | ----------------- |
 | Titan Embeddings  | 370 providers × 500 tokens | ~$0.01            |
-| Claude 3.5 Sonnet | 1000 queries × 2K tokens   | ~$30-60           |
+| Claude Sonnet 4.5 | 1000 queries × 2K tokens   | ~$30-60           |
 | **Total**         |                            | **~$30-60/month** |
 
-Claude pricing: $3/million input tokens, $15/million output tokens
+Claude Sonnet 4.5 pricing: $3/million input tokens, $15/million output tokens
 
 ---
 
@@ -198,12 +203,17 @@ python manage.py shell
 
 ## Endpoints
 
-| Endpoint                | Method | Description             |
-| ----------------------- | ------ | ----------------------- |
-| `/api/llm/ask/`         | POST   | Natural language query  |
-| `/api/llm/eligibility/` | POST   | Check eligibility       |
-| `/api/llm/search/`      | GET    | Smart structured search |
-| `/api/llm/health/`      | GET    | Bedrock health check    |
+| Endpoint                     | Method | Description                    |
+| ---------------------------- | ------ | ------------------------------ |
+| `/api/llm/ask/`              | POST   | Natural language query (RAG)   |
+| `/api/llm/stream/`           | POST   | Streaming RAG via SSE          |
+| `/api/llm/agent/`            | POST   | Agent chat with tool use       |
+| `/api/llm/agent-stream/`     | POST   | Streaming agent chat via SSE   |
+| `/api/llm/eligibility/`      | POST   | Check eligibility              |
+| `/api/llm/search/`           | GET    | Smart structured search        |
+| `/api/llm/health/`           | GET    | Bedrock health check           |
+| `/api/llm/analyze-image/`    | POST   | Vision (insurance cards, docs) |
+| `/api/llm/analyze-document/` | POST   | Document text analysis         |
 
 ---
 

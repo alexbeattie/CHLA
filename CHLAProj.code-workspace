@@ -27,9 +27,6 @@
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
     "python.formatting.provider": "black",
-
-    // Swift/iOS
-    "swift.path": "/usr/bin/swift",
     "[swift]": {
       "editor.defaultFormatter": "vknabel.vscode-swift-format",
       "editor.formatOnSave": true

@@ -499,13 +499,14 @@ def chat_with_agent(
 async def stream_chat_with_agent(
     user_message: str,
     user_context: Optional[dict] = None,
+    locale: str = "en",
 ):
     """
     Streaming chat with the KiNDD agent.
 
     Yields text chunks as they're generated.
     """
-    agent = create_kindd_agent()
+    agent = create_kindd_agent(locale=locale)
 
     # Enhance message with user context
     if user_context:

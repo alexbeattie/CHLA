@@ -107,11 +107,32 @@ class SpeechRecognizer: ObservableObject {
         recognitionRequest.shouldReportPartialResults = true
         recognitionRequest.addsPunctuation = true
         
+        // Check microphone permission (separate from speech recognition permission)
+        let microphoneStatus = AVAudioApplication.shared.recordPermission
+        guard microphoneStatus == .granted else {
+            if microphoneStatus == .undetermined {
+                AVAudioApplication.requestRecordPermission { [weak self] granted in
+                    Task { @MainActor in
+                        if granted {
+                            self?.startRecording()
+                        } else {
+                            self?.error = "Microphone access denied. Please enable in Settings."
+                        }
+                    }
+                }
+            } else {
+                error = "Microphone access denied. Please enable in Settings > Privacy > Microphone."
+            }
+            return
+        }
+        
         // Configure audio input - get input node and format first
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         
         // Validate the audio format is usable (channelCount > 0 and valid sample rate)
+        // outputFormat(forBus:) returns AVAudioFormat (non-optional), but the format
+        // can have invalid properties when audio hardware is unavailable or permissions fail
         guard recordingFormat.channelCount > 0 else {
             error = "No audio input available. Please check microphone permissions."
             return

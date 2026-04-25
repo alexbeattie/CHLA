@@ -5,16 +5,29 @@ Includes both regular and streaming (SSE) endpoints.
 """
 
 import json
+import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
+from rest_framework.throttling import AnonRateThrottle
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from django.http import StreamingHttpResponse
 
 from .query import answer_query, explain_eligibility, find_providers_by_criteria
 from .bedrock import test_connection, chat_completion_streaming, get_system_prompt_for_locale
+
+logger = logging.getLogger(__name__)
+
+
+class LLMBurstThrottle(AnonRateThrottle):
+    rate = "30/minute"
+
+
+class LLMSensitiveThrottle(AnonRateThrottle):
+    """Stricter limit for endpoints that handle uploaded images/documents."""
+    rate = "10/minute"
 
 
 class AskKiNDDView(APIView):
@@ -43,12 +56,14 @@ class AskKiNDDView(APIView):
     }
     """
 
-    permission_classes = [AllowAny]  # Change to IsAuthenticated for production
+    permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
 
     def post(self, request):
         query = request.data.get("query")
         user_context = request.data.get("context", {})
-        locale = request.data.get("locale", "en")  # Get locale from request
+        locale = request.data.get("locale", "en")
+        conversation_history = request.data.get("conversation_history")
 
         if not query:
             return Response(
@@ -62,7 +77,12 @@ class AskKiNDDView(APIView):
             )
 
         try:
-            result = answer_query(query, user_context, locale=locale)
+            result = answer_query(
+                query,
+                user_context,
+                conversation_history=conversation_history,
+                locale=locale,
+            )
             return Response(
                 {
                     "query": query,
@@ -73,6 +93,7 @@ class AskKiNDDView(APIView):
             )
 
         except Exception as e:
+            logger.exception("LLM ask error")
             return Response(
                 {"error": f"LLM error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -95,6 +116,7 @@ class EligibilityCheckView(APIView):
     """
 
     permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
 
     def post(self, request):
         age = request.data.get("age")
@@ -148,6 +170,7 @@ class SmartSearchView(APIView):
     """
 
     permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
 
     @method_decorator(cache_page(60 * 5))  # Cache 5 minutes
     def get(self, request):
@@ -246,11 +269,13 @@ class StreamingAskView(APIView):
     """
 
     permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
 
     def post(self, request):
         query = request.data.get("query")
         user_context = request.data.get("context", {})
-        locale = request.data.get("locale", "en")  # Get locale from request
+        locale = request.data.get("locale", "en")
+        conversation_history = request.data.get("conversation_history")
 
         if not query:
             return Response(
@@ -266,7 +291,6 @@ class StreamingAskView(APIView):
         def event_stream():
             """Generate SSE events from streaming response."""
             try:
-                # Build context for RAG
                 from .query import (
                     semantic_search,
                     format_provider_context,
@@ -274,14 +298,12 @@ class StreamingAskView(APIView):
                 )
                 from locations.models import RegionalCenter
 
-                # Find regional center
                 regional_center = None
                 if user_context.get("zip_code"):
                     regional_center = RegionalCenter.find_by_zip_code(
                         user_context["zip_code"]
                     )
 
-                # Get relevant providers
                 enhanced_query = query
                 if user_context.get("diagnosis"):
                     enhanced_query += f" {user_context['diagnosis']}"
@@ -295,7 +317,6 @@ class StreamingAskView(APIView):
 
                     relevant_providers = keyword_search(enhanced_query, limit=15)
 
-                # Build context
                 provider_context = format_provider_context(relevant_providers)
                 user_context_str = format_user_context(user_context, regional_center)
 
@@ -304,29 +325,27 @@ class StreamingAskView(APIView):
 
 {user_context_str}"""
 
-                # Get locale-specific system prompt
                 system_prompt = get_system_prompt_for_locale(locale)
 
-                # Stream from Claude
                 for chunk in chat_completion_streaming(
                     user_message=query,
                     context=full_context,
                     system_prompt=system_prompt,
+                    conversation_history=conversation_history,
                 ):
-                    # Send each chunk as SSE event
                     yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
 
-                # Send completion event with metadata
                 yield f"data: {json.dumps({'type': 'done', 'providers_referenced': [str(p.id) for p in relevant_providers], 'regional_center': regional_center.regional_center if regional_center else None})}\n\n"
 
             except Exception as e:
+                logger.exception("Streaming ask error")
                 yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
         response = StreamingHttpResponse(
             event_stream(), content_type="text/event-stream"
         )
         response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"  # Disable nginx buffering
+        response["X-Accel-Buffering"] = "no"
         return response
 
 
@@ -349,11 +368,13 @@ class AgentAskView(APIView):
     """
 
     permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
 
     def post(self, request):
         query = request.data.get("query")
         user_context = request.data.get("context", {})
-        locale = request.data.get("locale", "en")  # Get locale from request
+        locale = request.data.get("locale", "en")
+        conversation_history = request.data.get("conversation_history")
 
         if not query:
             return Response(
@@ -363,7 +384,9 @@ class AgentAskView(APIView):
         try:
             from .agent import chat_with_agent
 
-            result = chat_with_agent(query, user_context, locale=locale)
+            result = chat_with_agent(
+                query, user_context, conversation_history=conversation_history, locale=locale
+            )
             return Response(
                 {
                     "query": query,
@@ -374,8 +397,9 @@ class AgentAskView(APIView):
             )
 
         except ImportError:
-            # Strands not installed - fall back to regular query
-            result = answer_query(query, user_context, locale=locale)
+            result = answer_query(
+                query, user_context, conversation_history=conversation_history, locale=locale
+            )
             return Response(
                 {
                     "query": query,
@@ -387,6 +411,7 @@ class AgentAskView(APIView):
             )
 
         except Exception as e:
+            logger.exception("Agent ask error")
             return Response(
                 {"error": f"Agent error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -416,7 +441,8 @@ class ImageAnalysisView(APIView):
     }
     """
     
-    permission_classes = [AllowAny]  # Consistent with other LLM endpoints
+    permission_classes = [AllowAny]
+    throttle_classes = [LLMSensitiveThrottle]
     
     def post(self, request):
         image_data = request.data.get("image")
@@ -487,6 +513,7 @@ class DocumentAnalysisView(APIView):
     """
     
     permission_classes = [AllowAny]
+    throttle_classes = [LLMSensitiveThrottle]
     
     def post(self, request):
         document_data = request.data.get("document")
@@ -578,7 +605,87 @@ Be warm, supportive, and use clear language."""
             })
             
         except Exception as e:
+            logger.exception("Document analysis error")
             return Response(
                 {"error": f"Document analysis failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class StreamingAgentAskView(APIView):
+    """
+    POST /api/llm/agent-stream/
+
+    Streaming agent endpoint using Server-Sent Events (SSE).
+    The agent has tool access (search providers, check eligibility, etc.)
+    and streams its response in real time.
+
+    Request body:
+    {
+        "query": "Find ABA providers near 90210",
+        "context": { "zip_code": "90210" },
+        "locale": "en"
+    }
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
+
+    def post(self, request):
+        query = request.data.get("query")
+        user_context = request.data.get("context", {})
+        locale = request.data.get("locale", "en")
+
+        if not query:
+            return Response(
+                {"error": "Query is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(query) > 1000:
+            return Response(
+                {"error": "Query too long (max 1000 characters)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        def event_stream():
+            try:
+                from .agent import create_kindd_agent
+
+                agent = create_kindd_agent(locale=locale)
+
+                enhanced_message = query
+                if user_context:
+                    context_parts = []
+                    if user_context.get("zip_code"):
+                        context_parts.append(f"User's ZIP: {user_context['zip_code']}")
+                    if user_context.get("child_age"):
+                        context_parts.append(f"Child's age: {user_context['child_age']} years")
+                    if user_context.get("diagnosis"):
+                        context_parts.append(f"Diagnosis: {user_context['diagnosis']}")
+                    if user_context.get("insurance"):
+                        context_parts.append(f"Insurance: {user_context['insurance']}")
+                    if user_context.get("memory_context"):
+                        context_parts.append(f"History: {user_context['memory_context']}")
+                    if context_parts:
+                        enhanced_message = f"[User context: {', '.join(context_parts)}]\n\n{query}"
+
+                for event in agent.stream(enhanced_message):
+                    if hasattr(event, "data") and event.data:
+                        yield f"data: {json.dumps({'type': 'chunk', 'content': event.data})}\n\n"
+                    elif isinstance(event, str):
+                        yield f"data: {json.dumps({'type': 'chunk', 'content': event})}\n\n"
+
+                yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+            except ImportError:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Agent streaming not available; Strands SDK not installed.'})}\n\n"
+            except Exception as e:
+                logger.exception("Agent streaming error")
+                yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+        response = StreamingHttpResponse(
+            event_stream(), content_type="text/event-stream"
+        )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response

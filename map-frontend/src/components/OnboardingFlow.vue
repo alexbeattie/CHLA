@@ -3,13 +3,18 @@
     <div class="onboarding-container">
       <!-- Progress Bar -->
       <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+        <div
+          class="progress-fill"
+          :style="{ width: progressPercentage + '%' }"
+        ></div>
       </div>
 
       <!-- Step Content -->
       <div class="step-content">
-      <!-- Step Counter -->
-      <div class="step-counter">Step {{ currentStep }} of {{ totalSteps }}</div>
+        <!-- Step Counter -->
+        <div class="step-counter">
+          Step {{ currentStep }} of {{ totalSteps }}
+        </div>
 
         <!-- Welcome Step -->
         <div v-if="currentStep === 1" class="step welcome-step">
@@ -18,8 +23,9 @@
           </div>
           <h2>Neurodevelopmental Resource Navigator</h2>
           <p class="welcome-text">
-            Find specialized healthcare providers and regional centers serving your area.
-            We'll help you discover the best care options based on your specific needs.
+            Find specialized healthcare providers and regional centers serving
+            your area. We'll help you discover the best care options based on
+            your specific needs.
           </p>
           <div class="welcome-features">
             <div class="feature">
@@ -34,41 +40,41 @@
               <i class="bi bi-heart"></i>
               <span>Care Network</span>
             </div>
-        </div>
+          </div>
 
           <!-- Location Input -->
           <div class="location-section">
             <h4>Enter your location to get started</h4>
-          <div class="location-options">
-            <button
-              class="btn btn-chla-primary location-btn"
-              @click="detectLocation"
-              :disabled="locationDetecting"
-            >
-              <i class="bi bi-geo-alt-fill"></i>
+            <div class="location-options">
+              <button
+                class="btn btn-chla-primary location-btn"
+                @click="detectLocation"
+                :disabled="locationDetecting"
+              >
+                <i class="bi bi-geo-alt-fill"></i>
                 <span v-if="locationDetecting">Detecting...</span>
                 <span v-else>Use Current Location</span>
-            </button>
+              </button>
 
-            <div class="location-divider">
+              <div class="location-divider">
                 <span>or</span>
+              </div>
+
+              <div class="manual-location">
+                <input
+                  type="text"
+                  class="form-control location-input"
+                  placeholder="ZIP code (5 digits) or city"
+                  v-model="userLocation"
+                  @keyup.enter="nextStep"
+                  @input="validateZipFormat"
+                />
+              </div>
             </div>
 
-            <div class="manual-location">
-              <input
-                type="text"
-                class="form-control location-input"
-                placeholder="ZIP code (5 digits) or city"
-                v-model="userLocation"
-                @keyup.enter="nextStep"
-                @input="validateZipFormat"
-              />
-            </div>
-          </div>
-
-          <div v-if="locationError" class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle"></i>
-            {{ locationError }}
+            <div v-if="locationError" class="alert alert-warning">
+              <i class="bi bi-exclamation-triangle"></i>
+              {{ locationError }}
             </div>
           </div>
 
@@ -80,16 +86,28 @@
                 <div class="rc-name">
                   <a
                     v-if="effectiveRegionalCenter.website"
-                    :href="effectiveRegionalCenter.website.startsWith('http') ? effectiveRegionalCenter.website : 'https://' + effectiveRegionalCenter.website"
+                    :href="
+                      effectiveRegionalCenter.website.startsWith('http')
+                        ? effectiveRegionalCenter.website
+                        : 'https://' + effectiveRegionalCenter.website
+                    "
                     target="_blank"
                     class="rc-link"
                   >
-                    {{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}
+                    {{
+                      effectiveRegionalCenter.regional_center ||
+                      effectiveRegionalCenter.name
+                    }}
                   </a>
-                  <span v-else>{{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}</span>
+                  <span v-else>{{
+                    effectiveRegionalCenter.regional_center ||
+                    effectiveRegionalCenter.name
+                  }}</span>
                 </div>
                 <div class="rc-details" v-if="effectiveRegionalCenter.phone">
-                  <div class="rc-phone">{{ effectiveRegionalCenter.phone }}</div>
+                  <div class="rc-phone">
+                    {{ effectiveRegionalCenter.phone }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -103,8 +121,36 @@
 
           <div class="profile-form">
             <div class="form-row">
+              <label>Who are you using this for?</label>
+              <div class="audience-options">
+                <button
+                  type="button"
+                  class="audience-option"
+                  :class="{ active: userProfile.audienceType === 'family' }"
+                  @click="userProfile.audienceType = 'family'"
+                >
+                  <i class="bi bi-people-fill"></i>
+                  <span>Family or caregiver</span>
+                </button>
+                <button
+                  type="button"
+                  class="audience-option"
+                  :class="{ active: userProfile.audienceType === 'clinician' }"
+                  @click="userProfile.audienceType = 'clinician'"
+                >
+                  <i class="bi bi-clipboard2-pulse"></i>
+                  <span>Clinician</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-row">
               <label>Age Group</label>
-              <select v-model="userProfile.age" class="form-control" @change="console.log('Age selected:', userProfile.age)">
+              <select
+                v-model="userProfile.age"
+                class="form-control"
+                @change="console.log('Age selected:', userProfile.age)"
+              >
                 <option value="">Select age</option>
                 <option value="0-5">0-5 years</option>
                 <option value="6-12">6-12 years</option>
@@ -117,11 +163,21 @@
               <label>Diagnosis (Optional)</label>
               <select v-model="userProfile.diagnosis" class="form-control">
                 <option value="">Select diagnosis</option>
-                <option value="Autism Spectrum Disorder">Autism Spectrum Disorder</option>
-                <option value="Global Development Delay">Global Development Delay</option>
-                <option value="Intellectual Disability">Intellectual Disability</option>
-                <option value="Speech and Language Disorder">Speech and Language Disorder</option>
-                <option value="Sensory Processing Disorder">Sensory Processing Disorder</option>
+                <option value="Autism Spectrum Disorder">
+                  Autism Spectrum Disorder
+                </option>
+                <option value="Global Development Delay">
+                  Global Development Delay
+                </option>
+                <option value="Intellectual Disability">
+                  Intellectual Disability
+                </option>
+                <option value="Speech and Language Disorder">
+                  Speech and Language Disorder
+                </option>
+                <option value="Sensory Processing Disorder">
+                  Sensory Processing Disorder
+                </option>
                 <option value="Other">Other</option>
               </select>
             </div>
@@ -133,18 +189,30 @@
               <i class="bi bi-building"></i>
               <div class="rc-content">
                 <div class="rc-name">
-                  <a 
-                    v-if="effectiveRegionalCenter.website" 
-                    :href="effectiveRegionalCenter.website.startsWith('http') ? effectiveRegionalCenter.website : 'https://' + effectiveRegionalCenter.website"
+                  <a
+                    v-if="effectiveRegionalCenter.website"
+                    :href="
+                      effectiveRegionalCenter.website.startsWith('http')
+                        ? effectiveRegionalCenter.website
+                        : 'https://' + effectiveRegionalCenter.website
+                    "
                     target="_blank"
                     class="rc-link"
                   >
-                    {{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}
+                    {{
+                      effectiveRegionalCenter.regional_center ||
+                      effectiveRegionalCenter.name
+                    }}
                   </a>
-                  <span v-else>{{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}</span>
+                  <span v-else>{{
+                    effectiveRegionalCenter.regional_center ||
+                    effectiveRegionalCenter.name
+                  }}</span>
                 </div>
                 <div class="rc-details" v-if="effectiveRegionalCenter.phone">
-                  <div class="rc-phone">{{ effectiveRegionalCenter.phone }}</div>
+                  <div class="rc-phone">
+                    {{ effectiveRegionalCenter.phone }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -157,7 +225,11 @@
           <p>Select all that apply. You can always change these later.</p>
           <div class="service-types">
             <label class="service-option" v-for="t in therapyOptions" :key="t">
-              <input type="checkbox" v-model="userProfile.therapies" :value="t" />
+              <input
+                type="checkbox"
+                v-model="userProfile.therapies"
+                :value="t"
+              />
               <span class="checkmark"></span>
               <div class="service-content">
                 <div>
@@ -173,18 +245,30 @@
               <i class="bi bi-building"></i>
               <div class="rc-content">
                 <div class="rc-name">
-                  <a 
-                    v-if="effectiveRegionalCenter.website" 
-                    :href="effectiveRegionalCenter.website.startsWith('http') ? effectiveRegionalCenter.website : 'https://' + effectiveRegionalCenter.website"
+                  <a
+                    v-if="effectiveRegionalCenter.website"
+                    :href="
+                      effectiveRegionalCenter.website.startsWith('http')
+                        ? effectiveRegionalCenter.website
+                        : 'https://' + effectiveRegionalCenter.website
+                    "
                     target="_blank"
                     class="rc-link"
                   >
-                    {{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}
+                    {{
+                      effectiveRegionalCenter.regional_center ||
+                      effectiveRegionalCenter.name
+                    }}
                   </a>
-                  <span v-else>{{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}</span>
+                  <span v-else>{{
+                    effectiveRegionalCenter.regional_center ||
+                    effectiveRegionalCenter.name
+                  }}</span>
                 </div>
                 <div class="rc-details" v-if="effectiveRegionalCenter.phone">
-                  <div class="rc-phone">{{ effectiveRegionalCenter.phone }}</div>
+                  <div class="rc-phone">
+                    {{ effectiveRegionalCenter.phone }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -194,13 +278,31 @@
         <!-- Results Step -->
         <div v-if="currentStep === 4" class="step results-step">
           <div class="success-header">
-            <div class="success-icon" :class="{ 'warning-icon': resultsCount === 0 }">
-              <i :class="resultsCount === 0 ? 'bi bi-exclamation-triangle-fill' : 'bi bi-check-circle-fill'"></i>
+            <div
+              class="success-icon"
+              :class="{ 'warning-icon': resultsCount === 0 }"
+            >
+              <i
+                :class="
+                  resultsCount === 0
+                    ? 'bi bi-exclamation-triangle-fill'
+                    : 'bi bi-check-circle-fill'
+                "
+              ></i>
             </div>
-            <h2>{{ resultsCount === 0 ? 'No exact matches found' : "You're all set!" }}</h2>
-            <p class="success-subtitle" v-if="resultsCount > 0">We found {{ resultsCount }} providers in your area</p>
+            <h2>
+              {{
+                resultsCount === 0
+                  ? "No exact matches found"
+                  : "You're all set!"
+              }}
+            </h2>
+            <p class="success-subtitle" v-if="resultsCount > 0">
+              We found {{ resultsCount }} providers in your area
+            </p>
             <p class="success-subtitle warning-text" v-else>
-              No providers match all your criteria. Try adjusting your filters or explore the map to see all nearby providers.
+              No providers match all your criteria. Try adjusting your filters
+              or explore the map to see all nearby providers.
             </p>
           </div>
 
@@ -221,18 +323,22 @@
               </div>
               <div class="card-content">
                 <div class="card-title">Regional Center</div>
-                <div class="card-text" v-if="effectiveRegionalCenter && effectiveRegionalCenter.regional_center">
+                <div
+                  class="card-text"
+                  v-if="
+                    effectiveRegionalCenter &&
+                    effectiveRegionalCenter.regional_center
+                  "
+                >
                   {{ effectiveRegionalCenter.regional_center }}
-              </div>
+                </div>
                 <div class="card-text" v-else-if="regionalCentersCount > 0">
                   {{ regionalCentersCount }} Centers Found
-            </div>
-                <div class="card-text error" v-else>
-                  Not Found
                 </div>
-                </div>
-                </div>
+                <div class="card-text error" v-else>Not Found</div>
               </div>
+            </div>
+          </div>
 
           <div class="next-actions">
             <h3>What's next?</h3>
@@ -240,7 +346,7 @@
               <div class="action-item">
                 <i class="bi bi-geo-alt"></i>
                 <span>Explore services on the map</span>
-          </div>
+              </div>
               <div class="action-item">
                 <i class="bi bi-info-circle"></i>
                 <span>View detailed service information</span>
@@ -258,18 +364,30 @@
               <i class="bi bi-building"></i>
               <div class="rc-content">
                 <div class="rc-name">
-                  <a 
-                    v-if="effectiveRegionalCenter.website" 
-                    :href="effectiveRegionalCenter.website.startsWith('http') ? effectiveRegionalCenter.website : 'https://' + effectiveRegionalCenter.website"
+                  <a
+                    v-if="effectiveRegionalCenter.website"
+                    :href="
+                      effectiveRegionalCenter.website.startsWith('http')
+                        ? effectiveRegionalCenter.website
+                        : 'https://' + effectiveRegionalCenter.website
+                    "
                     target="_blank"
                     class="rc-link"
                   >
-                    {{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}
+                    {{
+                      effectiveRegionalCenter.regional_center ||
+                      effectiveRegionalCenter.name
+                    }}
                   </a>
-                  <span v-else>{{ effectiveRegionalCenter.regional_center || effectiveRegionalCenter.name }}</span>
+                  <span v-else>{{
+                    effectiveRegionalCenter.regional_center ||
+                    effectiveRegionalCenter.name
+                  }}</span>
                 </div>
                 <div class="rc-details" v-if="effectiveRegionalCenter.phone">
-                  <div class="rc-phone">{{ effectiveRegionalCenter.phone }}</div>
+                  <div class="rc-phone">
+                    {{ effectiveRegionalCenter.phone }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -280,9 +398,9 @@
       <!-- Navigation -->
       <div class="step-navigation">
         <!-- Back Button (all steps except first) -->
-        <button 
-          v-if="currentStep > 1" 
-          class="btn btn-secondary" 
+        <button
+          v-if="currentStep > 1"
+          class="btn btn-secondary"
           @click="previousStep"
         >
           <i class="bi bi-arrow-left"></i>
@@ -290,7 +408,7 @@
         </button>
 
         <!-- Skip Link (only on first step) -->
-        <button 
+        <button
           v-if="currentStep === 1"
           class="btn btn-link skip-link"
           @click="skipOnboarding"
@@ -325,7 +443,7 @@
 </template>
 
 <script>
-import { useProviderStore } from '@/stores/providerStore';
+import { useProviderStore } from "@/stores/providerStore";
 
 export default {
   name: "OnboardingFlow",
@@ -351,6 +469,7 @@ export default {
       userLocation: "",
       userCoordinates: null, // Store lat/lng for fallback searches
       userProfile: {
+        audienceType: "family",
         age: "",
         diagnosis: "",
         hasInsurance: false,
@@ -397,15 +516,15 @@ export default {
             return false;
         }
       })();
-      
+
       console.log(`canProceed check - Step ${this.currentStep}:`, {
         userLocation: this.userLocation,
         age: this.userProfile.age,
         ageLength: this.userProfile.age ? this.userProfile.age.length : 0,
         therapies: this.userProfile.therapies,
-        result: result
+        result: result,
       });
-      
+
       return result;
     },
 
@@ -427,14 +546,14 @@ export default {
         console.log(`✅ Loaded all ${providerStore.providerCount} providers`);
 
         // Emit with minimal data structure - no user profile needed for "view all"
-        this.$emit('onboarding-complete', {
+        this.$emit("onboarding-complete", {
           userProfile: {},
           userLocation: null,
-          skipFilters: true
+          skipFilters: true,
         });
       } catch (error) {
-        console.error('Error loading all providers:', error);
-        this.locationError = 'Failed to load providers. Please try again.';
+        console.error("Error loading all providers:", error);
+        this.locationError = "Failed to load providers. Please try again.";
       } finally {
         this.loading = false;
       }
@@ -452,10 +571,16 @@ export default {
         if (this.currentStep === 3) {
           this.currentStep++;
           await this.$nextTick(); // Wait for DOM update
-          console.log('[Onboarding] Moving to results step, regenerating with therapies:', this.userProfile.therapies);
+          console.log(
+            "[Onboarding] Moving to results step, regenerating with therapies:",
+            this.userProfile.therapies
+          );
           await this.generateResults();
           await this.$nextTick(); // Wait for results to update in DOM
-          console.log('[Onboarding] Results updated, count:', this.resultsCount);
+          console.log(
+            "[Onboarding] Results updated, count:",
+            this.resultsCount
+          );
         } else {
           this.currentStep++;
         }
@@ -491,11 +616,12 @@ export default {
         });
 
         // Detect regional center immediately (await to ensure it's ready)
-        console.log('🔍 Detecting regional center for geolocation:', address);
+        console.log("🔍 Detecting regional center for geolocation:", address);
         await this.matchRegionalCenterByLocation(address);
-        console.log('✅ Regional center detected:', this.localRegionalCenter);
+        console.log("✅ Regional center detected:", this.localRegionalCenter);
       } catch (error) {
-        this.locationError = "Unable to detect location. Please enter manually.";
+        this.locationError =
+          "Unable to detect location. Please enter manually.";
         console.error("Location detection failed:", error);
       } finally {
         this.locationDetecting = false;
@@ -521,39 +647,71 @@ export default {
       try {
         // Try to get ZIP code from coordinates using a simple approximation
         // This is a basic approach - in production you'd use a proper geocoding service
-        
+
         // LA County bounds check
-        if (latitude >= 33.7 && latitude <= 34.8 && longitude >= -118.9 && longitude <= -117.6) {
+        if (
+          latitude >= 33.7 &&
+          latitude <= 34.8 &&
+          longitude >= -118.9 &&
+          longitude <= -117.6
+        ) {
           // Try to estimate ZIP code based on coordinates
           let estimatedZip = null;
-          
+
           // Northridge area (91403) - expanded bounds
-          if (latitude >= 34.1 && latitude <= 34.4 && longitude >= -118.7 && longitude <= -118.3) {
-            estimatedZip = '91403';
+          if (
+            latitude >= 34.1 &&
+            latitude <= 34.4 &&
+            longitude >= -118.7 &&
+            longitude <= -118.3
+          ) {
+            estimatedZip = "91403";
           }
-          // Beverly Hills area (90210) - approximate bounds  
-          else if (latitude >= 34.0 && latitude <= 34.1 && longitude >= -118.5 && longitude <= -118.3) {
-            estimatedZip = '90210';
+          // Beverly Hills area (90210) - approximate bounds
+          else if (
+            latitude >= 34.0 &&
+            latitude <= 34.1 &&
+            longitude >= -118.5 &&
+            longitude <= -118.3
+          ) {
+            estimatedZip = "90210";
           }
           // Downtown LA area (90001) - approximate bounds
-          else if (latitude >= 34.0 && latitude <= 34.1 && longitude >= -118.3 && longitude <= -118.2) {
-            estimatedZip = '90001';
+          else if (
+            latitude >= 34.0 &&
+            latitude <= 34.1 &&
+            longitude >= -118.3 &&
+            longitude <= -118.2
+          ) {
+            estimatedZip = "90001";
           }
           // West LA area (90025) - approximate bounds
-          else if (latitude >= 34.0 && latitude <= 34.1 && longitude >= -118.5 && longitude <= -118.4) {
-            estimatedZip = '90025';
+          else if (
+            latitude >= 34.0 &&
+            latitude <= 34.1 &&
+            longitude >= -118.5 &&
+            longitude <= -118.4
+          ) {
+            estimatedZip = "90025";
           }
           // Long Beach area (90802) - approximate bounds
-          else if (latitude >= 33.7 && latitude <= 33.8 && longitude >= -118.2 && longitude <= -118.1) {
-            estimatedZip = '90802';
+          else if (
+            latitude >= 33.7 &&
+            latitude <= 33.8 &&
+            longitude >= -118.2 &&
+            longitude <= -118.1
+          ) {
+            estimatedZip = "90802";
           }
-          
+
           if (estimatedZip) {
-            console.log(`📍 Estimated ZIP code from coordinates: ${estimatedZip}`);
+            console.log(
+              `📍 Estimated ZIP code from coordinates: ${estimatedZip}`
+            );
             return estimatedZip;
           }
         }
-        
+
         // Fallback to coordinates
         return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
       } catch (error) {
@@ -567,16 +725,16 @@ export default {
       if (this.locationError && this.locationError.includes("ZIP code")) {
         this.locationError = "";
       }
-      
+
       // Check if user entered a valid ZIP code and immediately match regional center
       const trimmedLocation = this.userLocation.trim();
       const zipMatch = trimmedLocation.match(/^\d{5}$/);
-      
+
       if (zipMatch) {
-        console.log('✅ Valid ZIP code detected:', zipMatch[0]);
+        console.log("✅ Valid ZIP code detected:", zipMatch[0]);
         // Immediately match regional center for valid ZIP codes
         this.matchRegionalCenterByLocation(zipMatch[0]).catch((error) => {
-          console.error('Immediate regional center detection failed:', error);
+          console.error("Immediate regional center detection failed:", error);
         });
       } else {
         // Clear regional center if not a valid ZIP
@@ -601,39 +759,43 @@ export default {
 
       this.locationError = "";
       this.$emit("location-manual", this.userLocation);
-      
+
       // MUST await regional center detection before proceeding!
-      console.log('🔍 Detecting regional center for:', this.userLocation);
+      console.log("🔍 Detecting regional center for:", this.userLocation);
       await this.matchRegionalCenterByLocation(this.userLocation);
-      console.log('✅ Regional center detected:', this.localRegionalCenter);
-      
+      console.log("✅ Regional center detected:", this.localRegionalCenter);
+
       // Move to next step
       this.currentStep++;
     },
 
     async matchRegionalCenterByLocation(locationText) {
       try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-        
+        const apiBaseUrl =
+          import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
         // Use the comprehensive service area boundaries endpoint
         const url = `${apiBaseUrl}/api/regional-centers/service_area_boundaries/`;
-        
-        const res = await fetch(url, { headers: { Accept: "application/json" } });
+
+        const res = await fetch(url, {
+          headers: { Accept: "application/json" },
+        });
         if (!res.ok) return;
-        
+
         const data = await res.json();
-        
+
         if (data && data.features && Array.isArray(data.features)) {
           // Check if location is a ZIP code (5 digits)
           const zipMatch = locationText.match(/\b\d{5}\b/);
-          
+
           if (zipMatch) {
             // Find regional center by ZIP code
-            const matchingCenter = data.features.find(feature => 
-              feature.properties.zip_codes && 
-              feature.properties.zip_codes.includes(zipMatch[0])
+            const matchingCenter = data.features.find(
+              (feature) =>
+                feature.properties.zip_codes &&
+                feature.properties.zip_codes.includes(zipMatch[0])
             );
-            
+
             if (matchingCenter) {
               this.localRegionalCenter = {
                 regional_center: matchingCenter.properties.name,
@@ -643,31 +805,34 @@ export default {
                 website: matchingCenter.properties.website,
                 service_area: matchingCenter.properties.service_areas,
                 zip_codes: matchingCenter.properties.zip_codes,
-                center_id: matchingCenter.properties.center_id
+                center_id: matchingCenter.properties.center_id,
               };
-              console.log(`✅ Found regional center for ZIP ${zipMatch[0]}:`, this.localRegionalCenter.regional_center);
+              console.log(
+                `✅ Found regional center for ZIP ${zipMatch[0]}:`,
+                this.localRegionalCenter.regional_center
+              );
             }
           } else {
             // For non-ZIP locations, try to find by coordinates or location name
             // This is a simplified approach - in production you'd use reverse geocoding
             const locationLower = locationText.toLowerCase();
-            
+
             // Try to match by city/area name in the regional center data
-            const matchingCenter = data.features.find(feature => {
+            const matchingCenter = data.features.find((feature) => {
               const name = feature.properties.name.toLowerCase();
               const serviceAreas = feature.properties.service_areas;
-              
+
               // Check if location text contains any service area names
               if (Array.isArray(serviceAreas)) {
-                return serviceAreas.some(area => 
+                return serviceAreas.some((area) =>
                   locationLower.includes(area.toLowerCase())
                 );
               }
-              
+
               // Fallback: check if location contains regional center name
               return locationLower.includes(name.toLowerCase());
             });
-            
+
             if (matchingCenter) {
               this.localRegionalCenter = {
                 regional_center: matchingCenter.properties.name,
@@ -677,9 +842,12 @@ export default {
                 website: matchingCenter.properties.website,
                 service_area: matchingCenter.properties.service_areas,
                 zip_codes: matchingCenter.properties.zip_codes,
-                center_id: matchingCenter.properties.center_id
+                center_id: matchingCenter.properties.center_id,
               };
-              console.log(`✅ Found regional center for location "${locationText}":`, this.localRegionalCenter.regional_center);
+              console.log(
+                `✅ Found regional center for location "${locationText}":`,
+                this.localRegionalCenter.regional_center
+              );
             }
           }
         }
@@ -690,17 +858,18 @@ export default {
 
     async generateResults() {
       // Get counts based on user's location within 5-mile radius
-      console.log('🚀 GENERATE RESULTS CALLED!');
+      console.log("🚀 GENERATE RESULTS CALLED!");
       try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-        
-        console.log('=== GENERATE RESULTS DEBUG ===');
-        console.log('User location:', this.userLocation);
-        console.log('User coordinates:', this.userCoordinates);
-        console.log('User profile:', this.userProfile);
-        console.log('Local regional center:', this.localRegionalCenter);
-        console.log('API base URL:', apiBaseUrl);
-        
+        const apiBaseUrl =
+          import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
+        console.log("=== GENERATE RESULTS DEBUG ===");
+        console.log("User location:", this.userLocation);
+        console.log("User coordinates:", this.userCoordinates);
+        console.log("User profile:", this.userProfile);
+        console.log("Local regional center:", this.localRegionalCenter);
+        console.log("API base URL:", apiBaseUrl);
+
         // Get the ZIP code from user location or detected regional center
         let searchZip = null;
         const zipMatch = this.userLocation?.match(/\b\d{5}\b/);
@@ -710,9 +879,9 @@ export default {
           // Use first ZIP from detected regional center
           searchZip = this.localRegionalCenter.zip_codes[0];
         }
-        
-        console.log('Search ZIP:', searchZip);
-        
+
+        console.log("Search ZIP:", searchZip);
+
         let providerData = [];
         let triedZipSearch = false;
 
@@ -720,7 +889,7 @@ export default {
           // Use by_regional_center endpoint with ZIP code
           triedZipSearch = true;
           const providerParams = new URLSearchParams();
-          providerParams.append('zip_code', searchZip);
+          providerParams.append("zip_code", searchZip);
 
           // TEMPORARY: Disable filters to show all providers until backend supports age/diagnosis
           // Apply user's filters to make their selections meaningful
@@ -733,9 +902,12 @@ export default {
           // }
 
           // Only apply therapy filters (these work in backend)
-          if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
-            this.userProfile.therapies.forEach(therapy => {
-              providerParams.append('therapy', therapy);
+          if (
+            this.userProfile.therapies &&
+            this.userProfile.therapies.length > 0
+          ) {
+            this.userProfile.therapies.forEach((therapy) => {
+              providerParams.append("therapy", therapy);
             });
           }
 
@@ -744,51 +916,81 @@ export default {
           // }
 
           const filteredUrl = `${apiBaseUrl}/api/providers-v2/by_regional_center/?${providerParams.toString()}`;
-          console.log('✅ Provider search URL (showing all providers in area):', filteredUrl);
-          console.log('Location-based search (age/diagnosis filters temporarily disabled):', {
-            zip_code: searchZip,
-            therapies: this.userProfile.therapies,
-            note: 'Age and diagnosis filters disabled until backend support is added'
-          });
+          console.log(
+            "✅ Provider search URL (showing all providers in area):",
+            filteredUrl
+          );
+          console.log(
+            "Location-based search (age/diagnosis filters temporarily disabled):",
+            {
+              zip_code: searchZip,
+              therapies: this.userProfile.therapies,
+              note: "Age and diagnosis filters disabled until backend support is added",
+            }
+          );
 
           try {
             const filteredResponse = await fetch(filteredUrl);
             if (filteredResponse.ok) {
               const responseData = await filteredResponse.json();
               // Extract providers array from response (backend returns "results", not "providers")
-              providerData = responseData.results || responseData.providers || [];
-              console.log('✅ Filtered provider data received:', providerData.length, 'providers');
-              console.log('Response data:', responseData);
+              providerData =
+                responseData.results || responseData.providers || [];
+              console.log(
+                "✅ Filtered provider data received:",
+                providerData.length,
+                "providers"
+              );
+              console.log("Response data:", responseData);
 
               // DON'T fall back to unfiltered results - show actual filter results
               // If 0 results, user will see "No providers match your criteria"
               if (providerData.length === 0) {
-                console.log('⚠️ No providers match your filters (showing 0 results as accurate)');
+                console.log(
+                  "⚠️ No providers match your filters (showing 0 results as accurate)"
+                );
               }
             } else {
-              console.error('Provider API error:', filteredResponse.status);
+              console.error("Provider API error:", filteredResponse.status);
             }
           } catch (error) {
-            console.error('Filtered search failed:', error);
+            console.error("Filtered search failed:", error);
           }
         }
 
         // If ZIP search returned nothing OR no ZIP available, try coordinate search
-        console.log('🔍 Checking coordinate fallback:', {
+        console.log("🔍 Checking coordinate fallback:", {
           triedZipSearch,
           providerDataLength: providerData.length,
           hasCoordinates: !!this.userCoordinates,
           searchZip,
-          shouldTriggerFallback: (triedZipSearch && providerData.length === 0 && this.userCoordinates) || (!searchZip && this.userCoordinates)
+          shouldTriggerFallback:
+            (triedZipSearch &&
+              providerData.length === 0 &&
+              this.userCoordinates) ||
+            (!searchZip && this.userCoordinates),
         });
 
-        if ((triedZipSearch && providerData.length === 0 && this.userCoordinates) || (!searchZip && this.userCoordinates)) {
+        if (
+          (triedZipSearch &&
+            providerData.length === 0 &&
+            this.userCoordinates) ||
+          (!searchZip && this.userCoordinates)
+        ) {
           // Fallback: Use coordinate-based search
-          console.log('⚠️ ZIP search failed or unavailable, falling back to coordinate-based search');
+          console.log(
+            "⚠️ ZIP search failed or unavailable, falling back to coordinate-based search"
+          );
           const providerParams = new URLSearchParams();
-          providerParams.append('lat', this.userCoordinates.latitude.toString());
-          providerParams.append('lng', this.userCoordinates.longitude.toString());
-          providerParams.append('radius', '50'); // 50-mile radius for edge cases
+          providerParams.append(
+            "lat",
+            this.userCoordinates.latitude.toString()
+          );
+          providerParams.append(
+            "lng",
+            this.userCoordinates.longitude.toString()
+          );
+          providerParams.append("radius", "50"); // 50-mile radius for edge cases
 
           // TEMPORARY: Disable filters to show all providers until backend supports age/diagnosis
           // Apply user's filters
@@ -801,9 +1003,12 @@ export default {
           // }
 
           // Only apply therapy filters (these work in backend)
-          if (this.userProfile.therapies && this.userProfile.therapies.length > 0) {
-            this.userProfile.therapies.forEach(therapy => {
-              providerParams.append('therapy', therapy);
+          if (
+            this.userProfile.therapies &&
+            this.userProfile.therapies.length > 0
+          ) {
+            this.userProfile.therapies.forEach((therapy) => {
+              providerParams.append("therapy", therapy);
             });
           }
 
@@ -812,73 +1017,104 @@ export default {
           // }
 
           const coordUrl = `${apiBaseUrl}/api/providers-v2/comprehensive_search/?${providerParams.toString()}`;
-          console.log('✅ Coordinate-based search URL (showing all providers in area):', coordUrl);
-          console.log('Coordinate search (age/diagnosis filters temporarily disabled):', {
-            lat: this.userCoordinates.latitude,
-            lng: this.userCoordinates.longitude,
-            radius: 50,
-            therapies: this.userProfile.therapies,
-            note: 'Age and diagnosis filters disabled until backend support is added'
-          });
+          console.log(
+            "✅ Coordinate-based search URL (showing all providers in area):",
+            coordUrl
+          );
+          console.log(
+            "Coordinate search (age/diagnosis filters temporarily disabled):",
+            {
+              lat: this.userCoordinates.latitude,
+              lng: this.userCoordinates.longitude,
+              radius: 50,
+              therapies: this.userProfile.therapies,
+              note: "Age and diagnosis filters disabled until backend support is added",
+            }
+          );
 
           try {
             const coordResponse = await fetch(coordUrl);
             if (coordResponse.ok) {
               const responseData = await coordResponse.json();
               // Handle both array and object responses
-              providerData = Array.isArray(responseData) ? responseData : (responseData.results || responseData.providers || []);
-              console.log('✅ Coordinate-based search returned:', providerData.length, 'providers');
+              providerData = Array.isArray(responseData)
+                ? responseData
+                : responseData.results || responseData.providers || [];
+              console.log(
+                "✅ Coordinate-based search returned:",
+                providerData.length,
+                "providers"
+              );
 
               // DON'T fall back to unfiltered results - show accurate filter results
               // Even if < 5 results, that's what matches the user's criteria
               if (providerData.length < 5 && providerData.length > 0) {
-                console.log(`✅ Found ${providerData.length} providers matching your criteria (accurate results)`);
+                console.log(
+                  `✅ Found ${providerData.length} providers matching your criteria (accurate results)`
+                );
               } else if (providerData.length === 0) {
-                console.log('⚠️ No providers match your filters in this area (showing 0 results as accurate)');
+                console.log(
+                  "⚠️ No providers match your filters in this area (showing 0 results as accurate)"
+                );
               }
             }
           } catch (error) {
-            console.error('Coordinate-based search failed:', error);
+            console.error("Coordinate-based search failed:", error);
           }
         } else if (!this.userCoordinates) {
-          console.warn('No coordinates available for provider search');
+          console.warn("No coordinates available for provider search");
         }
-        
+
         // Set the results count and store the actual provider data
         if (Array.isArray(providerData)) {
           // Remove duplicates based on provider ID
-          const uniqueProviders = providerData.filter((provider, index, self) => 
-            index === self.findIndex(p => p.id === provider.id)
+          const uniqueProviders = providerData.filter(
+            (provider, index, self) =>
+              index === self.findIndex((p) => p.id === provider.id)
           );
-          
+
           this.resultsCount = uniqueProviders.length;
           this.filteredProviders = uniqueProviders; // Store the deduplicated provider data
-          console.log('Final provider count:', this.resultsCount);
-          console.log('Stored filtered providers (deduplicated):', this.filteredProviders);
-          console.log('Removed duplicates:', providerData.length - uniqueProviders.length);
+          console.log("Final provider count:", this.resultsCount);
+          console.log(
+            "Stored filtered providers (deduplicated):",
+            this.filteredProviders
+          );
+          console.log(
+            "Removed duplicates:",
+            providerData.length - uniqueProviders.length
+          );
         } else {
           this.resultsCount = 0;
           this.filteredProviders = [];
-          console.log('No provider data received');
+          console.log("No provider data received");
         }
-        
+
         // Use the regional center detected earlier by matchRegionalCenterByLocation
         if (this.localRegionalCenter) {
           this.regionalCentersCount = 1;
-          console.log('✅ Using detected regional center:', this.localRegionalCenter.regional_center);
+          console.log(
+            "✅ Using detected regional center:",
+            this.localRegionalCenter.regional_center
+          );
         } else {
           this.regionalCentersCount = 0;
-          console.log('⚠️ No regional center detected');
+          console.log("⚠️ No regional center detected");
         }
-        
-        console.log(`✅ Generated results: ${this.resultsCount} providers, ${this.regionalCentersCount} regional center`);
-        
+
+        console.log(
+          `✅ Generated results: ${this.resultsCount} providers, ${this.regionalCentersCount} regional center`
+        );
       } catch (error) {
-        console.error('Error generating results:', error);
+        console.error("Error generating results:", error);
         // Fallback to reasonable defaults
         this.resultsCount = 5; // Show some providers as fallback
         this.regionalCentersCount = 1; // Show 1 regional center as fallback
-        console.log('Using fallback counts:', this.resultsCount, this.regionalCentersCount);
+        console.log(
+          "Using fallback counts:",
+          this.resultsCount,
+          this.regionalCentersCount
+        );
       }
     },
 
@@ -894,7 +1130,10 @@ export default {
 
     saveProfile() {
       // Save profile to localStorage
-      localStorage.setItem("chla-user-profile", JSON.stringify(this.userProfile));
+      localStorage.setItem(
+        "chla-user-profile",
+        JSON.stringify(this.userProfile)
+      );
       localStorage.setItem("chla-user-location", this.userLocation);
       localStorage.setItem("chla-onboarding-complete", "true");
     },
@@ -930,7 +1169,8 @@ export default {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 .progress-bar {
@@ -1008,7 +1248,8 @@ export default {
   margin-bottom: 0.5rem;
   font-size: 1.25rem;
   font-weight: 500;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 .welcome-text {
@@ -1054,7 +1295,8 @@ export default {
 .location-step h3 {
   color: #004877;
   margin-bottom: 0.5rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   font-weight: 500;
   font-size: 1.25rem;
 }
@@ -1122,7 +1364,8 @@ export default {
 .profile-step h3 {
   color: #004877;
   margin-bottom: 0.5rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   font-weight: 500;
   font-size: 1.25rem;
   text-align: center;
@@ -1159,6 +1402,36 @@ export default {
   outline: none;
   border-color: #004877;
   box-shadow: 0 0 0 1px rgba(0, 72, 119, 0.1);
+}
+
+.audience-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.audience-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.audience-option:hover,
+.audience-option.active {
+  border-color: #004877;
+  background: #eef8fc;
+  color: #004877;
 }
 
 .funding-row {
@@ -1200,7 +1473,8 @@ export default {
 .results-step h3 {
   color: #004877;
   margin-bottom: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   font-weight: 600;
 }
 
@@ -1377,16 +1651,15 @@ export default {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-  
+
   .success-header h2 {
     font-size: 1.125rem;
   }
-  
+
   .success-subtitle {
     font-size: 0.8rem;
   }
 }
-
 
 /* Results Step */
 .results-step {
@@ -1422,7 +1695,8 @@ export default {
 .preferences-step h3 {
   color: #004877;
   margin-bottom: 0.5rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   font-weight: 500;
   font-size: 1.25rem;
   text-align: center;
@@ -1672,7 +1946,6 @@ export default {
   border: 1px solid #c3e6cb;
 }
 
-
 /* Location Section on Step 1 */
 .location-section {
   margin-top: 1.5rem;
@@ -1810,7 +2083,7 @@ export default {
 
 .skip-divider::before,
 .skip-divider::after {
-  content: '';
+  content: "";
   flex: 1;
   border-bottom: 1px solid #e5e7eb;
 }

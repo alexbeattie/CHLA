@@ -35,12 +35,12 @@ struct FAQView: View {
     // MARK: - Hero
     private var heroSection: some View {
         VStack(spacing: 8) {
-            Text("Frequently Asked Questions")
+            Text(L10n.FAQ.pageTitle)
                 .font(.title3)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
 
-            Text("ABA therapy, Regional Centers, and finding resources")
+            Text(L10n.FAQ.heroSubtitle)
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.9))
         }
@@ -51,7 +51,7 @@ struct FAQView: View {
 
     // MARK: - ABA Section
     private var abaSection: some View {
-        FAQCategory(title: "ABA Therapy Basics") {
+        FAQCategory(title: L10n.FAQ.abaBasics) {
             FAQItem(
                 id: "aba1",
                 question: "What is ABA therapy?",
@@ -81,7 +81,7 @@ struct FAQView: View {
 
     // MARK: - Regional Centers Section
     private var rcSection: some View {
-        FAQCategory(title: "Regional Centers") {
+        FAQCategory(title: L10n.FAQ.regionalCenters) {
             FAQItem(
                 id: "rc1",
                 question: "What is a Regional Center?",
@@ -111,7 +111,7 @@ struct FAQView: View {
 
     // MARK: - Insurance Section
     private var insuranceSection: some View {
-        FAQCategory(title: "Insurance & Funding") {
+        FAQCategory(title: L10n.FAQ.insuranceFunding) {
             FAQItem(
                 id: "ins1",
                 question: "Does insurance cover ABA in California?",
@@ -141,7 +141,7 @@ struct FAQView: View {
 
     // MARK: - App Section
     private var appSection: some View {
-        FAQCategory(title: "Using the App") {
+        FAQCategory(title: L10n.FAQ.usingApp) {
             FAQItem(
                 id: "app1",
                 question: "How do I use NDD Resources?",
@@ -166,12 +166,12 @@ struct FAQView: View {
     // MARK: - Sources Section
     private var sourcesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Information Sources")
+            Text(L10n.FAQ.sources)
                 .font(.headline)
                 .foregroundColor(.accentBlue)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("The information in this FAQ is compiled from the following sources:")
+                Text(L10n.FAQ.sourcesIntro)
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -184,7 +184,7 @@ struct FAQView: View {
                     sourceLink("CA Dept. of Managed Health Care", "dmhc.ca.gov")
                 }
 
-                Text("⚠️ Disclaimer: This information is for educational purposes only and is not medical advice. Always consult with qualified healthcare professionals for medical decisions.")
+                Text(L10n.FAQ.disclaimer)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.top, 8)
@@ -211,14 +211,14 @@ struct FAQView: View {
     // MARK: - CTA
     private var ctaSection: some View {
         VStack(spacing: 12) {
-            Text("Ready to Find a Resource?")
+            Text(L10n.About.readyToFind)
                 .font(.headline)
                 .foregroundColor(.white)
 
             Button {
                 appState.navigateToMap()
             } label: {
-                Label("Explore the Map", systemImage: "map.fill")
+                Label(L10n.About.exploreMap, systemImage: "map.fill")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.accentBlue)
