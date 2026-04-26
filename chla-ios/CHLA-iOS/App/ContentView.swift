@@ -6,6 +6,12 @@
 //
 
 import SwiftUI
+#if canImport(AppKit)
+import AppKit
+#endif
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // MARK: - UI Visibility Manager
 @MainActor
@@ -307,6 +313,8 @@ struct MainTabView: View {
             }
 
         // More actions
+        case .editOnboardingProfile:
+            appState.resetOnboarding()
         case .showSettings:
             showSettings = true
         case .openWebsite:
@@ -368,6 +376,7 @@ enum TabMenuAction {
     case showFAQ
     case contactUs
     case rateApp
+    case editOnboardingProfile
     case showSettings
     case openWebsite
     case shareApp
@@ -407,6 +416,7 @@ struct LiquidGlassTabBar: View {
             ("arrow.clockwise", "Refresh", .refreshList)
         ]),
         TabInfo(icon: "ellipsis.circle.fill", label: "More", menuItems: [
+            ("person.text.rectangle", "Edit Profile & Onboarding", .editOnboardingProfile),
             ("gear", "Settings", .showSettings),
             ("globe", "Visit Website", .openWebsite),
             ("square.and.arrow.up", "Share App", .shareApp)
@@ -838,6 +848,7 @@ struct RegionalCentersListContent: View {
 
 // MARK: - More View
 struct MoreView: View {
+    @EnvironmentObject var appState: AppState
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
     @State private var lastDragValue: CGFloat = 0
 
@@ -880,6 +891,26 @@ struct MoreView: View {
                     }
                 } header: {
                     Text("Links")
+                }
+
+                Section {
+                    Button {
+                        appState.resetOnboarding()
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Restart Welcome Setup")
+                                Text("Update ZIP code, care context, and preferences")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "person.text.rectangle")
+                                .foregroundColor(.indigo)
+                        }
+                    }
+                } header: {
+                    Text("Profile")
                 }
 
                 Section {
@@ -952,71 +983,314 @@ struct MoreView: View {
 // MARK: - Clinician Resources
 struct ClinicianResourcesView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) private var dismiss
     @State private var zipCode = ""
     @State private var matchedCenter: RegionalCenterMatcher.RegionalCenterInfo?
+    @State private var selectedPreset = ClinicianServicePreset.aba
 
     var body: some View {
         List {
-            Section {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Clinician Workspace")
-                        .font(.largeTitle.weight(.bold))
-                    Text("Use ZIP code context to orient families to their Regional Center and start a provider referral search.")
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, 8)
-            }
+            heroSection
 
-            Section("Regional Center Lookup") {
-                TextField("Family ZIP code", text: $zipCode)
-                    .keyboardType(.numberPad)
-                    .onChange(of: zipCode) { _, newValue in
-                        zipCode = String(newValue.filter(\.isNumber).prefix(5))
-                        updateMatchedCenter()
-                    }
+            regionalCenterLookupSection
 
-                if let matchedCenter {
-                    HStack(spacing: 12) {
-                        Text(matchedCenter.shortName)
-                            .font(.caption.weight(.black))
-                            .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .background(matchedCenter.uiColor, in: Circle())
-                            .overlay(Circle().stroke(.white, lineWidth: 3))
+            servicePresetSection
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(matchedCenter.name)
-                                .font(.headline)
-                            Text(matchedCenter.phone)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+            handoffSummarySection
 
-                    Button {
-                        appState.saveUserContext(
-                            zipCode: zipCode,
-                            audienceType: "clinician",
-                            regionalCenterName: matchedCenter.name,
-                            regionalCenterShortName: matchedCenter.shortName
-                        )
-                    } label: {
-                        Label("Use This Clinician Context", systemImage: "checkmark.circle.fill")
-                    }
-                }
-            }
-
-            Section("Referral Flow") {
-                Label("Confirm the family's ZIP and Regional Center before handoff.", systemImage: "1.circle")
-                Label("Use filters for therapy type, age range, and funding source.", systemImage: "2.circle")
-                Label("Share Regional Center contact details along with provider options.", systemImage: "3.circle")
-            }
+            referralFlowSection
         }
         .navigationTitle("Clinicians")
         .onAppear {
             zipCode = appState.userZipCode ?? ""
             updateMatchedCenter()
         }
+    }
+
+    private var heroSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(alignment: .top, spacing: 14) {
+                    Image(systemName: "stethoscope.circle.fill")
+                        .font(.system(size: 44))
+                        .foregroundStyle(Color.accentBlue)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Referral Prep")
+                            .font(.largeTitle.weight(.bold))
+                        Text("Build a family-ready handoff with Regional Center context, service filters, and next steps.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                HStack(spacing: 12) {
+                    ClinicianStatusPill(
+                        title: zipCode.count == 5 ? zipCode : "ZIP needed",
+                        icon: "mappin.and.ellipse",
+                        color: .blue
+                    )
+                    ClinicianStatusPill(
+                        title: matchedCenter?.shortName ?? "No RC yet",
+                        icon: "building.2.fill",
+                        color: matchedCenter?.uiColor ?? .secondary
+                    )
+                }
+
+                Button {
+                    saveClinicianContext()
+                    applyPresetAndNavigate(selectedPreset, destination: .browse)
+                } label: {
+                    Label("Start Referral Search", systemImage: "magnifyingglass.circle.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(matchedCenter == nil)
+            }
+            .padding(.vertical, 10)
+        }
+    }
+
+    private var regionalCenterLookupSection: some View {
+        Section {
+            TextField("Family ZIP code", text: $zipCode)
+                .keyboardType(.numberPad)
+                .textContentType(.postalCode)
+                .onChange(of: zipCode) { _, newValue in
+                    zipCode = String(newValue.filter(\.isNumber).prefix(5))
+                    updateMatchedCenter()
+                }
+
+            if let matchedCenter {
+                regionalCenterCard(matchedCenter)
+
+                Button {
+                    saveClinicianContext()
+                } label: {
+                    Label("Use This Clinician Context", systemImage: "checkmark.circle.fill")
+                }
+
+                HStack {
+                    if let phoneURL = phoneURL(for: matchedCenter.phone) {
+                        Link(destination: phoneURL) {
+                            Label("Call", systemImage: "phone.fill")
+                        }
+                    }
+
+                    Spacer()
+
+                    if let websiteURL = websiteURL(for: matchedCenter.website) {
+                        Link(destination: websiteURL) {
+                            Label("Website", systemImage: "safari.fill")
+                        }
+                    }
+
+                    Spacer()
+
+                    Button {
+                        appState.navigateToRegions()
+                        dismiss()
+                    } label: {
+                        Label("Regions", systemImage: "map.fill")
+                    }
+                }
+                .font(.subheadline.weight(.semibold))
+            } else if zipCode.count == 5 {
+                ContentUnavailableView(
+                    "No Regional Center Match",
+                    systemImage: "exclamationmark.magnifyingglass",
+                    description: Text("Try confirming the ZIP code or use the full Regional Centers list.")
+                )
+            }
+        } header: {
+            Text("Family Location")
+        } footer: {
+            Text("ZIP matching is a starting point for triage. Confirm eligibility and service area details with the Regional Center before handoff.")
+        }
+    }
+
+    private var servicePresetSection: some View {
+        Section {
+            ForEach(ClinicianServicePreset.allCases) { preset in
+                Button {
+                    selectedPreset = preset
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: preset.icon)
+                            .font(.headline)
+                            .foregroundStyle(preset.color)
+                            .frame(width: 34, height: 34)
+                            .background(preset.color.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(preset.title)
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                            Text(preset.subtitle)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: selectedPreset == preset ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(selectedPreset == preset ? Color.accentBlue : Color.secondary.opacity(0.45))
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+
+            HStack {
+                Button {
+                    saveClinicianContext()
+                    applyPresetAndNavigate(selectedPreset, destination: .browse)
+                } label: {
+                    Label("Browse Matches", systemImage: "list.bullet.rectangle")
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button {
+                    saveClinicianContext()
+                    applyPresetAndNavigate(selectedPreset, destination: .map)
+                } label: {
+                    Label("Map", systemImage: "map")
+                }
+                .buttonStyle(.bordered)
+            }
+        } header: {
+            Text("Service Starters")
+        } footer: {
+            Text("Selecting a starter updates the app filters so Browse and Map open with a referral-focused search.")
+        }
+    }
+
+    private var handoffSummarySection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(handoffSummary)
+                    .font(.callout.monospaced())
+                    .textSelection(.enabled)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+
+                HStack {
+                    ShareLink(item: handoffSummary) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button {
+                        copyHandoffSummary()
+                    } label: {
+                        Label("Copy", systemImage: "doc.on.doc")
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+        } header: {
+            Text("Family Handoff")
+        }
+    }
+
+    private var referralFlowSection: some View {
+        Section("Referral Flow") {
+            ClinicianStepCard(
+                icon: "person.text.rectangle.fill",
+                title: "1. Intake",
+                detail: "Confirm family ZIP, child age, diagnosis, payer, and current services before searching."
+            )
+
+            ClinicianStepCard(
+                icon: "slider.horizontal.3",
+                title: "2. Match",
+                detail: "Use the selected service starter to open a filtered provider list, then narrow by distance and funding source."
+            )
+
+            ClinicianStepCard(
+                icon: "paperplane.fill",
+                title: "3. Handoff",
+                detail: "Share the Regional Center contact and suggested next steps so the family leaves with a clear action plan."
+            )
+        }
+    }
+
+    private func regionalCenterCard(_ center: RegionalCenterMatcher.RegionalCenterInfo) -> some View {
+        HStack(spacing: 12) {
+            Text(center.shortName)
+                .font(.caption.weight(.black))
+                .foregroundStyle(.white)
+                .frame(width: 54, height: 54)
+                .background(center.uiColor, in: Circle())
+                .overlay(Circle().stroke(.white, lineWidth: 3))
+                .shadow(color: center.uiColor.opacity(0.25), radius: 8, y: 4)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(center.name)
+                    .font(.headline)
+                Text(center.phone)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(center.website)
+                    .font(.caption)
+                    .foregroundStyle(center.uiColor)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+
+    private var handoffSummary: String {
+        var lines = [
+            "Clinician referral prep",
+            "Family ZIP: \(zipCode.isEmpty ? "Not entered" : zipCode)",
+            "Service focus: \(selectedPreset.title)"
+        ]
+
+        if let matchedCenter {
+            lines.append("Regional Center: \(matchedCenter.name) (\(matchedCenter.shortName))")
+            lines.append("Phone: \(matchedCenter.phone)")
+            lines.append("Website: \(matchedCenter.website)")
+        } else {
+            lines.append("Regional Center: Not matched yet")
+        }
+
+        lines.append("Next steps: confirm eligibility, review funding source, and share provider options.")
+        return lines.joined(separator: "\n")
+    }
+
+    private func copyHandoffSummary() {
+        #if canImport(UIKit)
+        UIPasteboard.general.string = handoffSummary
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        #elseif canImport(AppKit)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(handoffSummary, forType: .string)
+        #endif
+    }
+
+    private func saveClinicianContext() {
+        appState.saveUserContext(
+            zipCode: zipCode.count == 5 ? zipCode : nil,
+            audienceType: "clinician",
+            regionalCenterName: matchedCenter?.name,
+            regionalCenterShortName: matchedCenter?.shortName
+        )
+    }
+
+    private func applyPresetAndNavigate(_ preset: ClinicianServicePreset, destination: ClinicianDestination) {
+        appState.searchFilters.therapyTypes = preset.therapyTypes
+        appState.searchFilters.insurance = preset.insurance
+        appState.searchFilters.radiusMiles = 15.0
+
+        switch destination {
+        case .browse:
+            appState.navigateToBrowse()
+        case .map:
+            appState.navigateToMap()
+        }
+
+        dismiss()
     }
 
     private func updateMatchedCenter() {
@@ -1026,6 +1300,159 @@ struct ClinicianResourcesView: View {
         }
 
         matchedCenter = RegionalCenterMatcher.shared.findRegionalCenter(forZipCode: zipCode)
+    }
+
+    private func phoneURL(for phone: String) -> URL? {
+        let digits = phone.filter(\.isNumber)
+        guard !digits.isEmpty else { return nil }
+        return URL(string: "tel://\(digits)")
+    }
+
+    private func websiteURL(for website: String) -> URL? {
+        if website.hasPrefix("http") {
+            return URL(string: website)
+        }
+        return URL(string: "https://\(website)")
+    }
+}
+
+private enum ClinicianDestination {
+    case browse
+    case map
+}
+
+private enum ClinicianServicePreset: String, CaseIterable, Identifiable {
+    case aba
+    case speech
+    case occupational
+    case physical
+    case earlyIntervention
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .aba:
+            return "ABA Therapy"
+        case .speech:
+            return "Speech Therapy"
+        case .occupational:
+            return "Occupational Therapy"
+        case .physical:
+            return "Physical Therapy"
+        case .earlyIntervention:
+            return "Early Intervention"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .aba:
+            return "Behavior support and parent training"
+        case .speech:
+            return "Communication and language services"
+        case .occupational:
+            return "Sensory, feeding, and daily living skills"
+        case .physical:
+            return "Motor development and mobility support"
+        case .earlyIntervention:
+            return "Regional Center funded starting point"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .aba:
+            return "brain.head.profile"
+        case .speech:
+            return "waveform.and.person.filled"
+        case .occupational:
+            return "hand.raised.fill"
+        case .physical:
+            return "figure.walk"
+        case .earlyIntervention:
+            return "figure.and.child.holdinghands"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .aba:
+            return Color(hex: "6366F1")
+        case .speech:
+            return Color(hex: "EC4899")
+        case .occupational:
+            return Color(hex: "10B981")
+        case .physical:
+            return Color(hex: "F59E0B")
+        case .earlyIntervention:
+            return Color(hex: "14B8A6")
+        }
+    }
+
+    var therapyTypes: [String] {
+        switch self {
+        case .aba:
+            return ["ABA therapy"]
+        case .speech:
+            return ["Speech therapy"]
+        case .occupational:
+            return ["Occupational therapy"]
+        case .physical:
+            return ["Physical therapy"]
+        case .earlyIntervention:
+            return []
+        }
+    }
+
+    var insurance: String? {
+        switch self {
+        case .earlyIntervention:
+            return "Regional Center"
+        default:
+            return nil
+        }
+    }
+}
+
+private struct ClinicianStatusPill: View {
+    let title: String
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        Label(title, systemImage: icon)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(color.opacity(0.12), in: Capsule())
+    }
+}
+
+private struct ClinicianStepCard: View {
+    let icon: String
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.headline)
+                .foregroundStyle(Color.accentBlue)
+                .frame(width: 34, height: 34)
+                .background(Color.accentBlue.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                Text(detail)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
 

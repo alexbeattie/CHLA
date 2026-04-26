@@ -2,7 +2,7 @@
 
 ## Version Information
 - **Marketing Version:** 1.3.0
-- **Build Number:** 1
+- **Build Number:** 2
 - **Minimum iOS:** 17.0
 
 ---
@@ -11,7 +11,7 @@
 
 ### English
 ```
-Version 1.3.0 - Spanish Language Support & Enhanced Navigation
+Version 1.3.0 - Spanish Language Support, Enhanced Navigation & Clinician Tools
 
 NEW FEATURES:
 • Full Spanish language support - Switch between English and Español in Settings or from the home screen
@@ -19,19 +19,21 @@ NEW FEATURES:
 • Improved Regional Centers navigation with Map/List toggle
 • Quick access to About & FAQ directly from home screen
 • Redesigned home page with cleaner layout
+• New Clinician Referral Workspace for referral prep and family handoffs
 
 IMPROVEMENTS:
 • Better localization throughout the app
 • Streamlined navigation to key information
 • Enhanced map view as default for Regional Centers
 • Improved accessibility for Spanish-speaking families
+• Clinicians can look up a family's Regional Center by ZIP code, start filtered searches, and share a referral handoff summary
 
 Thank you for using KiNDD to find developmental disability services in Los Angeles County!
 ```
 
 ### Spanish (Español)
 ```
-Versión 1.3.0 - Soporte en Español y Navegación Mejorada
+Versión 1.3.0 - Soporte en Español, Navegación Mejorada y Herramientas Clínicas
 
 NUEVAS FUNCIONES:
 • Soporte completo en español - Cambie entre English y Español en Configuración o desde la pantalla de inicio
@@ -39,12 +41,14 @@ NUEVAS FUNCIONES:
 • Navegación mejorada de Centros Regionales con alternador Mapa/Lista
 • Acceso rápido a Acerca de y Preguntas Frecuentes desde la pantalla de inicio
 • Página de inicio rediseñada con diseño más limpio
+• Nuevo espacio de trabajo para clínicos con preparación de referencias y resumen para familias
 
 MEJORAS:
 • Mejor localización en toda la aplicación
 • Navegación optimizada a información clave
 • Vista de mapa mejorada como predeterminada para Centros Regionales
 • Accesibilidad mejorada para familias hispanohablantes
+• Los clínicos pueden buscar el Centro Regional por código postal, iniciar búsquedas filtradas y compartir un resumen de referencia
 
 ¡Gracias por usar KiNDD para encontrar servicios de discapacidades del desarrollo en el Condado de Los Ángeles!
 ```
@@ -295,6 +299,7 @@ All provider data is publicly available information about ABA therapy providers 
 ## Pre-Submission Checklist
 
 - [ ] Version updated to 1.3.0
+- [ ] Build number updated to 2
 - [ ] Clean build succeeds (Cmd+Shift+K, Cmd+B)
 - [ ] Test on physical device
 - [ ] Test language switching (English ↔ Spanish)
