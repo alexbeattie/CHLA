@@ -1,8 +1,8 @@
-# KiNDD App Store Submission - Version 1.3.0
+# KiNDD App Store Submission - Version 1.3.1
 
 ## Version Information
-- **Marketing Version:** 1.3.0
-- **Build Number:** 2
+- **Marketing Version:** 1.3.1
+- **Build Number:** 3
 - **Minimum iOS:** 17.0
 
 ---
@@ -11,7 +11,7 @@
 
 ### English
 ```
-Version 1.3.0 - Spanish Language Support, Enhanced Navigation & Clinician Tools
+Version 1.3.1 - Spanish Language Support, Enhanced Navigation & Clinician Tools
 
 NEW FEATURES:
 • Full Spanish language support - Switch between English and Español in Settings or from the home screen
@@ -33,7 +33,7 @@ Thank you for using KiNDD to find developmental disability services in Los Angel
 
 ### Spanish (Español)
 ```
-Versión 1.3.0 - Soporte en Español, Navegación Mejorada y Herramientas Clínicas
+Versión 1.3.1 - Soporte en Español, Navegación Mejorada y Herramientas Clínicas
 
 NUEVAS FUNCIONES:
 • Soporte completo en español - Cambie entre English y Español en Configuración o desde la pantalla de inicio
@@ -298,8 +298,8 @@ All provider data is publicly available information about ABA therapy providers 
 
 ## Pre-Submission Checklist
 
-- [ ] Version updated to 1.3.0
-- [ ] Build number updated to 2
+- [ ] Version updated to 1.3.1
+- [ ] Build number updated to 3
 - [ ] Clean build succeeds (Cmd+Shift+K, Cmd+B)
 - [ ] Test on physical device
 - [ ] Test language switching (English ↔ Spanish)
@@ -322,3 +322,4 @@ All provider data is publicly available information about ABA therapy providers 
 | 1.1.0   | -        | Added AI assistant                                              |
 | 1.2.0   | -        | Enhanced map features                                           |
 | 1.3.0   | Jan 2026 | Spanish language support, improved navigation, About/FAQ access |
+| 1.3.1   | Apr 2026 | Clinician referral workspace and App Store metadata refresh     |
