@@ -237,16 +237,16 @@ Buscador de Terapia ABA en LA
 
 ### Screenshot Captions
 
-| # | English | Spanish |
-|---|---------|---------|
-| 1 | Find developmental services near you | Encuentre servicios de desarrollo cerca de usted |
-| 2 | Explore all 7 LA County Regional Centers | Explore los 7 Centros Regionales del Condado de LA |
-| 3 | AI assistant answers your questions | El asistente de IA responde sus preguntas |
-| 4 | Full Spanish language support | Soporte completo en español |
-| 5 | Filter by therapy, insurance & more | Filtre por terapia, seguro y más |
-| 6 | Switch languages anytime | Cambie de idioma en cualquier momento |
-| 7 | Learn about resources available | Aprenda sobre los recursos disponibles |
-| 8 | Get answers to common questions | Obtenga respuestas a preguntas comunes |
+| #   | English                                  | Spanish                                            |
+| --- | ---------------------------------------- | -------------------------------------------------- |
+| 1   | Find developmental services near you     | Encuentre servicios de desarrollo cerca de usted   |
+| 2   | Explore all 7 LA County Regional Centers | Explore los 7 Centros Regionales del Condado de LA |
+| 3   | AI assistant answers your questions      | El asistente de IA responde sus preguntas          |
+| 4   | Full Spanish language support            | Soporte completo en español                        |
+| 5   | Filter by therapy, insurance & more      | Filtre por terapia, seguro y más                   |
+| 6   | Switch languages anytime                 | Cambie de idioma en cualquier momento              |
+| 7   | Learn about resources available          | Aprenda sobre los recursos disponibles             |
+| 8   | Get answers to common questions          | Obtenga respuestas a preguntas comunes             |
 
 ---
 
@@ -316,9 +316,9 @@ All provider data is publicly available information about ABA therapy providers 
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | - | Initial release |
-| 1.1.0 | - | Added AI assistant |
-| 1.2.0 | - | Enhanced map features |
-| 1.3.0 | Jan 2026 | Spanish language support, improved navigation, About/FAQ access |
+| Version | Date     | Changes                                                         |
+| ------- | -------- | --------------------------------------------------------------- |
+| 1.0.0   | -        | Initial release                                                 |
+| 1.1.0   | -        | Added AI assistant                                              |
+| 1.2.0   | -        | Enhanced map features                                           |
+| 1.3.0   | Jan 2026 | Spanish language support, improved navigation, About/FAQ access |
