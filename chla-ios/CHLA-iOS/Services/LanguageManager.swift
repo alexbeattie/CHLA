@@ -13,9 +13,9 @@ enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
     case system = "system"
     case english = "en"
     case spanish = "es"
-    
+
     var id: String { rawValue }
-    
+
     var displayName: String {
         switch self {
         case .system: return "System Default"
@@ -23,15 +23,7 @@ enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
         case .spanish: return "Español"
         }
     }
-    
-    var flag: String {
-        switch self {
-        case .system: return "🌐"
-        case .english: return "🇺🇸"
-        case .spanish: return "🇲🇽"
-        }
-    }
-    
+
     var localeIdentifier: String? {
         switch self {
         case .system: return nil
@@ -45,16 +37,16 @@ enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
 @MainActor
 class LanguageManager: ObservableObject {
     static let shared = LanguageManager()
-    
+
     private let userDefaultsKey = "appLanguage"
-    
+
     @Published var currentLanguage: AppLanguage {
         didSet {
             saveLanguagePreference()
             applyLanguage()
         }
     }
-    
+
     /// The effective locale based on current language setting
     var effectiveLocale: Locale {
         if let identifier = currentLanguage.localeIdentifier {
@@ -62,7 +54,7 @@ class LanguageManager: ObservableObject {
         }
         return Locale.current
     }
-    
+
     private init() {
         // Load saved preference or default to system
         if let saved = UserDefaults.standard.string(forKey: userDefaultsKey),
@@ -72,11 +64,11 @@ class LanguageManager: ObservableObject {
             self.currentLanguage = .system
         }
     }
-    
+
     private func saveLanguagePreference() {
         UserDefaults.standard.set(currentLanguage.rawValue, forKey: userDefaultsKey)
     }
-    
+
     private func applyLanguage() {
         // Force update of any cached strings
         objectWillChange.send()
@@ -87,7 +79,7 @@ class LanguageManager: ObservableObject {
 /// Provides thread-safe access to localized strings
 enum LocalizationHelper {
     private static let userDefaultsKey = "appLanguage"
-    
+
     /// Get the current language bundle (thread-safe)
     static var currentBundle: Bundle {
         // Read from UserDefaults directly for thread safety
@@ -98,7 +90,7 @@ enum LocalizationHelper {
             }
             return language.localeIdentifier
         }()
-        
+
         guard let code = languageCode,
               let path = Bundle.main.path(forResource: code, ofType: "lproj"),
               let bundle = Bundle(path: path) else {
@@ -106,7 +98,7 @@ enum LocalizationHelper {
         }
         return bundle
     }
-    
+
     /// Get a localized string for the given key (thread-safe)
     static func localizedString(for key: String) -> String {
         return NSLocalizedString(key, bundle: currentBundle, comment: "")

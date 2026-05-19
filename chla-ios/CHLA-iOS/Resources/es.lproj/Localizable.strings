@@ -1,7 +1,7 @@
-/* 
+/*
   Localizable.strings (Spanish)
-  CHLA-iOS / KINDD
-  
+  KiNDD - NDD Resource Navigator
+
   Spanish translations for the app
 */
 
@@ -216,4 +216,4 @@
 "faq.usingApp" = "Usando la Aplicación";
 "faq.sources" = "Fuentes de Información";
 "faq.sourcesIntro" = "La información en estas preguntas frecuentes se recopila de las siguientes fuentes:";
-"faq.disclaimer" = "⚠️ Aviso: Esta información es solo para fines educativos y no es consejo médico. Siempre consulte con profesionales de la salud calificados para decisiones médicas.";
+"faq.disclaimer" = "Aviso: Esta información es solo para fines educativos y no es consejo médico. Siempre consulte con profesionales de la salud calificados para decisiones médicas.";

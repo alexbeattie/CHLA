@@ -1,6 +1,6 @@
-# CHLA Provider Map - Complete Stack Documentation
+# KiNDD - NDD Resource Navigator - Complete Stack Documentation
 
-## ⚠️ Known Data Issues
+## Known Data Issues
 
 ### Regional Center ZIP Code Coverage
 
@@ -11,7 +11,7 @@
 - **API Endpoint**: `/api/regional-centers/service_area_boundaries/` returns all RC polygons with their ZIP codes
 - **Verification**: `curl "http://127.0.0.1:8000/api/regional-centers/lookup_by_zip/?zip_code=91403"` returns 404
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ### Frontend
 
@@ -39,7 +39,7 @@
 - **Database Name**: postgres
 - **Username**: chla_admin
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 /CHLAProj/
@@ -63,7 +63,7 @@
 └── .venv/                # Python virtual environment
 ```
 
-## 🔧 Local Development
+## Local Development
 
 ### Backend Setup
 
@@ -90,7 +90,7 @@ The `switch-env.sh` script manages environment variables:
 - `./switch-env.sh dev` - Points to local backend (<http://127.0.0.1:8000>)
 - `./switch-env.sh prod` - Points to production backend (<https://api.kinddhelp.com>)
 
-## 🚀 Deployment Process
+## Deployment Process
 
 ### Deploy Backend (Django → Elastic Beanstalk)
 
@@ -109,7 +109,7 @@ aws s3 sync dist/ s3://kinddhelp-frontend-1755148345 --delete --profile personal
 aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*" --profile personal
 ```
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ### Backend (Elastic Beanstalk)
 
@@ -128,7 +128,7 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 - `VITE_API_BASE_URL`: API endpoint URL
 - `VITE_MAPBOX_TOKEN`: Mapbox access token
 
-## 🌐 API Endpoints
+## API Endpoints
 
 ### Main Endpoints
 
@@ -139,7 +139,7 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 - `/api/regional-centers/by_zip_code/` - Find regional center by ZIP
 - `/api/users/auth/login/` - User authentication
 
-## 🗺️ Key Features
+## Key Features
 
 1. **Provider Map**: Shows healthcare providers with filtering
 2. **Regional Centers**: Display service areas and boundaries
@@ -147,7 +147,7 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 4. **Filtering**: Insurance, languages, specializations
 5. **User Authentication**: Client portal access
 
-## 🐛 Common Issues & Solutions
+## Common Issues & Solutions
 
 ### 502 Bad Gateway Errors
 
@@ -169,7 +169,7 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 - **Cause**: HTTP/HTTPS mismatch
 - **Fix**: Ensure all URLs use HTTPS in production
 
-## 📝 Database Management
+## Database Management
 
 ### Local to RDS Sync
 
@@ -188,7 +188,7 @@ git push origin main  # Auto-deploys with migrations
 psql -h chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com -U chla_admin -d postgres
 ```
 
-## 🔍 Debugging Commands
+## Debugging Commands
 
 ### Check Backend Status
 
@@ -214,7 +214,7 @@ curl -H "Authorization: Token YOUR_TOKEN" https://api.kinddhelp.com/api/provider
 aws cloudfront get-distribution --id E2W6EECHUV4LMM --profile personal
 ```
 
-## 🎯 Quick Reference
+## Quick Reference
 
 ### URLs
 
@@ -231,7 +231,7 @@ aws cloudfront get-distribution --id E2W6EECHUV4LMM --profile personal
 - **EB Environment**: chla-api-docker2
 - **RDS Instance**: chla-postgres-db
 
-## 💡 Pro Tips
+## Pro Tips
 
 1. **Always use `python3`** (not `python`) for macOS compatibility [[memory:6681121]]
 2. **Use `./switch-env.sh`** to manage environment switching
@@ -240,7 +240,7 @@ aws cloudfront get-distribution --id E2W6EECHUV4LMM --profile personal
 5. **CloudFront invalidation** takes 5-15 minutes
 6. **S3 direct URL** is useful for testing without CloudFront
 
-## 🚨 Emergency Fixes
+## Emergency Fixes
 
 ### Backend Down
 

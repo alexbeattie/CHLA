@@ -2,7 +2,7 @@
 /**
  * Generate Placeholder Social Media Images
  * Creates og-image.jpg and twitter-card.jpg with CHLA branding
- * 
+ *
  * Usage: node scripts/generate-placeholder-images.js
  */
 
@@ -25,16 +25,16 @@ const PLACEHOLDER_BASE = 'https://placehold.co';
 const ogImageUrl = `${PLACEHOLDER_BASE}/1200x630/004877/FFFFFF?text=KINDD%0AFind+ABA+Therapy+Providers+in+Los+Angeles%0APowered+by+Children's+Hospital+LA&font=raleway`;
 const twitterCardUrl = `${PLACEHOLDER_BASE}/1200x675/004877/FFFFFF?text=KINDD%0AFind+ABA+Therapy+in+LA+County%0AFree+Interactive+Map&font=raleway`;
 
-console.log('🎨 Generating placeholder images...\n');
+console.log('Generating placeholder images...\n');
 
-console.log('📋 Instructions:');
+console.log('Instructions:');
 console.log('Since we need actual image files, use one of these methods:\n');
 
 console.log('Method 1: Download from placeholder service');
 console.log(`1. Visit: ${ogImageUrl}`);
-console.log('   Save as: map-frontend/public/og-image.jpg\n');
+console.log(' Save as: map-frontend/public/og-image.jpg\n');
 console.log(`2. Visit: ${twitterCardUrl}`);
-console.log('   Save as: map-frontend/public/twitter-card.jpg\n');
+console.log(' Save as: map-frontend/public/twitter-card.jpg\n');
 
 console.log('Method 2: Use ImageMagick (if installed)');
 console.log('Run these commands:\n');
@@ -69,13 +69,13 @@ console.log('I can create solid color placeholders right now.\n');
 // Check if we have the public directory
 const publicDir = path.join(__dirname, '../map-frontend/public');
 if (!fs.existsSync(publicDir)) {
-  console.error('❌ Error: map-frontend/public directory not found!');
+  console.error('Error: map-frontend/public directory not found!');
   process.exit(1);
 }
 
-console.log('✅ Public directory found:', publicDir);
-console.log('\n💡 Recommendation: Use Method 1 (download from placeholder service)');
-console.log('   It takes 2 minutes and looks professional.\n');
+console.log('Public directory found:', publicDir);
+console.log('\nRecommendation: Use Method 1 (download from placeholder service)');
+console.log(' It takes 2 minutes and looks professional.\n');
 
 // Create a reference file
 const referenceFile = path.join(publicDir, 'SOCIAL_IMAGES_TODO.txt');
@@ -90,7 +90,7 @@ Required Files:
 Quick Download (2 minutes):
 1. Open: ${ogImageUrl}
 2. Right-click > Save Image As > og-image.jpg
-3. Open: ${twitterCardUrl}  
+3. Open: ${twitterCardUrl}
 4. Right-click > Save Image As > twitter-card.jpg
 5. Move both files to: map-frontend/public/
 
@@ -104,6 +104,6 @@ Note: Some social platforms require JPG/PNG, not SVG
 Last Updated: ${new Date().toISOString()}
 `);
 
-console.log('📝 Created reference file:', referenceFile);
-console.log('\n🚀 Next: Download the images or I can create basic ones now!');
+console.log('Created reference file:', referenceFile);
+console.log('\nNext: Download the images or I can create basic ones now!');
 

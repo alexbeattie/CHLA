@@ -1,6 +1,6 @@
-# CHLA Provider Map - Environment Settings
+# KiNDD - NDD Resource Navigator - Environment Settings
 
-**⚠️ SECURITY WARNING: Never commit files with real credentials to Git!**
+**SECURITY WARNING: Never commit files with real credentials to Git!**
 
 ## Quick Reference
 
@@ -28,13 +28,13 @@ cp .env.example .env.production
 
 ## Current Production Configuration
 
-### 🗄️ Database (AWS RDS)
+### Database (AWS RDS)
 
 ```bash
 DB_HOST=chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com
 DB_NAME=postgres
 DB_USER=chla_admin
-DB_PASSWORD=CHLASecure2024
+DB_PASSWORD=<stored in AWS Secrets Manager: kindd/prod/rds-password>
 DB_PORT=5432
 DB_SSL_REQUIRE=true
 ```
@@ -47,7 +47,7 @@ DB_SSL_REQUIRE=true
 - Status: Available
 - Addresses: 35.166.111.237, 52.26.226.218
 
-### 🌐 API Backend (Elastic Beanstalk)
+### API Backend (Elastic Beanstalk)
 
 ```bash
 EB_ENVIRONMENT=chla-api-docker2
@@ -62,7 +62,7 @@ BACKEND_URL=https://api.kinddhelp.com
 - CNAME: chla-api-docker2.eba-9aiqcppx.us-west-2.elasticbeanstalk.com
 - Platform: Python 3.12 on Amazon Linux 2023
 
-### 🎨 Frontend (S3 + CloudFront)
+### Frontend (S3 + CloudFront)
 
 ```bash
 S3_BUCKET=kinddhelp-frontend-1755148345
@@ -70,15 +70,15 @@ CLOUDFRONT_DISTRIBUTION_ID=E2W6EECHUV4LMM
 FRONTEND_URL=https://kinddhelp.com
 ```
 
-### 🔐 Django Configuration
+### Django Configuration
 
 ```bash
-DJANGO_SECRET_KEY=k^v1yy9u1z+ztuj9wg))si(8q5s8%7k3#aorgm78jqwy@k@kg#
+DJANGO_SECRET_KEY=<stored in AWS Secrets Manager: kindd/prod/django-secret-key>
 DJANGO_DEBUG=false
 DJANGO_SETTINGS_MODULE=maplocation.settings
 ```
 
-### 🛡️ CORS & Security
+### CORS & Security
 
 ```bash
 ALLOWED_HOSTS=api.kinddhelp.com,*.elasticbeanstalk.com,*
@@ -86,14 +86,14 @@ CORS_ALLOWED_ORIGINS=https://kinddhelp.com,https://www.kinddhelp.com
 CSRF_TRUSTED_ORIGINS=https://api.kinddhelp.com,https://kinddhelp.com,https://www.kinddhelp.com
 ```
 
-### 🔑 Basic Authentication (Admin Portal Gatekeeper)
+### Basic Authentication (Admin Portal Gatekeeper)
 
 ```bash
 BASIC_AUTH_USERNAME=clientaccess
-BASIC_AUTH_PASSWORD=changeme123!
+BASIC_AUTH_PASSWORD=<stored in AWS Secrets Manager: kindd/prod/basic-auth-password>
 ```
 
-### 🎨 Frontend Environment Variables (Vue/Vite)
+### Frontend Environment Variables (Vue/Vite)
 
 ```bash
 # API Configuration
@@ -134,7 +134,7 @@ cd map-frontend
 
 ```
 Username: admin
-Password: admin123
+Password: <stored in AWS Secrets Manager: kindd/prod/admin-password>
 URL: http://localhost:8000/admin/ (local) or https://api.kinddhelp.com/admin/ (prod)
 ```
 
@@ -142,11 +142,11 @@ URL: http://localhost:8000/admin/ (local) or https://api.kinddhelp.com/admin/ (p
 
 ```
 Username: client1
-Password: client-password-123
+Password: <stored in AWS Secrets Manager: kindd/prod/client-password>
 URL: http://localhost:8000/client-portal/ (local) or https://api.kinddhelp.com/client-portal/ (prod)
 ```
 
-**⚠️ SECURITY NOTE:**
+**SECURITY NOTE:**
 
 1. Basic auth (`clientaccess`) is a gatekeeper - required BEFORE Django login
 2. Then use Django credentials (admin or client1) to actually log in
@@ -328,14 +328,14 @@ nslookup api.kinddhelp.com
 
 ## Security Best Practices
 
-1. ✅ Never commit `.env.*` files with real credentials
-2. ✅ Use `.env.example` as template only
-3. ✅ Rotate passwords regularly (every 90 days)
-4. ✅ Use different credentials for local vs production
-5. ✅ Store production credentials in secure password manager
-6. ✅ Use GitHub Secrets for CI/CD
-7. ❌ Never use `DJANGO_DEBUG=true` in production
-8. ❌ Never use `ALLOWED_HOSTS=*` in production (only for testing)
+1. Never commit `.env.*` files with real credentials
+2. Use `.env.example` as template only
+3. Rotate passwords regularly (every 90 days)
+4. Use different credentials for local vs production
+5. Store production credentials in secure password manager
+6. Use GitHub Secrets for CI/CD
+7. Never use `DJANGO_DEBUG=true` in production
+8. Never use `ALLOWED_HOSTS=*` in production (only for testing)
 
 ---
 

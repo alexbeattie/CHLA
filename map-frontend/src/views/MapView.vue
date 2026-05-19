@@ -19,13 +19,17 @@
         </button>
 
         <div class="navbar-brand">
-          <router-link to="/" class="kindd-text-logo-link">
-            <span class="kindd-text-logo">KINDD</span>
+          <router-link to="/" class="kindd-logo-link" aria-label="KiNDD home">
+            <img
+              src="/kindd-logo.png"
+              alt="KiNDD"
+              class="kindd-logo-image"
+              width="78"
+              height="36"
+            />
           </router-link>
           <span class="brand-separator d-none d-md-inline">|</span>
-          <span class="brand-subtitle d-none d-md-inline"
-            >ABA Resource Navigator</span
-          >
+          <span class="brand-subtitle d-none d-md-inline">NDD Resource Map</span>
         </div>
 
         <nav class="navbar-links d-none d-md-flex">
@@ -181,17 +185,10 @@
     >
       <!-- Unified Scrollable Content -->
       <div class="sidebar-content">
-        <!-- CHLA Header -->
-        <div class="chla-header">
-          <div class="chla-logo-container">
-            <img
-              src="@/assets/chla-logo.svg"
-              alt="Children's Hospital Los Angeles"
-              class="chla-logo"
-            />
-          </div>
-          <div class="chla-mission">
-            <p class="chla-tagline">{{ $t("sidebar.tagline") }}</p>
+        <!-- Brand Header -->
+        <div class="sidebar-header">
+          <div class="brand-mission">
+            <p class="brand-tagline">{{ $t("sidebar.tagline") }}</p>
           </div>
         </div>
 
@@ -719,6 +716,7 @@ import {
 // Composables
 import { useGeolocation } from "@/composables/useGeolocation";
 import { useRegionalCenterData } from "@/composables/useRegionalCenterData";
+import { useSeo } from "@/composables/useSeo";
 
 // Constants and utilities
 import {
@@ -766,6 +764,10 @@ export default {
     LanguageSwitcher,
   },
 
+  setup() {
+    useSeo({ path: "/" });
+  },
+
   data() {
     return {
       // Week 5B: New components now enabled by default
@@ -781,9 +783,7 @@ export default {
       regionalCenterData: null,
 
       // Mapbox token for MapCanvas component
-      mapboxAccessToken:
-        import.meta.env.VITE_MAPBOX_TOKEN ||
-        "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg",
+      mapboxAccessToken: import.meta.env.VITE_MAPBOX_TOKEN || "",
 
       // Modal visibility
       showFundingInfo: false,
@@ -1347,7 +1347,7 @@ export default {
           setTimeout(() => {
             this.isInitialPageLoad = false;
             console.log(
-              "✅ Initial page load complete - map auto-zoom now enabled"
+              "Initial page load complete - map auto-zoom now enabled"
             );
           }, 2000);
         } else {
@@ -1440,7 +1440,7 @@ export default {
           searchInfo
         );
 
-        console.log(`✅ PDF generated: ${filename}`);
+        console.log(`PDF generated: ${filename}`);
 
         // Track download event
         if (window.gtag) {
@@ -1454,7 +1454,7 @@ export default {
           });
         }
       } catch (error) {
-        console.error("❌ Error generating PDF:", error);
+        console.error("Error generating PDF:", error);
         alert(
           "Sorry, there was an error generating the PDF. Please try again."
         );
@@ -1472,7 +1472,7 @@ export default {
      * Start Over - Reset and restart onboarding
      */
     handleStartOver() {
-      console.log("🔄 Starting over - resetting application state");
+      console.log("Starting over - resetting application state");
 
       // Clear user data
       this.userData = {
@@ -1516,7 +1516,7 @@ export default {
       // Show onboarding
       this.showOnboarding = true;
 
-      console.log("✅ Application state reset - showing onboarding");
+      console.log("Application state reset - showing onboarding");
     },
 
     // ============================================
@@ -1541,7 +1541,7 @@ export default {
       if (searchData.query && searchData.type === "location") {
         this.userData.address = searchData.query;
         console.log(
-          "📍 Search triggered address update, finding regional center..."
+          "Search triggered address update, finding regional center..."
         );
         await this.findUserRegionalCenter();
       }
@@ -1606,7 +1606,7 @@ export default {
 
           // MapCanvas watches providerStore and updates markers automatically
           console.log(
-            `✅ Filters applied: ${this.providerStore.providers.length} providers found`
+            `Filters applied: ${this.providerStore.providers.length} providers found`
           );
         }
       } catch (error) {
@@ -1629,7 +1629,7 @@ export default {
             await this.providerStore.searchByZipCode(zipMatch[0]);
             // MapCanvas handles marker updates automatically
             console.log(
-              `✅ Filters reset: ${this.providerStore.providers.length} providers shown`
+              `Filters reset: ${this.providerStore.providers.length} providers shown`
             );
           }
         } else if (this.userLocation?.latitude) {
@@ -1640,7 +1640,7 @@ export default {
           );
           // MapCanvas handles marker updates automatically
           console.log(
-            `✅ Filters reset: ${this.providerStore.providers.length} providers shown`
+            `Filters reset: ${this.providerStore.providers.length} providers shown`
           );
         }
       } catch (error) {
@@ -1658,7 +1658,7 @@ export default {
       console.log("[MapView] Loading more providers");
       this.currentProviderPage += 1;
       console.log(
-        `📄 Now showing page ${this.currentProviderPage} (${this.paginatedProviders.length} of ${this.providerStore.providers.length} providers)`
+        `Now showing page ${this.currentProviderPage} (${this.paginatedProviders.length} of ${this.providerStore.providers.length} providers)`
       );
     },
 
@@ -1667,7 +1667,7 @@ export default {
      */
     resetPagination() {
       this.currentProviderPage = 1;
-      console.log("📄 Pagination reset to page 1");
+      console.log("Pagination reset to page 1");
     },
 
     /**
@@ -1830,12 +1830,9 @@ export default {
      * Handle get directions from ProviderDetails
      */
     async handleGetDirections(data) {
-      console.log("🗺️ [MapView] Getting directions to:", data);
-      console.log("🗺️ [MapView] User location:", this.userLocation);
-      console.log(
-        "🗺️ [MapView] MapStore location:",
-        this.mapStore?.userLocation
-      );
+      console.log("[MapView] Getting directions to:", data);
+      console.log("[MapView] User location:", this.userLocation);
+      console.log("[MapView] MapStore location:", this.mapStore?.userLocation);
 
       // Clear existing route from map (but keep panel open)
       this.removeRouteFromMap();
@@ -1852,13 +1849,13 @@ export default {
       const providerLat = provider.latitude || data.coordinates?.lat;
       const providerLng = provider.longitude || data.coordinates?.lng;
 
-      console.log("🗺️ [MapView] Provider coordinates:", {
+      console.log("[MapView] Provider coordinates:", {
         providerLat,
         providerLng,
       });
 
       if (!providerLat || !providerLng) {
-        console.error("🗺️ [MapView] Provider location not available");
+        console.error("[MapView] Provider location not available");
         this.directionsError = "Provider location not available";
         this.showDirections = true;
         return;
@@ -1869,17 +1866,14 @@ export default {
       // NEVER use map center as it changes when panning/zooming
       let originLat, originLng, originName;
 
-      console.log("🗺️ [MapView] Determining origin for directions...");
-      console.log("🗺️ [MapView] - GPS detected:", this.userLocation.detected);
+      console.log("[MapView] Determining origin for directions...");
+      console.log("[MapView] - GPS detected:", this.userLocation.detected);
       console.log(
-        "🗺️ [MapView] - GPS coords:",
+        "[MapView] - GPS coords:",
         this.userLocation.latitude,
         this.userLocation.longitude
       );
-      console.log(
-        "🗺️ [MapView] - MapStore coords:",
-        this.mapStore?.userLocation
-      );
+      console.log("[MapView] - MapStore coords:", this.mapStore?.userLocation);
 
       // First priority: GPS location if detected
       if (
@@ -1890,7 +1884,7 @@ export default {
         originLat = this.userLocation.latitude;
         originLng = this.userLocation.longitude;
         originName = "Your Location (GPS)";
-        console.log("✅ [MapView] Using GPS location as origin:", {
+        console.log("[MapView] Using GPS location as origin:", {
           lat: originLat,
           lng: originLng,
         });
@@ -1904,7 +1898,7 @@ export default {
         originLng = this.mapStore.userLocation.lng;
         originName = "Your Search Location";
         console.log(
-          "✅ [MapView] Using mapStore location (blue marker) as origin:",
+          "[MapView] Using mapStore location (blue marker) as origin:",
           {
             lat: originLat,
             lng: originLng,
@@ -1913,20 +1907,17 @@ export default {
       }
       // No valid user location available
       else {
-        console.error("❌ [MapView] No user location available for directions");
+        console.error("[MapView] No user location available for directions");
         this.directionsError =
           "Please enter a ZIP code or allow location access to get directions.";
         this.showDirections = true;
         return;
       }
 
-      console.log("🗺️ [MapView] ===== ROUTE REQUEST =====");
-      console.log("🗺️ [MapView] FROM:", originName, [originLng, originLat]);
-      console.log("🗺️ [MapView] TO:", provider.name, [
-        providerLng,
-        providerLat,
-      ]);
-      console.log("🗺️ [MapView] =======================");
+      console.log("[MapView] ===== ROUTE REQUEST =====");
+      console.log("[MapView] FROM:", originName, [originLng, originLat]);
+      console.log("[MapView] TO:", provider.name, [providerLng, providerLat]);
+      console.log("[MapView] =======================");
 
       // Show loading state
       this.showDirections = true;
@@ -1944,15 +1935,15 @@ export default {
 
       try {
         // Fetch directions with actual driving distance
-        console.log("🗺️ [MapView] Calling getDrivingDirections...");
+        console.log("[MapView] Calling getDrivingDirections...");
         const directions = await getDrivingDirections(
           [originLng, originLat],
           [providerLng, providerLat]
         );
 
-        console.log("🗺️ [MapView] Received directions:", directions);
+        console.log("[MapView] Received directions:", directions);
         console.log(
-          "🗺️ [MapView] Driving distance:",
+          "[MapView] Driving distance:",
           directions.distance.toFixed(1),
           "mi"
         );
@@ -1960,21 +1951,21 @@ export default {
         this.currentDirections = directions;
         this.directionsRoute = directions.route;
 
-        console.log("🗺️ [MapView] Drawing route on map...");
+        console.log("[MapView] Drawing route on map...");
         // Draw route on map
         this.drawRouteOnMap(directions.route);
 
-        console.log("🗺️ [MapView] Fitting map to route...");
+        console.log("[MapView] Fitting map to route...");
         // Fit map to show entire route
         this.fitMapToRoute(directions.route);
 
-        console.log("🗺️ [MapView] Directions complete!");
+        console.log("[MapView] Directions complete!");
       } catch (error) {
-        console.error("🗺️ [MapView] Error fetching directions:", error);
+        console.error("[MapView] Error fetching directions:", error);
         this.directionsError = "Could not calculate route. Please try again.";
       } finally {
         this.directionsLoading = false;
-        console.log("🗺️ [MapView] directionsLoading set to false");
+        console.log("[MapView] directionsLoading set to false");
       }
     },
 
@@ -2899,9 +2890,9 @@ export default {
 
     // Update filtered locations based on filters
     async updateFilteredLocations() {
-      console.log("🔍 Universal search with text:", this.searchText);
-      console.log("🎛️ Filters:", this.filterOptions);
-      console.log("📏 Current radius:", this.radius);
+      console.log("Universal search with text:", this.searchText);
+      console.log("Filters:", this.filterOptions);
+      console.log("Current radius:", this.radius);
 
       // Clear any previous errors
       this.error = null;
@@ -2917,11 +2908,11 @@ export default {
           // Detect if it's a standalone ZIP code (5 digits)
           const zipCode = detectStandaloneZip(query);
           if (zipCode) {
-            console.log("📮 ZIP code detected:", zipCode);
+            console.log("ZIP code detected:", zipCode);
 
             // Validate ZIP is in LA County (9xxxx range)
             if (!isLACountyZip(zipCode)) {
-              console.warn("⚠️ ZIP code is outside LA County service area");
+              console.warn("ZIP code is outside LA County service area");
               this.error = `ZIP code ${zipCode} is outside our Los Angeles County service area. Please use an LA County ZIP code (90xxx-93xxx).`;
               this.loading = false;
               return;
@@ -2954,13 +2945,13 @@ export default {
           // Check if it looks like an address (contains comma, or street number, or city/state)
           // This catches: "123 Main St", "Main St, LA", "Los Angeles, CA", etc.
           if (looksLikeAddress(query)) {
-            console.log("📍 Address detected:", query);
+            console.log("Address detected:", query);
 
             // Only check for ZIP code if it appears AFTER "CA" or at the end
             // This prevents street numbers (15767 Main St) from being mistaken as ZIP codes
             const addressZip = extractZipFromAddress(query);
             if (addressZip && !isLACountyZip(addressZip)) {
-              console.warn("⚠️ ZIP code in address is outside LA County");
+              console.warn("ZIP code in address is outside LA County");
               this.error = `ZIP code ${addressZip} is outside our Los Angeles County service area. Please use an LA County address (90xxx-93xxx ZIP codes).`;
               this.loading = false;
               return;
@@ -2971,7 +2962,7 @@ export default {
             if (coords) {
               // Validate that location is in LA County area
               if (!isInLACounty(coords.lat, coords.lng)) {
-                console.warn("⚠️ Location is outside LA County service area");
+                console.warn("Location is outside LA County service area");
                 this.error =
                   "This location is outside our Los Angeles County service area. Please search for an LA County address.";
                 this.loading = false;
@@ -3007,7 +2998,7 @@ export default {
           }
 
           // Text search for providers (names, services, etc.)
-          console.log("📝 Text search for providers:", query);
+          console.log("Text search for providers:", query);
           await this.providerStore.searchWithFilters({
             searchText: query,
             lat: this.userLocation?.latitude || 34.0522,
@@ -3020,7 +3011,7 @@ export default {
         // RADIUS CHANGE: If no search text but we have searchCoordinates, re-search with new radius
         if (!this.searchText && this.providerStore.searchCoordinates) {
           console.log(
-            "📏 Radius changed - re-searching with new radius:",
+            "Radius changed - re-searching with new radius:",
             this.radius
           );
           const coords = this.providerStore.searchCoordinates;
@@ -3045,7 +3036,7 @@ export default {
         this.filterOptions.matchesAge;
 
       if (hasProviderFilters && this.displayType !== "providers") {
-        console.log("🔄 Provider filters applied, switching to providers view");
+        console.log("Provider filters applied, switching to providers view");
         this.displayType = "providers";
       }
 
@@ -3062,7 +3053,7 @@ export default {
 
         if (currentMapState) {
           console.log(
-            "🔍 Preserving map state for radius adjustment:",
+            "Preserving map state for radius adjustment:",
             currentMapState
           );
         }
@@ -3072,7 +3063,7 @@ export default {
         // Restore map state after providers are loaded (only for radius adjustments)
         if (currentMapState && this.map) {
           console.log(
-            "🔍 Restoring map state after radius change:",
+            "Restoring map state after radius change:",
             currentMapState
           );
           this.map.setCenter(currentMapState.center);
@@ -3090,13 +3081,13 @@ export default {
 
     // Debounce search to prevent too many updates
     debounceSearch() {
-      console.log("🔍 debounceSearch called, searchText:", this.searchText);
+      console.log("debounceSearch called, searchText:", this.searchText);
       if (this.searchDebounce) {
         clearTimeout(this.searchDebounce);
       }
 
       this.searchDebounce = setTimeout(() => {
-        console.log("🔍 Executing search with text:", this.searchText);
+        console.log("Executing search with text:", this.searchText);
         // Clear any pending map movements to prevent conflicts
         if (this.map) {
           this.map.stop();
@@ -3109,11 +3100,11 @@ export default {
     async onRadiusChange() {
       // Prevent duplicate calls if already adjusting
       if (this.isAdjustingRadius) {
-        console.log("⚠️ Radius change already in progress, skipping");
+        console.log("Radius change already in progress, skipping");
         return;
       }
 
-      console.log("🔍 Radius changed to:", this.radius, "miles");
+      console.log("Radius changed to:", this.radius, "miles");
       this.isAdjustingRadius = true;
 
       // Calculate appropriate zoom level based on radius
@@ -3146,7 +3137,7 @@ export default {
           },
         });
         console.log(
-          `📍 Smoothly adjusting map zoom to ${targetZoom} for ${this.radius} mile radius centered on user location (${this.userLocation.latitude}, ${this.userLocation.longitude})`
+          `Smoothly adjusting map zoom to ${targetZoom} for ${this.radius} mile radius centered on user location (${this.userLocation.latitude}, ${this.userLocation.longitude})`
         );
       }
 
@@ -3178,7 +3169,7 @@ export default {
           const uniqueIds = new Set(providerIds);
           if (providerIds.length !== uniqueIds.size) {
             console.error(
-              `⚠️ DUPLICATE PROVIDER IDs DETECTED! Total: ${providerIds.length}, Unique: ${uniqueIds.size}`
+              `DUPLICATE PROVIDER IDs DETECTED! Total: ${providerIds.length}, Unique: ${uniqueIds.size}`
             );
             const duplicates = providerIds.filter(
               (id, index) => providerIds.indexOf(id) !== index
@@ -3189,7 +3180,7 @@ export default {
           // Update map markers
           // MapCanvas handles marker updates automatically
           console.log(
-            `✅ Updated providers with ${this.providerStore.providers.length} results within ${this.radius} miles`
+            `Updated providers with ${this.providerStore.providers.length} results within ${this.radius} miles`
           );
         } catch (error) {
           console.error("[MapView] Error updating radius:", error);
@@ -3221,12 +3212,12 @@ export default {
     // Load initial providers with smooth map setup
     async loadInitialProviders() {
       // Load providers without any map movements
-      console.log("📊 Loading initial providers...");
+      console.log("Loading initial providers...");
       this.isMapMoving = true; // Prevent any map bounds changes
       await this.fetchProviders();
       this.isMapMoving = false;
 
-      console.log("✅ Initial load complete - LA County view with providers");
+      console.log("Initial load complete - LA County view with providers");
     },
 
     /**
@@ -3234,11 +3225,9 @@ export default {
      */
     async loadAllProviders() {
       try {
-        console.log("🌍 Loading all providers without filters...");
+        console.log("Loading all providers without filters...");
         await this.providerStore.loadAllProviders();
-        console.log(
-          `✅ Loaded all ${this.providerStore.providerCount} providers`
-        );
+        console.log(`Loaded all ${this.providerStore.providerCount} providers`);
 
         // Reset any active filters
         if (this.filterStore) {
@@ -3249,7 +3238,7 @@ export default {
         this.userData.address = "";
         this.userData.zipCode = "";
       } catch (error) {
-        console.error("❌ Error loading all providers:", error);
+        console.error("Error loading all providers:", error);
         this.error = "Failed to load providers. Please try again.";
       }
     },
@@ -3320,15 +3309,13 @@ export default {
       // If we already have coordinates, no need to geocode
       if (this.userLocation?.latitude && this.userLocation?.longitude) {
         console.log(
-          `✅ Already have coordinates: ${this.userLocation.latitude}, ${this.userLocation.longitude}`
+          `Already have coordinates: ${this.userLocation.latitude}, ${this.userLocation.longitude}`
         );
         return;
       }
 
       try {
-        console.log(
-          `📍 Geocoding ZIP ${zipCode} to enable radius filtering...`
-        );
+        console.log(`Geocoding ZIP ${zipCode} to enable radius filtering...`);
         const coords = await this.geocodeTextToCoords(`${zipCode}, CA`);
 
         if (coords) {
@@ -3341,16 +3328,14 @@ export default {
             this.mapStore.setUserLocation({ lat: coords.lat, lng: coords.lng });
           }
 
-          console.log(
-            `✅ Geocoded ${zipCode} to: ${coords.lat}, ${coords.lng}`
-          );
-          console.log(`✅ userLocation now:`, this.userLocation);
-          console.log(`✅ Radius slider should now be visible!`);
+          console.log(`Geocoded ${zipCode} to: ${coords.lat}, ${coords.lng}`);
+          console.log(`userLocation now:`, this.userLocation);
+          console.log(`Radius slider should now be visible!`);
         } else {
-          console.warn(`⚠️ Could not geocode ZIP ${zipCode}`);
+          console.warn(`Could not geocode ZIP ${zipCode}`);
         }
       } catch (error) {
-        console.error(`❌ Error geocoding ZIP ${zipCode}:`, error);
+        console.error(`Error geocoding ZIP ${zipCode}:`, error);
       }
     },
 
@@ -3882,7 +3867,7 @@ export default {
 
     // Detect user location using browser geolocation API
     async detectUserLocation() {
-      console.log("🌍 Detecting user location...");
+      console.log("Detecting user location...");
 
       const success = await this.geolocation.detectUserLocation();
 
@@ -3895,11 +3880,11 @@ export default {
           this.userData.address = this.geolocation.userLocation.value.address;
 
           // Re-find regional center with the newly detected address
-          console.log("📍 Address updated, finding regional center...");
+          console.log("Address updated, finding regional center...");
           await this.findUserRegionalCenter();
         }
 
-        console.log(`✅ Location detected via composable`);
+        console.log(`Location detected via composable`);
 
         // Note: MapCanvas component handles map initialization
         // this.initMap() is deprecated
@@ -3907,7 +3892,7 @@ export default {
         // DON'T fetch providers - they're already loaded in mounted()
         // User can manually search their location if they want different results
       } else {
-        console.warn("⚠️ Geolocation failed, using fallback");
+        console.warn("Geolocation failed, using fallback");
         this.setFallbackLocation(
           this.geolocation.userLocation?.value?.error ||
             "Location detection failed"
@@ -3917,7 +3902,7 @@ export default {
 
     // Set fallback location (default to LA County center)
     setFallbackLocation(error = null) {
-      console.log("🏠 Using fallback location (LA County center)");
+      console.log("Using fallback location (LA County center)");
 
       this.userLocation = {
         latitude: LA_COUNTY_CENTER.lat, // Los Angeles
@@ -3954,13 +3939,13 @@ export default {
       );
 
       if (address) {
-        console.log(`🏠 Detected address: ${address}`);
+        console.log(`Detected address: ${address}`);
         this.userData.address = address;
 
         // Find regional center for the detected location
         this.findUserRegionalCenter();
       } else {
-        console.warn("⚠️ Reverse geocoding failed");
+        console.warn("Reverse geocoding failed");
         this.userData.address = `${latitude.toFixed(4)}, ${longitude.toFixed(
           4
         )}`;
@@ -3972,27 +3957,25 @@ export default {
       // Ensure we have valid coordinates before initializing
       if (!this.userLocation.latitude || !this.userLocation.longitude) {
         console.warn(
-          "⚠️ No valid coordinates for map initialization, using LA County center"
+          "No valid coordinates for map initialization, using LA County center"
         );
         this.userLocation.latitude = LA_COUNTY_CENTER.lat;
         this.userLocation.longitude = LA_COUNTY_CENTER.lng;
       }
 
       // Set Mapbox access token
-      const mapboxToken =
-        import.meta.env.VITE_MAPBOX_TOKEN ||
-        "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg";
+      const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || "";
       mapboxgl.accessToken = mapboxToken;
 
-      console.log("🗺️ Mapbox token:", mapboxToken.substring(0, 20) + "...");
+      console.log("Mapbox token:", mapboxToken.substring(0, 20) + "...");
       console.log(
-        `🗺️ Initializing map at: ${this.userLocation.latitude}, ${this.userLocation.longitude}`
+        `Initializing map at: ${this.userLocation.latitude}, ${this.userLocation.longitude}`
       );
 
       // Check if map container exists
       const mapContainer = document.getElementById("map");
       if (!mapContainer) {
-        console.error("❌ Map container 'map' not found!");
+        console.error("Map container 'map' not found!");
         return;
       }
 
@@ -4006,9 +3989,9 @@ export default {
           duration: 0, // Immediate initial positioning
         });
 
-        console.log("✅ Mapbox map instance created successfully");
+        console.log("Mapbox map instance created successfully");
       } catch (error) {
-        console.error("❌ Error creating Mapbox map:", error);
+        console.error("Error creating Mapbox map:", error);
         return;
       }
 
@@ -4032,7 +4015,7 @@ export default {
 
       // When map loads, update markers
       this.map.on("load", () => {
-        console.log("✅ Map loaded successfully");
+        console.log("Map loaded successfully");
         // MapCanvas handles marker updates automatically
 
         // If service areas are already enabled, add them now
@@ -4049,11 +4032,11 @@ export default {
 
       // Add error handling for map loading
       this.map.on("error", (error) => {
-        console.error("❌ Map error:", error);
+        console.error("Map error:", error);
       });
 
       this.map.on("styleimagemissing", (error) => {
-        console.warn("⚠️ Map style image missing:", error);
+        console.warn("Map style image missing:", error);
       });
 
       console.log("Map initialization complete");
@@ -4061,8 +4044,8 @@ export default {
 
     // Fetch provider data
     async fetchProviders() {
-      console.log("🚀 fetchProviders() called");
-      console.log("🚀 Current state:", {
+      console.log("fetchProviders() called");
+      console.log("Current state:", {
         displayType: this.displayType,
         providersLength: this.providers.length,
         showOnboarding: this.showOnboarding,
@@ -4073,7 +4056,7 @@ export default {
       this.error = null;
 
       try {
-        console.log("📡 Fetching providers from API");
+        console.log("Fetching providers from API");
 
         // If using local data, use sample data
         if (USE_LOCAL_DATA_ONLY) {
@@ -4095,7 +4078,7 @@ export default {
             );
 
             if (searchLocation && searchLocation.needsGeocoding) {
-              console.log(`🔍 Geocoding ZIP code: ${searchLocation.zipCode}`);
+              console.log(`Geocoding ZIP code: ${searchLocation.zipCode}`);
               const nom = await this.geocodeTextToCoords(
                 searchLocation.zipCode
               );
@@ -4111,7 +4094,7 @@ export default {
               searchLat = searchLocation.lat;
               searchLng = searchLocation.lng;
               console.log(
-                `🔍 Using geocoded location for "${this.searchText}": ${searchLat}, ${searchLng}`
+                `Using geocoded location for "${this.searchText}": ${searchLat}, ${searchLng}`
               );
             }
           }
@@ -4130,12 +4113,12 @@ export default {
           const hasSpecificFilters = hasActiveFilters(this.filterOptions);
 
           if (this.searchText && this.searchText.trim() !== "") {
-            console.log(`🔍 Adding search query: "${this.searchText.trim()}"`);
+            console.log(`Adding search query: "${this.searchText.trim()}"`);
           }
 
           if (searchLat && searchLng) {
             const searchRadius = this.radius || 25;
-            console.log(`🔍 Using search radius: ${searchRadius} miles`);
+            console.log(`Using search radius: ${searchRadius} miles`);
           }
 
           // Build URL using service
@@ -4145,13 +4128,13 @@ export default {
 
           if (isZipSearch) {
             console.log(
-              `🎯 Using REGIONAL CENTER filtering for ZIP: ${this.searchText.trim()}`
+              `Using REGIONAL CENTER filtering for ZIP: ${this.searchText.trim()}`
             );
           }
 
           if (hasSpecificFilters) {
-            console.log(`🔍 Fetching FILTERED providers from API: ${url}`);
-            console.log("🎛️ Active filters:", {
+            console.log(`Fetching FILTERED providers from API: ${url}`);
+            console.log("Active filters:", {
               acceptsInsurance: this.filterOptions.acceptsInsurance,
               acceptsRegionalCenter: this.filterOptions.acceptsRegionalCenter,
               matchesDiagnosis: this.filterOptions.matchesDiagnosis,
@@ -4164,14 +4147,12 @@ export default {
             // Special debugging for insurance filter bug
             if (this.filterOptions.acceptsInsurance) {
               console.log(
-                "🚨 INSURANCE FILTER ACTIVE - Watch for invalid coordinates!"
+                "INSURANCE FILTER ACTIVE - Watch for invalid coordinates!"
               );
             }
           } else {
-            console.log(`📋 Fetching ALL providers in radius from API: ${url}`);
-            console.log(
-              "🎛️ No specific filters - showing all providers in area"
-            );
+            console.log(`Fetching ALL providers in radius from API: ${url}`);
+            console.log("No specific filters - showing all providers in area");
           }
 
           const response = await axios.get(url);
@@ -4186,14 +4167,14 @@ export default {
               this.providerStore.providers = response.data.results;
             }
             console.log(
-              `✅ Loaded ${
+              `Loaded ${
                 this.providers.length
               } providers from regional center: ${
                 response.data.regional_center?.name || "Unknown"
               }`
             );
             console.log(
-              `🎯 Regional center has ${response.data.count} total providers`
+              `Regional center has ${response.data.count} total providers`
             );
           } else if (response.data && Array.isArray(response.data)) {
             // Handle regular JSON array response
@@ -4201,59 +4182,54 @@ export default {
               this.providerStore.providers = response.data;
             }
             console.log(
-              `✅ Loaded ${this.providers.length} providers from API (direct array)`
+              `Loaded ${this.providers.length} providers from API (direct array)`
             );
 
             // If no providers found, try fallback strategies
             if (this.providers.length === 0) {
-              console.log(
-                "🔍 No providers found, trying fallback strategies..."
-              );
+              console.log("No providers found, trying fallback strategies...");
 
               if (this.searchText && this.searchText.trim() !== "") {
                 // Try broader search with just the search term
-                console.log("🔍 Trying broader search with search term...");
+                console.log("Trying broader search with search term...");
                 const broadUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?q=${
                   this.searchText
                 }`;
-                console.log("🔍 Trying broader search URL:", broadUrl);
+                console.log("Trying broader search URL:", broadUrl);
                 try {
                   const broadResponse = await axios.get(broadUrl);
-                  console.log(
-                    "🔍 Broader search response:",
-                    broadResponse.data
-                  );
+                  console.log("Broader search response:", broadResponse.data);
                   if (
                     broadResponse.data &&
                     Array.isArray(broadResponse.data) &&
                     broadResponse.data.length > 0
                   ) {
                     console.log(
-                      `🔍 Found ${broadResponse.data.length} providers in broader search`
+                      `Found ${broadResponse.data.length} providers in broader search`
                     );
                     if (this.providerStore) {
                       this.providerStore.providers = broadResponse.data;
                     }
                   }
                 } catch (broadError) {
-                  console.log("🔍 Broader search failed:", broadError);
+                  console.log("Broader search failed:", broadError);
                 }
               }
 
               // If still no results, try getting providers within a reasonable radius
               if (this.providers.length === 0) {
                 console.log(
-                  "🔍 No results in broader search, trying to get nearby providers..."
+                  "No results in broader search, trying to get nearby providers..."
                 );
 
                 // Try to get providers within a larger radius (50 miles) of the search location
                 if (searchLat && searchLng) {
                   const nearbyUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${searchLat}&lng=${searchLng}&radius=50`;
-                  console.log("🔍 Trying nearby providers URL:", nearbyUrl);
+                  console.log("Trying nearby providers URL:", nearbyUrl);
                   try {
                     const nearbyResponse = await axios.get(nearbyUrl);
                     console.log(
-                      "🔍 Nearby providers response:",
+                      "Nearby providers response:",
                       nearbyResponse.data
                     );
                     if (
@@ -4262,7 +4238,7 @@ export default {
                       nearbyResponse.data.length > 0
                     ) {
                       console.log(
-                        `🔍 Found ${nearbyResponse.data.length} nearby providers`
+                        `Found ${nearbyResponse.data.length} nearby providers`
                       );
                       if (this.providerStore) {
                         this.providerStore.providers = nearbyResponse.data;
@@ -4270,7 +4246,7 @@ export default {
                     }
                   } catch (nearbyError) {
                     console.log(
-                      "🔍 Nearby providers search failed (ignoring):",
+                      "Nearby providers search failed (ignoring):",
                       nearbyError.message
                     );
                     // Silently fail - this is just a fallback
@@ -4280,7 +4256,7 @@ export default {
                 // If still no results, try getting LA County providers only as last resort
                 if (this.providers.length === 0) {
                   console.log(
-                    "🔍 No nearby providers found, trying to get LA County providers only..."
+                    "No nearby providers found, trying to get LA County providers only..."
                   );
                   const laCountyUrl = `${getApiRoot()}/api/providers-v2/comprehensive_search/?lat=${
                     LA_COUNTY_CENTER.lat
@@ -4288,7 +4264,7 @@ export default {
                   try {
                     const laResponse = await axios.get(laCountyUrl);
                     console.log(
-                      "🔍 LA County providers response:",
+                      "LA County providers response:",
                       laResponse.data
                     );
                     if (
@@ -4297,19 +4273,16 @@ export default {
                       laResponse.data.length > 0
                     ) {
                       console.log(
-                        `🔍 Found ${laResponse.data.length} LA County providers`
+                        `Found ${laResponse.data.length} LA County providers`
                       );
                       if (this.providerStore) {
                         this.providerStore.providers = laResponse.data;
                       }
                     } else {
-                      console.log("⚠️ No providers found in LA County area!");
+                      console.log("No providers found in LA County area!");
                     }
                   } catch (laError) {
-                    console.log(
-                      "🔍 LA County providers search failed:",
-                      laError
-                    );
+                    console.log("LA County providers search failed:", laError);
                   }
                 }
               }
@@ -4318,18 +4291,18 @@ export default {
             // Add search result logging
             if (this.searchText && this.searchText.trim() !== "") {
               console.log(
-                `🔍 Search results for "${this.searchText}": ${this.providers.length} matches`
+                `Search results for "${this.searchText}": ${this.providers.length} matches`
               );
 
               // Debug: Check if providers are in LA County area
               if (this.providers.length > 0) {
                 const providersInLA = filterProvidersInLACounty(this.providers);
                 console.log(
-                  `🔍 Providers in LA County: ${providersInLA.length}/${this.providers.length}`
+                  `Providers in LA County: ${providersInLA.length}/${this.providers.length}`
                 );
                 if (providersInLA.length === 0) {
                   console.log(
-                    "⚠️ No providers found in LA County area - search may be too broad"
+                    "No providers found in LA County area - search may be too broad"
                   );
                 }
               }
@@ -4342,7 +4315,7 @@ export default {
               !this.isMapMoving &&
               !this.isInitialPageLoad
             ) {
-              console.log("🔍 Setting reasonable map bounds for providers...");
+              console.log("Setting reasonable map bounds for providers...");
 
               // Set flag to prevent conflicting movements
               this.isMapMoving = true;
@@ -4362,7 +4335,7 @@ export default {
                   searchLocation.lat &&
                   searchLocation.lng
                 ) {
-                  console.log("🔍 Centering on search location first");
+                  console.log("Centering on search location first");
 
                   // Use a single smooth movement to search location
                   this.map.flyTo({
@@ -4383,7 +4356,7 @@ export default {
               // Calculate bounds from actual provider locations
               const bounds = calculateProviderBounds(this.providers);
               if (bounds) {
-                console.log("🔍 Flying to calculated provider bounds:", bounds);
+                console.log("Flying to calculated provider bounds:", bounds);
                 this.map.fitBounds(bounds, {
                   padding: 50, // Add some padding around the bounds
                   maxZoom: 12, // Don't zoom in too much
@@ -4392,9 +4365,7 @@ export default {
                 });
               } else {
                 // Fallback to LA County area if no valid coordinates
-                console.log(
-                  "🔍 No valid coordinates, using LA County fallback"
-                );
+                console.log("No valid coordinates, using LA County fallback");
                 this.map.fitBounds(LA_COUNTY_MAP_BOUNDS, {
                   padding: 50,
                   maxZoom: 10,
@@ -4416,7 +4387,7 @@ export default {
 
             // Special debugging for insurance filter - log ALL providers
             if (this.filterOptions.acceptsInsurance) {
-              console.log("🚨 INSURANCE FILTER RESULTS - All providers:");
+              console.log("INSURANCE FILTER RESULTS - All providers:");
               this.providers.forEach((provider, index) => {
                 console.log(`Provider ${index + 1}: ${provider.name}`, {
                   latitude: provider.latitude,
@@ -4430,7 +4401,7 @@ export default {
 
             // Debug: Log first provider details
             if (this.providers.length > 0) {
-              console.log("🔍 First provider details:", {
+              console.log("First provider details:", {
                 name: this.providers[0].name,
                 latitude: this.providers[0].latitude,
                 longitude: this.providers[0].longitude,
@@ -4445,7 +4416,7 @@ export default {
               this.providerStore.providers = response.data.results;
             }
             console.log(
-              `✅ Loaded ${this.providers.length} providers from API (paginated)`
+              `Loaded ${this.providers.length} providers from API (paginated)`
             );
             console.log("Filter status:", {
               acceptsInsurance: this.filterOptions.acceptsInsurance,
@@ -4459,7 +4430,7 @@ export default {
 
           // Convert string coordinates to numbers and validate
           console.log(
-            `🔄 Processing ${this.providers.length} providers for coordinate conversion`
+            `Processing ${this.providers.length} providers for coordinate conversion`
           );
           this.providers.forEach((provider, index) => {
             const debugInfo = {
@@ -4504,11 +4475,11 @@ export default {
               provider.longitude = lng;
               provider._coordinatesInvalid = false;
               console.log(
-                `✅ Provider ${provider.name}: lat=${provider.latitude}, lng=${provider.longitude}`
+                `Provider ${provider.name}: lat=${provider.latitude}, lng=${provider.longitude}`
               );
             } else {
               console.warn(
-                `❌ Provider ${provider.name} (ID: ${provider.id}) has invalid coordinates, SKIPPING:`,
+                `Provider ${provider.name} (ID: ${provider.id}) has invalid coordinates, SKIPPING:`,
                 {
                   original_lat: debugInfo.original_lat,
                   original_lng: debugInfo.original_lng,
@@ -4528,7 +4499,7 @@ export default {
         // Only show error if we don't already have providers loaded
         if (this.providers && this.providers.length > 0) {
           console.log(
-            "⚠️ Search fallback failed, but keeping existing providers:",
+            "Search fallback failed, but keeping existing providers:",
             error.message
           );
         } else {
@@ -4561,13 +4532,13 @@ export default {
 
         // Force marker update after data change with proper timing
         console.log(
-          `🎯 fetchProviders() completed with ${this.providers.length} providers`
+          `fetchProviders() completed with ${this.providers.length} providers`
         );
         console.log(
-          `🎯 About to update markers with ${this.providers.length} providers`
+          `About to update markers with ${this.providers.length} providers`
         );
         console.log(
-          `🎯 Provider details:`,
+          `Provider details:`,
           this.providers.slice(0, 2).map((p) => ({
             name: p.name,
             lat: p.latitude,
@@ -4577,9 +4548,7 @@ export default {
 
         this.$nextTick(() => {
           // MapCanvas handles marker updates automatically
-          console.log(
-            `🗺️ Markers updated for ${this.providers.length} providers`
-          );
+          console.log(`Markers updated for ${this.providers.length} providers`);
 
           // Fetch driving distances asynchronously after providers are loaded
           this.updateProviderDrivingDistances();
@@ -4598,12 +4567,12 @@ export default {
         !this.userLocation.latitude ||
         !this.userLocation.longitude
       ) {
-        console.log("⚠️ No user location, skipping driving distance updates");
+        console.log("No user location, skipping driving distance updates");
         return;
       }
 
       console.log(
-        `🚗 Fetching driving distances for ${this.providers.length} providers...`
+        `Fetching driving distances for ${this.providers.length} providers...`
       );
 
       // Fetch distances for all providers in parallel (limited to first 50 for performance)
@@ -4618,7 +4587,7 @@ export default {
         .slice(0, 50); // Limit to first 50 to avoid rate limits
 
       console.log(
-        `🚗 Updating ${providersToUpdate.length} providers with driving distances`
+        `Updating ${providersToUpdate.length} providers with driving distances`
       );
 
       // Batch update with a small delay between requests to avoid rate limiting
@@ -4642,7 +4611,7 @@ export default {
               drivingDistance: distance,
             };
             console.log(
-              `✅ Updated ${provider.name}: ${distance.toFixed(1)} mi driving`
+              `Updated ${provider.name}: ${distance.toFixed(1)} mi driving`
             );
           }
 
@@ -4650,7 +4619,7 @@ export default {
           await new Promise((resolve) => setTimeout(resolve, 50));
         } catch (error) {
           console.warn(
-            `⚠️ Failed to fetch driving distance for ${provider.name}:`,
+            `Failed to fetch driving distance for ${provider.name}:`,
             error.message
           );
           // Keep the Haversine distance as fallback (already calculated in ProviderList)
@@ -4658,7 +4627,7 @@ export default {
       }
 
       console.log(
-        `✅ Finished updating driving distances for ${providersToUpdate.length} providers`
+        `Finished updating driving distances for ${providersToUpdate.length} providers`
       );
     },
 
@@ -5387,31 +5356,31 @@ export default {
 
         // Regional center polygon popup disabled per user request
         // this.map.on("click", "rc-static-fill", (e) => {
-        //   // Check if the click was on a marker (not on the polygon)
-        //   const target = e.originalEvent.target;
-        //   if (target.closest('.mapboxgl-marker')) {
-        //     // Click was on a marker, don't show regional center popup
-        //     return;
-        //   }
+        // // Check if the click was on a marker (not on the polygon)
+        // const target = e.originalEvent.target;
+        // if (target.closest('.mapboxgl-marker')) {
+        // // Click was on a marker, don't show regional center popup
+        // return;
+        // }
 
-        //   // Always show polygon popups when clicked on colored regions
-        //   const feature = e.features && e.features[0];
-        //   const centerName = feature?.properties?.REGIONALCENTER || "Regional Center";
+        // // Always show polygon popups when clicked on colored regions
+        // const feature = e.features && e.features[0];
+        // const centerName = feature?.properties?.REGIONALCENTER || "Regional Center";
 
-        //   console.log("Clicked on regional center polygon:", centerName);
+        // console.log("Clicked on regional center polygon:", centerName);
 
-        //   // Use the rich regional center popup
-        //   const html = this.createRegionalCenterPopup(centerName);
+        // // Use the rich regional center popup
+        // const html = this.createRegionalCenterPopup(centerName);
 
-        //   new mapboxgl.Popup({
-        //     closeOnClick: true,
-        //     offset: 25,
-        //     maxWidth: "360px",
-        //     className: "provider-popup-container",
-        //   })
-        //     .setLngLat(e.lngLat)
-        //     .setHTML(html)
-        //     .addTo(this.map);
+        // new mapboxgl.Popup({
+        // closeOnClick: true,
+        // offset: 25,
+        // maxWidth: "360px",
+        // className: "provider-popup-container",
+        // })
+        // .setLngLat(e.lngLat)
+        // .setHTML(html)
+        // .addTo(this.map);
         // });
 
         // Hide ZIP layers entirely to avoid visual conflict
@@ -5691,7 +5660,7 @@ export default {
 
       // IMPROVED APPROACH: Create markers all at once without delays to prevent animation artifacts
       console.log(
-        "🎯 Creating all markers simultaneously to avoid animation issues"
+        "Creating all markers simultaneously to avoid animation issues"
       );
 
       let markersCreated = 0;
@@ -5708,12 +5677,12 @@ export default {
         }
       }
 
-      console.log(`📊 Marker Creation Summary:`);
-      console.log(`   - Total items processed: ${items.length}`);
-      console.log(`   - Markers created: ${markersCreated}`);
-      console.log(`   - Markers skipped: ${markersSkipped}`);
+      console.log(`Marker Creation Summary:`);
+      console.log(` - Total items processed: ${items.length}`);
+      console.log(` - Markers created: ${markersCreated}`);
+      console.log(` - Markers skipped: ${markersSkipped}`);
       console.log(
-        `   - Success rate: ${((markersCreated / items.length) * 100).toFixed(
+        ` - Success rate: ${((markersCreated / items.length) * 100).toFixed(
           1
         )}%`
       );
@@ -5774,13 +5743,11 @@ export default {
         const itemName =
           item &&
           (item.name || item.regional_center || item.title || "Location");
-        console.log(
-          `🔄 Processing item ${index + 1}/${totalItems}: ${itemName}`
-        );
+        console.log(`Processing item ${index + 1}/${totalItems}: ${itemName}`);
 
         // Skip items marked as having invalid coordinates
         if (item._coordinatesInvalid) {
-          console.log(`⏭️ Skipping ${itemName} due to invalid coordinates`);
+          console.log(`Skipping ${itemName} due to invalid coordinates`);
           return { created: false, reason: "invalid_coordinates_flag" };
         }
 
@@ -5789,7 +5756,7 @@ export default {
         let lng = parseFloat(item.longitude);
 
         // Enhanced Debug logging
-        console.log(`🔍 Item ${index + 1} coordinates debug for ${itemName}:`, {
+        console.log(`Item ${index + 1} coordinates debug for ${itemName}:`, {
           original_lat: item.latitude,
           original_lng: item.longitude,
           lat_type: typeof item.latitude,
@@ -5817,7 +5784,7 @@ export default {
           lng === undefined
         ) {
           console.warn(
-            `⚠️ Invalid coordinates for ${itemName}, skipping marker:`,
+            `Invalid coordinates for ${itemName}, skipping marker:`,
             {
               lat,
               lng,
@@ -5831,7 +5798,7 @@ export default {
         // Validate coordinates are within reasonable bounds for CA
         if (lat < 32 || lat > 42 || lng > -114 || lng < -125) {
           console.warn(
-            `⚠️ Coordinates out of CA bounds for ${itemName}: ${lat}, ${lng}`
+            `Coordinates out of CA bounds for ${itemName}: ${lat}, ${lng}`
           );
           return { created: false, reason: "out_of_bounds" };
         }
@@ -5839,13 +5806,13 @@ export default {
         // Additional safety check for coordinates that would place markers at origin (0,0) or other invalid positions
         if (Math.abs(lat) < 0.01 || Math.abs(lng) < 0.01) {
           console.error(
-            `🚨 BLOCKED INVALID COORDINATES: ${itemName} has coordinates too close to origin: ${lat}, ${lng}`
+            `BLOCKED INVALID COORDINATES: ${itemName} has coordinates too close to origin: ${lat}, ${lng}`
           );
           return { created: false, reason: "coordinates_too_close_to_origin" };
         }
 
         console.log(
-          `✅ Creating marker for ${itemName} at lat=${lat}, lng=${lng}`
+          `Creating marker for ${itemName} at lat=${lat}, lng=${lng}`
         );
 
         // Double-check coordinates before creating marker
@@ -5853,7 +5820,7 @@ export default {
         const finalLat = Number(lat);
 
         if (isNaN(finalLng) || isNaN(finalLat)) {
-          console.error(`🚨 Final coordinate check failed for ${itemName}:`, {
+          console.error(`Final coordinate check failed for ${itemName}:`, {
             finalLat,
             finalLng,
           });
@@ -5863,7 +5830,7 @@ export default {
         // Special check for [0,0] coordinates (top-left bug)
         if (finalLng === 0 || finalLat === 0) {
           console.error(
-            `🚨🚨🚨 FOUND THE BUG! Provider "${item.name}" has coordinates [${finalLng}, ${finalLat}]`
+            `FOUND THE BUG! Provider "${item.name}" has coordinates [${finalLng}, ${finalLat}]`
           );
           return { created: false, reason: "zero_coordinates" };
         }
@@ -5876,7 +5843,7 @@ export default {
 
         if (!mapLoaded || !styleLoaded) {
           console.warn(
-            `⚠️ Map not ready for ${item.name} (loaded: ${mapLoaded}, style: ${styleLoaded})`
+            `Map not ready for ${item.name} (loaded: ${mapLoaded}, style: ${styleLoaded})`
           );
           return { created: false, reason: "map_not_ready" };
         }
@@ -5886,17 +5853,15 @@ export default {
           const testPoint = this.map.project([finalLng, finalLat]);
           if (!testPoint || isNaN(testPoint.x) || isNaN(testPoint.y)) {
             console.error(
-              `🚨 Map projection failed for ${item.name} at [${finalLng}, ${finalLat}]`
+              `Map projection failed for ${item.name} at [${finalLng}, ${finalLat}]`
             );
             return { created: false, reason: "projection_failed" };
           }
           console.log(
-            `🗺️ Map projection test for ${item.name}: ${JSON.stringify(
-              testPoint
-            )}`
+            `Map projection test for ${item.name}: ${JSON.stringify(testPoint)}`
           );
         } catch (error) {
-          console.error(`🚨 Map projection error for ${item.name}:`, error);
+          console.error(`Map projection error for ${item.name}:`, error);
           return { created: false, reason: "projection_error" };
         }
 
@@ -5917,7 +5882,7 @@ export default {
 
         // Create and add marker to map
         console.log(
-          `🎯 CREATING MARKER: ${item.name} at [${finalLng}, ${finalLat}]`
+          `CREATING MARKER: ${item.name} at [${finalLng}, ${finalLat}]`
         );
         const marker = new mapboxgl.Marker({
           color: markerColor,
@@ -5930,25 +5895,25 @@ export default {
 
         // Add click handler to toggle popup
         marker.getElement().addEventListener("click", () => {
-          console.log(`🖱️ Marker clicked: ${item.name}`);
+          console.log(`Marker clicked: ${item.name}`);
           marker.togglePopup();
         });
 
         // Immediate position verification
         const markerLngLat = marker.getLngLat();
         console.log(
-          `🔍 MARKER ACTUAL POSITION: ${item.name} at [${markerLngLat.lng}, ${markerLngLat.lat}]`
+          `MARKER ACTUAL POSITION: ${item.name} at [${markerLngLat.lng}, ${markerLngLat.lat}]`
         );
 
         // Store marker
         this.markers.push(marker);
 
         console.log(
-          `📌 Marker successfully created for ${item.name}. Total markers: ${this.markers.length}`
+          `Marker successfully created for ${item.name}. Total markers: ${this.markers.length}`
         );
         return { created: true, marker };
       } catch (error) {
-        console.error(`🚨 Error creating marker for ${item.name}:`, error);
+        console.error(`Error creating marker for ${item.name}:`, error);
         return { created: false, reason: "exception", error };
       }
     },
@@ -5978,12 +5943,12 @@ export default {
     },
 
     async handleOnboardingComplete(data) {
-      console.log("🎉 ONBOARDING COMPLETED! Data:", data);
-      console.log("🎉 Current userData before update:", this.userData);
+      console.log("ONBOARDING COMPLETED! Data:", data);
+      console.log("Current userData before update:", this.userData);
 
       // Update user data with onboarding results
       this.userData = { ...this.userData, ...data.userProfile };
-      console.log("🎉 Updated userData:", this.userData);
+      console.log("Updated userData:", this.userData);
 
       // Sync user data to filterStore
       if (this.filterStore) {
@@ -6000,13 +5965,13 @@ export default {
             ? "regional center"
             : undefined,
         });
-        console.log("🎉 Synced userData to filterStore");
+        console.log("Synced userData to filterStore");
       }
 
       // Set location if provided
       if (data.userLocation) {
         this.userData.address = data.userLocation;
-        console.log("🎉 Set address to:", data.userLocation);
+        console.log("Set address to:", data.userLocation);
 
         // Geocode ZIP to enable radius filtering
         const zipMatch = data.userLocation.match(/\d{5}/);
@@ -6018,7 +5983,7 @@ export default {
       // Use filtered providers from onboarding instead of fetching all providers
       if (data.filteredProviders && data.filteredProviders.length > 0) {
         console.log(
-          "🎉 Using filtered providers from onboarding:",
+          "Using filtered providers from onboarding:",
           data.filteredProviders.length
         );
 
@@ -6029,7 +5994,7 @@ export default {
             this.providerStore.regionalCenterInfo = data.matchedRegionalCenter;
           }
           console.log(
-            "🎉 Updated providerStore with",
+            "Updated providerStore with",
             data.filteredProviders.length,
             "providers"
           );
@@ -6043,7 +6008,7 @@ export default {
       if (data.matchedRegionalCenter) {
         this.matchedRegionalCenter = data.matchedRegionalCenter;
         this.userRegionalCenter = data.matchedRegionalCenter; // Also set for UI
-        console.log("🎉 Set regional center:", data.matchedRegionalCenter);
+        console.log("Set regional center:", data.matchedRegionalCenter);
       } else {
         // Find regional center for user's ZIP code
         await this.findUserRegionalCenter();
@@ -6051,13 +6016,10 @@ export default {
 
       // Hide onboarding
       this.showOnboarding = false;
-      console.log(
-        "🎉 Onboarding hidden, showOnboarding =",
-        this.showOnboarding
-      );
+      console.log("Onboarding hidden, showOnboarding =", this.showOnboarding);
 
       // Initialize map (but don't fetch providers since we already have them)
-      console.log("🎉 Calling initializeAfterOnboarding...");
+      console.log("Calling initializeAfterOnboarding...");
       this.initializeAfterOnboarding();
     },
 
@@ -6149,7 +6111,7 @@ export default {
       // If that fails and it looks like a ZIP code, try to geocode it
       if (!result && /^\d{5}(-\d{4})?$/.test(searchText.trim())) {
         console.log(
-          `🔍 ZIP code detected: ${searchText}, attempting geocoding...`
+          `ZIP code detected: ${searchText}, attempting geocoding...`
         );
         // Return a promise-like object that will be handled by the caller
         return { needsGeocoding: true, zipCode: searchText.trim() };
@@ -6159,7 +6121,7 @@ export default {
     },
 
     async initializeAfterOnboarding() {
-      console.log("🚀 Initializing after onboarding...");
+      console.log("Initializing after onboarding...");
 
       // Note: MapCanvas component handles map initialization
       // this.initMap() is deprecated
@@ -6172,7 +6134,7 @@ export default {
       this.displayType = "providers";
 
       // Clear any restrictive filters to show all providers initially
-      console.log("🔧 Clearing filters to show all providers initially...");
+      console.log("Clearing filters to show all providers initially...");
       this.filterOptions = {
         acceptsInsurance: false,
         acceptsRegionalCenter: false,
@@ -6189,26 +6151,23 @@ export default {
         !Array.isArray(this.regionalCenters) ||
         this.regionalCenters.length === 0
       ) {
-        console.log("🏢 Loading regional centers...");
+        console.log("Loading regional centers...");
         await this.regionalCenterData.fetchRegionalCenters();
       }
 
       // Only fetch providers if we don't already have them from onboarding
       if (!this.providers || this.providers.length === 0) {
-        console.log("📊 Loading providers without filters...");
+        console.log("Loading providers without filters...");
         await this.searchProviders();
       } else {
-        console.log(
-          "📊 Using providers from onboarding:",
-          this.providers.length
-        );
+        console.log("Using providers from onboarding:", this.providers.length);
       }
 
       // Force marker update after data is loaded
-      console.log("🎯 Updating markers after onboarding...");
+      console.log("Updating markers after onboarding...");
       this.$nextTick(() => {
         // MapCanvas handles marker updates automatically
-        console.log("✅ Markers updated after onboarding");
+        console.log("Markers updated after onboarding");
       });
     },
 

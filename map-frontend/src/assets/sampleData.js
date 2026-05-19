@@ -11,20 +11,20 @@ export const sampleCategories = [
 export const sampleLocations = [
   {
     id: 1,
-    name: "Children's Hospital Los Angeles",
+    name: "KiNDD Sample Pediatric Resource",
     address: "4650 Sunset Blvd",
     city: "Los Angeles",
     state: "CA",
     zip_code: "90027",
     latitude: 34.0977,
     longitude: -118.2913,
-    description: "Premier pediatric hospital offering comprehensive care",
+    description: "Sample pediatric resource offering comprehensive care",
     category: 1,
     category_name: "Healthcare",
     rating: 4.8,
     phone: "(323) 660-2450",
-    email: "info@chla.org",
-    website: "https://www.chla.org"
+    email: "info@kinddhelp.com",
+    website: "https://kinddhelp.com"
   },
   {
     id: 2,

@@ -15,7 +15,7 @@
 **On main/develop:** Runs additional full validation (~10 min)
 
 ### 2. `deploy.yml` - Production Deployment
-**Runs on:** 
+**Runs on:**
 - Manual trigger (workflow_dispatch)
 - Push to `main` branch
 

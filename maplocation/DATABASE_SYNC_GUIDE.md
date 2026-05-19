@@ -4,7 +4,7 @@
 
 **Source of Truth:** AWS RDS
 **Local Database:** `shafali`
-**Current Status:** ✅ Synced (210 providers, 200 with coordinates)
+**Current Status:** Synced (210 providers, 200 with coordinates)
 
 ---
 
@@ -21,11 +21,11 @@ python3 sync_rds_to_local_complete.py --auto
 ```
 
 This script:
-1. ✅ Exports all data from AWS RDS
-2. ✅ Imports to local database
-3. ✅ Deletes local duplicates not in RDS
-4. ✅ Syncs both providers AND regional centers
-5. ✅ Verifies the sync
+1. Exports all data from AWS RDS
+2. Imports to local database
+3. Deletes local duplicates not in RDS
+4. Syncs both providers AND regional centers
+5. Verifies the sync
 
 ---
 
@@ -35,7 +35,7 @@ This script:
 - **Host:** `chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com`
 - **Database:** `postgres`
 - **User:** `chla_admin`
-- **Password:** `CHLASecure2024`
+- **Password:** stored in AWS Secrets Manager as `kindd/prod/rds-password`
 - **SSL:** Required
 
 ### Local (Development)
@@ -54,7 +54,7 @@ If you need to sync manually:
 ### Step 1: Export from RDS
 
 ```bash
-PGPASSWORD="CHLASecure2024" pg_dump \
+PGPASSWORD="$(aws secretsmanager get-secret-value --secret-id kindd/prod/rds-password --query SecretString --output text)" pg_dump \
     -h chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com \
     -U chla_admin \
     -d postgres \
@@ -135,19 +135,19 @@ python3 check_rds_providers.py
 ## Future Normalization Plan
 
 ### Phase 1: Insurance Normalization
-- ✅ Create `InsuranceCarrier` reference table
-- ✅ Populate `ProviderInsurance` relationships
-- ✅ Migrate from TEXT to proper many-to-many
+- Create `InsuranceCarrier` reference table
+- Populate `ProviderInsurance` relationships
+- Migrate from TEXT to proper many-to-many
 
 ### Phase 2: PostGIS-Only Coordinates
-- ✅ Use `location` (PostGIS Point) as single source
-- ✅ Remove redundant `latitude`/`longitude` columns
-- ✅ Add computed properties for backward compatibility
+- Use `location` (PostGIS Point) as single source
+- Remove redundant `latitude`/`longitude` columns
+- Add computed properties for backward compatibility
 
 ### Phase 3: Drop Unused Fields
-- ✅ Remove 21 unused fields
-- ✅ Update serializers
-- ✅ Clean up database schema
+- Remove 21 unused fields
+- Update serializers
+- Clean up database schema
 
 **Estimated Effort:** 2-4 days
 **Risk Level:** Low-Medium (can rollback at each phase)

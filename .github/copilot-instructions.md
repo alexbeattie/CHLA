@@ -1,6 +1,6 @@
 # Project Overview
 
-CHLA Provider Map is a full-stack web application that helps families find autism and developmental disability services in California.
+KiNDD - NDD Resource Navigator is a full-stack web application that helps families find neurodevelopmental disorder (NDD) services in California.
 
 - Frontend: Vue 3 + Vite + TypeScript, deployed to S3 with CloudFront at `https://kinddhelp.com`
 - Backend: Django 5 + Django REST Framework, deployed on AWS Elastic Beanstalk (Python 3.12) with environment `chla-api-prod` at `https://api.kinddhelp.com`
@@ -19,7 +19,7 @@ CHLA Provider Map is a full-stack web application that helps families find autis
   - Local dev: `npm run dev`
   - Build: `npm run build`
   - Tests: `npm test`
-  
+
 - `/maplocation`: Django backend project root
   - `maplocation/locations`: Main Django app (models, serializers, views, migrations)
   - `locations/tests/`: pytest test suite (test_models.py, test_api.py, test_health_check.py)
@@ -30,13 +30,13 @@ CHLA Provider Map is a full-stack web application that helps families find autis
   - `sync_providers_rds_to_local.py`: Syncs only provider data from RDS
   - `pytest.ini`: pytest configuration with coverage settings
   - `conftest.py`: pytest fixtures and test configuration
-  
+
 - `/.github/workflows/`: GitHub Actions CI/CD
   - `ci-cd.yml`: Main CI/CD pipeline (tests + automatic deployment)
   - `db-sync.yml`: Manual database sync workflow
   - `rollback.yml`: Manual rollback workflow
   - `deploy.yml`: Legacy deployment workflow (deprecated)
-  
+
 - `/.github/`: Documentation
   - `CICD_GUIDE.md`: Comprehensive CI/CD documentation
   - `SECRETS.md`: GitHub Secrets configuration guide
@@ -53,6 +53,10 @@ CHLA Provider Map is a full-stack web application that helps families find autis
 
 ## Coding Standards
 
+- Naming & style
+  - Product name is `KiNDD - NDD Resource Navigator`; short form is `KiNDD`.
+  - Do not introduce `CHLA` or `Children's Hospital Los Angeles` into new user-facing copy, docs, app strings, or marketing examples. Existing infrastructure identifiers such as DB users, EB environment names, S3 buckets, package names, and folder paths keep their current names until a dedicated rename.
+  - Do not use emojis in code, docs, app strings, shell scripts, or commit messages.
 - Python (Django)
   - Prefer explicit, descriptive names; avoid 1–2 char identifiers
   - Use guard clauses and early returns; handle edge cases first
@@ -81,14 +85,14 @@ CHLA Provider Map is a full-stack web application that helps families find autis
   - `cd maplocation && source ../.venv/bin/activate && pip install -r requirements.txt`
   - `python3 manage.py migrate && python3 manage.py runserver`
   - Run tests: `pytest` or `python -m pytest`
-  
+
 - Frontend (local)
   - `cd map-frontend && npm install && npm run dev`
   - Switch to dev env: `./switch-env.sh dev`
   - Switch to prod env: `./switch-env.sh prod`
   - Run tests: `npm test`
   - Build: `npm run build`
-  
+
 - Data sync workflows:
   - **Local → RDS (push)**: `cd maplocation && python3 sync_data_to_rds.py`
   - **RDS → Local (pull)**: `cd maplocation && python3 sync_rds_to_local.py`
@@ -123,10 +127,10 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 
 ## CI Required Checks
 
-- ✅ Backend Tests & Linting (pytest, flake8, black, isort)
-- ✅ Frontend Tests & Build (Vitest, Vite build)
-- ✅ Deployment Health Checks (backend health endpoint)
-- ✅ End-to-End Verification (post-deployment)
+- Backend Tests & Linting (pytest, flake8, black, isort)
+- Frontend Tests & Build (Vitest, Vite build)
+- Deployment Health Checks (backend health endpoint)
+- End-to-End Verification (post-deployment)
 
 ## Database Models (Backend)
 

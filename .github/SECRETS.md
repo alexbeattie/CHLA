@@ -102,13 +102,13 @@ Get these from your RDS instance:
 
 ## Security Best Practices
 
-- ✅ Never commit secrets to the repository
-- ✅ Rotate secrets regularly (every 90 days recommended)
-- ✅ Use different secrets for production and staging
-- ✅ Limit AWS IAM permissions to minimum required
-- ✅ Enable AWS CloudTrail for audit logging
-- ❌ Never use production secrets in development
-- ❌ Never share secrets via email or chat
+- Never commit secrets to the repository
+- Rotate secrets regularly (every 90 days recommended)
+- Use different secrets for production and staging
+- Limit AWS IAM permissions to minimum required
+- Enable AWS CloudTrail for audit logging
+- Never use production secrets in development
+- Never share secrets via email or chat
 
 ## IAM Permissions Required
 

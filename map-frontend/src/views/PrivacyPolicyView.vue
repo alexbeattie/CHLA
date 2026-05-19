@@ -145,9 +145,9 @@
             practices, please contact us at:
           </p>
           <p class="contact-info">
-            <strong>Email:</strong> privacy@kinddhelp.com<br />
+            <strong>Email:</strong> privacy@kinddhelp.org<br />
             <strong>Website:</strong>
-            <a href="https://kinddhelp.com">https://kinddhelp.com</a>
+            <a href="https://kinddhelp.org">https://kinddhelp.org</a>
           </p>
         </section>
       </div>
@@ -160,7 +160,9 @@
 </template>
 
 <script setup>
-// No reactive state needed for static content
+import { useSeo } from "@/composables/useSeo";
+
+useSeo({ path: "/privacy" });
 </script>
 
 <style scoped>
@@ -190,7 +192,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--kindd-font-family);
 }
 
 .last-updated {
@@ -219,7 +221,7 @@ h2 {
   font-weight: 600;
   color: #0f172a;
   margin: 0 0 1rem 0;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--kindd-font-family);
 }
 
 h3 {
@@ -307,6 +309,3 @@ a:hover {
   }
 }
 </style>
-
-
-

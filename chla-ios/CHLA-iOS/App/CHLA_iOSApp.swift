@@ -20,6 +20,17 @@ struct CHLA_iOSApp: App {
 }
 
 // MARK: - App State
+struct ProviderMapTarget: Identifiable, Equatable {
+    let id = UUID()
+    let query: String
+    let providers: [Provider]
+
+    init(query: String, providers: [Provider] = []) {
+        self.query = query
+        self.providers = providers
+    }
+}
+
 /// Global application state managing user preferences and session data
 @MainActor
 class AppState: ObservableObject {
@@ -35,6 +46,7 @@ class AppState: ObservableObject {
     @Published var userAudienceType: String
     @Published var userRegionalCenterName: String?
     @Published var userRegionalCenterShortName: String?
+    @Published var pendingMapProviderTarget: ProviderMapTarget?
 
     var userRegionalCenterColor: Color {
         guard let shortName = userRegionalCenterShortName else {
@@ -120,6 +132,21 @@ class AppState: ObservableObject {
 
     /// Navigate to map tab
     func navigateToMap() {
+        selectedTab = 1
+    }
+
+    /// Navigate to the map and ask it to focus a provider by name.
+    func showProviderOnMap(named providerName: String) {
+        pendingMapProviderTarget = ProviderMapTarget(query: providerName)
+        selectedTab = 1
+    }
+
+    /// Navigate to the map and show a known set of providers as pins.
+    func showProvidersOnMap(_ providers: [Provider]) {
+        pendingMapProviderTarget = ProviderMapTarget(
+            query: providers.map(\.name).joined(separator: " "),
+            providers: providers
+        )
         selectedTab = 1
     }
 

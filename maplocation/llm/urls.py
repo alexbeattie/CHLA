@@ -8,11 +8,13 @@ from .views import (
     EligibilityCheckView,
     SmartSearchView,
     LLMHealthView,
+    LLMMonitorView,
     StreamingAskView,
     AgentAskView,
     StreamingAgentAskView,
     ImageAnalysisView,
     DocumentAnalysisView,
+    AutismResearchView,
 )
 
 urlpatterns = [
@@ -23,6 +25,8 @@ urlpatterns = [
     path("eligibility/", EligibilityCheckView.as_view(), name="llm-eligibility"),
     path("search/", SmartSearchView.as_view(), name="llm-search"),
     path("health/", LLMHealthView.as_view(), name="llm-health"),
+    path("monitor/", LLMMonitorView.as_view(), name="llm-monitor"),
+    path("autism-research/", AutismResearchView.as_view(), name="llm-autism-research"),
     path("analyze-image/", ImageAnalysisView.as_view(), name="llm-analyze-image"),
     path("analyze-document/", DocumentAnalysisView.as_view(), name="llm-analyze-document"),
 ]

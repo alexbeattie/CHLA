@@ -88,7 +88,7 @@ fun SettingsScreen(
 
             // Footer
             Text(
-                text = "KINDD by Children's Hospital Los Angeles",
+                text = "KiNDD - NDD Resource Navigator",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier

@@ -1,6 +1,6 @@
 /* Typography */
 * {
-  font-family: "Arial", "Helvetica", sans-serif !important;
+  font-family: var(--kindd-font-family) !important;
 }
 
 /* Top Navigation Bar */
@@ -48,14 +48,18 @@
   gap: 12px;
 }
 
-.kindd-text-logo {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  background: linear-gradient(90deg, #0066cc 0%, #ff3366 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.kindd-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.kindd-logo-image {
+  display: block;
+  height: 36px;
+  width: auto;
+  object-fit: contain;
 }
 
 .brand-separator {
@@ -67,12 +71,6 @@
   font-size: 16px;
   color: #666;
   font-weight: 500;
-}
-
-/* Navigation Links */
-.kindd-text-logo-link {
-  text-decoration: none;
-  cursor: pointer;
 }
 
 .navbar-links {
@@ -321,29 +319,91 @@
   white-space: nowrap;
 }
 
+/* Shared navbar button shape (used by Edit Profile + Start Over).
+   Fixed 36px height. Width sizes to label so the language switcher and
+   other right-side controls don't get pushed off the navbar. */
 .btn-start-over {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 8px 16px;
-  background: #f3f4f6;
+  height: 36px;
+  padding: 0 12px;
+  flex: 0 0 auto;
+  background: #ffffff;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   color: #374151;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-start-over:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
-  color: #1f2937;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btn-start-over i {
-  font-size: 16px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.btn-start-over:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13, 157, 219, 0.3);
+}
+
+/* Edit Profile: subtly filled brand-blue, positive primary action */
+.btn-edit-profile {
+  background: #eef5fb;
+  border-color: #cbe0ef;
+  color: #004877;
+}
+
+.btn-edit-profile:hover {
+  background: #004877;
+  border-color: #004877;
+  color: #ffffff;
+}
+
+.btn-edit-profile:active {
+  background: #003355;
+  border-color: #003355;
+  color: #ffffff;
+}
+
+/* Start Over (without the edit-profile modifier): neutral at rest,
+   warning treatment on hover so the destructive intent reads. */
+.btn-start-over:not(.btn-edit-profile) {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: #6b7280;
+}
+
+.btn-start-over:not(.btn-edit-profile):hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.btn-start-over:not(.btn-edit-profile):active {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #991b1b;
+}
+
+/* Mobile / tablet: collapse to icon-only square (the text labels are
+   already hidden by d-none d-md-inline on the <span>) */
+@media (max-width: 767.98px) {
+  .btn-start-over {
+    width: 36px;
+    padding: 0;
+  }
+
+  .btn-start-over i {
+    font-size: 16px;
+  }
 }
 
 .btn-icon {
@@ -471,8 +531,8 @@
     margin-left: 8px;
   }
 
-  .kindd-text-logo {
-    font-size: 20px;
+  .kindd-logo-image {
+    height: 28px;
   }
 
   .navbar-actions {
@@ -644,7 +704,7 @@
   background: #a0aec0;
 }
 
-/* CHLA Header Styling */
+/* Brand Header Styling */
 .chla-header {
   background: white;
   color: #004877;
@@ -654,52 +714,140 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-/* Sidebar content sections spacing - reduced for edge-to-edge feel */
+/* Sidebar content sections spacing */
 .sidebar-content > * {
-  padding: 0 0.5rem;
+  padding: 0 0.75rem;
 }
 
-.sidebar-content > .chla-header {
-  padding: 1.25rem;
-  margin-bottom: 0;
+.sidebar-content > .chla-header,
+.sidebar-content > .sidebar-header {
+  padding: 1rem 0.875rem 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .sidebar-content .mb-3 {
-  margin-bottom: 0.75rem !important;
+  margin-bottom: 0.5rem !important;
 }
 
-/* Collapsible Section Styling */
+/* Sidebar Header (top of sidebar, holds the tagline) */
+.sidebar-header {
+  background: white;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.sidebar-header .brand-mission {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-header .brand-tagline {
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: #475569;
+  margin: 0;
+  font-weight: 500;
+}
+
+.sidebar-header .brand-tagline::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background: #004877;
+  border-radius: 2px;
+  margin-right: 0.5rem;
+  vertical-align: -2px;
+}
+
+/* Display Toggle (Regional Centers / Services) - tighter, friendlier */
+.sidebar-content .display-toggle .btn-group {
+  gap: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-content .display-toggle .btn {
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0;
+  min-height: 38px;
+}
+
+.sidebar-content .display-toggle .btn:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.sidebar-content .display-toggle .btn-chla-outline {
+  background: #ffffff !important;
+  color: #475569 !important;
+}
+
+.sidebar-content .display-toggle .btn-chla-outline:hover {
+  background: #f3f6fa !important;
+  color: #004877 !important;
+}
+
+/* Collapsible Section: tighter rhythm, clearer affordance */
 .collapsible-section {
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   background: white;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.collapsible-section:hover {
+  border-color: #cbd5e1;
 }
 
 .collapsible-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 0.5rem;
+  padding: 0.625rem 0.875rem;
   background: white;
   cursor: pointer;
   user-select: none;
-  transition: background 0.2s;
+  transition: background 0.15s ease;
+  min-height: 42px;
 }
 
 .collapsible-header:hover {
-  background: #f9fafb;
+  background: #f8fafc;
+}
+
+.collapsible-header strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.collapsible-header i:not(.toggle-icon) {
+  font-size: 0.95rem;
 }
 
 .collapsible-header .toggle-icon {
-  font-size: 1rem;
-  color: #6b7280;
-  transition: transform 0.2s;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.collapsible-header:hover .toggle-icon {
+  color: #475569;
 }
 
 .collapsible-content {
-  padding: 0.5rem 0.5rem;
-  border-top: 1px solid #e5e7eb;
+  padding: 0.5rem 0.625rem 0.625rem;
+  border-top: 1px solid #eef0f3;
+  background: #fcfcfd;
 }
 
 /* Results section with sticky header */
@@ -912,7 +1060,7 @@
   padding-top: 20px;
 }
 
-/* CHLA Button Styling */
+/* Brand Button Styling */
 .chla-btn-group {
   border-radius: 8px;
   overflow: hidden;
@@ -950,7 +1098,7 @@
 }
 
 .chla-btn span {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--kindd-font-family);
   font-weight: inherit;
   letter-spacing: inherit;
 }
@@ -981,7 +1129,7 @@
   box-shadow: 0 2px 8px rgba(0, 72, 119, 0.2);
 }
 
-/* CHLA Alert Styling */
+/* Brand Alert Styling */
 .alert {
   border-radius: 6px;
   border: 1px solid;
@@ -1555,47 +1703,51 @@ h6 {
 }
 
 .info-card {
-  padding: 12px 16px !important;
+  padding: 10px 12px !important;
   border-width: 1px;
   border-style: solid;
-  transition: all 0.2s ease;
+  border-radius: 8px;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .info-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .info-card-header {
   display: flex;
   align-items: center;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #1f2937;
+  line-height: 1.3;
 }
 
 .info-card-header i {
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .info-card-content {
-  font-size: 13px;
-  color: #495057;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #475569;
 }
 
 .info-card-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  color: #1f2937;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .info-card-item {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
-  gap: 2px;
+  margin-bottom: 4px;
+  gap: 4px;
+  line-height: 1.35;
 }
 
 .info-card-item:last-child {
@@ -1603,8 +1755,8 @@ h6 {
 }
 
 .info-card-item i {
-  font-size: 14px;
-  width: 20px;
+  font-size: 13px;
+  width: 18px;
   flex-shrink: 0;
 }
 

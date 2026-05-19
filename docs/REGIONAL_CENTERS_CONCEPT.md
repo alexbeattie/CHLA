@@ -46,13 +46,13 @@ User in ZIP 91789
 
 ### What's NOT How It Works
 
-❌ **WRONG**: User selects "Regional Center" as insurance type
-❌ **WRONG**: Provider "accepts" Regional Center funding
-❌ **WRONG**: Regional Center is a filter option
+**WRONG**: User selects "Regional Center" as insurance type
+**WRONG**: Provider "accepts" Regional Center funding
+**WRONG**: Regional Center is a filter option
 
-✅ **CORRECT**: User's ZIP code determines their Regional Center automatically
-✅ **CORRECT**: Providers serve specific Regional Center geographic areas
-✅ **CORRECT**: Regional Center is displayed based on user location
+**CORRECT**: User's ZIP code determines their Regional Center automatically
+**CORRECT**: Providers serve specific Regional Center geographic areas
+**CORRECT**: Regional Center is displayed based on user location
 
 ## Application Requirements
 
@@ -122,19 +122,19 @@ User in ZIP 91789
 
 ## Common Misconceptions to Avoid
 
-### ❌ "Accepts Regional Center" Filter
+### "Accepts Regional Center" Filter
 
 **WRONG CONCEPT**: Checkbox that filters providers who "accept Regional Center payment"
 
 **CORRECT CONCEPT**: All providers in a Regional Center service area serve clients from that RC. There's no "accepts" or "doesn't accept" - they either serve that geographic area or they don't.
 
-### ❌ Regional Center as Insurance Type
+### Regional Center as Insurance Type
 
 **WRONG**: `params.insurance = 'regional center'`
 
 **CORRECT**: Regional Center is determined by ZIP code, not selected as a filter
 
-### ❌ Funding Source Confusion
+### Funding Source Confusion
 
 **WRONG**: "Regional Center" vs "Insurance" vs "Private Pay" as payment options
 

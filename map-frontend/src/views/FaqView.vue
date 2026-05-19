@@ -26,7 +26,9 @@
               <span>{{ faq.question }}</span>
               <i
                 class="bi"
-                :class="activeFaq === faq.id ? 'bi-chevron-up' : 'bi-chevron-down'"
+                :class="
+                  activeFaq === faq.id ? 'bi-chevron-up' : 'bi-chevron-down'
+                "
               ></i>
             </button>
             <div class="faq-answer" v-show="activeFaq === faq.id">
@@ -48,7 +50,9 @@
               <span>{{ faq.question }}</span>
               <i
                 class="bi"
-                :class="activeFaq === faq.id ? 'bi-chevron-up' : 'bi-chevron-down'"
+                :class="
+                  activeFaq === faq.id ? 'bi-chevron-up' : 'bi-chevron-down'
+                "
               ></i>
             </button>
             <div class="faq-answer" v-show="activeFaq === faq.id">
@@ -70,7 +74,9 @@
               <span>{{ faq.question }}</span>
               <i
                 class="bi"
-                :class="activeFaq === faq.id ? 'bi-chevron-up' : 'bi-chevron-down'"
+                :class="
+                  activeFaq === faq.id ? 'bi-chevron-up' : 'bi-chevron-down'
+                "
               ></i>
             </button>
             <div class="faq-answer" v-show="activeFaq === faq.id">
@@ -92,7 +98,9 @@
               <span>{{ faq.question }}</span>
               <i
                 class="bi"
-                :class="activeFaq === faq.id ? 'bi-chevron-up' : 'bi-chevron-down'"
+                :class="
+                  activeFaq === faq.id ? 'bi-chevron-up' : 'bi-chevron-down'
+                "
               ></i>
             </button>
             <div class="faq-answer" v-show="activeFaq === faq.id">
@@ -118,6 +126,7 @@
 <script>
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { useSeo } from "@/composables/useSeo";
 
 export default {
   name: "FaqView",
@@ -125,6 +134,8 @@ export default {
   setup() {
     const { t } = useI18n();
     const activeFaq = ref(null);
+
+    useSeo({ path: "/faq" });
 
     const toggleFaq = (id) => {
       activeFaq.value = activeFaq.value === id ? null : id;

@@ -14,10 +14,10 @@ export function createMinimalPopup(item) {
   const website = item.website || "";
   const lat = item.latitude || 0;
   const lng = item.longitude || 0;
-  
+
   // Format phone for tel: link
   const phoneClean = phone.replace(/[^\d+]/g, "");
-  
+
   // Clean address formatting - handle JSON or string
   let address = "";
   if (item.address) {
@@ -37,14 +37,14 @@ export function createMinimalPopup(item) {
       address = item.address.replace(/\n/g, ", ").replace(/,\s*,/g, ",").trim();
     }
   }
-  
+
   // Map URLs
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   const appleMapsUrl = `https://maps.apple.com/?daddr=${lat},${lng}`;
-  
+
   return `
     <div style="
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--kindd-font-family);
       padding: 12px;
       min-width: 200px;
       max-width: 280px;

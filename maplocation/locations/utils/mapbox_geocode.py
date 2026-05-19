@@ -6,7 +6,7 @@ from django.conf import settings
 # Mapbox API configuration
 MAPBOX_ACCESS_TOKEN = os.environ.get(
     "MAPBOX_ACCESS_TOKEN",
-    "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg",
+    "",
 )
 MAPBOX_GEOCODING_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places"
 

@@ -85,7 +85,7 @@
         <div class="rc-website" v-if="regionalCenter.website">
           <i class="bi bi-globe"></i>
           <a
-            :href="regionalCenter.website"
+            :href="formatWebsite(regionalCenter.website)"
             target="_blank"
             rel="noopener"
             class="contact-link"
@@ -200,6 +200,11 @@ export default {
       }
       return phone;
     },
+
+    formatWebsite(website) {
+      if (!website) return "";
+      return website.startsWith("http") ? website : `https://${website}`;
+    },
   },
 };
 </script>
@@ -208,7 +213,7 @@ export default {
 .profile-summary {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 /* Card Base Styles */
@@ -216,16 +221,16 @@ export default {
 .regional-center-card,
 .no-profile-card {
   background: white;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 0.75rem 0.875rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid #e5e7eb;
-  transition: all 0.2s ease;
+  transition: box-shadow 0.15s ease;
 }
 
 .profile-card:hover,
 .regional-center-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Highlight Your Regional Center Card */
@@ -253,14 +258,13 @@ export default {
 }
 
 .regional-center-card:hover {
-  box-shadow: 0 6px 16px
-    color-mix(in srgb, var(--regional-center-color, #3b82f6) 26%, transparent);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--regional-center-color, #3b82f6) 22%, transparent);
 }
 
 .regional-center-card .header-left i {
   color: var(--regional-center-color, #3b82f6);
-  font-size: 1.5rem;
+  font-size: 1.1rem;
 }
 
 .regional-center-card .card-header h3 {
@@ -272,15 +276,15 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   background: var(--regional-center-color, #3b82f6);
-  box-shadow: 0 0 0 3px #ffffff,
-    0 0 0 6px
+  box-shadow: 0 0 0 2px #ffffff,
+    0 0 0 4px
       color-mix(in srgb, var(--regional-center-color, #3b82f6) 35%, transparent);
   color: #ffffff;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -291,7 +295,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .header-left {
@@ -301,15 +305,16 @@ export default {
 }
 
 .header-left i {
-  font-size: 1.25rem;
+  font-size: 1rem;
   color: #004877;
 }
 
 .card-header h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1f2937;
+  line-height: 1.2;
 }
 
 /* Edit Button */
@@ -317,10 +322,11 @@ export default {
   background: transparent;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
-  padding: 0.375rem 0.625rem;
+  padding: 0.25rem 0.5rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   color: #6b7280;
+  line-height: 1;
 }
 
 .btn-edit:hover {
@@ -330,28 +336,29 @@ export default {
 }
 
 .btn-edit i {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 /* Profile Details */
 .profile-details {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.375rem;
 }
 
 .detail-item {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  font-size: 0.9375rem;
+  gap: 0.5rem;
+  font-size: 0.825rem;
   color: #374151;
+  line-height: 1.3;
 }
 
 .detail-item i {
-  font-size: 1.125rem;
+  font-size: 0.95rem;
   color: #6b7280;
-  width: 1.25rem;
+  width: 1.125rem;
   text-align: center;
   flex-shrink: 0;
 }
@@ -391,29 +398,30 @@ export default {
 .regional-center-details {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.375rem;
 }
 
 .rc-name {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1f2937;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .rc-contact,
 .rc-website {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  font-size: 0.875rem;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.3;
 }
 
 .rc-contact i,
 .rc-website i {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #6b7280;
-  width: 1.25rem;
+  width: 1.125rem;
   text-align: center;
   flex-shrink: 0;
 }

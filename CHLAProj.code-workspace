@@ -1,19 +1,19 @@
 {
   "folders": [
     {
-      "name": "🏠 CHLA Root",
+      "name": "KiNDD Root",
       "path": "."
     },
     {
-      "name": "🐍 Backend (Django)",
+      "name": "Backend (Django)",
       "path": "maplocation"
     },
     {
-      "name": "🌐 Frontend (Vue)",
+      "name": "Frontend (Vue)",
       "path": "map-frontend"
     },
     {
-      "name": "📱 iOS App (Swift)",
+      "name": "iOS App (Swift)",
       "path": "chla-ios/CHLA-iOS"
     }
   ],
@@ -22,7 +22,7 @@
     "vue3snippets.enable-compile-vue-file-on-did-save-code": true,
 
     // Python
-    "python.defaultInterpreterPath": "${workspaceFolder:🏠 CHLA Root}/venv/bin/python",
+    "python.defaultInterpreterPath": "${workspaceFolder:KiNDD Root}/venv/bin/python",
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
@@ -80,19 +80,19 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "name": "🐍 Django Server",
+        "name": "Django Server",
         "type": "python",
         "request": "launch",
-        "program": "${workspaceFolder:🐍 Backend (Django)}/manage.py",
+        "program": "${workspaceFolder:Backend (Django)}/manage.py",
         "args": ["runserver"],
         "django": true,
         "justMyCode": false
       },
       {
-        "name": "🌐 Vite Dev Server",
+        "name": "Vite Dev Server",
         "type": "node",
         "request": "launch",
-        "cwd": "${workspaceFolder:🌐 Frontend (Vue)}",
+        "cwd": "${workspaceFolder:Frontend (Vue)}",
         "runtimeExecutable": "npm",
         "runtimeArgs": ["run", "dev"]
       }
@@ -102,7 +102,7 @@
     "version": "2.0.0",
     "tasks": [
       {
-        "label": "🚀 Start All Services",
+        "label": "Start All Services",
         "dependsOn": ["Start Database", "Start Backend", "Start Frontend"],
         "problemMatcher": []
       },
@@ -111,7 +111,7 @@
         "type": "shell",
         "command": "docker compose -f docker-compose.local.yml up -d",
         "options": {
-          "cwd": "${workspaceFolder:🏠 CHLA Root}"
+          "cwd": "${workspaceFolder:KiNDD Root}"
         }
       },
       {
@@ -119,7 +119,7 @@
         "type": "shell",
         "command": "source ../venv/bin/activate && python3 manage.py runserver",
         "options": {
-          "cwd": "${workspaceFolder:🐍 Backend (Django)}"
+          "cwd": "${workspaceFolder:Backend (Django)}"
         },
         "isBackground": true
       },
@@ -128,24 +128,24 @@
         "type": "shell",
         "command": "./switch-env.sh dev && npm run dev",
         "options": {
-          "cwd": "${workspaceFolder:🌐 Frontend (Vue)}"
+          "cwd": "${workspaceFolder:Frontend (Vue)}"
         },
         "isBackground": true
       },
       {
-        "label": "⚡ Quick Test",
+        "label": "Quick Test",
         "type": "shell",
         "command": "./scripts/quick-test.sh",
         "options": {
-          "cwd": "${workspaceFolder:🏠 CHLA Root}"
+          "cwd": "${workspaceFolder:KiNDD Root}"
         }
       },
       {
-        "label": "🧪 Full Test Suite",
+        "label": "Full Test Suite",
         "type": "shell",
         "command": "./scripts/test-deployment-locally.sh",
         "options": {
-          "cwd": "${workspaceFolder:🏠 CHLA Root}"
+          "cwd": "${workspaceFolder:KiNDD Root}"
         }
       }
     ]

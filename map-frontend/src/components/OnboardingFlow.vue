@@ -18,10 +18,7 @@
 
         <!-- Welcome Step -->
         <div v-if="currentStep === 1" class="step welcome-step">
-          <div class="chla-logo-large">
-            <img src="@/assets/chla-logo.svg" alt="CHLA" class="logo" />
-          </div>
-          <h2>Neurodevelopmental Resource Navigator</h2>
+          <h2>KiNDD - NDD Resource Navigator</h2>
           <p class="welcome-text">
             Find specialized healthcare providers and regional centers serving
             your area. We'll help you discover the best care options based on
@@ -1169,8 +1166,7 @@ export default {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--kindd-font-family);
 }
 
 .progress-bar {
@@ -1248,8 +1244,7 @@ export default {
   margin-bottom: 0.5rem;
   font-size: 1.25rem;
   font-weight: 500;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--kindd-font-family);
 }
 
 .welcome-text {
@@ -1295,8 +1290,7 @@ export default {
 .location-step h3 {
   color: #004877;
   margin-bottom: 0.5rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--kindd-font-family);
   font-weight: 500;
   font-size: 1.25rem;
 }
@@ -1356,7 +1350,7 @@ export default {
 /* Profile Step - Small & Subtle Design */
 .profile-step {
   text-align: left;
-  max-width: 350px;
+  max-width: 520px;
   margin: 0 auto;
   padding: 0;
 }
@@ -1364,8 +1358,7 @@ export default {
 .profile-step h3 {
   color: #004877;
   margin-bottom: 0.5rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--kindd-font-family);
   font-weight: 500;
   font-size: 1.25rem;
   text-align: center;
@@ -1376,17 +1369,19 @@ export default {
 }
 
 .form-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
 }
 
 .form-row label {
-  min-width: 80px;
   font-size: 0.75rem;
-  font-weight: 400;
+  font-weight: 600;
   color: #495057;
+  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .form-row .form-control {
@@ -1408,7 +1403,6 @@ export default {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
-  flex: 1;
 }
 
 .audience-option {
@@ -1422,9 +1416,18 @@ export default {
   background: #ffffff;
   color: #374151;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   transition: all 0.2s ease;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.audience-option span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .audience-option:hover,
@@ -1435,17 +1438,18 @@ export default {
 }
 
 .funding-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
 }
 
 .funding-row label {
-  min-width: 80px;
   font-size: 0.75rem;
-  font-weight: 400;
+  font-weight: 600;
   color: #495057;
+  white-space: nowrap;
 }
 
 .funding-options {
@@ -1461,6 +1465,7 @@ export default {
   cursor: pointer;
   font-size: 0.7rem;
   color: #495057;
+  white-space: nowrap;
 }
 
 .funding-option input[type="checkbox"] {
@@ -1473,8 +1478,7 @@ export default {
 .results-step h3 {
   color: #004877;
   margin-bottom: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--kindd-font-family);
   font-weight: 600;
 }
 
@@ -1695,8 +1699,7 @@ export default {
 .preferences-step h3 {
   color: #004877;
   margin-bottom: 0.5rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--kindd-font-family);
   font-weight: 500;
   font-size: 1.25rem;
   text-align: center;
@@ -2052,6 +2055,21 @@ export default {
     font-size: 13px;
   }
 
+  .profile-step {
+    max-width: 100%;
+  }
+
+  .form-row,
+  .funding-row {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .form-row label,
+  .funding-row label {
+    text-align: left;
+  }
+
   .service-types {
     grid-template-columns: 1fr;
   }
@@ -2133,5 +2151,25 @@ export default {
   font-size: 0.8rem;
   color: #6b7280;
   margin-bottom: 0;
+}
+
+.regional-center-info .rc-content,
+.regional-center-info .rc-name,
+.service-content,
+.action-item {
+  min-width: 0;
+}
+
+.regional-center-info .rc-name,
+.regional-center-info .rc-link {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+}
+
+.regional-center-info .rc-link {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
 }
 </style>

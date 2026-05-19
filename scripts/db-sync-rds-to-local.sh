@@ -17,7 +17,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${GREEN}╔══════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║   Database Sync: AWS RDS → Local                     ║${NC}"
+echo -e "${GREEN}║ Database Sync: AWS RDS → Local ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -37,7 +37,7 @@ RDS_DB_PORT=$DB_PORT
 RDS_DB_NAME=$DB_NAME
 RDS_DB_USER=$DB_USER
 RDS_DB_PASSWORD=$DB_PASSWORD
-echo -e "${GREEN}✓ Production environment loaded${NC}"
+echo -e "${GREEN}Production environment loaded${NC}"
 echo ""
 
 # Step 2: Export from RDS
@@ -63,7 +63,7 @@ python3 manage.py dumpdata \
     locations.ProviderRegionalCenter \
     > "$EXPORT_FILE"
 
-echo -e "${GREEN}✓ Exported from RDS: $EXPORT_FILE${NC}"
+echo -e "${GREEN}Exported from RDS: $EXPORT_FILE${NC}"
 echo ""
 
 # Step 3: Load local environment
@@ -75,13 +75,13 @@ fi
 set -a
 source "$SCRIPT_DIR/.env.local"
 set +a
-echo -e "${GREEN}✓ Local environment loaded${NC}"
+echo -e "${GREEN}Local environment loaded${NC}"
 echo ""
 
 # Step 4: Apply migrations locally
 echo -e "${YELLOW}4. Applying migrations to local database...${NC}"
 python3 manage.py migrate --database default
-echo -e "${GREEN}✓ Migrations applied${NC}"
+echo -e "${GREEN}Migrations applied${NC}"
 echo ""
 
 # Step 5: Import to local
@@ -95,7 +95,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 python3 manage.py loaddata "$EXPORT_FILE"
-echo -e "${GREEN}✓ Data imported to local database${NC}"
+echo -e "${GREEN}Data imported to local database${NC}"
 echo ""
 
 # Step 6: Verify
@@ -118,13 +118,13 @@ from locations.models import RegionalCenter
 print(RegionalCenter.objects.count())
 ")
 
-echo -e "${GREEN}✓ Local database now has:${NC}"
-echo "  - Providers: $PROVIDER_COUNT"
-echo "  - Regional Centers: $RC_COUNT"
+echo -e "${GREEN}Local database now has:${NC}"
+echo " - Providers: $PROVIDER_COUNT"
+echo " - Regional Centers: $RC_COUNT"
 echo ""
 
 echo -e "${GREEN}╔══════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║   Sync Complete!                                     ║${NC}"
+echo -e "${GREEN}║ Sync Complete! ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo "Export saved: $EXPORT_FILE"

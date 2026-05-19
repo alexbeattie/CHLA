@@ -1,11 +1,11 @@
-# SEO Optimization Strategy for CHLA Provider Map
+# SEO Optimization Strategy for KiNDD - NDD Resource Navigator
 
 ## Executive Summary
 
-**Project:** KINDD - CHLA ABA Provider Map  
-**Domain:** https://kinddhelp.com  
-**Purpose:** Help families find autism and developmental disability services in Los Angeles County  
-**Target Audience:** Parents, caregivers, healthcare providers, social workers  
+**Project:** KiNDD - NDD Resource Navigator
+**Domain:** https://kinddhelp.com
+**Purpose:** Help families find neurodevelopmental disorder (NDD) services in Los Angeles County
+**Target Audience:** Parents, caregivers, healthcare providers, social workers
 **Geographic Focus:** Los Angeles County, California (7 Regional Centers)
 
 ---
@@ -37,15 +37,15 @@
 18. "[ZIP code] autism services"
 
 ### Brand/Entity Keywords
-19. "Children's Hospital Los Angeles provider map"
-20. "CHLA autism resources"
+19. "KiNDD NDD provider map"
+20. "NDD Resource Navigator"
 21. "KINDD provider map"
 
 ---
 
 ## Current State Analysis
 
-### ❌ Issues Found
+### Issues Found
 - Generic title: "Map Location Finder"
 - No meta description
 - No Open Graph tags (social sharing)
@@ -67,23 +67,23 @@
 
 #### Title Tag Strategy
 ```html
-<title>Find ABA Therapy & Autism Services in Los Angeles | KINDD by CHLA</title>
+<title>Find NDD Therapy & Services in Los Angeles | KiNDD - NDD Resource Navigator</title>
 ```
 
-**Formula:** [Action] + [Primary Service] + [Location] + [Brand]  
+**Formula:** [Action] + [Primary Service] + [Location] + [Brand]
 **Length:** 50-60 characters (optimal for mobile & desktop SERPs)
 
 #### Meta Description
 ```html
-<meta name="description" content="Locate ABA therapy providers and autism services across Los Angeles County's 7 Regional Centers. Free interactive map by Children's Hospital Los Angeles. Find qualified providers accepting insurance near you.">
+<meta name="description" content="Locate ABA therapy providers and NDD services across Los Angeles County's 7 Regional Centers. Free interactive map. Find qualified providers accepting insurance near you.">
 ```
 
-**Formula:** [Value Prop] + [Geographic Coverage] + [Authority] + [CTA]  
+**Formula:** [Value Prop] + [Geographic Coverage] + [Authority] + [CTA]
 **Length:** 150-160 characters
 
 #### Keywords Meta Tag (minimal SEO value, but helpful for internal reference)
 ```html
-<meta name="keywords" content="ABA therapy Los Angeles, autism services, developmental disability, Regional Center providers, children's therapy, Los Angeles County, CHLA, behavioral therapy">
+<meta name="keywords" content="ABA therapy Los Angeles, NDD services, neurodevelopmental disorders, developmental disability, Regional Center providers, children's therapy, Los Angeles County, behavioral therapy">
 ```
 
 ---
@@ -94,21 +94,21 @@
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kinddhelp.com/">
-<meta property="og:title" content="Find ABA Therapy & Autism Services in Los Angeles | KINDD by CHLA">
-<meta property="og:description" content="Locate ABA therapy providers and autism services across Los Angeles County. Free interactive map by Children's Hospital Los Angeles.">
+<meta property="og:title" content="Find NDD Therapy & Services in Los Angeles | KiNDD - NDD Resource Navigator">
+<meta property="og:description" content="Locate ABA therapy providers and NDD services across Los Angeles County. Free interactive map.">
 <meta property="og:image" content="https://kinddhelp.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:site_name" content="KINDD - CHLA Provider Map">
+<meta property="og:site_name" content="KiNDD - NDD Resource Navigator">
 <meta property="og:locale" content="en_US">
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="https://kinddhelp.com/">
 <meta name="twitter:title" content="Find ABA Therapy & Autism Services in Los Angeles | KINDD">
-<meta name="twitter:description" content="Locate ABA therapy providers across LA County. Free interactive map by Children's Hospital Los Angeles.">
+<meta name="twitter:description" content="Locate ABA therapy providers across LA County. Free interactive map for NDD services.">
 <meta name="twitter:image" content="https://kinddhelp.com/twitter-card.jpg">
-<meta name="twitter:site" content="@CHLA">
+<meta name="twitter:site" content="@KiNDDhelp">
 ```
 
 ---
@@ -120,11 +120,11 @@
 {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "Children's Hospital Los Angeles",
-  "alternateName": "CHLA",
+  "name": "KiNDD - NDD Resource Navigator",
+  "alternateName": "KiNDD",
   "url": "https://kinddhelp.com",
-  "logo": "https://kinddhelp.com/assets/chla-logo.svg",
-  "description": "We create hope and build healthier futures. Find ABA therapy and autism services across Los Angeles County.",
+  "logo": "https://kinddhelp.com/assets/kindd-logo.svg",
+  "description": "Find ABA therapy and NDD services across Los Angeles County.",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Los Angeles",
@@ -222,7 +222,7 @@ Crawl-delay: 1
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-  
+
   <!-- Main page -->
   <url>
     <loc>https://kinddhelp.com/</loc>
@@ -230,7 +230,7 @@ Crawl-delay: 1
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-  
+
   <!-- Static pages (if any) -->
   <url>
     <loc>https://kinddhelp.com/about</loc>
@@ -238,10 +238,10 @@ Crawl-delay: 1
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-  
+
   <!-- Dynamic provider pages (optional - generated server-side) -->
   <!-- Can be generated via backend script from providers_v2 table -->
-  
+
 </urlset>
 ```
 
@@ -296,8 +296,8 @@ Crawl-delay: 1
 
 #### Author & Copyright
 ```html
-<meta name="author" content="Children's Hospital Los Angeles">
-<meta name="copyright" content="Children's Hospital Los Angeles">
+<meta name="author" content="KiNDD - NDD Resource Navigator">
+<meta name="copyright" content="KiNDD - NDD Resource Navigator">
 ```
 
 #### Geo Targeting
@@ -324,7 +324,7 @@ Crawl-delay: 1
 
 #### Alt Text for Images
 ```html
-<img src="chla-logo.svg" alt="Children's Hospital Los Angeles logo">
+<img src="kindd-logo.svg" alt="KiNDD - NDD Resource Navigator logo">
 ```
 
 #### Internal Linking
@@ -353,7 +353,7 @@ Crawl-delay: 1
 ### 9. Local SEO Strategy
 
 #### Google My Business (if applicable)
-- Create/claim GMB listing for CHLA
+- Create/claim GMB listing for KiNDD - NDD Resource Navigator
 - Link to kinddhelp.com
 
 #### Local Citations
@@ -399,12 +399,12 @@ Crawl-delay: 1
 ## Implementation Priority
 
 ### Phase 1: Critical (Immediate)
-1. ✅ Update `<title>` tag
-2. ✅ Add meta description
-3. ✅ Add Open Graph tags
-4. ✅ Add canonical URL
-5. ✅ Create robots.txt
-6. ✅ Add structured data (Organization + WebApplication)
+1. Update `<title>` tag
+2. Add meta description
+3. Add Open Graph tags
+4. Add canonical URL
+5. Create robots.txt
+6. Add structured data (Organization + WebApplication)
 
 ### Phase 2: Important (Week 1)
 7. Create sitemap.xml
@@ -456,8 +456,8 @@ Crawl-delay: 1
 
 ## Technical SEO Checklist
 
-- [ ] HTTPS enabled (✅ Already done)
-- [ ] Mobile-friendly (✅ Already done)
+- [ ] HTTPS enabled (Already done)
+- [ ] Mobile-friendly (Already done)
 - [ ] Fast loading (< 3s)
 - [ ] Valid HTML
 - [ ] No broken links
@@ -506,7 +506,7 @@ Crawl-delay: 1
 
 ### Differentiation Strategy
 - **Geographic focus:** LA County specific
-- **CHLA authority:** Hospital affiliation
+- **Brand authority:** KiNDD - NDD Resource Navigator
 - **User experience:** Interactive map (not just list)
 - **Mobile-first:** Optimized for parents on-the-go
 - **Free:** No subscription or registration required
@@ -538,7 +538,7 @@ Crawl-delay: 1
 
 ---
 
-**Last Updated:** November 5, 2025  
-**Document Owner:** Development Team  
+**Last Updated:** November 5, 2025
+**Document Owner:** Development Team
 **Review Frequency:** Monthly
 

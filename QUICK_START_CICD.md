@@ -2,13 +2,13 @@
 
 GitHub CLI is now installed and ready to use! Here's how to get started with your new CI/CD pipeline.
 
-## ✅ You're All Set!
+## You're All Set!
 
 GitHub CLI version: **2.82.1**
 Authenticated as: **alexbeattie**
-Token scopes: `gist`, `read:org`, `repo`, `workflow` ✅
+Token scopes: `gist`, `read:org`, `repo`, `workflow`
 
-## 🚀 Quick Commands
+## Quick Commands
 
 ### Deploy to Production
 
@@ -64,7 +64,7 @@ gh workflow run rollback.yml \
 # - Health check endpoint
 ```
 
-## 📋 Next Steps
+## Next Steps
 
 ### 1. Configure GitHub Secrets (Required)
 
@@ -115,7 +115,7 @@ gh run list --workflow=ci-cd.yml --limit 5
 gh workflow view ci-cd.yml
 ```
 
-## 🎯 Common Workflows
+## Common Workflows
 
 ### New Feature Deployment
 
@@ -179,7 +179,7 @@ gh workflow run db-sync.yml \
   -f backup_first=false
 ```
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Deployment Failed
 
@@ -217,13 +217,13 @@ python check_database.py
 gh run list --workflow=db-sync.yml
 ```
 
-## 📚 Documentation
+## Documentation
 
 - **[CI/CD Guide](.github/CICD_GUIDE.md)** - Comprehensive guide
 - **[Secrets Setup](.github/SECRETS.md)** - Configure GitHub secrets
 - **[Database Sync Report](DATABASE_SYNC_REPORT.md)** - Latest sync status
 
-## 💡 Pro Tips
+## Pro Tips
 
 1. **Always test locally first**: `./scripts/deploy-test.sh`
 2. **Use dry-run for database syncs**: Add `-f dry_run=true`
@@ -231,7 +231,7 @@ gh run list --workflow=db-sync.yml
 4. **Check health after deploy**: `curl https://api.kinddhelp.com/api/health/`
 5. **Create backups before big changes**: Database sync does this automatically
 
-## 🆘 Get Help
+## Get Help
 
 ```bash
 # GitHub CLI help
@@ -244,17 +244,17 @@ gh workflow view ci-cd.yml
 gh run view --help
 ```
 
-## 🎉 You're Ready!
+## You're Ready!
 
 Your CI/CD pipeline is fully configured and ready to use. Just push to main and watch it deploy automatically!
 
 ```bash
 # Current database status
-# ✅ 179 unique providers
-# ✅ 99.4% geocoded
-# ✅ Updated ZIP codes preserved
-# ✅ Zero duplicates
-# ✅ Production ready!
+# 179 unique providers
+# 99.4% geocoded
+# Updated ZIP codes preserved
+# Zero duplicates
+# Production ready!
 ```
 
-Happy deploying! 🚀
+Happy deploying!

@@ -29,12 +29,12 @@ The near-term priority is to mature KiNDD as a trusted geospatial infrastructure
 ## What Exists Today
 The current platform spans four layers.
 
-| Layer                 | Current state                                                         | Strategic role                                                             |
+| Layer | Current state | Strategic role |
 | --------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Client applications   | iOS app in `chla-ios`, web mapping experience in `map-frontend`       | Family-facing experience and distribution surface                          |
-| Application/API layer | Django REST and GraphQL in `maplocation`                              | Orchestration layer for search, spatial logic, and AI APIs                 |
-| Geospatial/data layer | PostgreSQL + PostGIS, provider and regional-center models             | Trust layer for service boundaries, proximity, and place-based eligibility |
-| AI layer              | AWS Bedrock, Titan embeddings, Claude Sonnet 4.5, Strands agent tools | Conversational access layer over structured and spatial data               |
+| Client applications | iOS app in `chla-ios`, web mapping experience in `map-frontend` | Family-facing experience and distribution surface |
+| Application/API layer | Django REST and GraphQL in `maplocation` | Orchestration layer for search, spatial logic, and AI APIs |
+| Geospatial/data layer | PostgreSQL + PostGIS, provider and regional-center models | Trust layer for service boundaries, proximity, and place-based eligibility |
+| AI layer | AWS Bedrock, Titan embeddings, Claude Sonnet 4.5, Strands agent tools | Conversational access layer over structured and spatial data |
 
 The iOS app provides the clearest user-facing expression of the product. The home redesign spec in `chla-ios/HOME_PAGE_REDESIGN_SPEC.md` places `Ask KiNDD` at the center while still emphasizing rapid entry into `Near Me`, `Regions`, `Browse`, and `Map`. The platform combines map-based discovery with AI, rather than replacing one with the other.
 
@@ -196,13 +196,13 @@ If the same architecture is extended to new counties or states, it could serve a
 ### GIS outlook
 The strongest GIS opportunities ahead are:
 
-| Horizon     | Opportunity                                                                                 | Why it matters                                             |
+| Horizon | Opportunity | Why it matters |
 | ----------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Near term   | Unify regional-center assignment across backend and iOS                                     | Improves consistency and trust                             |
-| Near term   | Consolidate hot-path search on PostGIS instead of mixed Haversine approaches                | Improves performance and maintainability                   |
-| Medium term | Add accessibility, service coverage, and travel-burden metadata                             | Makes maps more clinically and socially meaningful         |
-| Medium term | Expand from provider discovery to service-gap intelligence                                  | Supports partnerships, pilots, and institutional analytics |
-| Long term   | Reuse the geography engine across new counties, states, and public-interest service systems | Creates a platform rather than a local app                 |
+| Near term | Unify regional-center assignment across backend and iOS | Improves consistency and trust |
+| Near term | Consolidate hot-path search on PostGIS instead of mixed Haversine approaches | Improves performance and maintainability |
+| Medium term | Add accessibility, service coverage, and travel-burden metadata | Makes maps more clinically and socially meaningful |
+| Medium term | Expand from provider discovery to service-gap intelligence | Supports partnerships, pilots, and institutional analytics |
+| Long term | Reuse the geography engine across new counties, states, and public-interest service systems | Creates a platform rather than a local app |
 
 ## AI and LLM Deep Dive
 The AI layer has a clear architecture and a defined roadmap.
@@ -218,17 +218,17 @@ The primary AI implementation lives in:
 
 The current stack includes:
 
-| Capability   | Current implementation                                               |
+| Capability | Current implementation |
 | ------------ | -------------------------------------------------------------------- |
-| Chat model   | Claude Sonnet 4.5 via AWS Bedrock inference profile                  |
-| Embeddings   | Titan Embeddings Text V2                                             |
-| Retrieval    | pgvector similarity search with keyword fallback                     |
-| Streaming UX | SSE endpoints from Django (RAG and agent), consumed in iOS           |
-| Tool use     | Strands agent with provider search and eligibility tools             |
-| Vision       | Image analysis for insurance cards, documents, and general photos    |
-| Documents    | Base64 upload, text extraction from PDF/docx/txt, then LLM reasoning |
-| Speech       | On-device Apple Speech for STT, AVSpeechSynthesizer for TTS          |
-| Localization | English and Spanish prompts and app language support                 |
+| Chat model | Claude Sonnet 4.5 via AWS Bedrock inference profile |
+| Embeddings | Titan Embeddings Text V2 |
+| Retrieval | pgvector similarity search with keyword fallback |
+| Streaming UX | SSE endpoints from Django (RAG and agent), consumed in iOS |
+| Tool use | Strands agent with provider search and eligibility tools |
+| Vision | Image analysis for insurance cards, documents, and general photos |
+| Documents | Base64 upload, text extraction from PDF/docx/txt, then LLM reasoning |
+| Speech | On-device Apple Speech for STT, AVSpeechSynthesizer for TTS |
+| Localization | English and Spanish prompts and app language support |
 
 ### Data-grounded AI
 The key architectural decision in the current AI stack is that the model is grounded in platform data rather than unconstrained generation.
@@ -329,11 +329,11 @@ It works as a workflow layer over trusted platform data, aligned with real insti
 ## Already Implemented vs Partially Implemented vs Recommended
 It is useful to distinguish between what is already live in code, what is partially present, and what remains to be built.
 
-| Status                      | Examples                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Status | Examples |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Implemented                 | PostGIS-backed spatial fields, regional-center ZIP logic, GeoJSON service-area endpoint, Mapbox/MapKit directions, Bedrock chat and streaming, pgvector retrieval, image analysis, document analysis, English/Spanish prompt support, iOS STT/TTS, memory-context consumption in backend, end-to-end conversation history threading, locale parity across streaming and non-streaming paths, agent streaming SSE endpoint, rate-limited endpoints |
-| Partially implemented       | Unified cross-client regional-center resolution, richer insurance filtering, persistent family profiles                                                                                                                                                                                                                                                                                                                                           |
-| Open areas for contribution | Guardrails and policy layer (Bedrock Guardrails or AgentCore Policy), shared geospatial truth across clients, deeper travel/accessibility intelligence, institutional analytics, longitudinal family workflows, privacy and auditability layers                                                                                                                                                                                                   |
+| Implemented | PostGIS-backed spatial fields, regional-center ZIP logic, GeoJSON service-area endpoint, Mapbox/MapKit directions, Bedrock chat and streaming, pgvector retrieval, image analysis, document analysis, English/Spanish prompt support, iOS STT/TTS, memory-context consumption in backend, end-to-end conversation history threading, locale parity across streaming and non-streaming paths, agent streaming SSE endpoint, rate-limited endpoints |
+| Partially implemented | Unified cross-client regional-center resolution, richer insurance filtering, persistent family profiles |
+| Open areas for contribution | Guardrails and policy layer (Bedrock Guardrails or AgentCore Policy), shared geospatial truth across clients, deeper travel/accessibility intelligence, institutional analytics, longitudinal family workflows, privacy and auditability layers |
 
 ## Product Direction: Horizontal and Vertical Expansion
 Growth should remain tightly aligned with the platform's core strengths.

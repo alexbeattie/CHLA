@@ -1,6 +1,6 @@
 # Technical Debt & Future Improvements
 
-This document tracks known limitations, technical debt, and improvement opportunities in the CHLA Provider Map project.
+This document tracks known limitations, technical debt, and improvement opportunities in the KiNDD - NDD Resource Navigator project.
 
 ---
 
@@ -284,17 +284,17 @@ def geocode_with_fallback(address):
 
 ## Completed Improvements
 
-### ✅ Provider Import Automation
+### Provider Import Automation
 - **Completed:** 2025-10-26
 - **Commits:** ce2c4b9, 92a4842, 853da40
 - **Impact:** Providers now import automatically on deployment
 
-### ✅ Regional Center Text Field Fix
+### Regional Center Text Field Fix
 - **Completed:** 2025-10-26
 - **Commit:** 92a4842
 - **Impact:** Regional center filtering now works correctly
 
-### ✅ ZIP Code Mappings
+### ZIP Code Mappings
 - **Completed:** 2025-10-26
 - **Commit:** 853da40
 - **Impact:** San Gabriel and Pasadena areas now have working ZIP lookups

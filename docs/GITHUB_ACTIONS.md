@@ -146,7 +146,7 @@ git push origin main
 
 1. Go to repository on GitHub
 2. Click **Actions** tab
-3. Click **Deploy CHLA Provider Map** workflow
+3. Click **Deploy KiNDD - NDD Resource Navigator** workflow
 4. Click **Run workflow** button
 5. Select `main` branch
 6. Click **Run workflow**
@@ -211,7 +211,7 @@ Automatically comments on the latest commit with deployment status. No setup req
 
 **Example:**
 ```
-Deployment Status: ✅ SUCCESS
+Deployment Status: SUCCESS
 Backend: https://api.kinddhelp.com/api/
 Frontend: https://kinddhelp.com
 ```

@@ -38,13 +38,13 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 ```
 VITE_API_BASE_URL=http://127.0.0.1:8000
 VITE_PORT=3000
-VITE_MAPBOX_TOKEN=pk.eyJ1IjoiYmVhdHR5LWFkbWluIiwiYSI6ImNsejFjNGt0YzFqMGMyanF3YW5hdWFmc3UifQ.sn7Uj_gDzzKL6PQq7vO7fw
+VITE_MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 ```
 
 ### map-frontend/.env.production
 ```
 VITE_API_BASE_URL=https://api.kinddhelp.com
-VITE_MAPBOX_TOKEN=pk.eyJ1IjoiYmVhdHR5LWFkbWluIiwiYSI6ImNsejFjNGt0YzFqMGMyanF3YW5hdWFmc3UifQ.sn7Uj_gDzzKL6PQq7vO7fw
+VITE_MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 ```
 
 ## AWS Resources

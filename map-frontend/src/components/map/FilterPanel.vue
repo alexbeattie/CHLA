@@ -2,34 +2,44 @@
   <div class="filter-panel">
     <!-- Insurance Types (Multi-Select) -->
     <div class="filter-section" v-if="availableInsuranceTypes.length > 0">
-      <div class="section-header" @click="toggleInsuranceSection" style="cursor: pointer;">
-        <div style="display: flex; align-items: center; gap: 8px;">
+      <div
+        class="section-header"
+        @click="toggleInsuranceSection"
+        style="cursor: pointer"
+      >
+        <div style="display: flex; align-items: center; gap: 8px">
           <i class="bi bi-credit-card"></i>
           <h4>Insurance Accepted</h4>
-          <span v-if="filterStore.filterOptions.insuranceTypes.length > 0" class="selected-count">
+          <span
+            v-if="filterStore.filterOptions.insuranceTypes.length > 0"
+            class="selected-count"
+          >
             ({{ filterStore.filterOptions.insuranceTypes.length }})
           </span>
         </div>
-        <i class="bi" :class="showInsuranceSection ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+        <i
+          class="bi"
+          :class="showInsuranceSection ? 'bi-chevron-up' : 'bi-chevron-down'"
+        ></i>
       </div>
-      
+
       <div v-if="showInsuranceSection" class="filter-options">
         <!-- Search Box -->
         <div class="insurance-search">
-          <input 
-            type="text" 
+          <input
+            type="text"
             v-model="insuranceSearchQuery"
             placeholder="Search insurance..."
             class="form-control form-control-sm"
           />
         </div>
-        
+
         <!-- Most Common (Always Visible) -->
         <div class="insurance-group">
           <div class="group-label">Most Common</div>
-          <label 
-            class="filter-option" 
-            v-for="insurance in topInsuranceTypes" 
+          <label
+            class="filter-option"
+            v-for="insurance in topInsuranceTypes"
             :key="insurance"
             v-show="insuranceMatchesSearch(insurance)"
           >
@@ -41,20 +51,23 @@
             <span class="filter-label">{{ insurance }}</span>
           </label>
         </div>
-        
+
         <!-- Other Insurance Types (Collapsible) -->
         <div class="insurance-group">
-          <div 
-            class="group-label clickable" 
+          <div
+            class="group-label clickable"
             @click="showAllInsurance = !showAllInsurance"
           >
             Other Insurance Types
-            <i class="bi" :class="showAllInsurance ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+            <i
+              class="bi"
+              :class="showAllInsurance ? 'bi-chevron-up' : 'bi-chevron-down'"
+            ></i>
           </div>
           <div v-if="showAllInsurance || insuranceSearchQuery">
-            <label 
-              class="filter-option" 
-              v-for="insurance in otherInsuranceTypes" 
+            <label
+              class="filter-option"
+              v-for="insurance in otherInsuranceTypes"
               :key="insurance"
               v-show="insuranceMatchesSearch(insurance)"
             >
@@ -77,9 +90,9 @@
         <h4>Therapy Types</h4>
       </div>
       <div class="filter-options">
-        <label 
-          class="filter-option" 
-          v-for="therapy in availableTherapyTypes" 
+        <label
+          class="filter-option"
+          v-for="therapy in availableTherapyTypes"
           :key="therapy"
         >
           <input
@@ -97,15 +110,16 @@
       <div class="section-header">
         <i class="bi bi-sliders"></i>
         <h4>Filter by My Needs</h4>
-        <button class="btn-info" @click="showInfoModal = true" title="What's this?">
+        <button
+          class="btn-info"
+          @click="showInfoModal = true"
+          title="What's this?"
+        >
           <i class="bi bi-question-circle"></i>
         </button>
       </div>
       <div class="filter-options">
-        <label 
-          class="filter-option" 
-          v-if="userData.age"
-        >
+        <label class="filter-option" v-if="userData.age">
           <input
             type="checkbox"
             v-model="localFilters.matchesAge"
@@ -115,11 +129,8 @@
             Serves age {{ formatAge(userData.age) }}
           </span>
         </label>
-        
-        <label 
-          class="filter-option" 
-          v-if="userData.diagnosis"
-        >
+
+        <label class="filter-option" v-if="userData.diagnosis">
           <input
             type="checkbox"
             v-model="localFilters.matchesDiagnosis"
@@ -129,22 +140,20 @@
             Treats {{ formatDiagnosis(userData.diagnosis) }}
           </span>
         </label>
-        
-        <label 
-          class="filter-option" 
-          v-if="userData.therapy"
-        >
+
+        <label class="filter-option" v-if="userData.therapy">
           <input
             type="checkbox"
             v-model="localFilters.matchesTherapy"
             @change="handleFilterChange"
           />
-          <span class="filter-label">
-            Offers {{ userData.therapy }}
-          </span>
+          <span class="filter-label"> Offers {{ userData.therapy }} </span>
         </label>
 
-        <div v-if="!userData.age && !userData.diagnosis && !userData.therapy" class="no-profile-hint">
+        <div
+          v-if="!userData.age && !userData.diagnosis && !userData.therapy"
+          class="no-profile-hint"
+        >
           <i class="bi bi-info-circle"></i>
           <span>Set up your profile to see personalized filters</span>
         </div>
@@ -155,9 +164,7 @@
     <div v-if="hasActiveFilters" class="active-filters">
       <div class="active-filters-header">
         <span class="active-count">{{ activeFilterCount }} active</span>
-        <button class="btn-clear-all" @click="handleReset">
-          Clear all
-        </button>
+        <button class="btn-clear-all" @click="handleReset">Clear all</button>
       </div>
       <div class="filter-chips">
         <button
@@ -224,7 +231,11 @@
     </div>
 
     <!-- Info Modal -->
-    <div v-if="showInfoModal" class="info-modal-overlay" @click="showInfoModal = false">
+    <div
+      v-if="showInfoModal"
+      class="info-modal-overlay"
+      @click="showInfoModal = false"
+    >
       <div class="info-modal" @click.stop>
         <div class="modal-header">
           <h3>Filter by My Needs</h3>
@@ -234,15 +245,26 @@
         </div>
         <div class="modal-body">
           <p>
-            These filters help you find providers that match your specific requirements:
+            These filters help you find providers that match your specific
+            requirements:
           </p>
           <ul>
-            <li><strong>Age:</strong> Shows only providers who serve your age group</li>
-            <li><strong>Diagnosis:</strong> Shows only providers who treat your condition</li>
-            <li><strong>Therapy:</strong> Shows only providers who offer the services you need</li>
+            <li>
+              <strong>Age:</strong> Shows only providers who serve your age
+              group
+            </li>
+            <li>
+              <strong>Diagnosis:</strong> Shows only providers who treat your
+              condition
+            </li>
+            <li>
+              <strong>Therapy:</strong> Shows only providers who offer the
+              services you need
+            </li>
           </ul>
           <p class="modal-note">
-            These options are based on the profile you set up. You can update your profile anytime by clicking the edit button at the top.
+            These options are based on the profile you set up. You can update
+            your profile anytime by clicking the edit button at the top.
           </p>
         </div>
         <div class="modal-footer">
@@ -256,39 +278,35 @@
 </template>
 
 <script>
-import { ref, computed, watch } from 'vue';
-import { useFilterStore } from '@/stores/filterStore';
+import { ref, computed, watch } from "vue";
+import { useFilterStore } from "@/stores/filterStore";
 
 export default {
-  name: 'FilterPanel',
+  name: "FilterPanel",
 
   props: {
     showFavorites: {
       type: Boolean,
-      default: false
+      default: false,
     },
     showSummary: {
       type: Boolean,
-      default: true
+      default: true,
     },
     manualApply: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
-  emits: [
-    'filter-change',
-    'apply',
-    'reset'
-  ],
+  emits: ["filter-change", "apply", "reset"],
 
   setup(props, { emit }) {
     const filterStore = useFilterStore();
     const showInfoModal = ref(false);
     const showInsuranceSection = ref(false);
     const showAllInsurance = ref(false);
-    const insuranceSearchQuery = ref('');
+    const insuranceSearchQuery = ref("");
 
     // Local copy of filters
     const localFilters = ref({
@@ -297,29 +315,37 @@ export default {
       matchesAge: filterStore.filterOptions.matchesAge,
       matchesDiagnosis: filterStore.filterOptions.matchesDiagnosis,
       matchesTherapy: filterStore.filterOptions.matchesTherapy,
-      showOnlyFavorites: filterStore.filterOptions.showOnlyFavorites
+      showOnlyFavorites: filterStore.filterOptions.showOnlyFavorites,
     });
 
     // User data from store
     const userData = computed(() => filterStore.userData);
-    
+
     // Available options from store
-    const availableTherapyTypes = computed(() => filterStore.availableTherapyTypes);
-    const availableInsuranceTypes = computed(() => filterStore.availableInsuranceTypes);
-    
+    const availableTherapyTypes = computed(
+      () => filterStore.availableTherapyTypes
+    );
+    const availableInsuranceTypes = computed(
+      () => filterStore.availableInsuranceTypes
+    );
+
     // Split insurance into top (most common) and others
     const topInsuranceTypes = computed(() => {
       // Top 8 most common for developmental services
       return availableInsuranceTypes.value.slice(0, 8);
     });
-    
+
     const otherInsuranceTypes = computed(() => {
       return availableInsuranceTypes.value.slice(8);
     });
-    
+
     // Check if user has profile data
     const hasUserProfile = computed(() => {
-      return !!(userData.value.age || userData.value.diagnosis || userData.value.therapy);
+      return !!(
+        userData.value.age ||
+        userData.value.diagnosis ||
+        userData.value.therapy
+      );
     });
 
     // Active filter count
@@ -338,15 +364,18 @@ export default {
 
     // Has any active filters
     const hasActiveFilters = computed(() => {
-      return activeFilterCount.value > 0 || filterStore.filterOptions.therapies.length > 0;
+      return (
+        activeFilterCount.value > 0 ||
+        filterStore.filterOptions.therapies.length > 0
+      );
     });
 
     /**
      * Format age for display
      */
     const formatAge = (age) => {
-      if (!age) return '';
-      if (age.includes('-') || age.includes('+')) {
+      if (!age) return "";
+      if (age.includes("-") || age.includes("+")) {
         return `${age} years`;
       }
       return age;
@@ -356,13 +385,13 @@ export default {
      * Format diagnosis for display
      */
     const formatDiagnosis = (diagnosis) => {
-      if (!diagnosis) return '';
+      if (!diagnosis) return "";
       const shortForms = {
-        'Autism Spectrum Disorder': 'Autism',
-        'Global Development Delay': 'Development Delay',
-        'Intellectual Disability': 'Intellectual Disability',
-        'Speech and Language Disorder': 'Speech/Language',
-        'ADHD': 'ADHD'
+        "Autism Spectrum Disorder": "Autism",
+        "Global Development Delay": "Development Delay",
+        "Intellectual Disability": "Intellectual Disability",
+        "Speech and Language Disorder": "Speech/Language",
+        ADHD: "ADHD",
       };
       return shortForms[diagnosis] || diagnosis;
     };
@@ -371,20 +400,23 @@ export default {
      * Handle filter change
      */
     const handleFilterChange = () => {
-      console.log('🔍 FilterPanel: Filter changed', localFilters.value);
-      
+      console.log("🔍 FilterPanel: Filter changed", localFilters.value);
+
       // Apply to store
       applyFiltersToStore();
-      emit('filter-change', localFilters.value);
+      emit("filter-change", localFilters.value);
     };
 
     /**
      * Apply filters to store
      */
     const applyFiltersToStore = () => {
-      console.log('🔍 FilterPanel: Applying filters to store', localFilters.value);
+      console.log(
+        "🔍 FilterPanel: Applying filters to store",
+        localFilters.value
+      );
 
-      Object.keys(localFilters.value).forEach(key => {
+      Object.keys(localFilters.value).forEach((key) => {
         filterStore.setFilter(key, localFilters.value[key]);
       });
     };
@@ -393,7 +425,7 @@ export default {
      * Handle reset
      */
     const handleReset = () => {
-      console.log('🔍 FilterPanel: Reset filters');
+      console.log("🔍 FilterPanel: Reset filters");
 
       // Reset all filters
       localFilters.value = {
@@ -402,7 +434,7 @@ export default {
         matchesAge: false,
         matchesDiagnosis: false,
         matchesTherapy: false,
-        showOnlyFavorites: false
+        showOnlyFavorites: false,
       };
 
       // Clear therapy types, diagnoses, and insurance types arrays in store
@@ -411,7 +443,7 @@ export default {
       filterStore.filterOptions.insuranceTypes = [];
 
       applyFiltersToStore();
-      emit('reset');
+      emit("reset");
     };
 
     /**
@@ -436,7 +468,7 @@ export default {
     const handleTherapyToggle = (therapy) => {
       console.log(`🎯 FilterPanel: Toggling therapy type: ${therapy}`);
       filterStore.toggleTherapyType(therapy);
-      emit('filter-change', localFilters.value);
+      emit("filter-change", localFilters.value);
     };
 
     /**
@@ -452,7 +484,7 @@ export default {
     const handleInsuranceToggle = (insurance) => {
       console.log(`💳 FilterPanel: Toggling insurance type: ${insurance}`);
       filterStore.toggleInsuranceType(insurance);
-      emit('filter-change', localFilters.value);
+      emit("filter-change", localFilters.value);
     };
 
     /**
@@ -467,7 +499,9 @@ export default {
      */
     const insuranceMatchesSearch = (insurance) => {
       if (!insuranceSearchQuery.value) return true;
-      return insurance.toLowerCase().includes(insuranceSearchQuery.value.toLowerCase());
+      return insurance
+        .toLowerCase()
+        .includes(insuranceSearchQuery.value.toLowerCase());
     };
 
     // Sync with store when store changes
@@ -504,9 +538,9 @@ export default {
       isInsuranceSelected,
       handleInsuranceToggle,
       toggleInsuranceSection,
-      insuranceMatchesSearch
+      insuranceMatchesSearch,
     };
-  }
+  },
 };
 </script>
 
@@ -514,14 +548,14 @@ export default {
 .filter-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.5rem;
 }
 
 /* Filter Section */
 .filter-section {
   background: white;
   border-radius: 10px;
-  padding: 1rem;
+  padding: 0.625rem 0.75rem;
   border: 1px solid #e5e7eb;
 }
 
@@ -529,22 +563,23 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid #f3f4f6;
 }
 
 .section-header i {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: #6b7280;
 }
 
 .section-header h4 {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1f2937;
   flex: 1;
+  line-height: 1.2;
 }
 
 .btn-info {
@@ -552,10 +587,11 @@ export default {
   border: none;
   color: #6b7280;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.125rem 0.25rem;
   display: flex;
   align-items: center;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
+  line-height: 1;
 }
 
 .btn-info:hover {
@@ -563,43 +599,44 @@ export default {
 }
 
 .btn-info i {
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
-/* Filter Options */
+/* Filter Options - tight checkbox rows */
 .filter-options {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.125rem;
 }
 
 .filter-option {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.5rem;
+  gap: 0.5rem;
+  padding: 0.3125rem 0.375rem;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s ease;
   user-select: none;
+  min-height: 28px;
 }
 
 .filter-option:hover {
-  background-color: #f9fafb;
+  background-color: #f5f7fa;
 }
 
 .filter-option input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   cursor: pointer;
   accent-color: #004877;
   flex-shrink: 0;
 }
 
 .filter-option span {
-  font-size: 0.9375rem;
+  font-size: 0.825rem;
   color: #374151;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .filter-label {
@@ -619,23 +656,25 @@ export default {
 }
 
 .selected-count {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #004877;
   font-weight: 600;
   background: #e0f2fe;
-  padding: 2px 8px;
+  padding: 1px 8px;
   border-radius: 12px;
+  line-height: 1.4;
 }
 
 .insurance-search {
-  margin-bottom: 12px;
+  margin-bottom: 0.5rem;
 }
 
 .insurance-search .form-control {
   border: 1px solid #e5e7eb;
   border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.875rem;
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+  height: auto;
 }
 
 .insurance-search .form-control:focus {
@@ -645,7 +684,7 @@ export default {
 }
 
 .insurance-group {
-  margin-bottom: 12px;
+  margin-bottom: 0.5rem;
 }
 
 .insurance-group:last-child {
@@ -653,15 +692,16 @@ export default {
 }
 
 .group-label {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
-  padding: 4px 8px;
+  margin-bottom: 0.25rem;
+  padding: 3px 6px;
   background: #f9fafb;
   border-radius: 4px;
+  line-height: 1.3;
 }
 
 .group-label.clickable {
@@ -686,12 +726,12 @@ export default {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  padding: 0.75rem;
+  padding: 0.5rem 0.625rem;
   background: #f3f4f6;
   border-radius: 6px;
   font-size: 0.8125rem;
   color: #6b7280;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
 .no-profile-hint i {
@@ -704,14 +744,14 @@ export default {
   background: #eff6ff;
   border: 1px solid #dbeafe;
   border-radius: 10px;
-  padding: 1rem;
+  padding: 0.625rem 0.75rem;
 }
 
 .active-filters-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .active-count {
@@ -788,7 +828,8 @@ export default {
   border-radius: 12px;
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .modal-header {

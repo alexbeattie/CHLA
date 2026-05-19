@@ -1,5 +1,7 @@
 # Children's Hospital Los Angeles Brand Guidelines
 
+> **Archived.** This document is no longer the brand guide. The product has been rebranded to **KiNDD - NDD Resource Navigator** and CHLA / Children's Hospital Los Angeles branding has been deprecated. Retained here for historical reference only.
+
 ## Mission and Values
 
 ### Mission

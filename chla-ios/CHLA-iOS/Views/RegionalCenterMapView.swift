@@ -619,7 +619,7 @@ class RegionalCenterMapViewModel: ObservableObject {
 
         // Load from bundled GeoJSON file (has real polygon boundaries)
         guard let url = Bundle.main.url(forResource: "la_regional_centers", withExtension: "geojson") else {
-            print("❌ Could not find la_regional_centers.geojson in bundle")
+            print("Could not find la_regional_centers.geojson in bundle")
             isLoading = false
             return
         }
@@ -643,10 +643,10 @@ class RegionalCenterMapViewModel: ObservableObject {
             }
 
             serviceAreas = features
-            print("✅ Loaded \(features.count) LA regional centers from local GeoJSON")
+            print("Loaded \(features.count) LA regional centers from local GeoJSON")
         } catch {
             self.error = error
-            print("❌ Error loading local GeoJSON: \(error)")
+            print("Error loading local GeoJSON: \(error)")
         }
 
         isLoading = false
@@ -727,11 +727,14 @@ struct ServiceAreaFeature: Identifiable, Hashable {
     let acronym: String
     let description: String
     let allPolygons: [[[[Double]]]]  // All polygons from MultiPolygon
+    let allMapPolygons: [MKPolygon]
     let color: Color
     let officeCoordinate: CLLocationCoordinate2D?  // Office location
 
     // Initialize from local GeoJSON file (has real polygon boundaries)
     init(localFeature: LocalGeoJSONFeature, color: Color, officeCoordinate: CLLocationCoordinate2D? = nil) {
+        let extractedPolygons: [[[[Double]]]]
+
         self.id = localFeature.properties.objectId
         self.name = localFeature.properties.regionalCenter
         self.acronym = localFeature.properties.acronym
@@ -742,10 +745,13 @@ struct ServiceAreaFeature: Identifiable, Hashable {
         // Extract coordinates from geometry
         switch localFeature.geometry.coordinates {
         case .polygon(let polygonCoords):
-            self.allPolygons = [polygonCoords]
+            extractedPolygons = [polygonCoords]
         case .multiPolygon(let multiCoords):
-            self.allPolygons = multiCoords
+            extractedPolygons = multiCoords
         }
+
+        self.allPolygons = extractedPolygons
+        self.allMapPolygons = Self.makeMapPolygons(from: extractedPolygons)
     }
 
     var shortName: String {
@@ -792,19 +798,10 @@ struct ServiceAreaFeature: Identifiable, Hashable {
 
     /// Returns the first/main polygon for simple display
     var mapPolygon: MKPolygon? {
-        guard let firstPolygon = allPolygons.first,
-              let ring = firstPolygon.first,
-              ring.count >= 3 else { return nil }
-
-        let coordinates = ring.map { point -> CLLocationCoordinate2D in
-            CLLocationCoordinate2D(latitude: point[1], longitude: point[0])
-        }
-
-        return MKPolygon(coordinates: coordinates, count: coordinates.count)
+        allMapPolygons.first
     }
 
-    /// Returns all polygons for complete coverage
-    var allMapPolygons: [MKPolygon] {
+    private static func makeMapPolygons(from allPolygons: [[[[Double]]]]) -> [MKPolygon] {
         var polygons: [MKPolygon] = []
 
         for polygon in allPolygons {

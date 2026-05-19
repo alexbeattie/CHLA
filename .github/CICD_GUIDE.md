@@ -5,14 +5,14 @@ Comprehensive guide for the GitHub Actions CI/CD pipeline.
 ## Overview
 
 The CI/CD pipeline automates:
-- ✅ Backend testing (Django, pytest)
-- ✅ Frontend testing (Vue, Vitest)
-- ✅ Linting and code quality checks
-- ✅ Automated deployment to AWS (Backend to EB, Frontend to S3/CloudFront)
-- ✅ Database migrations (local to RDS)
-- ✅ Health checks and deployment verification
-- ✅ Automatic rollback on failure
-- ✅ Manual rollback capability
+- Backend testing (Django, pytest)
+- Frontend testing (Vue, Vitest)
+- Linting and code quality checks
+- Automated deployment to AWS (Backend to EB, Frontend to S3/CloudFront)
+- Database migrations (local to RDS)
+- Health checks and deployment verification
+- Automatic rollback on failure
+- Manual rollback capability
 
 ## Workflows
 
@@ -130,7 +130,7 @@ Verify Frontend
     ↓
 End-to-End Health Check
     ↓
-✅ Deployment Complete
+Deployment Complete
 ```
 
 ### Rollback on Failure
@@ -146,7 +146,7 @@ Redeploy Previous Version
     ↓
 Verify Health
     ↓
-⚠️ Rollback Complete
+Rollback Complete
 ```
 
 ## Local Development
@@ -384,26 +384,26 @@ aws s3 sync \
 
 ### Before Deploying
 
-- ✅ Run tests locally
-- ✅ Create feature branch for changes
-- ✅ Open PR for code review
-- ✅ Wait for CI to pass on PR
-- ✅ Test on staging environment (if available)
-- ✅ Merge to main during low-traffic hours
+- Run tests locally
+- Create feature branch for changes
+- Open PR for code review
+- Wait for CI to pass on PR
+- Test on staging environment (if available)
+- Merge to main during low-traffic hours
 
 ### During Deployment
 
-- ✅ Monitor GitHub Actions logs
-- ✅ Watch for errors or warnings
-- ✅ Check health endpoints immediately
-- ✅ Verify key functionality
+- Monitor GitHub Actions logs
+- Watch for errors or warnings
+- Check health endpoints immediately
+- Verify key functionality
 
 ### After Deployment
 
-- ✅ Run smoke tests
-- ✅ Check error tracking (if configured)
-- ✅ Monitor application logs
-- ✅ Be ready to rollback if needed
+- Run smoke tests
+- Check error tracking (if configured)
+- Monitor application logs
+- Be ready to rollback if needed
 
 ### Emergency Rollback Procedure
 

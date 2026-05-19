@@ -35,7 +35,7 @@ Mapbox API token for map rendering.
 
 **Current token:**
 ```
-pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg
+YOUR_MAPBOX_TOKEN
 ```
 
 **Where to find it:**
@@ -62,7 +62,7 @@ gh secret set AWS_ACCESS_KEY_ID --body "AKIA..."
 gh secret set AWS_SECRET_ACCESS_KEY --body "your-secret-key"
 
 # Mapbox token
-gh secret set MAPBOX_TOKEN --body "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg"
+gh secret set MAPBOX_TOKEN --body "YOUR_MAPBOX_TOKEN"
 ```
 
 ## Verifying Secrets

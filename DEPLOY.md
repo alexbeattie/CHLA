@@ -1,4 +1,4 @@
-# CHLA Map Application - Deployment Guide
+# KiNDD - NDD Resource Navigator - Deployment Guide
 
 ## Quick Start
 
@@ -81,7 +81,7 @@ npm install
 
 ```bash
 VITE_API_BASE_URL=https://api.kinddhelp.com
-VITE_MAPBOX_TOKEN=pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg
+VITE_MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 ```
 
 ### Backend (.ebextensions/03_env_vars.config)

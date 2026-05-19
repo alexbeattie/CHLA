@@ -61,27 +61,27 @@ Find ABA therapy and developmental disability resources across Los Angeles Count
 
 KEY FEATURES:
 
-🗺️ INTERACTIVE MAP
+INTERACTIVE MAP
 • View all 7 LA County Regional Centers with color-coded boundaries
 • Find your assigned Regional Center based on your ZIP code
 • Explore 370+ verified ABA therapy providers and resources
 
-🤖 AI ASSISTANT
+AI ASSISTANT
 • Ask questions in English or Spanish
 • Get personalized recommendations for your family's needs
 • Learn about Early Intervention, insurance options, and more
 
-🔍 SMART SEARCH
+SMART SEARCH
 • Filter by therapy type: ABA, Speech, Occupational, Physical
 • Search by insurance: Medi-Cal, private insurance, Regional Center funding
 • Find resources by age group and diagnosis
 
-📍 LOCATION-BASED
+LOCATION-BASED
 • Automatically find resources near you
 • Get driving directions to any provider
 • Call or email providers directly from the app
 
-🌐 BILINGUAL SUPPORT
+BILINGUAL SUPPORT
 • Full Spanish language support
 • Switch languages anytime from Settings
 • AI responses in your preferred language
@@ -119,27 +119,27 @@ Encuentre terapia ABA y recursos de discapacidades del desarrollo en todo el Con
 
 CARACTERÍSTICAS PRINCIPALES:
 
-🗺️ MAPA INTERACTIVO
+MAPA INTERACTIVO
 • Vea los 7 Centros Regionales del Condado de LA con límites codificados por colores
 • Encuentre su Centro Regional asignado según su código postal
 • Explore más de 370 proveedores de terapia ABA y recursos verificados
 
-🤖 ASISTENTE DE IA
+ASISTENTE DE IA
 • Haga preguntas en inglés o español
 • Obtenga recomendaciones personalizadas para las necesidades de su familia
 • Aprenda sobre Intervención Temprana, opciones de seguro y más
 
-🔍 BÚSQUEDA INTELIGENTE
+BÚSQUEDA INTELIGENTE
 • Filtre por tipo de terapia: ABA, Habla, Ocupacional, Física
 • Busque por seguro: Medi-Cal, seguro privado, fondos del Centro Regional
 • Encuentre recursos por grupo de edad y diagnóstico
 
-📍 BASADO EN UBICACIÓN
+BASADO EN UBICACIÓN
 • Encuentre automáticamente recursos cerca de usted
 • Obtenga direcciones de manejo a cualquier proveedor
 • Llame o envíe correo a proveedores directamente desde la aplicación
 
-🌐 SOPORTE BILINGÜE
+SOPORTE BILINGÜE
 • Soporte completo en español
 • Cambie de idioma en cualquier momento desde Configuración
 • Respuestas de IA en su idioma preferido

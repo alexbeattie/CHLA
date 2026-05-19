@@ -1,19 +1,22 @@
-# KINDD Provider Map - Robots.txt
-# https://kinddhelp.com
+# KiNDD - NDD Resource Map robots.txt
+# https://kinddhelp.org
 
 User-agent: *
 Allow: /
 
-# Block admin/internal routes (if any future routes added)
+# Block private/internal routes
 Disallow: /admin
+Disallow: /providers
+Disallow: /login
+Disallow: /test-onboarding
 Disallow: /.env
 Disallow: /api/
 
 # Allow search engines to crawl public assets
 Allow: /assets/
 
-# Sitemap location
-Sitemap: https://kinddhelp.com/sitemap.xml
+# Sitemap location (canonical .org)
+Sitemap: https://kinddhelp.org/sitemap.xml
 
 # Crawl delay (prevents server overload)
 Crawl-delay: 1
@@ -31,4 +34,3 @@ Disallow: /
 
 User-agent: AhrefsBot
 Crawl-delay: 10
-

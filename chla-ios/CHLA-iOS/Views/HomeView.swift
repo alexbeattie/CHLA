@@ -1,8 +1,8 @@
 //
-//  HomeView.swift
-//  NDD Resources
+// HomeView.swift
+// NDD Resources
 //
-//  Beautiful, clean homepage with clear navigation
+// Beautiful, clean homepage with clear navigation
 //
 
 import SwiftUI
@@ -16,38 +16,41 @@ struct HomeView: View {
     @StateObject private var regionalCentersMapModel = RegionalCenterMapViewModel()
     @StateObject private var conversationHistory = ConversationHistory()
     @StateObject private var userMemory = UserMemory()
-    
+
     @State private var showChatSheet = false
     @State private var showResetConfirmation = false
     @State private var showAboutSheet = false
     @State private var showFAQSheet = false
     @State private var userRegionalCenter: RegionalCenterMatcher.RegionalCenterInfo?
-    
+
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
                 // Hero Section with gradient background
                 heroSection
-                
+
                 // Main Content
                 VStack(spacing: 22) {
                     // AI Assistant Card
                     askKiNDDCard
-                    
+
+                    // Setup shortcut
+                    restartSetupCard
+
                     // Quick Actions
                     quickActionsSection
-                    
+
                     // Regional Centers Map Preview
                     regionalCentersPreview
-                    
+
                     // Service Categories
                     serviceCategoriesSection
-                    
+
                     // Your Regional Center (if detected)
                     if let center = userRegionalCenter {
                         yourRegionalCenterSection(center)
                     }
-                    
+
                     // Info Footer
                     infoFooter
                 }
@@ -111,9 +114,9 @@ struct HomeView: View {
             Text(L10n.Home.changePreferencesMessage)
         }
     }
-    
+
     // MARK: - Hero Section
-    
+
     private var heroSection: some View {
         ZStack {
             // Gradient background
@@ -126,7 +129,7 @@ struct HomeView: View {
                 startPoint: .top,
                 endPoint: .bottom
             )
-            
+
             VStack(spacing: 14) {
                 // Top bar with settings
                 HStack {
@@ -139,7 +142,7 @@ struct HomeView: View {
                         .clipShape(Capsule())
 
                     Spacer()
-                    
+
                     Menu {
                         // Language submenu
                         Menu {
@@ -148,7 +151,7 @@ struct HomeView: View {
                                     languageManager.currentLanguage = language
                                 } label: {
                                     HStack {
-                                        Text("\(language.flag) \(language.displayName)")
+                                        Text(language.displayName)
                                         if languageManager.currentLanguage == language {
                                             Image(systemName: "checkmark")
                                         }
@@ -158,15 +161,15 @@ struct HomeView: View {
                         } label: {
                             Label("Language", systemImage: "globe")
                         }
-                        
+
                         Divider()
-                        
+
                         Button {
                             showResetConfirmation = true
                         } label: {
                             Label("Change Preferences", systemImage: "slider.horizontal.3")
                         }
-                        
+
                         Button {
                             appState.selectedTab = 4
                         } label: {
@@ -180,7 +183,7 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 56)
-                
+
                 // Logo and title
                 VStack(spacing: 12) {
                     // KiNDD Logo
@@ -189,8 +192,8 @@ struct HomeView: View {
                         .scaledToFit()
                         .frame(height: 72)
                         .shadow(color: Color(hex: "6366F1").opacity(0.2), radius: 12, y: 6)
-                    
-                    Text("Developmental Services Navigator")
+
+                    Text("Resource Navigator")
                         .font(.headline)
                         .foregroundColor(.primary)
 
@@ -205,16 +208,15 @@ struct HomeView: View {
         }
         .frame(height: 228)
     }
-    
+
     // MARK: - Ask KiNDD Card
-    
+
     private var askKiNDDCard: some View {
         Button {
             showChatSheet = true
         } label: {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(spacing: 14) {
-                    // Sparkle icon
                     ZStack {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .fill(
@@ -225,25 +227,25 @@ struct HomeView: View {
                                 )
                             )
                             .frame(width: 50, height: 50)
-                        
-                        Image(systemName: "sparkles")
+
+                        Image(systemName: "message.fill")
                             .font(.system(size: 22, weight: .semibold))
                             .foregroundColor(.white)
                     }
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Ask KiNDD")
                             .font(.title3.weight(.semibold))
                             .foregroundColor(.primary)
-                        
+
                         Text("Get personalized help finding services, understanding your next steps, and knowing which regional center to contact.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.leading)
                     }
-                    
+
                     Spacer()
-                    
+
                     Image(systemName: "chevron.right.circle.fill")
                         .font(.system(size: 26))
                         .foregroundStyle(
@@ -254,7 +256,7 @@ struct HomeView: View {
                             )
                         )
                 }
-                
+
                 // Example prompts
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -275,9 +277,51 @@ struct HomeView: View {
         }
         .buttonStyle(.plain)
     }
-    
+
+    private var restartSetupCard: some View {
+        Button {
+            showResetConfirmation = true
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color(hex: "6366F1").opacity(0.12))
+                        .frame(width: 48, height: 48)
+
+                    Image(systemName: "person.text.rectangle")
+                        .font(.system(size: 21, weight: .semibold))
+                        .foregroundColor(Color(hex: "6366F1"))
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Restart Welcome Setup")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+
+                    Text("Update ZIP code, care context, and preferences.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "arrow.clockwise.circle.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(Color(hex: "6366F1"))
+            }
+            .padding(16)
+            .background {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color(.systemBackground))
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color(hex: "6366F1").opacity(0.14), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Quick Actions
-    
+
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
@@ -290,7 +334,7 @@ struct HomeView: View {
                     .foregroundColor(.secondary)
             }
             .padding(.leading, 4)
-            
+
             HStack(spacing: 12) {
                 // Find Providers
                 QuickActionTile(
@@ -301,7 +345,7 @@ struct HomeView: View {
                     NotificationCenter.default.post(name: .useMyLocation, object: nil)
                     appState.selectedTab = 1
                 }
-                
+
                 // Regional Centers
                 QuickActionTile(
                     icon: "map.fill",
@@ -310,7 +354,7 @@ struct HomeView: View {
                 ) {
                     appState.selectedTab = 2
                 }
-                
+
                 // Browse All
                 QuickActionTile(
                     icon: "list.bullet",
@@ -319,7 +363,7 @@ struct HomeView: View {
                 ) {
                     appState.selectedTab = 3
                 }
-                
+
                 // Map
                 QuickActionTile(
                     icon: "mappin.and.ellipse",
@@ -331,9 +375,9 @@ struct HomeView: View {
             }
         }
     }
-    
+
     // MARK: - Service Categories
-    
+
     private var serviceCategoriesSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
@@ -346,7 +390,7 @@ struct HomeView: View {
                     .foregroundColor(.secondary)
             }
             .padding(.leading, 4)
-            
+
             LazyVGrid(columns: [
                 GridItem(.flexible(), spacing: 10),
                 GridItem(.flexible(), spacing: 10)
@@ -360,7 +404,7 @@ struct HomeView: View {
                     appState.searchFilters.therapyTypes = ["ABA therapy"]
                     appState.selectedTab = 3
                 }
-                
+
                 ServiceCategoryCard(
                     icon: "waveform.and.person.filled",
                     title: "Speech",
@@ -370,7 +414,7 @@ struct HomeView: View {
                     appState.searchFilters.therapyTypes = ["Speech therapy"]
                     appState.selectedTab = 3
                 }
-                
+
                 ServiceCategoryCard(
                     icon: "hand.raised.fill",
                     title: "Occupational",
@@ -380,7 +424,7 @@ struct HomeView: View {
                     appState.searchFilters.therapyTypes = ["Occupational therapy"]
                     appState.selectedTab = 3
                 }
-                
+
                 ServiceCategoryCard(
                     icon: "figure.walk",
                     title: "Physical",
@@ -393,9 +437,9 @@ struct HomeView: View {
             }
         }
     }
-    
+
     // MARK: - Regional Centers Preview
-    
+
     private var regionalCentersPreview: some View {
         RegionalCentersMiniMapCard(
             serviceAreas: regionalCentersMapModel.serviceAreas,
@@ -405,18 +449,18 @@ struct HomeView: View {
             appState.selectedTab = 2
         }
     }
-    
+
     // MARK: - Your Regional Center
-    
+
     private func yourRegionalCenterSection(_ center: RegionalCenterMatcher.RegionalCenterInfo) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Your Regional Center")
                     .font(.headline)
                     .foregroundColor(.primary)
-                
+
                 Spacer()
-                
+
                 HStack(spacing: 4) {
                     Circle()
                         .fill(Color(hex: "10B981"))
@@ -427,7 +471,7 @@ struct HomeView: View {
                 }
             }
             .padding(.leading, 4)
-            
+
             Button {
                 appState.selectedTab = 2
             } label: {
@@ -436,26 +480,26 @@ struct HomeView: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(center.uiColor.opacity(0.12))
                             .frame(width: 50, height: 50)
-                        
+
                         Text(center.shortName)
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(center.uiColor)
                     }
-                    
+
                     VStack(alignment: .leading, spacing: 3) {
                         Text(center.name)
                             .font(.subheadline.weight(.semibold))
                             .foregroundColor(.primary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
-                        
+
                         Text(center.phone)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     Spacer()
-                    
+
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.tertiary)
@@ -474,14 +518,14 @@ struct HomeView: View {
             .buttonStyle(.plain)
         }
     }
-    
+
     // MARK: - Info Footer
-    
+
     private var infoFooter: some View {
         VStack(spacing: 12) {
             Divider()
                 .padding(.vertical, 4)
-            
+
             // Quick links to About & FAQ
             HStack(spacing: 16) {
                 Button {
@@ -501,7 +545,7 @@ struct HomeView: View {
                             .stroke(Color(hex: "6366F1").opacity(0.3), lineWidth: 1)
                     }
                 }
-                
+
                 Button {
                     showFAQSheet = true
                 } label: {
@@ -522,9 +566,9 @@ struct HomeView: View {
             }
         }
     }
-    
+
     // MARK: - Floating Chat Button
-    
+
     private var floatingChatButton: some View {
         Button {
             showChatSheet = true
@@ -540,8 +584,8 @@ struct HomeView: View {
                     )
                     .frame(width: 58, height: 58)
                     .shadow(color: Color(hex: "8B5CF6").opacity(0.4), radius: 12, y: 6)
-                
-                Image(systemName: "sparkles")
+
+                Image(systemName: "message.fill")
                     .font(.system(size: 24, weight: .semibold))
                     .foregroundColor(.white)
             }
@@ -552,9 +596,9 @@ struct HomeView: View {
         .offset(y: visibilityManager.isTabBarVisible ? 0 : 100)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
     }
-    
+
     // MARK: - Helpers
-    
+
     private func detectUserLocation() {
         if locationService.hasLocationPermission {
             if let location = locationService.currentLocation {
@@ -568,7 +612,7 @@ struct HomeView: View {
 
 struct PromptPill: View {
     let text: String
-    
+
     var body: some View {
         Text(text)
             .font(.caption.weight(.medium))
@@ -589,7 +633,7 @@ struct QuickActionTile: View {
     let title: String
     let color: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 10) {
@@ -597,12 +641,12 @@ struct QuickActionTile: View {
                     Circle()
                         .fill(color.opacity(0.12))
                         .frame(width: 48, height: 48)
-                    
+
                     Image(systemName: icon)
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(color)
                 }
-                
+
                 Text(title)
                     .font(.caption.weight(.medium))
                     .foregroundColor(.primary)
@@ -627,7 +671,7 @@ struct ServiceCategoryCard: View {
     let subtitle: String
     let color: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 10) {
@@ -635,18 +679,18 @@ struct ServiceCategoryCard: View {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(color.opacity(0.12))
                         .frame(width: 48, height: 48)
-                    
+
                     Image(systemName: icon)
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(color)
                 }
-                
+
                 VStack(spacing: 2) {
                     Text(title)
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.primary)
                         .lineLimit(1)
-                    
+
                     Text(subtitle)
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -670,13 +714,13 @@ struct ServiceCategoryCard: View {
 struct InfoBadge: View {
     let value: String
     let label: String
-    
+
     var body: some View {
         VStack(spacing: 4) {
             Text(value)
                 .font(.title2.weight(.bold))
                 .foregroundColor(Color(hex: "6366F1"))
-            
+
             Text(label)
                 .font(.caption)
                 .foregroundColor(.secondary)

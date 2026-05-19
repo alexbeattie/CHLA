@@ -1,4 +1,4 @@
-# CHLA Provider Map - Getting Started Guide
+# KiNDD - NDD Resource Navigator - Getting Started Guide
 
 A full-stack web application for mapping and managing healthcare providers, built with Django 5.2 (Python 3.12) REST API backend and Vue 3 frontend.
 
@@ -145,7 +145,7 @@ export DJANGO_DEBUG="true"                       # Set to "false" in production
 #### Optional Variables (with defaults)
 
 ```bash
-# Admin Portal Basic Auth (default: clientaccess / changeme123!)
+# Admin Portal Basic Auth (no password default; set via env or Secrets Manager)
 export BASIC_AUTH_USERNAME="admin"
 export BASIC_AUTH_PASSWORD="secure_password"
 
@@ -591,7 +591,7 @@ The admin portal requires **two authentication layers**:
 ```bash
 # Check Basic Auth credentials
 echo $BASIC_AUTH_USERNAME  # default: clientaccess
-echo $BASIC_AUTH_PASSWORD  # default: changeme123!
+echo $BASIC_AUTH_PASSWORD  # should be set from a secret manager
 
 # Create superuser if needed
 python manage.py createsuperuser

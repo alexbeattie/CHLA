@@ -103,9 +103,7 @@
     <!-- About -->
     <string name="about_title">About KINDD</string>
     <string name="about_mission">Our Mission</string>
-    <string name="about_mission_text">We create hope and build healthier futures by connecting families with the autism and developmental disability services they need.</string>
-    <string name="about_chla">About Children\'s Hospital Los Angeles</string>
-    <string name="about_chla_text">KINDD is developed by Children\'s Hospital Los Angeles to help families find ABA therapy resources and autism services across Los Angeles County.</string>
+    <string name="about_mission_text">We help families connect with the neurodevelopmental disorder (NDD) services they need.</string>
     <string name="free_to_use">Free to Use</string>
     <string name="no_registration">No registration required</string>
 

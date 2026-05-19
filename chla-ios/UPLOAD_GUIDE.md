@@ -25,8 +25,8 @@ The app has been archived and is ready for upload. The Xcode Organizer should ha
 ### Step 4: App Store Connect Distribution Options
 
 1. Leave all options checked:
-   - ☑️ Strip Swift symbols
-   - ☑️ Upload your app's symbols
+   - Strip Swift symbols
+   - Upload your app's symbols
 2. Click **Next**
 
 ### Step 5: Re-sign "NDD Resource Map"

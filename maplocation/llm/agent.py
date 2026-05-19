@@ -10,10 +10,22 @@ Uses AWS Strands SDK with Bedrock for:
 from strands import Agent, tool
 from strands.models import BedrockModel
 from typing import Optional
+import hashlib
 import json
+import logging
+import os
 
-from django.db.models import Q
 from locations.models import ProviderV2, RegionalCenter
+
+from .observability import agent_observation
+
+
+logger = logging.getLogger(__name__)
+
+
+def _fingerprint(value: str) -> str:
+    """Create a stable, non-reversible identifier for sensitive user text."""
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
 
 
 # ============================================================================
@@ -178,6 +190,61 @@ def get_provider_details(provider_name: str) -> str:
 
 
 @tool
+def find_provider_location(provider_name: str) -> str:
+    """
+    Find a provider's map location by name.
+
+    Use this when users ask where a named provider is, where it is located,
+    whether it is in a Regional Center area, or when they want to see a
+    provider on the map.
+
+    Args:
+        provider_name: Name of the provider to locate.
+
+    Returns:
+        JSON with provider id, name, address, coordinates, and Regional Center.
+    """
+    providers = ProviderV2.objects.filter(name__icontains=provider_name).order_by("name")[:5]
+
+    if not providers:
+        return json.dumps(
+            {
+                "found": False,
+                "message": f"No provider found with name containing '{provider_name}'",
+            }
+        )
+
+    results = []
+    for provider in providers:
+        results.append(
+            {
+                "id": str(provider.id),
+                "name": provider.name,
+                "address": provider.address,
+                "phone": provider.phone,
+                "latitude": float(provider.latitude),
+                "longitude": float(provider.longitude),
+                "regional_center": provider.regional_center,
+                "therapy_types": provider.therapy_types or [],
+            }
+        )
+
+    best_match = results[0]
+    return json.dumps(
+        {
+            "found": True,
+            "provider": best_match,
+            "matches": results,
+            "map_action": {
+                "type": "show_provider_on_map",
+                "provider_id": best_match["id"],
+                "provider_name": best_match["name"],
+            },
+        }
+    )
+
+
+@tool
 def check_eligibility(
     age_years: int,
     diagnosis: str,
@@ -339,6 +406,233 @@ def list_therapy_types() -> str:
     return json.dumps({"therapy_types": therapy_info})
 
 
+CLINICAL_ALLOWLIST = [
+    "chla.org",
+    "aap.org",
+    "healthychildren.org",
+    "cdc.gov",
+    "nih.gov",
+    "medlineplus.gov",
+    "pubmed.ncbi.nlm.nih.gov",
+    "cochranelibrary.com",
+]
+
+TRUSTED_WEB_DOMAINS = [
+    ".edu",
+    ".gov",
+    ".org",
+    "uclahealth.org",
+    "medschool.ucla.edu",
+    "dgsom.ucla.edu",
+    "chla.org",
+]
+
+_tavily_client = None
+
+
+def _get_tavily_client():
+    """Create the Tavily client lazily so agent imports do not require a key."""
+    global _tavily_client
+    if _tavily_client is None:
+        api_key = os.environ.get("TAVILY_API_KEY")
+        if not api_key:
+            logger.warning("Tavily search disabled: TAVILY_API_KEY is not set.")
+            raise RuntimeError("TAVILY_API_KEY is not configured")
+
+        from tavily import TavilyClient
+
+        _tavily_client = TavilyClient(api_key=api_key)
+    return _tavily_client
+
+
+def _format_tavily_response(response: dict) -> str:
+    """Return the Tavily response in the compact JSON shape agents expect."""
+    return json.dumps(
+        {
+            "results": [
+                {
+                    "title": result.get("title"),
+                    "url": result.get("url"),
+                    "content": result.get("content"),
+                }
+                for result in response.get("results", [])
+            ],
+            "answer": response.get("answer"),
+        }
+    )
+
+
+def _run_tavily_search(
+    *,
+    query: str,
+    max_results: int,
+    search_type: str,
+    include_domains: Optional[list[str]] = None,
+) -> str:
+    """Run Tavily with safe logging and consistent error output."""
+    requested_results = max_results
+    max_results = min(max(max_results, 1), 10)
+    query_fingerprint = _fingerprint(query)
+
+    logger.info(
+        "Tavily search requested",
+        extra={
+            "query_fingerprint": query_fingerprint,
+            "query_length": len(query),
+            "requested_results": requested_results,
+            "max_results": max_results,
+            "search_type": search_type,
+            "domain_count": len(include_domains or []),
+        },
+    )
+
+    try:
+        client = _get_tavily_client()
+        search_kwargs = {
+            "query": query,
+            "search_depth": "advanced",
+            "max_results": max_results,
+        }
+        if include_domains:
+            search_kwargs["include_domains"] = include_domains
+
+        response = client.search(**search_kwargs)
+    except Exception as exc:
+        logger.warning(
+            "Tavily search unavailable",
+            extra={
+                "query_fingerprint": query_fingerprint,
+                "search_type": search_type,
+                "error_type": type(exc).__name__,
+            },
+        )
+        return json.dumps(
+            {
+                "error": f"{search_type}_unavailable",
+                "message": str(exc),
+                "results": [],
+            }
+        )
+
+    logger.info(
+        "Tavily search completed",
+        extra={
+            "query_fingerprint": query_fingerprint,
+            "search_type": search_type,
+            "result_count": len(response.get("results", [])),
+            "has_answer": bool(response.get("answer")),
+        },
+    )
+    return _format_tavily_response(response)
+
+
+@tool
+def clinical_search(query: str, max_results: int = 5) -> str:
+    """
+    Search authoritative pediatric clinical sources.
+
+    Use for questions about medical conditions, treatments, developmental
+    concerns, or clinical guidelines where authoritative sources are needed.
+    Do NOT use for Regional Center service navigation, eligibility, or
+    geographic queries - use the local KiNDD tools for those.
+
+    Args:
+        query: Clinical question in natural language.
+        max_results: Number of results to return, 1-10. Default 5.
+
+    Returns:
+        JSON with results containing title, url, content, and Tavily answer.
+    """
+    return _run_tavily_search(
+        query=query,
+        max_results=max_results,
+        search_type="clinical_search",
+        include_domains=CLINICAL_ALLOWLIST,
+    )
+
+
+@tool
+def autism_research(
+    question: str,
+    evidence_type: Optional[str] = None,
+    max_results: int = 5,
+) -> str:
+    """
+    Search the Autism Research RAG database.
+
+    Use for autism research evidence: PubMed/PMC literature, ClinicalTrials.gov
+    studies, NIH grants, SFARI Gene evidence, SPARK/SFARI/NDA/dbGaP dataset
+    metadata, or questions asking what the research says.
+    Do NOT use for finding local providers, eligibility, or geographic service
+    navigation - use local KiNDD tools for those.
+
+    Args:
+        question: Autism research question in natural language.
+        evidence_type: Optional filter: literature, clinical_trial, grant,
+            gene_evidence, dataset_metadata, or web.
+        max_results: Number of retrieved passages to use, 1-10. Default 5.
+
+    Returns:
+        JSON with answer, citations, model, and retrieved evidence metadata.
+    """
+    from llm.autism_research import AutismResearchError, ask_autism_research
+
+    evidence_types = [evidence_type] if evidence_type else None
+    access_classes = (
+        ["controlled_metadata"]
+        if evidence_type == "dataset_metadata"
+        else ["public_open", "public_metadata_only"]
+    )
+
+    try:
+        result = ask_autism_research(
+            question,
+            top_k=min(max(max_results, 1), 10),
+            evidence_types=evidence_types,
+            access_classes=access_classes,
+        )
+        return json.dumps(
+            {
+                "answer": result.get("answer", ""),
+                "citations": result.get("citations", []),
+                "model": result.get("model"),
+            }
+        )
+    except AutismResearchError as exc:
+        return json.dumps(
+            {
+                "error": "autism_research_unavailable",
+                "message": str(exc),
+                "answer": "",
+                "citations": [],
+            }
+        )
+
+
+@tool
+def web_search(query: str, max_results: int = 5) -> str:
+    """
+    Search the web for current facts and non-clinical information.
+
+    Use for current facts, leadership roles, institution-specific facts, dates,
+    policies, news, named people, or anything likely to be stale if answered
+    from model memory. Prefer official sources such as university, hospital,
+    government, or organization pages. Cite the returned source URLs.
+
+    Args:
+        query: Web search query in natural language.
+        max_results: Number of results to return, 1-10. Default 5.
+
+    Returns:
+        JSON with results containing title, url, content, and Tavily answer.
+    """
+    return _run_tavily_search(
+        query=query,
+        max_results=max_results,
+        search_type="web_search",
+    )
+
+
 # ============================================================================
 # KINDD AGENT - Main agent with tools and streaming
 # ============================================================================
@@ -353,8 +647,12 @@ You have tools to:
 - **search_providers**: Find providers by therapy type, location, and criteria
 - **get_regional_center**: Determine which Regional Center serves a ZIP code
 - **get_provider_details**: Get full information about a specific provider
+- **find_provider_location**: Find a named provider's address, coordinates, and map target
 - **check_eligibility**: Assess eligibility for Regional Center services
 - **list_therapy_types**: Explain available therapy types
+- **clinical_search**: Search authoritative pediatric clinical sources
+- **autism_research**: Search the autism research RAG for literature, trials, NIH grants, SFARI Gene evidence, and dataset metadata
+- **web_search**: Search the open web for current facts, institution facts, leadership, policies, dates, and named people
 
 ## Guidelines
 1. **Use your tools** - Always search the database rather than making up provider names
@@ -362,6 +660,47 @@ You have tools to:
 3. **Acknowledge limitations** - If data may be outdated, say so
 4. **Be empathetic** - Families navigating these systems are often stressed
 5. **Give next steps** - Always end with actionable recommendations
+6. **Use clinical_search for clinical questions** - For medical conditions, treatments, developmental concerns, or clinical guidelines, search authoritative sources. Do not diagnose or replace a clinician.
+7. **Use autism_research for autism evidence questions** - For questions about studies, trials, genes, SFARI scores, NIH grants, SPARK/SFARI/NDA/dbGaP metadata, or "what does research say", call `autism_research` and cite its returned sources.
+8. **Use web_search for current facts** - For current leadership, named people, institutional facts, policies, dates, or anything likely to change, search the web and cite official sources. Do not answer current facts from memory.
+
+<reasoning_requirements>
+- Use private step-by-step reasoning to understand the user's goal, but do not reveal hidden chain-of-thought. Share only a brief rationale when useful.
+- Use a ReAct-style loop internally: decide whether a local KiNDD tool, `clinical_search`, `autism_research`, or `web_search` is needed, call the right tool, observe the result, then answer from that evidence.
+- Use self-consistency before finalizing: check that provider names, eligibility statements, next steps, and citations agree with tool results and official sources.
+- Prompting approach informed by DAIR.AI Prompt Engineering Guide techniques: Chain-of-Thought, ReAct, and Self-Consistency (https://github.com/dair-ai/Prompt-Engineering-Guide).
+</reasoning_requirements>
+
+## Response Format
+- Do NOT use markdown headers (`#`, `##`, `###`) because the mobile app renders inline Markdown.
+- Use bold section labels instead, such as **Quick answer**, **What to watch for**, **What to do next**, **Local help**, and **Sources**.
+- Keep paragraphs short. Most paragraphs should be 1-3 sentences.
+- Use simple Markdown hyphen bullets for signs, options, and provider details.
+- Use numbered lists for steps the family can take.
+- Do not use raw HTML, complex tables, footnotes, horizontal rules, or decorative formatting.
+- Keep each section to 3 sentences or fewer unless the user asks for detail.
+- For important safety caveats, deadlines, or limitations, use a plain bold label:
+  `**Note:**`. Do not use blockquotes or a leading `>`.
+- If you use `clinical_search`, `autism_research`, or `web_search`, include a **Sources** section with the returned source titles and URLs.
+- If you mention CDC, AAP, HealthyChildren.org, NIH, MedlinePlus, CHLA, or another clinical authority, include its URL in **Sources**.
+- Do not invent citations. Use URLs returned by `clinical_search` or `web_search` whenever available.
+- In **Sources**, write each source as `Source name: URL` on its own line. Do not prefix sources with hyphens.
+- Do not add a horizontal rule before **Sources**; the mobile app styles sources separately.
+- For general rare-disorder, syndrome, resource-navigation, or family-support questions, keep the tone conversational. Prefer **Quick answer**, **What to know**, **What to do next**, and **Local help**.
+- Do not use **Evidence**, **Interpretation**, or **Limitations** as section labels unless the user explicitly asks for research evidence, studies, trials, gene evidence, SFARI scores, NIH grants, or datasets.
+- When provider search results are available, show the best 4 when possible. Include each provider's name, city or neighborhood, full address, and phone if present so map and directions actions can target real locations.
+- Do a final style pass before answering: tighten prose, keep list items parallel, and remove filler.
+
+Default answer shape:
+Direct answer in one short paragraph.
+
+**What this may mean**
+- **Point one:** Clear explanation in one or two sentences.
+- **Point two:** Clear explanation in one or two sentences.
+
+**What to do next**
+- Practical next step.
+- Suggest speaking with a clinician when appropriate.
 
 ## Regional Centers in LA County
 - Westside Regional Center (WRC) - Santa Monica area
@@ -372,7 +711,7 @@ You have tools to:
 - Frank D. Lanterman Regional Center - Glendale, Pasadena area
 - San Gabriel/Pomona Regional Center (SGPRC) - SGV, Pomona
 
-When asked about providers, ALWAYS use the search_providers tool first."""
+When asked about providers, Regional Centers, service eligibility, or geography, ALWAYS use the local KiNDD tools first."""
 
 KINDD_SYSTEM_PROMPT_ES = """Eres KiNDD, un navegador experto para servicios de neurodesarrollo en el Condado de Los Ángeles.
 
@@ -386,8 +725,12 @@ Tienes herramientas para:
 - **search_providers**: Encontrar proveedores por tipo de terapia, ubicación y criterios
 - **get_regional_center**: Determinar qué Centro Regional sirve un código postal
 - **get_provider_details**: Obtener información completa sobre un proveedor específico
+- **find_provider_location**: Encontrar la dirección, coordenadas y destino del mapa de un proveedor
 - **check_eligibility**: Evaluar elegibilidad para servicios del Centro Regional
 - **list_therapy_types**: Explicar los tipos de terapia disponibles
+- **clinical_search**: Buscar fuentes clínicas pediátricas autorizadas
+- **autism_research**: Buscar en la base RAG de investigación sobre autismo literatura, ensayos, subvenciones NIH, evidencia genética de SFARI y metadatos de datasets
+- **web_search**: Buscar en la web datos actuales, instituciones, liderazgo, políticas, fechas y personas nombradas
 
 ## Pautas
 1. **Usa tus herramientas** - Siempre busca en la base de datos en lugar de inventar nombres de proveedores
@@ -395,6 +738,33 @@ Tienes herramientas para:
 3. **Reconoce limitaciones** - Si los datos pueden estar desactualizados, dilo
 4. **Sé empático** - Las familias que navegan estos sistemas a menudo están estresadas
 5. **Da los próximos pasos** - Siempre termina con recomendaciones accionables
+6. **Usa clinical_search para preguntas clínicas** - Para condiciones médicas, tratamientos, preocupaciones del desarrollo o guías clínicas, busca fuentes autorizadas. No diagnostiques ni reemplaces a un profesional clínico.
+7. **Usa autism_research para preguntas de evidencia sobre autismo** - Para estudios, ensayos, genes, puntajes de SFARI, subvenciones NIH, metadatos SPARK/SFARI/NDA/dbGaP o "qué dice la investigación", llama `autism_research` y cita sus fuentes.
+8. **Usa web_search para datos actuales** - Para liderazgo actual, personas nombradas, datos institucionales, políticas, fechas o información que pueda cambiar, busca en la web y cita fuentes oficiales. No respondas datos actuales de memoria.
+
+<requisitos_de_razonamiento>
+- Usa razonamiento privado paso a paso para entender el objetivo del usuario, pero no reveles la cadena de pensamiento oculta. Comparte solo una razón breve cuando sea útil.
+- Usa internamente un ciclo tipo ReAct: decide si hace falta una herramienta local de KiNDD, `clinical_search`, `autism_research` o `web_search`, llama la herramienta correcta, observa el resultado y responde desde esa evidencia.
+- Usa una comprobación de consistencia antes de finalizar: confirma que nombres de proveedores, elegibilidad, próximos pasos y citas coincidan con resultados de herramientas y fuentes oficiales.
+- Enfoque de prompting informado por las técnicas de DAIR.AI Prompt Engineering Guide: Chain-of-Thought, ReAct y Self-Consistency (https://github.com/dair-ai/Prompt-Engineering-Guide).
+</requisitos_de_razonamiento>
+
+## Formato de Respuesta
+- NO uses encabezados markdown (`#`, `##`, `###`) porque la app móvil renderiza Markdown en línea.
+- Usa etiquetas de sección en negrita, como **Respuesta rápida**, **Señales a observar**, **Qué hacer ahora**, **Ayuda local** y **Fuentes**.
+- Mantén los párrafos breves. La mayoría debe tener 1-3 frases.
+- Usa el símbolo de viñeta `•` para señales, opciones y detalles de proveedores. No uses guiones como viñetas.
+- Usa listas numeradas para pasos que la familia puede seguir.
+- Mantén cada sección en 3 frases o menos salvo que el usuario pida más detalle.
+- Para advertencias de seguridad, fechas límite o limitaciones importantes, usa una etiqueta simple en negritas:
+  `**Nota:**`. No uses citas en bloque ni el símbolo inicial `>`.
+- Si usas `clinical_search`, `autism_research` o `web_search`, incluye una sección **Fuentes** con los títulos y URLs devueltos.
+- Si mencionas CDC, AAP, HealthyChildren.org, NIH, MedlinePlus, CHLA u otra autoridad clínica, incluye su URL en **Fuentes**.
+- No inventes citas. Usa las URLs devueltas por `clinical_search` o `web_search` siempre que estén disponibles.
+- En **Fuentes**, escribe cada fuente como `Nombre de la fuente: URL` en su propia línea. No uses guiones antes de las fuentes.
+- No agregues una línea horizontal antes de **Fuentes**; la app móvil da estilo a las fuentes por separado.
+- Cuando haya resultados de proveedores, muestra los mejores 4 cuando sea posible. Incluye el nombre, ciudad o vecindario, dirección completa y teléfono si existe para que las acciones de mapa e indicaciones apunten a ubicaciones reales.
+- Haz una revisión final de estilo antes de responder: ajusta la prosa, mantén las listas paralelas y elimina relleno.
 
 ## Centros Regionales en el Condado de LA
 - Westside Regional Center (WRC) - área de Santa Monica
@@ -405,7 +775,7 @@ Tienes herramientas para:
 - Frank D. Lanterman Regional Center - área de Glendale, Pasadena
 - San Gabriel/Pomona Regional Center (SGPRC) - SGV, Pomona
 
-Cuando te pregunten sobre proveedores, SIEMPRE usa la herramienta search_providers primero."""
+Cuando te pregunten sobre proveedores, Centros Regionales, elegibilidad de servicios o geografía, SIEMPRE usa primero las herramientas locales de KiNDD."""
 
 # Default for backwards compatibility
 KINDD_SYSTEM_PROMPT = KINDD_SYSTEM_PROMPT_EN
@@ -441,12 +811,39 @@ def create_kindd_agent(locale: str = "en") -> Agent:
             search_providers,
             get_regional_center,
             get_provider_details,
+            find_provider_location,
             check_eligibility,
             list_therapy_types,
+            clinical_search,
+            autism_research,
+            web_search,
         ],
     )
 
     return agent
+
+
+def build_agent_message(user_message: str, user_context: Optional[dict] = None) -> str:
+    """Add structured user context to the agent prompt when provided."""
+    if not user_context:
+        return user_message
+
+    context_parts = []
+    if user_context.get("zip_code"):
+        context_parts.append(f"User's ZIP: {user_context['zip_code']}")
+    if user_context.get("child_age"):
+        context_parts.append(f"Child's age: {user_context['child_age']} years")
+    if user_context.get("diagnosis"):
+        context_parts.append(f"Diagnosis: {user_context['diagnosis']}")
+    if user_context.get("insurance"):
+        context_parts.append(f"Insurance: {user_context['insurance']}")
+    if user_context.get("memory_context"):
+        context_parts.append(f"History: {user_context['memory_context']}")
+
+    if not context_parts:
+        return user_message
+
+    return f"[User context: {', '.join(context_parts)}]\n\n{user_message}"
 
 
 def chat_with_agent(
@@ -454,6 +851,9 @@ def chat_with_agent(
     user_context: Optional[dict] = None,
     conversation_history: Optional[list] = None,
     locale: str = "en",
+    user_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+    feature: str = "chla",
 ) -> dict:
     """
     Non-streaming chat with the KiNDD agent.
@@ -463,32 +863,67 @@ def chat_with_agent(
         user_context: Optional context (zip_code, child_age, etc.)
         conversation_history: Optional previous messages
         locale: Language code (e.g., "en", "es") for response language
+        user_id: Optional stable user identifier for Langfuse traces
+        session_id: Optional session/conversation id for Langfuse traces
+        feature: Feature tag for Langfuse traces
 
     Returns full response with tool usage info.
     """
     agent = create_kindd_agent(locale=locale)
+    enhanced_message = build_agent_message(user_message, user_context)
+    query_fingerprint = _fingerprint(user_message)
 
-    # Enhance message with user context
-    if user_context:
-        context_parts = []
-        if user_context.get("zip_code"):
-            context_parts.append(f"User's ZIP: {user_context['zip_code']}")
-        if user_context.get("child_age"):
-            context_parts.append(f"Child's age: {user_context['child_age']} years")
-        if user_context.get("diagnosis"):
-            context_parts.append(f"Diagnosis: {user_context['diagnosis']}")
-        if user_context.get("insurance"):
-            context_parts.append(f"Insurance: {user_context['insurance']}")
+    logger.info(
+        "KiNDD agent request started",
+        extra={
+            "query_fingerprint": query_fingerprint,
+            "locale": locale,
+            "feature": feature,
+            "streaming": False,
+            "has_user_context": bool(user_context),
+            "has_conversation_history": bool(conversation_history),
+        },
+    )
 
-        if context_parts:
-            user_message = (
-                f"[User context: {', '.join(context_parts)}]\n\n{user_message}"
+    with agent_observation(
+        query=user_message,
+        locale=locale,
+        user_id=user_id,
+        session_id=session_id,
+        feature=feature,
+        streaming=False,
+        has_conversation_history=bool(conversation_history),
+    ) as observation:
+        try:
+            response = agent(enhanced_message)
+            response_text = str(response)
+            if observation:
+                observation.update(output={"response": response_text})
+        except Exception:
+            logger.exception(
+                "KiNDD agent request failed",
+                extra={
+                    "query_fingerprint": query_fingerprint,
+                    "locale": locale,
+                    "feature": feature,
+                    "streaming": False,
+                },
             )
+            raise
 
-    response = agent(user_message)
+    logger.info(
+        "KiNDD agent request completed",
+        extra={
+            "query_fingerprint": query_fingerprint,
+            "locale": locale,
+            "feature": feature,
+            "streaming": False,
+            "response_length": len(response_text),
+        },
+    )
 
     return {
-        "answer": str(response),
+        "answer": response_text,
         "tools_used": [],  # Strands handles this internally
         "regional_center": (
             user_context.get("regional_center") if user_context else None
@@ -500,6 +935,9 @@ async def stream_chat_with_agent(
     user_message: str,
     user_context: Optional[dict] = None,
     locale: str = "en",
+    user_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+    feature: str = "chla",
 ):
     """
     Streaming chat with the KiNDD agent.
@@ -507,27 +945,60 @@ async def stream_chat_with_agent(
     Yields text chunks as they're generated.
     """
     agent = create_kindd_agent(locale=locale)
+    enhanced_message = build_agent_message(user_message, user_context)
+    chunks = []
+    query_fingerprint = _fingerprint(user_message)
 
-    # Enhance message with user context
-    if user_context:
-        context_parts = []
-        if user_context.get("zip_code"):
-            context_parts.append(f"User's ZIP: {user_context['zip_code']}")
-        if user_context.get("child_age"):
-            context_parts.append(f"Child's age: {user_context['child_age']} years")
-        if user_context.get("diagnosis"):
-            context_parts.append(f"Diagnosis: {user_context['diagnosis']}")
-        if user_context.get("insurance"):
-            context_parts.append(f"Insurance: {user_context['insurance']}")
-
-        if context_parts:
-            user_message = (
-                f"[User context: {', '.join(context_parts)}]\n\n{user_message}"
-            )
+    logger.info(
+        "KiNDD agent request started",
+        extra={
+            "query_fingerprint": query_fingerprint,
+            "locale": locale,
+            "feature": feature,
+            "streaming": True,
+            "has_user_context": bool(user_context),
+        },
+    )
 
     # Stream the response
-    async for event in agent.stream_async(user_message):
-        if hasattr(event, "data") and event.data:
-            yield event.data
-        elif isinstance(event, str):
-            yield event
+    with agent_observation(
+        query=user_message,
+        locale=locale,
+        user_id=user_id,
+        session_id=session_id,
+        feature=feature,
+        streaming=True,
+    ) as observation:
+        try:
+            async for event in agent.stream_async(enhanced_message):
+                if hasattr(event, "data") and event.data:
+                    chunks.append(event.data)
+                    yield event.data
+                elif isinstance(event, str):
+                    chunks.append(event)
+                    yield event
+
+            if observation:
+                observation.update(output={"response": "".join(chunks)})
+        except Exception:
+            logger.exception(
+                "KiNDD agent request failed",
+                extra={
+                    "query_fingerprint": query_fingerprint,
+                    "locale": locale,
+                    "feature": feature,
+                    "streaming": True,
+                },
+            )
+            raise
+
+    logger.info(
+        "KiNDD agent request completed",
+        extra={
+            "query_fingerprint": query_fingerprint,
+            "locale": locale,
+            "feature": feature,
+            "streaming": True,
+            "response_length": len("".join(chunks)),
+        },
+    )

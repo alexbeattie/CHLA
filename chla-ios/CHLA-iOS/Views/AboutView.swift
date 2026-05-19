@@ -94,7 +94,7 @@ struct AboutView: View {
     // MARK: - Features Section
     private var featuresSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(L10n.About.whatWeDo, systemImage: "sparkles")
+            Label(L10n.About.whatWeDo, systemImage: "info.circle")
                 .font(.headline)
                 .foregroundColor(.accentBlue)
 

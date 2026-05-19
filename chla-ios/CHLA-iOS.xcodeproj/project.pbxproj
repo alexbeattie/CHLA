@@ -10,6 +10,7 @@
 		04BC3A23DAB7D2BC4099B14B /* FullMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8FA95361CB09C477DD471BB /* FullMapView.swift */; };
 		066B905200A44CF4DA67DA13 /* la_regional_centers.geojson in Resources */ = {isa = PBXBuildFile; fileRef = D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */; };
 		08197465A09964FEDE9838F7 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D436BC3380B8D5D10977DC8 /* APIModels.swift */; };
+		A9F2E6D4C3B1A80765F4E2D1 /* Textual in Frameworks */ = {isa = PBXBuildFile; productRef = A9F2E6D4C3B1A80765F4E2D2 /* Textual */; };
 		0A1B2C3D4E5F6A7B8C9D0E1F /* ModernSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */; };
 		100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */; };
 		11F6A4C8B2D3407E9A1C5F22 /* RegionalCentersMiniMapCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A7D5E9C1B34F608E2A6C11 /* RegionalCentersMiniMapCard.swift */; };
@@ -90,6 +91,17 @@
 		L10N00003ENSTRINGS /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "CHLA-iOS/Resources/en.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
 		L10N00004ESSTRINGS /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = "CHLA-iOS/Resources/es.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A9F2E6D4C3B1A80765F4E2D3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A9F2E6D4C3B1A80765F4E2D1 /* Textual in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		10BF7A4DA57D3584A2E10381 = {
@@ -234,6 +246,7 @@
 			buildConfigurationList = 117510B274FDF781EFE2E32C /* Build configuration list for PBXNativeTarget "CHLA-iOS" */;
 			buildPhases = (
 				54CDF34F01D3A3FE6D86C75F /* Sources */,
+				A9F2E6D4C3B1A80765F4E2D3 /* Frameworks */,
 				3D85C023AFA8C8967C74CB03 /* Resources */,
 			);
 			buildRules = (
@@ -242,6 +255,7 @@
 			);
 			name = "CHLA-iOS";
 			packageProductDependencies = (
+				A9F2E6D4C3B1A80765F4E2D2 /* Textual */,
 			);
 			productName = "CHLA-iOS";
 			productReference = 1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */;
@@ -272,6 +286,9 @@
 			);
 			mainGroup = 10BF7A4DA57D3584A2E10381;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A9F2E6D4C3B1A80765F4E2D4 /* XCRemoteSwiftPackageReference "textual" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -350,6 +367,25 @@
 		};
 /* End PBXVariantGroup section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		A9F2E6D4C3B1A80765F4E2D4 /* XCRemoteSwiftPackageReference "textual" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/textual";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A9F2E6D4C3B1A80765F4E2D2 /* Textual */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A9F2E6D4C3B1A80765F4E2D4 /* XCRemoteSwiftPackageReference "textual" */;
+			productName = Textual;
+		};
+/* End XCSwiftPackageProductDependency section */
+
 /* Begin XCBuildConfiguration section */
 		4AE2292EB90415C35707AFBB /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -360,7 +396,7 @@
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -437,7 +473,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.3.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -516,7 +552,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.3.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -538,7 +574,7 @@
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -8,6 +8,7 @@
 
 import SwiftUI
 import CoreLocation
+import Textual
 import UIKit
 import PhotosUI
 
@@ -33,13 +34,14 @@ extension AppState {
 }
 
 struct ChatView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var llmService = LLMService.shared
     @StateObject private var locationService = LocationService()
     @StateObject private var speechRecognizer = SpeechRecognizer()
     @StateObject private var textToSpeech = TextToSpeech()
     @StateObject private var conversationHistory = ConversationHistory()
     @StateObject private var userMemory = UserMemory()
-    
+
     // Track text that existed before recording started (for proper speech appending)
     @State private var textBeforeRecording: String = ""
     @EnvironmentObject var appState: AppState
@@ -51,13 +53,14 @@ struct ChatView: View {
     @State private var userZipCode: String?
     @State private var showingHistory = false
     @State private var currentConversationId: UUID?
-    
+    @State private var showingRestartSetupConfirmation = false
+
     // Attachment flow state (Step 1: Type, Step 2: Source)
     @State private var showingAttachmentTypeSheet = false  // Step 1: Choose analysis type
     @State private var showingSourceOptions = false         // Step 2: Choose source
     @State private var pendingAnalysisType: ImageAnalysisType = .document
     @State private var typeWasSelected = false  // Track if user selected a type vs cancelled
-    
+
     // Image/Document picker state
     @State private var showingImagePicker = false
     @State private var showingCamera = false
@@ -68,61 +71,62 @@ struct ChatView: View {
     // Smart context-aware prompts
     private var quickPrompts: [(String, String, String)] {
         var prompts: [(String, String, String)] = []
-        
+
         let hour = Calendar.current.component(.hour, from: Date())
         let hasHistory = !conversationHistory.conversations.isEmpty
         let hasActiveConversation = !llmService.messages.isEmpty
         let userRC = appState.selectedRegionalCenter?.regionalCenter
         let userZip = userZipCode ?? appState.userZipCode
-        
+
         // Context: Time-based greeting prompts
         if hour < 12 && !hasActiveConversation {
-            prompts.append(("☀️", "Morning Start", "What early intervention services should I consider for my child?"))
+            prompts.append(("sun.max", "Morning Start", "What early intervention services should I consider for my child?"))
         } else if hour >= 17 && !hasActiveConversation {
-            prompts.append(("🌙", "Evening Help", "Can you summarize the key services available for developmental delays?"))
+            prompts.append(("moon", "Evening Help", "Can you summarize the key services available for developmental delays?"))
         }
-        
+
         // Context: Returning user - different prompts
         if hasHistory && !hasActiveConversation {
-            prompts.append(("👋", "Continue", "I have some follow-up questions from our last conversation."))
+            prompts.append(("clock.arrow.circlepath", "Continue", "I have some follow-up questions from our last conversation."))
         }
-        
+
         // Context: Regional Center known
         if let rc = userRC {
-            prompts.append(("🏥", "My RC", "What services does \(rc) Regional Center offer?"))
+            prompts.append(("building.2", "My RC", "What services does \(rc) Regional Center offer?"))
         }
-        
+
         // Context: ZIP code known - local providers
         if let zip = userZip, !zip.isEmpty {
-            prompts.append(("📍", "Near Me", "Find providers near \(zip)"))
+            prompts.append(("location", "Near Me", "Find providers near \(zip)"))
         }
-        
+
         // Core prompts - always show these
         let corePrompts: [(String, String, String)] = [
-            ("🔍", L10n.Chat.findProviders, L10n.Chat.suggestion1),
-            ("📋", L10n.Chat.assessment, L10n.Chat.assessmentPrompt),
-            ("🏥", L10n.Chat.myRC, L10n.Chat.suggestion2),
-            ("👶", L10n.Chat.earlyStart, L10n.Chat.suggestion4),
-            ("💊", L10n.Chat.insurance, L10n.Chat.suggestion3),
-            ("📅", L10n.Chat.waitlists, L10n.Chat.waitlistsPrompt),
-            ("🎂", L10n.Chat.age3Transition, L10n.Chat.age3Prompt),
-            ("🗣️", L10n.Chat.speech, L10n.Chat.speechPrompt)
+            ("magnifyingglass", L10n.Chat.findProviders, L10n.Chat.suggestion1),
+            ("doc.text.magnifyingglass", "Research", "Which genes have the strongest SFARI evidence for autism?"),
+            ("checklist", L10n.Chat.assessment, L10n.Chat.assessmentPrompt),
+            ("building.2", L10n.Chat.myRC, L10n.Chat.suggestion2),
+            ("figure.and.child.holdinghands", L10n.Chat.earlyStart, L10n.Chat.suggestion4),
+            ("creditcard", L10n.Chat.insurance, L10n.Chat.suggestion3),
+            ("calendar", L10n.Chat.waitlists, L10n.Chat.waitlistsPrompt),
+            ("arrow.triangle.branch", L10n.Chat.age3Transition, L10n.Chat.age3Prompt),
+            ("waveform", L10n.Chat.speech, L10n.Chat.speechPrompt)
         ]
-        
+
         // Add core prompts, skipping duplicates based on context already added
         for core in corePrompts {
             // Skip "My RC" if we already added a personalized RC prompt
             if core.1 == L10n.Chat.myRC && userRC != nil { continue }
             // Skip "Find Providers" if we already added a localized one
             if core.1 == L10n.Chat.findProviders && userZip != nil { continue }
-            
+
             prompts.append(core)
         }
-        
+
         // Limit to 8 prompts for UI
         return Array(prompts.prefix(8))
     }
-    
+
     // Count of remembered items for display
     private var memoryItemCount: Int {
         var count = 0
@@ -194,7 +198,7 @@ struct ChatView: View {
                                 .id(message.id)
                             }
                         }
-                        .padding(.horizontal, 10)
+                        .padding(.horizontal, 6)
                         .padding(.bottom, 100)
                     }
                     .onChange(of: llmService.messages.count) { _, _ in
@@ -256,77 +260,93 @@ struct ChatView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        if !llmService.messages.isEmpty {
-                            Button {
-                                saveCurrentConversation()
-                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            } label: {
-                                Label("Save Chat", systemImage: "square.and.arrow.down")
-                            }
-                            
-                            Button {
-                                // Get regional center from last message if available
-                                let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
-                                exportText = llmService.exportConversation(
-                                    userZipCode: userZipCode ?? appState.userZipCode,
-                                    regionalCenter: lastRC
-                                )
-                                showingExportSheet = true
-                            } label: {
-                                Label("Share Chat", systemImage: "square.and.arrow.up")
+                    HStack(spacing: 14) {
+                        Button {
+                            showingRestartSetupConfirmation = true
+                        } label: {
+                            Image(systemName: "person.text.rectangle")
+                                .foregroundColor(.accentBlue)
+                        }
+                        .accessibilityLabel("Restart Welcome Setup")
+
+                        Menu {
+                            if !llmService.messages.isEmpty {
+                                Button {
+                                    saveCurrentConversation()
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                } label: {
+                                    Label("Save Chat", systemImage: "square.and.arrow.down")
+                                }
+
+                                Button {
+                                    // Get regional center from last message if available
+                                    let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
+                                    exportText = llmService.exportConversation(
+                                        userZipCode: userZipCode ?? appState.userZipCode,
+                                        regionalCenter: lastRC
+                                    )
+                                    showingExportSheet = true
+                                } label: {
+                                    Label("Share Chat", systemImage: "square.and.arrow.up")
+                                }
+
+                                Button {
+                                    let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
+                                    let text = llmService.exportConversation(
+                                        userZipCode: userZipCode ?? appState.userZipCode,
+                                        regionalCenter: lastRC
+                                    )
+                                    UIPasteboard.general.string = text
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                } label: {
+                                    Label("Copy All", systemImage: "doc.on.doc")
+                                }
+
+                                Divider()
+
+                                Button(role: .destructive) {
+                                    showingClearConfirmation = true
+                                } label: {
+                                    Label(L10n.Chat.clearChat, systemImage: "trash")
+                                }
                             }
 
                             Button {
-                                let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
-                                let text = llmService.exportConversation(
-                                    userZipCode: userZipCode ?? appState.userZipCode,
-                                    regionalCenter: lastRC
-                                )
-                                UIPasteboard.general.string = text
-                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                showingRestartSetupConfirmation = true
                             } label: {
-                                Label("Copy All", systemImage: "doc.on.doc")
+                                Label("Restart Welcome Setup", systemImage: "person.text.rectangle")
+                            }
+
+                            Toggle(isOn: $llmService.useStreaming) {
+                                Label("Streaming Mode", systemImage: "waveform")
                             }
 
                             Divider()
 
-                            Button(role: .destructive) {
-                                showingClearConfirmation = true
-                            } label: {
-                                Label(L10n.Chat.clearChat, systemImage: "trash")
-                            }
-                        }
+                            // Memory section
+                            if userMemory.context.hasContent {
+                                Menu {
+                                    Text(userMemory.context.contextSummary)
+                                        .font(.caption)
 
-                        Toggle(isOn: $llmService.useStreaming) {
-                            Label("Streaming Mode", systemImage: "waveform")
-                        }
-                        
-                        Divider()
-                        
-                        // Memory section
-                        if userMemory.context.hasContent {
-                            Menu {
-                                Text(userMemory.context.contextSummary)
-                                    .font(.caption)
-                                
-                                Divider()
-                                
-                                Button(role: .destructive) {
-                                    userMemory.clearAll()
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    Divider()
+
+                                    Button(role: .destructive) {
+                                        userMemory.clearAll()
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    } label: {
+                                        Label("Clear Memory", systemImage: "brain")
+                                    }
                                 } label: {
-                                    Label("Clear Memory", systemImage: "brain")
+                                    Label("Memory (\(memoryItemCount))", systemImage: "brain.head.profile")
                                 }
-                            } label: {
-                                Label("Memory (\(memoryItemCount))", systemImage: "brain.head.profile")
                             }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundColor(.secondary)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .foregroundColor(.secondary)
                     }
                 }
             }
@@ -344,6 +364,14 @@ struct ChatView: View {
                     llmService.clearChat()
                 }
                 Button(L10n.Common.cancel, role: .cancel) {}
+            }
+            .confirmationDialog("Restart Welcome Setup?", isPresented: $showingRestartSetupConfirmation) {
+                Button("Restart Welcome Setup") {
+                    restartWelcomeSetup()
+                }
+                Button(L10n.Common.cancel, role: .cancel) {}
+            } message: {
+                Text("Revisit your ZIP code, care context, and app preferences. Saved chats will stay on this device.")
             }
             .sheet(isPresented: $showingExportSheet) {
                 ShareSheet(items: [exportText])
@@ -422,6 +450,13 @@ struct ChatView: View {
         }
     }
 
+    private func restartWelcomeSetup() {
+        dismiss()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            appState.resetOnboarding()
+        }
+    }
+
     private func fetchUserZipCode() {
         // Use saved ZIP if available
         if let savedZip = appState.userZipCode {
@@ -442,9 +477,9 @@ struct ChatView: View {
             let zip = try await locationService.getZipCode(for: location.coordinate)
             userZipCode = zip
             appState.saveUserContext(zipCode: zip)
-            print("📍 Got user ZIP from location: \(zip)")
+            print("Got user ZIP from location: \(zip)")
         } catch {
-            print("❌ Failed to get ZIP from location: \(error)")
+            print("Failed to get ZIP from location: \(error)")
         }
     }
 
@@ -488,40 +523,48 @@ struct ChatView: View {
             if let url = URL(string: urlString) {
                 UIApplication.shared.open(url)
             }
-            
+
         case .getDirections(let address):
             // Open in Apple Maps
             let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
             if let url = URL(string: "maps://?daddr=\(encodedAddress)") {
                 UIApplication.shared.open(url)
             }
+
+        case .showProvidersOnMap(let providers):
+            appState.showProvidersOnMap(providers)
+            dismiss()
+
+        case .showProviderOnMap(let name):
+            appState.showProviderOnMap(named: name)
+            dismiss()
         }
     }
-    
+
     // MARK: - Conversation History
-    
+
     private func saveCurrentConversation() {
         let messages = llmService.messages.map { msg in
             (role: msg.role.rawValue, content: msg.content, timestamp: msg.timestamp)
         }
         conversationHistory.saveConversation(messages: messages, existingId: currentConversationId)
-        
+
         // Set current ID if this is a new save
         if currentConversationId == nil && !conversationHistory.conversations.isEmpty {
             currentConversationId = conversationHistory.conversations.first?.id
         }
     }
-    
+
     private func loadConversation(_ conversation: SavedConversation) {
         // Clear current chat
         llmService.clearChat()
-        
+
         // Load messages from saved conversation
         for msg in conversation.messages {
             guard let role = ChatMessage.MessageRole(rawValue: msg.role) else { continue }
             llmService.addRestoredMessage(role: role, content: msg.content, timestamp: msg.timestamp)
         }
-        
+
         // Set current conversation ID
         currentConversationId = conversation.id
     }
@@ -532,12 +575,12 @@ struct ChatView: View {
 
         // Haptic feedback on send
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        
+
         // Stop TTS if speaking
         if textToSpeech.isSpeaking {
             textToSpeech.stop()
         }
-        
+
         // Stop recording if active
         if speechRecognizer.isRecording {
             speechRecognizer.stopRecording()
@@ -545,13 +588,13 @@ struct ChatView: View {
 
         inputText = ""
         isFocused = false
-        
+
         // Extract context from user message for memory
         userMemory.extractContextFromMessage(query)
 
         // Build context from app state - prioritize local userZipCode from location
         let effectiveZip = userZipCode ?? appState.userZipCode ?? userMemory.context.zipCode
-        print("📍 Sending query with ZIP: \(effectiveZip ?? "none")")
+        print("Sending query with ZIP: \(effectiveZip ?? "none")")
 
         // Merge app state with remembered context
         let childAgeString: String? = {
@@ -560,7 +603,7 @@ struct ChatView: View {
             }
             return userMemory.context.childAge
         }()
-        
+
         let context = UserContext(
             zipCode: effectiveZip,
             childAge: childAgeString,
@@ -574,17 +617,17 @@ struct ChatView: View {
             await llmService.ask(query, context: context)
         }
     }
-    
+
     // MARK: - Image Analysis
-    
+
     private func analyzeSelectedImage(type: ImageAnalysisType) {
         guard let image = selectedImage,
               let imageData = image.jpegData(compressionQuality: 0.8) else {
             return
         }
-        
+
         selectedImage = nil
-        
+
         Task {
             await llmService.analyzeImage(imageData, type: type)
         }
@@ -604,7 +647,7 @@ struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
     let sourceType: UIImagePickerController.SourceType
     @Environment(\.dismiss) private var dismiss
-    
+
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = sourceType
@@ -612,27 +655,27 @@ struct ImagePicker: UIViewControllerRepresentable {
         picker.allowsEditing = false
         return picker
     }
-    
+
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
+
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let parent: ImagePicker
-        
+
         init(_ parent: ImagePicker) {
             self.parent = parent
         }
-        
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             if let image = info[.originalImage] as? UIImage {
                 parent.image = image
             }
             parent.dismiss()
         }
-        
+
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             parent.dismiss()
         }
@@ -645,9 +688,9 @@ struct ImageAnalysisSheet: View {
     let image: IdentifiableImage
     let onAnalyze: (ImageAnalysisType) -> Void
     let onCancel: () -> Void
-    
+
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
@@ -659,13 +702,13 @@ struct ImageAnalysisSheet: View {
                     .cornerRadius(16)
                     .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
                     .padding(.horizontal)
-                
+
                 // Analysis type selection
                 VStack(alignment: .leading, spacing: 12) {
                     Text("What would you like to analyze?")
                         .font(.headline)
                         .foregroundColor(Color.primary)
-                    
+
                     ForEach(ImageAnalysisType.allCases, id: \.rawValue) { type in
                         AnalysisTypeButton(type: type) {
                             dismiss()
@@ -674,7 +717,7 @@ struct ImageAnalysisSheet: View {
                     }
                 }
                 .padding(.horizontal)
-                
+
                 Spacer()
             }
             .padding(.top, 20)
@@ -695,7 +738,7 @@ struct ImageAnalysisSheet: View {
 struct AnalysisTypeButton: View {
     let type: ImageAnalysisType
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
@@ -705,19 +748,19 @@ struct AnalysisTypeButton: View {
                     .frame(width: 44, height: 44)
                     .background(Color(hex: "6366F1").opacity(0.15))
                     .cornerRadius(12)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(type.title)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(Color(uiColor: .label))
-                    
+
                     Text(typeDescription)
                         .font(.caption)
                         .foregroundColor(Color(uiColor: .secondaryLabel))
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
                     .foregroundColor(Color(uiColor: .secondaryLabel))
             }
@@ -727,7 +770,7 @@ struct AnalysisTypeButton: View {
         }
         .buttonStyle(ScaleButtonStyle())
     }
-    
+
     private var typeDescription: String {
         switch type {
         case .insuranceCard:
@@ -745,7 +788,7 @@ struct AnalysisTypeButton: View {
 struct AttachmentTypeSheet: View {
     let onTypeSelected: (ImageAnalysisType) -> Void
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
@@ -753,7 +796,7 @@ struct AttachmentTypeSheet: View {
                     .font(.title3.weight(.semibold))
                     .foregroundColor(Color(uiColor: .label))
                     .padding(.top, 8)
-                
+
                 VStack(spacing: 12) {
                     ForEach(ImageAnalysisType.allCases, id: \.rawValue) { type in
                         AttachmentTypeButton(type: type) {
@@ -763,7 +806,7 @@ struct AttachmentTypeSheet: View {
                     }
                 }
                 .padding(.horizontal)
-                
+
                 Spacer()
             }
             .padding(.top, 20)
@@ -785,7 +828,7 @@ struct AttachmentTypeSheet: View {
 struct AttachmentTypeButton: View {
     let type: ImageAnalysisType
     let action: () -> Void
-    
+
     var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -798,20 +841,20 @@ struct AttachmentTypeButton: View {
                     .frame(width: 50, height: 50)
                     .background(Color(hex: "6366F1").opacity(0.15))
                     .cornerRadius(12)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(type.title)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(Color(uiColor: .label))
-                    
+
                     Text(typeDescription)
                         .font(.caption)
                         .foregroundColor(Color(uiColor: .secondaryLabel))
                         .lineLimit(2)
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
                     .foregroundColor(Color(uiColor: .secondaryLabel))
             }
@@ -821,7 +864,7 @@ struct AttachmentTypeButton: View {
         }
         .buttonStyle(ScaleButtonStyle())
     }
-    
+
     private var typeDescription: String {
         switch type {
         case .insuranceCard:
@@ -841,6 +884,7 @@ struct WelcomeCard: View {
 
     let suggestions = [
         "What ABA providers near 90210 accept Medi-Cal?",
+        "Which genes have the strongest SFARI evidence for autism?",
         "My child is turning 3, what changes?",
         "How do I get a Regional Center assessment?",
         "What's the difference between OT and PT?"
@@ -861,7 +905,7 @@ struct WelcomeCard: View {
                         )
                         .frame(width: 70, height: 70)
 
-                    Image(systemName: "sparkles")
+                    Image(systemName: "message.fill")
                         .font(.system(size: 32))
                         .foregroundColor(.white)
                 }
@@ -939,6 +983,8 @@ enum ChatAction: Identifiable {
     case callPhone(number: String)
     case openWebsite(url: String)
     case getDirections(address: String)
+    case showProvidersOnMap(providers: [Provider])
+    case showProviderOnMap(name: String)
 
     var id: String {
         switch self {
@@ -949,6 +995,9 @@ enum ChatAction: Identifiable {
         case .callPhone(let num): return "call_\(num)"
         case .openWebsite(let url): return "web_\(url)"
         case .getDirections(let addr): return "dir_\(addr)"
+        case .showProvidersOnMap(let providers):
+            return "show_map_\(providers.map(\.id.uuidString).joined(separator: "_"))"
+        case .showProviderOnMap(let name): return "show_map_\(name)"
         }
     }
 
@@ -961,6 +1010,8 @@ enum ChatAction: Identifiable {
         case .callPhone: return "phone"
         case .openWebsite: return "safari"
         case .getDirections: return "arrow.triangle.turn.up.right.diamond"
+        case .showProvidersOnMap: return "mappin.and.ellipse"
+        case .showProviderOnMap: return "mappin.and.ellipse"
         }
     }
 
@@ -975,6 +1026,8 @@ enum ChatAction: Identifiable {
         case .callPhone: return "Call Now"
         case .openWebsite: return "Visit Website"
         case .getDirections: return "Get Directions"
+        case .showProvidersOnMap(let providers): return "Show \(providers.count) on Map"
+        case .showProviderOnMap: return "Show on Map"
         }
     }
 }
@@ -1031,35 +1084,56 @@ struct MessageBubble: View {
         var actions: [ChatAction] = []
         let content = message.content.lowercased()
         let originalContent = message.content
+        let sourceQuery = message.sourceQuery?.lowercased() ?? ""
+        let isProviderSearchQuestion = isProviderSearchIntent(sourceQuery)
+        let referencedProviders = providersDisplayedInResponse(
+            message.referencedProviders,
+            responseText: originalContent
+        )
+
+        if isProviderSearchQuestion && !referencedProviders.isEmpty {
+            actions.append(.showProvidersOnMap(providers: referencedProviders))
+
+            if let provider = referencedProviders.first,
+               let address = directionsAddress(for: provider),
+               asksForDirections(sourceQuery) {
+                actions.append(.getDirections(address: address))
+            }
+        }
 
         // Detect phone numbers - look for patterns like (XXX) XXX-XXXX or XXX-XXX-XXXX
-        if let phoneNumber = extractPhoneNumber(from: originalContent) {
+        if isProviderSearchQuestion,
+           asksForContact(sourceQuery),
+           let phoneNumber = extractPhoneNumber(from: originalContent) {
             actions.append(.callPhone(number: phoneNumber))
         }
-        
+
         // Detect addresses - look for street addresses with city/state patterns
-        if let address = extractAddress(from: originalContent) {
+        if isProviderSearchQuestion,
+           asksForDirections(sourceQuery),
+           referencedProviders.isEmpty,
+           let address = extractAddress(from: originalContent) {
             actions.append(.getDirections(address: address))
         }
 
-        // Detect therapy type mentions
-        if content.contains("aba") || content.contains("applied behavior") {
+        // Detect therapy type mentions from the user's question, not incidental answer text.
+        if isProviderSearchQuestion && (sourceQuery.contains("aba") || sourceQuery.contains("applied behavior")) {
             actions.append(.searchProviders(therapyType: "ABA"))
         }
-        if content.contains("speech") || content.contains("slp") {
+        if isProviderSearchQuestion && (sourceQuery.contains("speech") || sourceQuery.contains("slp")) {
             actions.append(.searchProviders(therapyType: "Speech"))
         }
-        if content.contains("occupational therapy") || content.contains(" ot ") {
+        if isProviderSearchQuestion && (sourceQuery.contains("occupational therapy") || sourceQuery.contains(" ot ")) {
             actions.append(.searchProviders(therapyType: "OT"))
         }
 
         // Detect Regional Center mentions
-        if content.contains("regional center") && !content.contains("which regional center") {
+        if sourceQuery.contains("regional center") && !sourceQuery.contains("which regional center") {
             actions.append(.viewRegionalCenters)
         }
 
         // Detect map/location suggestions
-        if content.contains("near you") || content.contains("in your area") || content.contains("providers") {
+        if isProviderSearchQuestion && (content.contains("near you") || content.contains("in your area") || content.contains("providers")) {
             if actions.isEmpty {
                 actions.append(.viewMap(zipCode: nil))
             }
@@ -1068,14 +1142,125 @@ struct MessageBubble: View {
         // Limit to 4 actions to accommodate phone + directions
         return Array(actions.prefix(4))
     }
-    
+
+    private func isProviderSearchIntent(_ query: String) -> Bool {
+        guard !query.isEmpty else { return false }
+        let providerTerms = [
+            "provider",
+            "providers",
+            "therapist",
+            "therapists",
+            "near me",
+            "nearby",
+            "find",
+            "list",
+            "search",
+            "recommend",
+            "recommendation",
+            "waitlist",
+            "waitlists",
+            "accept",
+            "insurance",
+            "call",
+            "phone",
+            "contact"
+        ]
+        return providerTerms.contains { query.contains($0) }
+    }
+
+    private func asksForDirections(_ query: String) -> Bool {
+        query.contains("direction")
+            || query.contains("map")
+            || query.contains("address")
+            || query.contains("location")
+            || query.contains("where is")
+            || query.contains("where are")
+    }
+
+    private func asksForContact(_ query: String) -> Bool {
+        query.contains("phone")
+            || query.contains("call")
+            || query.contains("contact")
+            || query.contains("number")
+    }
+
+    private func providersDisplayedInResponse(
+        _ providers: [Provider],
+        responseText: String
+    ) -> [Provider] {
+        let normalizedResponse = normalizeForMatching(responseText)
+
+        return providers.filter { provider in
+            normalizedResponse.contains(normalizeForMatching(provider.name))
+        }
+        .prefix(4)
+        .map { $0 }
+    }
+
+    private func normalizeForMatching(_ value: String) -> String {
+        value
+            .lowercased()
+            .replacingOccurrences(of: #"[^a-z0-9]+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func directionsAddress(for provider: Provider) -> String? {
+        let address = provider.formattedAddress
+            .replacingOccurrences(of: "\n", with: ", ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !address.isEmpty else { return nil }
+        return "\(provider.name), \(address)"
+    }
+
+    private func extractProviderName(from text: String) -> String? {
+        let ignoredLabels = [
+            "quick answer",
+            "what to watch for",
+            "what to do next",
+            "local help",
+            "sources",
+            "fuentes",
+            "regional center"
+        ]
+
+        let boldPattern = #"\*\*([^*]+)\*\*"#
+        if let regex = try? NSRegularExpression(pattern: boldPattern) {
+            let matches = regex.matches(
+                in: text,
+                range: NSRange(text.startIndex..., in: text)
+            )
+
+            for match in matches {
+                guard let range = Range(match.range(at: 1), in: text) else { continue }
+                let candidate = String(text[range]).trimmingCharacters(in: .whitespacesAndNewlines)
+                let lowercased = candidate.lowercased()
+
+                if ignoredLabels.contains(lowercased) { continue }
+                if candidate.split(separator: " ").count > 7 { continue }
+                if candidate.rangeOfCharacter(from: .decimalDigits) != nil { continue }
+
+                return candidate
+            }
+        }
+
+        let providerPattern = #"(?m)(?:^|[•\-]\s*)([A-Z][A-Za-z0-9&'’., ]{2,80}?)(?:\s*\(|\s+-\s+\(?\d{3}|\s+at\s+)"#
+        if let regex = try? NSRegularExpression(pattern: providerPattern),
+           let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+           let range = Range(match.range(at: 1), in: text) {
+            return String(text[range]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        return nil
+    }
+
     // Extract first phone number from text
     private func extractPhoneNumber(from text: String) -> String? {
         // Pattern for US phone numbers: (XXX) XXX-XXXX, XXX-XXX-XXXX, XXX.XXX.XXXX, XXXXXXXXXX
         let patterns = [
             "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}"
         ]
-        
+
         for pattern in patterns {
             if let regex = try? NSRegularExpression(pattern: pattern, options: []),
                let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
@@ -1085,12 +1270,12 @@ struct MessageBubble: View {
         }
         return nil
     }
-    
+
     // Extract address from text - looks for street number + street name + city/CA patterns
     private func extractAddress(from text: String) -> String? {
         // Look for typical address patterns: "1234 Street Name, City, CA" with optional ZIP
         let pattern = "\\d+\\s+[A-Za-z]+(?:\\s+[A-Za-z]+)*(?:,\\s*[A-Za-z\\s]+)?(?:,\\s*CA)?(?:\\s*\\d{5})?"
-        
+
         if let regex = try? NSRegularExpression(pattern: pattern, options: []),
            let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
            let range = Range(match.range, in: text) {
@@ -1104,7 +1289,7 @@ struct MessageBubble: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 4) {
+        HStack(alignment: .top, spacing: 2) {
             if message.role == .user {
                 Spacer(minLength: 28)  // Leave room for avatar while letting text use more width
             }
@@ -1122,10 +1307,10 @@ struct MessageBubble: View {
                                     endPoint: .bottomTrailing
                                 ))
                         )
-                        .frame(width: 26, height: 26)
+                        .frame(width: 22, height: 22)
 
-                    Image(systemName: message.role == .system ? "exclamationmark.triangle" : "sparkles")
-                        .font(.system(size: 11))
+                    Image(systemName: message.role == .system ? "exclamationmark.triangle" : "message.fill")
+                        .font(.system(size: 10))
                         .foregroundColor(.white)
                 }
             }
@@ -1141,8 +1326,14 @@ struct MessageBubble: View {
                         // Use Markdown-aware text with clickable links
                         MarkdownTextView(
                             content: message.content,
-                            isUserMessage: message.role == .user
+                            isUserMessage: message.role == .user,
+                            citations: message.citations
                         )
+                        .contentTransition(.opacity)
+
+                        if message.role == .assistant && !message.citations.isEmpty {
+                            ResearchSourcesView(citations: message.citations)
+                        }
 
                         // Streaming indicator
                         if message.isStreaming {
@@ -1157,7 +1348,7 @@ struct MessageBubble: View {
                         }
 
                         // Suggested action buttons
-                        if !suggestedActions.isEmpty {
+                        if showActions && !suggestedActions.isEmpty {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 8) {
                                     ForEach(suggestedActions) { action in
@@ -1184,27 +1375,18 @@ struct MessageBubble: View {
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 12)
+                    .modifier(MessageBubbleChrome(role: message.role))
                     .animation(.easeOut(duration: 0.2), value: message.isStreaming)
-                    .background(
-                        message.role == .user
-                            ? AnyShapeStyle(
-                                LinearGradient(
-                                    colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            : AnyShapeStyle(Color(uiColor: .tertiarySystemBackground))
-                    )
-                    .cornerRadius(18)
                 }
 
                 Text(message.timestamp, style: .time)
                     .font(.caption2)
                     .foregroundColor(Color(uiColor: .tertiaryLabel))
             }
+            .frame(
+                maxWidth: message.role == .user ? nil : .infinity,
+                alignment: message.role == .user ? .trailing : .leading
+            )
 
             if message.role == .user {
                 // User Avatar
@@ -1220,13 +1402,80 @@ struct MessageBubble: View {
             }
 
             if message.role != .user {
-                Spacer(minLength: 0)  // Let assistant responses span more of the available width
+                Spacer(minLength: 0)
+            }
+        }
+        .onAppear {
+            scheduleActionReveal()
+        }
+        .onChange(of: message.isStreaming) { _, _ in
+            scheduleActionReveal()
+        }
+        .onChange(of: message.content) { _, _ in
+            if message.isStreaming {
+                showActions = false
+            }
+        }
+    }
+
+    private func scheduleActionReveal() {
+        guard message.role == .assistant else { return }
+        guard !message.isStreaming else {
+            showActions = false
+            return
+        }
+
+        showActions = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
+            guard !message.isStreaming else { return }
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showActions = true
             }
         }
     }
 }
 
 // MARK: - Message Actions Bar
+
+private struct MessageBubbleChrome: ViewModifier {
+    let role: ChatMessage.MessageRole
+    private let maxUserWidth = UIScreen.main.bounds.width * 0.78
+
+    func body(content: Content) -> some View {
+        if role == .user {
+            ViewThatFits(in: .horizontal) {
+                padded(content, horizontalPadding: 14)
+                    .background(userBubbleBackground)
+                    .cornerRadius(18)
+
+                padded(content, horizontalPadding: 14)
+                    .frame(maxWidth: maxUserWidth, alignment: .leading)
+                    .background(userBubbleBackground)
+                    .cornerRadius(18)
+            }
+            .frame(maxWidth: maxUserWidth, alignment: .trailing)
+        } else {
+            padded(content, horizontalPadding: 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(uiColor: .tertiarySystemBackground))
+                .cornerRadius(18)
+        }
+    }
+
+    private func padded(_ content: Content, horizontalPadding: CGFloat) -> some View {
+        content
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, 12)
+    }
+
+    private var userBubbleBackground: some ShapeStyle {
+        LinearGradient(
+            colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
 
 struct MessageActionsBar: View {
     let feedback: ChatMessage.MessageFeedback?
@@ -1293,6 +1542,223 @@ struct MessageActionsBar: View {
     }
 }
 
+// MARK: - Research Sources
+
+struct ResearchSourcesView: View {
+    let citations: [ResearchCitation]
+    @State private var isExpanded = false
+
+    private var displayCitations: [ResearchCitation] {
+        Array(citations.prefix(6))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider()
+                .padding(.top, 4)
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(hex: "4F46E5"))
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("References")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color(uiColor: .secondaryLabel))
+
+                        Text(isExpanded ? "Tap a source to open it" : "\(citations.count) cited sources")
+                            .font(.caption2)
+                            .foregroundColor(Color(uiColor: .tertiaryLabel))
+                    }
+
+                    Spacer()
+
+                    Text("\(citations.count)")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                        .foregroundColor(Color(hex: "4338CA"))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color(hex: "EEF2FF")))
+
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(Color(uiColor: .tertiaryLabel))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                VStack(spacing: 8) {
+                    ForEach(displayCitations) { citation in
+                        ResearchCitationCard(citation: citation)
+                    }
+                }
+
+                if citations.count > displayCitations.count {
+                    Text("+ \(citations.count - displayCitations.count) more sources in full response")
+                        .font(.caption2)
+                        .foregroundColor(Color(uiColor: .secondaryLabel))
+                        .padding(.top, 2)
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+}
+
+struct ResearchCitationCard: View {
+    let citation: ResearchCitation
+
+    private var sourceURL: URL? {
+        URL(string: citation.url)
+    }
+
+    private var evidenceLabel: String {
+        citation.evidenceType?
+            .replacingOccurrences(of: "_", with: " ")
+            .capitalized ?? "Research"
+    }
+
+    private var citationIDText: String? {
+        guard let ids = citation.ids, !ids.isEmpty else { return nil }
+        let preferredKeys = ["PMID", "DOI", "NCT", "NIH_PROJECT", "SFARI_GENE", "ENSEMBL", "URL"]
+        let parts = preferredKeys.compactMap { key -> String? in
+            guard let value = ids[key], !value.isEmpty else { return nil }
+            return "\(key): \(value)"
+        }
+        return parts.isEmpty ? nil : parts.prefix(2).joined(separator: "  •  ")
+    }
+
+    var body: some View {
+        Group {
+            if let sourceURL {
+                Link(destination: sourceURL) {
+                    cardContent
+                }
+            } else {
+                cardContent
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var cardContent: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(citation.displayLabel)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 5)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(citation.title)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color(uiColor: .label))
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+
+                HStack(spacing: 6) {
+                    Label(evidenceLabel, systemImage: "checkmark.seal")
+                        .font(.caption2)
+                        .foregroundColor(Color(hex: "4338CA"))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color(hex: "F5F3FF")))
+
+                    if let year = citation.publishedYear {
+                        Text("• \(year)")
+                            .font(.caption2)
+                            .foregroundColor(Color(uiColor: .secondaryLabel))
+                    }
+                }
+
+                if let citationIDText {
+                    Text(citationIDText)
+                        .font(.caption2)
+                        .foregroundColor(Color(uiColor: .secondaryLabel))
+                        .lineLimit(2)
+                }
+
+                if !citation.url.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "link")
+                            .font(.caption2)
+                        Text(citation.url)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                    .font(.caption2)
+                    .foregroundColor(Color(hex: "4338CA"))
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(uiColor: .systemBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color(uiColor: .separator).opacity(0.45), lineWidth: 1)
+        )
+    }
+}
+
+private extension ResearchCitation {
+    var displayLabel: String {
+        guard label.hasPrefix("S") else { return label }
+        return String(label.dropFirst())
+    }
+
+    var inlineLabel: String {
+        "\(sourceShortName) + \(displayLabel)"
+    }
+
+    private var sourceShortName: String {
+        switch source?.lowercased() {
+        case "sfari_gene":
+            return "SFARI"
+        case "public_literature":
+            return "Medline"
+        case "clinical_trial":
+            return "Trial"
+        case "nih_grants":
+            return "NIH"
+        case "public_web":
+            return "Web"
+        case "controlled_metadata":
+            return "Metadata"
+        default:
+            if let prefix = title.split(separator: ":").first, !prefix.isEmpty {
+                return String(String(prefix).prefix(18)).trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            return "Source"
+        }
+    }
+}
+
 // MARK: - Typing Indicator
 
 struct TypingIndicator: View {
@@ -1333,8 +1799,8 @@ struct ChatInputBar: View {
     var isRecording: Bool = false
     let onSend: () -> Void
     let onCancel: () -> Void
-    var onAttachment: (() -> Void)? = nil
-    var onMicTap: (() -> Void)? = nil
+    var onAttachment: (() -> Void)?
+    var onMicTap: (() -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1350,7 +1816,7 @@ struct ChatInputBar: View {
                     }
                     .disabled(isLoading || isStreaming || isRecording)
                 }
-                
+
                 // Text field with microphone button
                 HStack(spacing: 8) {
                     TextField("Ask about services...", text: $text, axis: .vertical)
@@ -1360,7 +1826,7 @@ struct ChatInputBar: View {
                         .padding(.vertical, 12)
                         .foregroundColor(Color(uiColor: .label))
                         .disabled(isStreaming || isRecording)
-                    
+
                     // Microphone button (inside text field area)
                     if let onMicTap = onMicTap {
                         Button(action: onMicTap) {
@@ -1433,14 +1899,14 @@ struct ChatInputBar: View {
 // MARK: - Prompt Capsules Bar
 
 struct PromptCapsulesBar: View {
-    let prompts: [(String, String, String)]  // (emoji, label, full prompt)
+    let prompts: [(String, String, String)]  // (SF Symbol, label, full prompt)
     let onTap: (String) -> Void
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(prompts, id: \.1) { emoji, label, prompt in
-                    PromptCapsule(emoji: emoji, label: label) {
+                ForEach(prompts, id: \.1) { icon, label, prompt in
+                    PromptCapsule(icon: icon, label: label) {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         onTap(prompt)
                     }
@@ -1457,7 +1923,7 @@ struct PromptCapsulesBar: View {
 }
 
 struct PromptCapsule: View {
-    let emoji: String
+    let icon: String
     let label: String
     let action: () -> Void
 
@@ -1466,8 +1932,9 @@ struct PromptCapsule: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Text(emoji)
+                Image(systemName: icon)
                     .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "6366F1"))
                 Text(label)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(Color(hex: "475569"))
@@ -1501,20 +1968,428 @@ struct ScaleButtonStyle: ButtonStyle {
 struct MarkdownTextView: View {
     let content: String
     let isUserMessage: Bool
+    var citations: [ResearchCitation] = []
 
     var body: some View {
-        Text(parseMarkdown())
-            .font(.body)
-            .foregroundColor(isUserMessage ? .white : Color(uiColor: .label))
+        if isUserMessage {
+            messageText(content, font: .body, foregroundColor: .white)
+        } else {
+            let sections = splitSourcesSection(from: content)
+
+            VStack(alignment: .leading, spacing: 12) {
+                assistantMarkdown(sections.main)
+
+                if !sections.sources.isEmpty {
+                    sourcesBlock(sections.sources)
+                }
+            }
+        }
+    }
+
+    private func messageText(
+        _ text: String,
+        font: Font,
+        foregroundColor: Color
+    ) -> some View {
+        Text(parseMarkdown(text))
+            .font(chatBodyFont)
+            .foregroundColor(foregroundColor)
             .tint(isUserMessage ? .white.opacity(0.9) : Color(hex: "6366F1"))
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
     }
-    
-    private func parseMarkdown() -> AttributedString {
+
+    private func assistantMarkdown(_ text: String) -> some View {
+        StructuredText(markdown: markdownWithLinkedCitations(text))
+            .font(chatBodyFont)
+            .foregroundColor(Color(uiColor: .label))
+            .tint(Color(hex: "6366F1"))
+            .textual.inlineStyle(citationInlineStyle)
+            .textual.textSelection(.enabled)
+            .lineSpacing(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var chatBodyFont: Font {
+        .system(size: 16, weight: .regular, design: .default)
+    }
+
+    private var citationInlineStyle: InlineStyle {
+        InlineStyle.default
+            .link(
+                .foregroundColor(Color(hex: "4338CA")),
+                .fontWeight(.semibold),
+                .fontScale(0.68),
+                .baselineOffset(4),
+                .backgroundColor(Color(hex: "F5F3FF"))
+            )
+            .strong(.fontWeight(.semibold))
+    }
+
+    private func markdownWithLinkedCitations(_ text: String) -> String {
+        let citationLinks = Dictionary(
+            uniqueKeysWithValues: citations.compactMap { citation -> (String, (url: String, title: String))? in
+                guard !citation.url.isEmpty else { return nil }
+                return (citation.label, (url: citation.url, title: citation.inlineLabel))
+            }
+        )
+        guard !citationLinks.isEmpty else { return text }
+
+        let pattern = #"\[(S\d+)\]"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return text }
+
+        let matches = regex.matches(
+            in: text,
+            range: NSRange(text.startIndex..., in: text)
+        )
+        guard !matches.isEmpty else { return text }
+
+        var result = text
+        for match in matches.reversed() {
+            guard let fullRange = Range(match.range(at: 0), in: result),
+                  let labelRange = Range(match.range(at: 1), in: result) else {
+                continue
+            }
+
+            let label = String(result[labelRange])
+            guard let citationLink = citationLinks[label] else { continue }
+            result.replaceSubrange(fullRange, with: " [\u{00A0}\(citationLink.title)\u{00A0}](\(citationLink.url))")
+        }
+
+        return result
+    }
+
+    private struct AnswerSection {
+        let title: String?
+        let lines: [AnswerLine]
+    }
+
+    private struct AnswerLine {
+        enum Kind {
+            case paragraph
+            case bullet
+        }
+
+        let kind: Kind
+        let text: String
+    }
+
+    private struct AnswerSectionView: View {
+        let section: AnswerSection
+        let parseMarkdown: (String) -> AttributedString
+
+        private var titleStyle: (icon: String, color: Color) {
+            switch section.title?.lowercased() {
+            case "evidence":
+                return ("checkmark.seal.fill", Color(hex: "4F46E5"))
+            case "interpretation":
+                return ("lightbulb.fill", Color(hex: "0891B2"))
+            case "limitations":
+                return ("exclamationmark.triangle.fill", Color(hex: "D97706"))
+            case "sources", "research sources":
+                return ("link", Color(hex: "2563EB"))
+            default:
+                return ("text.alignleft", Color(hex: "8B5CF6"))
+            }
+        }
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                if let title = section.title, !title.isEmpty {
+                    HStack(spacing: 8) {
+                        Image(systemName: titleStyle.icon)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(titleStyle.color)
+                            .frame(width: 18)
+
+                        Text(title)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color(uiColor: .label))
+                    }
+                    .padding(.top, 2)
+                }
+
+                VStack(alignment: .leading, spacing: 7) {
+                    ForEach(Array(section.lines.enumerated()), id: \.offset) { _, line in
+                        switch line.kind {
+                        case .paragraph:
+                            Text(parseMarkdown(line.text))
+                                .font(.body)
+                                .foregroundColor(Color(uiColor: .label))
+                                .lineSpacing(2)
+                                .textSelection(.enabled)
+                                .fixedSize(horizontal: false, vertical: true)
+                        case .bullet:
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Circle()
+                                    .fill(titleStyle.color.opacity(0.85))
+                                    .frame(width: 5, height: 5)
+
+                                Text(parseMarkdown(line.text))
+                                    .font(.body)
+                                    .foregroundColor(Color(uiColor: .label))
+                                    .lineSpacing(2)
+                                    .textSelection(.enabled)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.leading, 2)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func parseAnswerSections(_ text: String) -> [AnswerSection] {
+        let lines = text
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+        var sections: [AnswerSection] = []
+        var currentTitle: String?
+        var currentLines: [AnswerLine] = []
+
+        func flush() {
+            guard currentTitle != nil || !currentLines.isEmpty else { return }
+            sections.append(AnswerSection(title: currentTitle, lines: currentLines))
+            currentTitle = nil
+            currentLines = []
+        }
+
+        for rawLine in lines {
+            guard !rawLine.isEmpty else { continue }
+
+            if let heading = normalizedHeading(from: rawLine) {
+                flush()
+                currentTitle = heading
+                continue
+            }
+
+            if rawLine.hasPrefix("- ") || rawLine.hasPrefix("• ") {
+                let bulletText = String(rawLine.dropFirst(2))
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                currentLines.append(AnswerLine(kind: .bullet, text: bulletText))
+            } else {
+                currentLines.append(AnswerLine(kind: .paragraph, text: rawLine))
+            }
+        }
+
+        flush()
+        return sections.isEmpty ? [AnswerSection(title: nil, lines: [AnswerLine(kind: .paragraph, text: text)])] : sections
+    }
+
+    private func normalizedHeading(from line: String) -> String? {
+        let stripped = line
+            .replacingOccurrences(of: #"^#{1,6}\s*"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"^\*\*|\*\*$"#, with: "", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet(charactersIn: " :\t"))
+
+        let canonical = stripped.lowercased()
+        let knownHeadings = [
+            "evidence",
+            "interpretation",
+            "limitations",
+            "quick answer",
+            "what this means",
+            "what this may mean",
+            "what it may suggest",
+            "what matters",
+            "what to do next",
+            "sources"
+        ]
+
+        guard knownHeadings.contains(canonical) else { return nil }
+        return stripped
+    }
+
+    private func sourcesBlock(_ sources: [String]) -> some View {
+        let references = sources.map(SourceReference.init(rawValue:))
+
+        return VStack(alignment: .leading, spacing: 10) {
+            Divider()
+                .padding(.top, 4)
+
+            Text("Sources".uppercased())
+                .font(.caption2.weight(.semibold))
+                .foregroundColor(Color(uiColor: .secondaryLabel))
+                .tracking(0.8)
+
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(Array(references.enumerated()), id: \.offset) { _, reference in
+                    if let url = reference.url {
+                        Link(destination: url) {
+                            sourceReferenceRow(reference)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        sourceReferenceRow(reference)
+                    }
+                }
+            }
+        }
+    }
+
+    private func sourceReferenceRow(_ reference: SourceReference) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "link")
+                .font(.caption2.weight(.semibold))
+                .foregroundColor(Color(hex: "6366F1"))
+                .frame(width: 16, height: 16)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(reference.title)
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(Color(uiColor: .secondaryLabel))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let host = reference.host {
+                    Text(host)
+                        .font(.caption2)
+                        .foregroundColor(Color(uiColor: .tertiaryLabel))
+                        .lineLimit(1)
+                }
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func splitSourcesSection(from text: String) -> (main: String, sources: [String]) {
+        let patterns = [
+            "\n**Sources**",
+            "\nSources",
+            "\n**Fuentes**",
+            "\nFuentes"
+        ]
+
+        guard let match = patterns.compactMap({ pattern -> Range<String.Index>? in
+            text.range(of: pattern, options: [.caseInsensitive])
+        }).min(by: { $0.lowerBound < $1.lowerBound }) else {
+            return (text, [])
+        }
+
+        var main = stripTrailingDivider(from: String(text[..<match.lowerBound]))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let sourcesText = String(text[match.upperBound...])
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        var sources: [String] = []
+        var trailingAnswerLines: [String] = []
+
+        for line in sourcesText.components(separatedBy: .newlines) {
+            let cleaned = cleanSourceLine(line)
+            guard !cleaned.isEmpty else { continue }
+
+            if isSourceLine(cleaned) {
+                sources.append(cleaned)
+            } else {
+                trailingAnswerLines.append(cleaned)
+            }
+        }
+
+        if !trailingAnswerLines.isEmpty {
+            main = [main, trailingAnswerLines.joined(separator: "\n")]
+                .filter { !$0.isEmpty }
+                .joined(separator: "\n\n")
+        }
+
+        guard !sources.isEmpty else {
+            return (main, [])
+        }
+
+        return (main, sources)
+    }
+
+    private func stripTrailingDivider(from text: String) -> String {
+        text.replacingOccurrences(
+            of: #"(?m)\n\s*(?:-{3,}|─{3,})\s*$"#,
+            with: "",
+            options: .regularExpression
+        )
+    }
+
+    private func isSourceLine(_ line: String) -> Bool {
+        let lowercased = line.lowercased()
+        if lowercased.contains("http://") || lowercased.contains("https://") {
+            return true
+        }
+        if line.range(of: #"\[[^\]]+\]\([^\)]+\)"#, options: .regularExpression) != nil {
+            return true
+        }
+        return line.range(
+            of: #"\b[a-z0-9][a-z0-9-]*(?:\.[a-z0-9][a-z0-9-]*)+\.[a-z]{2,}\b"#,
+            options: [.regularExpression, .caseInsensitive]
+        ) != nil
+    }
+
+    private func cleanSourceLine(_ line: String) -> String {
+        line
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(
+                of: #"^[-•]\s*"#,
+                with: "",
+                options: .regularExpression
+            )
+    }
+
+    private struct SourceReference {
+        let title: String
+        let url: URL?
+        let host: String?
+
+        init(rawValue: String) {
+            let rawValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            let markdownLinkPattern = #"\[([^\]]+)\]\((https?://[^\s\)]+)\)"#
+            if let regex = try? NSRegularExpression(pattern: markdownLinkPattern),
+               let match = regex.firstMatch(
+                in: rawValue,
+                range: NSRange(rawValue.startIndex..., in: rawValue)
+               ),
+               let titleRange = Range(match.range(at: 1), in: rawValue),
+               let urlRange = Range(match.range(at: 2), in: rawValue) {
+                let urlString = String(rawValue[urlRange])
+                self.title = String(rawValue[titleRange])
+                self.url = URL(string: urlString)
+                self.host = Self.host(from: self.url)
+                return
+            }
+
+            let urlPattern = #"(?:https?://)?[a-z0-9][a-z0-9-]*(?:\.[a-z0-9][a-z0-9-]*)+\.[a-z]{2,}(?:/[^\s\)\]\>\"\']*)?"#
+            guard let regex = try? NSRegularExpression(pattern: urlPattern),
+                  let match = regex.firstMatch(
+                    in: rawValue,
+                    range: NSRange(rawValue.startIndex..., in: rawValue)
+                  ),
+                  let urlRange = Range(match.range, in: rawValue) else {
+                self.title = rawValue
+                self.url = nil
+                self.host = nil
+                return
+            }
+
+            var urlString = String(rawValue[urlRange])
+            if !urlString.lowercased().hasPrefix("http") {
+                urlString = "https://\(urlString)"
+            }
+            let titleText = rawValue
+                .replacingOccurrences(of: String(rawValue[urlRange]), with: "")
+                .trimmingCharacters(in: CharacterSet(charactersIn: " :-\n\t"))
+
+            self.title = titleText.isEmpty ? "Source" : titleText
+            self.url = URL(string: urlString)
+            self.host = Self.host(from: self.url)
+        }
+
+        private static func host(from url: URL?) -> String? {
+            url?.host?.replacingOccurrences(of: "www.", with: "")
+        }
+    }
+
+    private func parseMarkdown(_ text: String) -> AttributedString {
         // Convert asterisk-based markdown to proper formatting
-        let processed = processMarkdownSyntax(content)
-        
+        let processed = processMarkdownSyntax(text)
+
         // Try to parse as markdown first
         if let attributed = try? AttributedString(markdown: processed, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
             var result = attributed
@@ -1522,16 +2397,26 @@ struct MarkdownTextView: View {
             addLinkStyling(&result)
             return result
         }
-        
+
         // Fallback to basic text with link detection
-        var result = AttributedString(content)
+        var result = AttributedString(text)
         addLinkStyling(&result)
         return result
     }
-    
+
     private func processMarkdownSyntax(_ text: String) -> String {
         var result = text
-        
+
+        // The chat renderer uses inline Markdown, so blockquote callouts would leak as ">".
+        let blockquotePattern = #"(?m)^\s*>\s?"#
+        if let regex = try? NSRegularExpression(pattern: blockquotePattern) {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: ""
+            )
+        }
+
         // Remove markdown headers (## Header -> **Header**)
         // Convert headers to bold text since inline-only markdown can't render headers
         let headerPattern = "^#{1,6}\\s*"
@@ -1542,13 +2427,9 @@ struct MarkdownTextView: View {
                 withTemplate: ""
             )
         }
-        
-        // Remove emoji that appear after header markers (## 🤔 -> just the text after)
-        // This handles cases like "## 🤔 What This Means" -> "What This Means"
-        
-        // Replace "• " with "- " for consistent markdown bullets
-        result = result.replacingOccurrences(of: "• ", with: "- ")
-        
+
+        // Remove decorative symbols that appear after header markers.
+
         // Replace horizontal rules (---) with a subtle divider line
         // Match --- on its own line (with optional whitespace)
         let hrPattern = "^\\s*-{3,}\\s*$"
@@ -1559,16 +2440,25 @@ struct MarkdownTextView: View {
                 withTemplate: "\n─────────────────\n"
             )
         }
-        
+
+        let bulletPattern = #"(?m)^\s*[-•]\s+"#
+        if let regex = try? NSRegularExpression(pattern: bulletPattern) {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: "• "
+            )
+        }
+
         // Clean up code blocks that might not render
         result = result.replacingOccurrences(of: "```", with: "")
-        
+
         return result
     }
-    
+
     private func addLinkStyling(_ attributed: inout AttributedString) {
         let plainString = String(attributed.characters)
-        
+
         // Detect URLs
         let urlPattern = #"https?://[^\s\)\]\>\"\']+"#
         if let regex = try? NSRegularExpression(pattern: urlPattern, options: []) {
@@ -1612,7 +2502,7 @@ import UniformTypeIdentifiers
 
 struct DocumentPicker: UIViewControllerRepresentable {
     let onDocumentPicked: (Data, String) -> Void  // (data, fileExtension)
-    
+
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
         // Support images, PDFs, and common document types
         var supportedTypes: [UTType] = [
@@ -1626,33 +2516,33 @@ struct DocumentPicker: UIViewControllerRepresentable {
         if let doc = UTType("com.microsoft.word.doc") {
             supportedTypes.append(doc)
         }
-        
+
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: supportedTypes)
         picker.delegate = context.coordinator
         picker.allowsMultipleSelection = false
         return picker
     }
-    
+
     func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(onDocumentPicked: onDocumentPicked)
     }
-    
+
     class Coordinator: NSObject, UIDocumentPickerDelegate {
         let onDocumentPicked: (Data, String) -> Void
-        
+
         init(onDocumentPicked: @escaping (Data, String) -> Void) {
             self.onDocumentPicked = onDocumentPicked
         }
-        
+
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
             guard let url = urls.first else { return }
-            
+
             // Access the security-scoped resource
             guard url.startAccessingSecurityScopedResource() else { return }
             defer { url.stopAccessingSecurityScopedResource() }
-            
+
             do {
                 let data = try Data(contentsOf: url)
                 let fileExtension = url.pathExtension.lowercased()
@@ -1662,7 +2552,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
             }
             // Note: UIDocumentPickerViewController auto-dismisses after picking/cancelling
         }
-        
+
         // Note: documentPickerWasCancelled is called after auto-dismiss, no action needed
     }
 }
@@ -1676,7 +2566,7 @@ struct ConversationHistorySheet: View {
     let onSelect: (SavedConversation) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var showingClearConfirmation = false
-    
+
     var body: some View {
         NavigationStack {
             Group {
@@ -1685,11 +2575,11 @@ struct ConversationHistorySheet: View {
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.system(size: 48))
                             .foregroundColor(Color(uiColor: .tertiaryLabel))
-                        
+
                         Text("No Saved Conversations")
                             .font(.headline)
                             .foregroundColor(Color(uiColor: .secondaryLabel))
-                        
+
                         Text("Save a conversation using the menu\nto see it here.")
                             .font(.subheadline)
                             .foregroundColor(Color(uiColor: .tertiaryLabel))
@@ -1723,7 +2613,7 @@ struct ConversationHistorySheet: View {
                         dismiss()
                     }
                 }
-                
+
                 if !history.conversations.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(role: .destructive) {
@@ -1748,7 +2638,7 @@ struct ConversationHistorySheet: View {
 
 struct ConversationRow: View {
     let conversation: SavedConversation
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -1756,19 +2646,19 @@ struct ConversationRow: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(Color(uiColor: .label))
                     .lineLimit(1)
-                
+
                 Spacer()
-                
+
                 Text(ConversationHistory.formatDate(conversation.updatedAt))
                     .font(.caption)
                     .foregroundColor(Color(uiColor: .tertiaryLabel))
             }
-            
+
             Text(conversation.preview)
                 .font(.subheadline)
                 .foregroundColor(Color(uiColor: .secondaryLabel))
                 .lineLimit(2)
-            
+
             Text("\(conversation.messages.count) messages")
                 .font(.caption2)
                 .foregroundColor(Color(uiColor: .tertiaryLabel))

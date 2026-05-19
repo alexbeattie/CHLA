@@ -1,16 +1,16 @@
-# CHLA Provider Map - Deployment Guide
+# KiNDD - NDD Resource Navigator - Deployment Guide
 
 ## Overview
 
 This project uses a scalable, cache-busting deployment system that:
-- ✅ Builds frontend with version identifiers
-- ✅ Deploys to S3 with proper cache headers
-- ✅ Invalidates CloudFront cache
-- ✅ Runs database migrations
-- ✅ Updates Elastic Beanstalk
-- ✅ Performs health checks
-- ✅ Supports rollback
-- ❌ **NO SSH or SSM required!**
+- Builds frontend with version identifiers
+- Deploys to S3 with proper cache headers
+- Invalidates CloudFront cache
+- Runs database migrations
+- Updates Elastic Beanstalk
+- Performs health checks
+- Supports rollback
+- **NO SSH or SSM required!**
 
 ## Quick Start
 
@@ -67,7 +67,7 @@ aws s3 website s3://chla-provider-map-frontend-prod \
 # Create EB application
 aws elasticbeanstalk create-application \
   --application-name chla-provider-map-prod \
-  --description "CHLA Provider Map Production"
+  --description "KiNDD - NDD Resource Navigator Production"
 
 # Create environment
 aws elasticbeanstalk create-environment \

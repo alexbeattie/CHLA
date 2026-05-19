@@ -621,7 +621,7 @@ export default {
       // Mapbox token for MapCanvas component
       mapboxAccessToken:
         import.meta.env.VITE_MAPBOX_TOKEN ||
-        "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg",
+        "YOUR_MAPBOX_TOKEN",
 
       // Modal visibility
       showFundingInfo: false,
@@ -2408,7 +2408,7 @@ export default {
       // Set Mapbox access token
       const mapboxToken =
         import.meta.env.VITE_MAPBOX_TOKEN ||
-        "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiOVVEYU52WSJ9.S_uekMjvfZC5_s0dVVJgQg";
+        "YOUR_MAPBOX_TOKEN";
       mapboxgl.accessToken = mapboxToken;
 
       console.log("🗺️ Mapbox token:", mapboxToken.substring(0, 20) + "...");

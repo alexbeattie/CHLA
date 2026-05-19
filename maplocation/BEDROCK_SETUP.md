@@ -18,8 +18,8 @@ This guide walks you through enabling AWS Bedrock in your Personal AWS account f
 2. Click **Model access** in the left sidebar
 3. Click **Manage model access**
 4. Enable these models:
-   - ✅ **Amazon** → Titan Text Embeddings V2
-   - ✅ **Anthropic** → Claude Sonnet 4.5 (via cross-region inference profile)
+   - **Amazon** → Titan Text Embeddings V2
+   - **Anthropic** → Claude Sonnet 4.5 (via cross-region inference profile)
 5. Click **Save changes**
 6. Wait for access to be granted (usually instant)
 
@@ -97,11 +97,11 @@ CREATE EXTENSION IF NOT EXISTS vector;
 **Add embedding column to providers:**
 
 ```sql
-ALTER TABLE locations_providerv2 
+ALTER TABLE locations_providerv2
 ADD COLUMN IF NOT EXISTS embedding vector(1024);
 
-CREATE INDEX IF NOT EXISTS provider_embedding_idx 
-ON locations_providerv2 
+CREATE INDEX IF NOT EXISTS provider_embedding_idx
+ON locations_providerv2
 USING hnsw (embedding vector_cosine_ops);
 ```
 
@@ -117,6 +117,12 @@ pip install -r requirements.txt
 # Set AWS profile
 export AWS_PROFILE=personal
 
+# Optional: enable clinical search and Langfuse traces for agent requests
+export TAVILY_API_KEY="$(aws secretsmanager get-secret-value --secret-id kindd/prod/tavily-api-key --query SecretString --output text)"
+export LANGFUSE_PUBLIC_KEY="$(aws secretsmanager get-secret-value --secret-id kindd/prod/langfuse-public-key --query SecretString --output text)"
+export LANGFUSE_SECRET_KEY="$(aws secretsmanager get-secret-value --secret-id kindd/prod/langfuse-secret-key --query SecretString --output text)"
+export LANGFUSE_HOST="https://us.cloud.langfuse.com"
+
 # Test Bedrock connection
 python manage.py shell
 ```
@@ -129,8 +135,8 @@ test_connection()
 Expected output:
 
 ```
-✅ Titan Embeddings working - 1024 dimensions
-✅ Claude Sonnet 4.5 working - Response: Hello from KiNDD!...
+Titan Embeddings working - 1024 dimensions
+Claude Sonnet 4.5 working - Response: Hello from KiNDD!...
 ```
 
 ---
@@ -174,11 +180,11 @@ curl -X POST http://localhost:8000/api/llm/ask/ \
 
 ## Costs
 
-| Service           | Usage                      | Monthly Cost      |
+| Service | Usage | Monthly Cost |
 | ----------------- | -------------------------- | ----------------- |
-| Titan Embeddings  | 370 providers × 500 tokens | ~$0.01            |
-| Claude Sonnet 4.5 | 1000 queries × 2K tokens   | ~$30-60           |
-| **Total**         |                            | **~$30-60/month** |
+| Titan Embeddings | 370 providers × 500 tokens | ~$0.01 |
+| Claude Sonnet 4.5 | 1000 queries × 2K tokens | ~$30-60 |
+| **Total** | | **~$30-60/month** |
 
 Claude Sonnet 4.5 pricing: $3/million input tokens, $15/million output tokens
 
@@ -187,8 +193,12 @@ Claude Sonnet 4.5 pricing: $3/million input tokens, $15/million output tokens
 ## Production Deployment
 
 1. Ensure EB instance role has Bedrock permissions
-2. Deploy with `eb deploy`
-3. Run embeddings on production database:
+2. Configure agent secrets outside source control:
+   - `TAVILY_API_KEY` enables the `clinical_search` tool.
+   - `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` enable Langfuse traces.
+   - `LANGFUSE_HOST` is optional and defaults to `https://us.cloud.langfuse.com`.
+3. Deploy with `eb deploy`
+4. Run embeddings on production database:
 
 ```bash
 eb ssh
@@ -203,17 +213,23 @@ python manage.py shell
 
 ## Endpoints
 
-| Endpoint                     | Method | Description                    |
+| Endpoint | Method | Description |
 | ---------------------------- | ------ | ------------------------------ |
-| `/api/llm/ask/`              | POST   | Natural language query (RAG)   |
-| `/api/llm/stream/`           | POST   | Streaming RAG via SSE          |
-| `/api/llm/agent/`            | POST   | Agent chat with tool use       |
-| `/api/llm/agent-stream/`     | POST   | Streaming agent chat via SSE   |
-| `/api/llm/eligibility/`      | POST   | Check eligibility              |
-| `/api/llm/search/`           | GET    | Smart structured search        |
-| `/api/llm/health/`           | GET    | Bedrock health check           |
-| `/api/llm/analyze-image/`    | POST   | Vision (insurance cards, docs) |
-| `/api/llm/analyze-document/` | POST   | Document text analysis         |
+| `/api/llm/ask/` | POST | Natural language query (RAG) |
+| `/api/llm/stream/` | POST | Streaming RAG via SSE |
+| `/api/llm/agent/` | POST | Agent chat with tool use |
+| `/api/llm/agent-stream/` | POST | Streaming agent chat via SSE |
+| `/api/llm/eligibility/` | POST | Check eligibility |
+| `/api/llm/search/` | GET | Smart structured search |
+| `/api/llm/health/` | GET | Bedrock health check |
+| `/api/llm/analyze-image/` | POST | Vision (insurance cards, docs) |
+| `/api/llm/analyze-document/` | POST | Document text analysis |
+
+The agent endpoints include Tavily-backed `clinical_search` and `web_search`
+tools. `clinical_search` is restricted to authoritative pediatric/medical
+sources; `web_search` is available for current facts, institutional leadership,
+policies, dates, and named people. Langfuse trace metadata is included when the
+corresponding environment variables are configured.
 
 ---
 
@@ -231,6 +247,17 @@ python manage.py shell
 **"ModelNotReadyException"**
 
 - Model still provisioning, wait a few minutes
+
+**"clinical_search_unavailable"**
+
+- `TAVILY_API_KEY` is missing or invalid
+- Tavily API is temporarily unavailable
+
+**No traces in Langfuse**
+
+- `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` are missing or invalid
+- Check `LANGFUSE_HOST` matches the project region
+- Ensure dependencies were installed from `requirements.txt`
 
 **Slow embeddings**
 

@@ -10,6 +10,11 @@ import boto3
 from django.conf import settings
 from typing import Optional
 
+from .observability import bedrock_call_monitor
+
+
+CHAT_MODEL_ID = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+
 
 # Initialize Bedrock client
 def get_bedrock_client():
@@ -81,19 +86,66 @@ Knowledge Areas:
 - Age-based eligibility: Early Start (0-3), Lanterman Act services, school-age IEP, adult transition (18+)
 - SB 946 (California autism insurance mandate)
 
+<reasoning_requirements>
+- Use private step-by-step reasoning to understand the family's need, but do not reveal hidden chain-of-thought. Share only a brief rationale when it helps the user.
+- Use a ReAct-style pattern internally: decide what facts are needed, use available context, then answer grounded in those facts.
+- Before finalizing, do a self-consistency check: make sure the answer, next steps, and citations do not conflict with the provided context or official sources.
+- Prompting approach informed by DAIR.AI Prompt Engineering Guide techniques: Chain-of-Thought, ReAct, and Self-Consistency (https://github.com/dair-ai/Prompt-Engineering-Guide).
+</reasoning_requirements>
+
 Response Guidelines:
 1. Be specific - cite actual provider names when available
 2. Explain eligibility clearly
 3. Suggest concrete next steps
 4. Be warm and empathetic
+5. Keep answers practical and easy to scan on a phone
+6. If the context includes WEB SEARCH RESULTS, use them to answer current or institution-specific facts and include a **Sources** section with the URLs. Do not refuse as out of scope when web results answer the question.
 
-IMPORTANT FORMATTING RULES:
+<format_requirements>
 - Do NOT use hashtags (#) or markdown headers (##, ###)
-- Use **bold** for emphasis on key terms
+- Use **bold labels** for section labels and key terms
 - Use numbered lists (1. 2. 3.) for steps
-- Use bullet points (- ) for lists of items
+- Use simple Markdown hyphen bullets for lists
 - Keep responses conversational and easy to read
-- Use horizontal rules (---) sparingly to separate major sections
+- Do not use raw HTML, complex tables, footnotes, or decorative formatting
+- Do not use horizontal rules
+- Keep each section to 3 sentences or fewer unless the user asks for detail.
+- For important safety caveats, deadlines, or limitations, use a plain bold label:
+  `**Note:**` in English or `**Nota:**` in Spanish. Do not use blockquotes or a leading `>`.
+- If you reference clinical authorities like the CDC, AAP, HealthyChildren.org,
+  NIH, MedlinePlus, or CHLA, include a **Sources** section with clickable URLs.
+- Only include source URLs that are official and high-confidence. Do not invent
+  article-specific URLs.
+- Useful official source links:
+  - CDC Autism: https://www.cdc.gov/autism/
+  - CDC Learn the Signs. Act Early.: https://www.cdc.gov/ncbddd/actearly/
+  - HealthyChildren.org Autism: https://www.healthychildren.org/English/health-issues/conditions/Autism/
+  - MedlinePlus Autism Spectrum Disorder: https://medlineplus.gov/autismspectrumdisorder.html
+  - CHLA: https://www.chla.org/
+- Prefer this structure:
+  Direct answer in one short paragraph.
+
+  **What this may mean**
+  - **Point one:** Clear explanation in one or two sentences.
+  - **Point two:** Clear explanation in one or two sentences.
+  - **Point three:** Clear explanation in one or two sentences.
+
+  **What to do next**
+  - Concrete next step.
+  - Suggest speaking with a clinician when appropriate.
+
+  **Local help**
+  Mention the relevant Regional Center or provider options only when helpful.
+
+  **Sources**
+  Source name: https://official-url.example
+  Source name: https://official-url.example
+- For general rare-disorder, syndrome, resource-navigation, or family-support questions, keep the tone conversational. Prefer **Quick answer**, **What to know**, **What to do next**, and **Local help**.
+- Do not use **Evidence**, **Interpretation**, or **Limitations** as section labels unless the user explicitly asks for research evidence, studies, trials, gene evidence, SFARI scores, NIH grants, or datasets.
+- Avoid long paragraphs. Keep most paragraphs to 1-3 sentences.
+- For provider recommendations, share the best 4 matches when available. Include each provider's name, city or neighborhood, full address, and phone if present so map and directions actions can target real locations.
+- Do a final style pass before answering: tighten prose, keep list items parallel, and remove filler.
+</format_requirements>
 
 When you don't have enough information, say so clearly and ask follow-up questions."""
 
@@ -110,18 +162,63 @@ Ayudas a familias y profesionales a encontrar proveedores de terapia ABA, patól
 - Elegibilidad por edad: Early Start (0-3), Ley Lanterman, IEP escolar, transición adulta (18+)
 - SB 946 (mandato de seguro de autismo de California)
 
+<requisitos_de_razonamiento>
+- Usa razonamiento privado paso a paso para entender la necesidad de la familia, pero no reveles la cadena de pensamiento oculta. Comparte solo una razón breve cuando ayude al usuario.
+- Usa internamente un patrón tipo ReAct: decide qué datos hacen falta, usa el contexto disponible y responde con base en esos datos.
+- Antes de finalizar, haz una comprobación de consistencia: confirma que la respuesta, los próximos pasos y las citas no contradigan el contexto ni fuentes oficiales.
+- Enfoque de prompting informado por las técnicas de DAIR.AI Prompt Engineering Guide: Chain-of-Thought, ReAct y Self-Consistency (https://github.com/dair-ai/Prompt-Engineering-Guide).
+</requisitos_de_razonamiento>
+
 Pautas de Respuesta:
 1. Sé específico - cita nombres reales de proveedores cuando estén disponibles
 2. Explica la elegibilidad claramente
 3. Sugiere los próximos pasos concretos
 4. Sé cálido y empático
+5. Mantén las respuestas prácticas y fáciles de leer en un teléfono
+6. Si el contexto incluye WEB SEARCH RESULTS, úsalos para responder datos actuales o institucionales e incluye una sección **Fuentes** con las URLs. No rechaces la pregunta como fuera de alcance cuando los resultados web la respondan.
 
-REGLAS DE FORMATO IMPORTANTES:
+<requisitos_de_formato>
 - NO uses hashtags (#) ni encabezados markdown (##, ###)
 - Usa **negritas** para enfatizar términos clave
 - Usa listas numeradas (1. 2. 3.) para pasos
-- Usa viñetas (- ) para listas de elementos
+- Usa el símbolo de viñeta `•` para listas de elementos. No uses guiones como viñetas.
 - Mantén las respuestas conversacionales y fáciles de leer
+- Mantén cada sección en 3 frases o menos salvo que el usuario pida más detalle.
+- Para advertencias de seguridad, fechas límite o limitaciones importantes, usa una etiqueta simple en negritas:
+  `**Nota:**`. No uses citas en bloque ni el símbolo inicial `>`.
+- Si mencionas autoridades clínicas como CDC, AAP, HealthyChildren.org, NIH,
+  MedlinePlus o CHLA, incluye una sección **Fuentes** con URLs clicables.
+- Incluye solo URLs oficiales y de alta confianza. No inventes URLs específicas
+  de artículos.
+- Enlaces oficiales útiles:
+  - CDC Autism: https://www.cdc.gov/autism/
+  - CDC Learn the Signs. Act Early.: https://www.cdc.gov/ncbddd/actearly/
+  - HealthyChildren.org Autism: https://www.healthychildren.org/English/health-issues/conditions/Autism/
+  - MedlinePlus Autism Spectrum Disorder: https://medlineplus.gov/autismspectrumdisorder.html
+  - CHLA: https://www.chla.org/
+- Prefiere esta estructura:
+  **Respuesta rápida**
+  Una o dos frases en lenguaje sencillo.
+
+  **Señales a observar**
+  • Viñeta breve
+  • Viñeta breve
+
+  **Qué hacer ahora**
+  1. Próximo paso concreto
+  2. Próximo paso concreto
+
+  **Ayuda local**
+  Menciona el Centro Regional o proveedores relevantes solo cuando ayude.
+
+  **Fuentes**
+  Nombre de la fuente: https://url-oficial.example
+  Nombre de la fuente: https://url-oficial.example
+- No agregues una línea horizontal antes de **Fuentes**; la app móvil da estilo a las fuentes por separado.
+- Evita párrafos largos. Mantén la mayoría de los párrafos en 1-3 frases.
+- Para recomendaciones de proveedores, comparte los mejores 4 cuando estén disponibles. Incluye el nombre, ciudad o vecindario, dirección completa y teléfono si existe para que las acciones de mapa e indicaciones apunten a ubicaciones reales.
+- Haz una revisión final de estilo antes de responder: ajusta la prosa, mantén las listas paralelas y elimina relleno.
+</requisitos_de_formato>
 
 Cuando no tengas suficiente información, dilo claramente y haz preguntas de seguimiento."""
 
@@ -178,24 +275,32 @@ USER QUESTION: {user_message}"""
 
     messages.append({"role": "user", "content": full_message})
 
-    # Call Claude via Bedrock
-    response = client.invoke_model(
-        modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",  # Claude Sonnet 4.5 inference profile
-        contentType="application/json",
-        accept="application/json",
-        body=json.dumps(
-            {
-                "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": max_tokens,
-                "temperature": temperature,
-                "system": system_prompt,
-                "messages": messages,
-            }
-        ),
-    )
+    with bedrock_call_monitor(
+        operation="chat_completion",
+        model_id=CHAT_MODEL_ID,
+        prompt=full_message,
+    ) as monitor:
+        # Call Claude via Bedrock
+        response = client.invoke_model(
+            modelId=CHAT_MODEL_ID,  # Claude Sonnet 4.5 inference profile
+            contentType="application/json",
+            accept="application/json",
+            body=json.dumps(
+                {
+                    "anthropic_version": "bedrock-2023-05-31",
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "system": system_prompt,
+                    "messages": messages,
+                }
+            ),
+        )
 
-    result = json.loads(response["body"].read())
-    return result["content"][0]["text"]
+        result = json.loads(response["body"].read())
+        text = result["content"][0]["text"]
+        monitor["usage"] = result.get("usage", {})
+        monitor["output_text"] = text
+        return text
 
 
 def chat_completion_streaming(
@@ -228,25 +333,43 @@ USER QUESTION: {user_message}"""
 
     messages.append({"role": "user", "content": full_message})
 
-    response = client.invoke_model_with_response_stream(
-        modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
-        contentType="application/json",
-        accept="application/json",
-        body=json.dumps(
-            {
-                "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": max_tokens,
-                "temperature": 0.3,
-                "system": system_prompt,
-                "messages": messages,
-            }
-        ),
-    )
+    with bedrock_call_monitor(
+        operation="chat_completion_streaming",
+        model_id=CHAT_MODEL_ID,
+        prompt=full_message,
+    ) as monitor:
+        response = client.invoke_model_with_response_stream(
+            modelId=CHAT_MODEL_ID,
+            contentType="application/json",
+            accept="application/json",
+            body=json.dumps(
+                {
+                    "anthropic_version": "bedrock-2023-05-31",
+                    "max_tokens": max_tokens,
+                    "temperature": 0.3,
+                    "system": system_prompt,
+                    "messages": messages,
+                }
+            ),
+        )
 
-    for event in response["body"]:
-        chunk = json.loads(event["chunk"]["bytes"])
-        if chunk["type"] == "content_block_delta":
-            yield chunk["delta"]["text"]
+        output_chunks = []
+        usage = {}
+        for event in response["body"]:
+            chunk = json.loads(event["chunk"]["bytes"])
+            chunk_type = chunk.get("type")
+            if chunk_type == "message_start":
+                usage.update(chunk.get("message", {}).get("usage", {}))
+            elif chunk_type == "message_delta":
+                usage.update(chunk.get("usage", {}))
+            elif chunk_type == "content_block_delta":
+                text = chunk["delta"]["text"]
+                output_chunks.append(text)
+                monitor["output_text"] = "".join(output_chunks)
+                monitor["usage"] = usage
+                yield text
+        monitor["output_text"] = "".join(output_chunks)
+        monitor["usage"] = usage
 
 
 # ============================================================================
@@ -320,21 +443,29 @@ def analyze_image(
         ]
     }]
     
-    response = client.invoke_model(
-        modelId="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
-        contentType="application/json",
-        accept="application/json",
-        body=json.dumps({
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": max_tokens,
-            "temperature": 0.2,  # Low temp for accurate extraction
-            "system": KINDD_SYSTEM_PROMPT,
-            "messages": messages,
-        }),
-    )
-    
-    result = json.loads(response["body"].read())
-    return result["content"][0]["text"]
+    with bedrock_call_monitor(
+        operation="image_analysis",
+        model_id=CHAT_MODEL_ID,
+        prompt=prompt,
+    ) as monitor:
+        response = client.invoke_model(
+            modelId=CHAT_MODEL_ID,
+            contentType="application/json",
+            accept="application/json",
+            body=json.dumps({
+                "anthropic_version": "bedrock-2023-05-31",
+                "max_tokens": max_tokens,
+                "temperature": 0.2,  # Low temp for accurate extraction
+                "system": KINDD_SYSTEM_PROMPT,
+                "messages": messages,
+            }),
+        )
+
+        result = json.loads(response["body"].read())
+        text = result["content"][0]["text"]
+        monitor["usage"] = result.get("usage", {})
+        monitor["output_text"] = text
+        return text
 
 
 def analyze_insurance_card(image_base64: str, media_type: str = "image/jpeg") -> str:

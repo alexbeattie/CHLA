@@ -1,6 +1,6 @@
 # CI/CD Pipeline Setup
 
-This document explains the GitHub Actions CI/CD pipeline for the CHLA Map Application.
+This document explains the GitHub Actions CI/CD pipeline for the KiNDD - NDD Resource Navigator application.
 
 ## Workflows Overview
 
@@ -131,19 +131,19 @@ CLOUDFRONT_DIST_ID: E2W6EECHUV4LMM
 
 1. **Code pushed to main branch**
 2. **Quick CI runs** (~3 min)
-   - ✅ Syntax checks pass
-   - ✅ No debug statements
+   - Syntax checks pass
+   - No debug statements
 3. **Backend deployment starts** (~10 min)
-   - 📦 Deploy to Elastic Beanstalk
-   - ✅ Verify API health
+   - Deploy to Elastic Beanstalk
+   - Verify API health
 4. **Frontend deployment starts** (~5 min)
-   - 🏗️  Build Vue.js app
-   - 📦 Upload to S3
-   - 🔄 Invalidate CloudFront
-   - ✅ Verify accessibility
+   - Build Vue.js app
+   - Upload to S3
+   - Invalidate CloudFront
+   - Verify accessibility
 5. **Summary generated**
-   - 📊 Status report
-   - 🌐 Production URLs
+   - Status report
+   - Production URLs
 
 **Total time:** ~18-20 minutes
 

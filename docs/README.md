@@ -1,6 +1,6 @@
-# CHLA Provider Map - Documentation Index
+# KiNDD - NDD Resource Navigator - Documentation Index
 
-Welcome to the CHLA Provider Map documentation! This directory contains all project documentation organized for easy navigation.
+Welcome to the KiNDD - NDD Resource Navigator documentation. This directory contains all project documentation organized for easy navigation.
 
 ## Quick Links
 
@@ -17,10 +17,12 @@ Welcome to the CHLA Provider Map documentation! This directory contains all proj
 ### Core Documentation
 
 | Document | Description | For |
-|----------|-------------|-----|
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Complete deployment guide for local and production | DevOps, Developers |
 | [GITHUB_ACTIONS.md](./GITHUB_ACTIONS.md) | GitHub Actions CI/CD setup and troubleshooting | DevOps, Developers |
 | [DATABASE_SYNC.md](./DATABASE_SYNC.md) | Database synchronization between local and RDS | Developers, DBAs |
+| [NONPROFIT_ONBOARDING_PACKET.md](./NONPROFIT_ONBOARDING_PACKET.md) | Ordered stakeholder onboarding packet for nonprofit, clinical, program, and technical audiences | Everyone, Partners, Clinical Leads |
+| [CLINICAL_TEAM_HANDOFF.md](./CLINICAL_TEAM_HANDOFF.md) | Clinical stakeholder onboarding: Slack copy, Postgres + RAG snapshot runbooks, verification checklist | Product, Clinical Leads, On-call Eng |
 | [../maplocation/README.md](../maplocation/README.md) | Backend getting started guide | New Developers |
 | [../README.md](../README.md) | Main project overview and quick start | Everyone |
 | [../STACK_DOCUMENTATION.md](../STACK_DOCUMENTATION.md) | Complete architecture and stack details | Architects, Senior Devs |
@@ -51,6 +53,15 @@ Start here to get up and running:
 1. [Main README](../README.md) - Project overview
 2. [Backend Getting Started](../maplocation/README.md) - Setup backend
 3. [Stack Documentation](../STACK_DOCUMENTATION.md) - Understand architecture
+
+### For Nonprofit and Clinical Onboarding
+
+Start here for a professional, audience-friendly project orientation:
+
+1. [Nonprofit Onboarding Packet](./NONPROFIT_ONBOARDING_PACKET.md) - Ordered reading path and presentation flow
+2. [Platform Strategy Brief](./PLATFORM_STRATEGY_BRIEF.md) - Mission, architecture, and growth direction
+3. [Regional Centers Concept](./REGIONAL_CENTERS_CONCEPT.md) - Core service-navigation model
+4. [Clinical Team Handoff](./CLINICAL_TEAM_HANDOFF.md) - Clinical review and data handoff workflow
 
 ### For Developers
 

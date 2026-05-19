@@ -8,7 +8,7 @@
 
 ## Current Architecture (Week 5 Refactoring)
 
-### ✅ What's ACTIVE and BEING USED
+### What's ACTIVE and BEING USED
 
 **New Components (Week 4-5)**:
 - MapCanvas.vue - Handles map rendering, markers
@@ -44,7 +44,7 @@
 - Layout/navigation (top nav, sidebar)
 - Component coordination
 
-### ❌ What's DEAD CODE (Can be removed)
+### What's DEAD CODE (Can be removed)
 
 **Old Map Implementation** (~1,695 lines):
 ```javascript
@@ -182,15 +182,15 @@ data() {
 ### Before Cleanup
 ```
 MapView.vue: 6,948 lines
-├── Template: ~500 lines (✅ clean)
+├── Template: ~500 lines (clean)
 ├── Script: ~5,600 lines
-│   ├── New orchestration: ~200 lines (✅ keep)
-│   ├── Onboarding/auth: ~800 lines (✅ keep)
-│   ├── Regional centers: ~400 lines (✅ keep)
-│   ├── Layout/navigation: ~300 lines (✅ keep)
-│   ├── OLD dead code: ~2,500 lines (❌ remove)
-│   └── Utilities/helpers: ~1,400 lines (⚠️ review)
-└── Styles: ~850 lines (✅ keep)
+│   ├── New orchestration: ~200 lines (keep)
+│   ├── Onboarding/auth: ~800 lines (keep)
+│   ├── Regional centers: ~400 lines (keep)
+│   ├── Layout/navigation: ~300 lines (keep)
+│   ├── OLD dead code: ~2,500 lines (remove)
+│   └── Utilities/helpers: ~1,400 lines (review)
+└── Styles: ~850 lines (keep)
 ```
 
 ### After Cleanup (Estimated)
@@ -245,13 +245,13 @@ MapView.vue: ~3,500-4,000 lines
 
 ### What MapView Should NOT Do (Delegated to Components)
 
-❌ Map rendering → MapCanvas.vue
-❌ Search logic → SearchBar.vue + providerStore
-❌ Filter UI → FilterPanel.vue + filterStore
-❌ Provider display → ProviderList.vue + ProviderCard.vue
-❌ Provider details → ProviderDetails.vue
-❌ Marker management → MapCanvas.vue
-❌ Direct map manipulation → MapCanvas.vue
+Map rendering → MapCanvas.vue
+Search logic → SearchBar.vue + providerStore
+Filter UI → FilterPanel.vue + filterStore
+Provider display → ProviderList.vue + ProviderCard.vue
+Provider details → ProviderDetails.vue
+Marker management → MapCanvas.vue
+Direct map manipulation → MapCanvas.vue
 
 ---
 
@@ -364,13 +364,13 @@ Each component has ONE clear job:
 
 ## Next Steps
 
-1. ✅ Created this cleanup plan
-2. ⏳ Run grep analysis to verify dead code
-3. ⏳ Remove dead methods incrementally
-4. ⏳ Test after each removal
-5. ⏳ Fix Regional Center filter confusion
-6. ⏳ Verify onboarding flow
-7. ⏳ Document final architecture
+1. Created this cleanup plan
+2. Run grep analysis to verify dead code
+3. Remove dead methods incrementally
+4. Test after each removal
+5. Fix Regional Center filter confusion
+6. Verify onboarding flow
+7. Document final architecture
 
 **Estimated Total Time**: 8-12 hours
 **Priority**: Medium (code works, this is housekeeping)

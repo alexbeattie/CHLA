@@ -23,16 +23,20 @@
           Center color and referral path.
         </p>
       </div>
-      <form class="zip-form" @submit.prevent="lookupZip">
+      <form class="zip-form" novalidate @submit.prevent="lookupZip">
         <input
           v-model.trim="zipCode"
           inputmode="numeric"
           maxlength="5"
-          pattern="\\d{5}"
+          pattern="[0-9]{5}"
           placeholder="ZIP code"
           aria-label="ZIP code"
+          @input="normalizeZipInput"
         />
-        <button type="submit">Lookup</button>
+        <button type="submit" :disabled="lookupLoading">
+          <span v-if="lookupLoading">Looking up...</span>
+          <span v-else>Lookup</span>
+        </button>
       </form>
 
       <div
@@ -44,14 +48,36 @@
         <div>
           <p class="match-label">Regional Center</p>
           <h3>{{ matchedCenter.name }}</h3>
+          <p class="match-meta" v-if="matchedCenter.phone">
+            {{ matchedCenter.phone }}
+          </p>
         </div>
+        <a
+          v-if="matchedCenter.website"
+          class="tertiary-action"
+          :href="formatWebsite(matchedCenter.website)"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Visit website
+        </a>
         <router-link
           class="secondary-action"
-          :to="{ path: '/', query: { q: zipCode } }"
+          :to="{
+            path: '/',
+            query: {
+              q: zipCode,
+              regionalCenter: matchedCenter.name,
+            },
+          }"
         >
           Search providers for this ZIP
         </router-link>
       </div>
+
+      <p v-else-if="lookupError" class="no-match">
+        {{ lookupError }}
+      </p>
 
       <p v-else-if="lookupAttempted" class="no-match">
         We could not match that ZIP to a configured LA County Regional Center.
@@ -75,23 +101,44 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { getRegionalCentersList } from "../constants/regionalCenters";
-import { useRegionalCenterData } from "../composables/useRegionalCenterData";
+import { useSeo } from "../composables/useSeo";
+import { getApiRoot } from "../utils/api";
+
+useSeo({ path: "/clinicians" });
+
+const API_BASE_URL = getApiRoot() || "http://127.0.0.1:8002";
+
+interface ClinicianRegionalCenterMatch {
+  name: string;
+  abbreviation: string;
+  color: string;
+  phone?: string;
+  website?: string;
+}
 
 const zipCode = ref("");
 const lookupAttempted = ref(false);
-const matchedName = ref<string | null>(null);
-const regionalCenterData = useRegionalCenterData();
+const lookupLoading = ref(false);
+const lookupError = ref("");
+const matchedApiCenter = ref<any | null>(null);
 
-const matchedCenter = computed(() => {
-  if (!matchedName.value) {
+const matchedCenter = computed<ClinicianRegionalCenterMatch | null>(() => {
+  if (!matchedApiCenter.value?.regional_center) {
     return null;
   }
 
-  return (
-    getRegionalCentersList().find(
-      (center) => center.name === matchedName.value
-    ) || null
+  const centerName = matchedApiCenter.value.regional_center;
+  const localCenter = getRegionalCentersList().find(
+    (center) => center.name === centerName
   );
+
+  return {
+    name: centerName,
+    abbreviation: localCenter?.abbreviation || "RC",
+    color: localCenter?.color || "#0d9ddb",
+    phone: matchedApiCenter.value.telephone || matchedApiCenter.value.phone,
+    website: matchedApiCenter.value.website,
+  };
 });
 
 const workflowItems = [
@@ -117,18 +164,46 @@ const workflowItems = [
 
 async function lookupZip() {
   lookupAttempted.value = true;
-  matchedName.value = null;
+  lookupError.value = "";
+  matchedApiCenter.value = null;
 
-  if (!/^\\d{5}$/.test(zipCode.value)) {
+  if (!/^\d{5}$/.test(zipCode.value)) {
+    lookupError.value = "Enter a valid 5-digit ZIP code.";
     return;
   }
 
-  if (!regionalCenterData.regionalCenters?.value?.length) {
-    await regionalCenterData.fetchRegionalCenters();
-  }
+  lookupLoading.value = true;
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/regional-centers/by_zip_code/?zip_code=${zipCode.value}`,
+      { headers: { Accept: "application/json" } }
+    );
 
-  const center = regionalCenterData.findByZipCode(zipCode.value);
-  matchedName.value = center?.name || center?.regional_center || null;
+    if (response.status === 404) {
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Regional Center lookup failed (${response.status})`);
+    }
+
+    matchedApiCenter.value = await response.json();
+  } catch (error) {
+    console.error("Clinician ZIP lookup failed:", error);
+    lookupError.value =
+      "We could not complete the ZIP lookup. Please try again.";
+  } finally {
+    lookupLoading.value = false;
+  }
+}
+
+function formatWebsite(website?: string) {
+  if (!website) return "";
+  return website.startsWith("http") ? website : `https://${website}`;
+}
+
+function normalizeZipInput() {
+  zipCode.value = zipCode.value.replace(/\D/g, "").slice(0, 5);
 }
 </script>
 
@@ -190,6 +265,7 @@ h1 {
 
 .primary-action,
 .secondary-action,
+.tertiary-action,
 .zip-form button {
   display: inline-flex;
   align-items: center;
@@ -203,6 +279,18 @@ h1 {
   font-weight: 800;
   padding: 12px 18px;
   text-decoration: none;
+}
+
+.zip-form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.tertiary-action {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #004877;
+  font-weight: 700;
 }
 
 .lookup-card {
@@ -240,6 +328,12 @@ h1 {
   border: 2px solid var(--rc-color);
   border-radius: 18px;
   background: color-mix(in srgb, var(--rc-color) 10%, #ffffff);
+}
+
+.match-meta {
+  margin: 6px 0 0;
+  color: #4b5563;
+  font-weight: 700;
 }
 
 .rc-badge {

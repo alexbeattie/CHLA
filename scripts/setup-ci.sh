@@ -13,25 +13,25 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}🔧 CHLA CI/CD Setup Script${NC}"
+echo -e "${BLUE}CHLA CI/CD Setup Script${NC}"
 echo "================================"
 echo ""
 
 # Check if gh CLI is installed
 if ! command -v gh &> /dev/null; then
-    echo -e "${RED}✗${NC} GitHub CLI (gh) is not installed"
+    echo -e "${RED}${NC} GitHub CLI (gh) is not installed"
     echo "Install it from: https://cli.github.com/"
     exit 1
 fi
 
 # Check if user is authenticated
 if ! gh auth status &> /dev/null; then
-    echo -e "${RED}✗${NC} Not authenticated with GitHub CLI"
+    echo -e "${RED}${NC} Not authenticated with GitHub CLI"
     echo "Run: gh auth login"
     exit 1
 fi
 
-echo -e "${GREEN}✓${NC} GitHub CLI is installed and authenticated"
+echo -e "${GREEN}${NC} GitHub CLI is installed and authenticated"
 echo ""
 
 # Function to set secret
@@ -49,9 +49,9 @@ set_secret() {
 
     if [ -n "$value" ]; then
         gh secret set "$name" --body "$value"
-        echo -e "${GREEN}✓${NC} Set $name"
+        echo -e "${GREEN}${NC} Set $name"
     else
-        echo -e "${YELLOW}⚠${NC} Skipped $name"
+        echo -e "${YELLOW}${NC} Skipped $name"
     fi
     echo ""
 }
@@ -82,7 +82,7 @@ echo "Generating Django secret key..."
 DJANGO_KEY=$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())' 2>/dev/null || echo "")
 if [ -n "$DJANGO_KEY" ]; then
     gh secret set "DJANGO_SECRET_KEY" --body "$DJANGO_KEY"
-    echo -e "${GREEN}✓${NC} Generated and set DJANGO_SECRET_KEY"
+    echo -e "${GREEN}${NC} Generated and set DJANGO_SECRET_KEY"
 else
     set_secret "DJANGO_SECRET_KEY" "Django secret key" ""
 fi
@@ -102,39 +102,39 @@ echo ""
 
 # Check workflows
 if [ -f ".github/workflows/ci-cd.yml" ]; then
-    echo -e "${GREEN}✓${NC} Main CI/CD workflow found"
+    echo -e "${GREEN}${NC} Main CI/CD workflow found"
 else
-    echo -e "${RED}✗${NC} Main CI/CD workflow missing"
+    echo -e "${RED}${NC} Main CI/CD workflow missing"
 fi
 
 if [ -f ".github/workflows/db-sync.yml" ]; then
-    echo -e "${GREEN}✓${NC} Database sync workflow found"
+    echo -e "${GREEN}${NC} Database sync workflow found"
 else
-    echo -e "${RED}✗${NC} Database sync workflow missing"
+    echo -e "${RED}${NC} Database sync workflow missing"
 fi
 
 if [ -f ".github/workflows/rollback.yml" ]; then
-    echo -e "${GREEN}✓${NC} Rollback workflow found"
+    echo -e "${GREEN}${NC} Rollback workflow found"
 else
-    echo -e "${RED}✗${NC} Rollback workflow missing"
+    echo -e "${RED}${NC} Rollback workflow missing"
 fi
 
 # Check test setup
 if [ -f "maplocation/pytest.ini" ]; then
-    echo -e "${GREEN}✓${NC} Backend test configuration found"
+    echo -e "${GREEN}${NC} Backend test configuration found"
 else
-    echo -e "${YELLOW}⚠${NC} Backend test configuration missing"
+    echo -e "${YELLOW}${NC} Backend test configuration missing"
 fi
 
 if [ -f "map-frontend/package.json" ]; then
-    echo -e "${GREEN}✓${NC} Frontend package.json found"
+    echo -e "${GREEN}${NC} Frontend package.json found"
 else
-    echo -e "${RED}✗${NC} Frontend package.json missing"
+    echo -e "${RED}${NC} Frontend package.json missing"
 fi
 
 echo ""
 echo "================================"
-echo -e "${GREEN}✅ Setup Complete${NC}"
+echo -e "${GREEN}Setup Complete${NC}"
 echo "================================"
 echo ""
 echo "Next steps:"
@@ -143,6 +143,6 @@ echo "2. Test the pipeline with a push to main"
 echo "3. Monitor deployment: gh run watch"
 echo ""
 echo "Documentation:"
-echo "  - CI/CD Guide: .github/CICD_GUIDE.md"
-echo "  - Secrets: .github/SECRETS.md"
+echo " - CI/CD Guide: .github/CICD_GUIDE.md"
+echo " - Secrets: .github/SECRETS.md"
 echo ""

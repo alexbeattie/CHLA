@@ -1,12 +1,12 @@
 # MapView.vue Analysis Report - Phase 1.1
 
-**Date:** 2025-10-31  
-**File:** `src/views/MapView.vue`  
+**Date:** 2025-10-31
+**File:** `src/views/MapView.vue`
 **Total Lines:** 7,444
 
 ---
 
-## 📊 File Breakdown
+## File Breakdown
 
 | Section | Lines | Percentage |
 |---------|-------|------------|
@@ -18,12 +18,12 @@
 
 ---
 
-## 🔢 Component Inventory
+## Component Inventory
 
 ### Imports
 - **20 component imports**
 - Already using: MapCanvas, SearchBar, ProviderList, FilterPanel, etc.
-- Many components already extracted ✅
+- Many components already extracted
 
 ### Data Properties: ~40 properties
 Key groups:
@@ -46,7 +46,7 @@ Key groups:
 
 ---
 
-## 🎯 Method Categories
+## Method Categories
 
 ### 1. Format/Utility Functions (SAFE TO EXTRACT - 7 methods)
 These are pure functions with no side effects:
@@ -60,8 +60,8 @@ These are pure functions with no side effects:
 - `getApiRoot()` - Line 2401
 - `getLACountyBounds()` - Line 2754
 
-**Estimated savings:** ~150 lines  
-**Risk level:** ⭐ LOW (pure functions)  
+**Estimated savings:** ~150 lines
+**Risk level:** LOW (pure functions)
 **Testing:** Easy - just compare input/output
 
 ### 2. Calculation Functions (MEDIUM SAFE - 4 methods)
@@ -72,8 +72,8 @@ Functions that calculate things but might use `this`:
 - `findRegionalCenterByCoordinates()` - Line 2466
 - `findRegionalCenterByZip()` - Line 2768
 
-**Estimated savings:** ~200 lines  
-**Risk level:** ⭐⭐ MEDIUM (may use this.$data)  
+**Estimated savings:** ~200 lines
+**Risk level:** MEDIUM (may use this.$data)
 **Testing:** Need to verify with real data
 
 ### 3. Map Functions (KEEP FOR NOW - ~15 methods)
@@ -129,7 +129,7 @@ Initialization and setup:
 
 ---
 
-## 🥇 Phase 2 Extraction Plan
+## Phase 2 Extraction Plan
 
 ### Target: Format/Utility Functions
 
@@ -137,54 +137,54 @@ Initialization and setup:
 
 Extract these in order (easiest first):
 
-1. ✅ `getApiRoot()` - ~10 lines
+1. `getApiRoot()` - ~10 lines
    - No dependencies
    - Returns API URL based on environment
    - **Risk:** NONE
    - **Test:** Call it, check URL matches
-   
-2. ✅ `getLACountyBounds()` - ~15 lines
+
+2. `getLACountyBounds()` - ~15 lines
    - Returns hardcoded bounds object
    - No dependencies
    - **Risk:** NONE
    - **Test:** Call it, check bounds correct
 
-3. ✅ `formatDescription(description)` - ~20 lines
+3. `formatDescription(description)` - ~20 lines
    - String manipulation only
    - No dependencies
    - **Risk:** NONE
    - **Test:** Compare before/after output
 
-4. ✅ `formatInsurance(insurance)` - ~30 lines
+4. `formatInsurance(insurance)` - ~30 lines
    - String/array manipulation
    - No dependencies
    - **Risk:** NONE
    - **Test:** Test with different input types
 
-5. ✅ `formatLanguages(languages)` - ~30 lines
+5. `formatLanguages(languages)` - ~30 lines
    - String/array manipulation
    - No dependencies
    - **Risk:** NONE
    - **Test:** Test with different input types
 
-6. ✅ `formatHours(hours)` - ~30 lines
+6. `formatHours(hours)` - ~30 lines
    - Complex but pure function
    - No dependencies
    - **Risk:** LOW
    - **Test:** Test with various hour formats
 
-7. ✅ `formatHoursObject(hoursObj)` - ~30 lines
+7. `formatHoursObject(hoursObj)` - ~30 lines
    - Uses formatHours internally
    - Extract after #6
    - **Risk:** LOW
    - **Test:** Test with real hours objects
 
-**Total Phase 2 savings:** ~165 lines  
+**Total Phase 2 savings:** ~165 lines
 **Timeline:** 3-4 hours (30 min per function)
 
 ---
 
-## 📋 Extraction Checklist (For Each Function)
+## Extraction Checklist (For Each Function)
 
 ### Before:
 - [ ] Function works in MapView
@@ -207,30 +207,30 @@ Extract these in order (easiest first):
 
 ---
 
-## 🚨 Red Flags to Watch For
+## Red Flags to Watch For
 
 ### Don't Extract If Method:
-❌ Uses `this.$refs` (DOM access)  
-❌ Uses `this.$router` or `this.$route`  
-❌ Uses `this.providerStore` (keep in MapView, or move to composable)  
-❌ Uses `this.mapStore`  
-❌ Has side effects (updates state)  
-❌ Is async and fetches data  
+Uses `this.$refs` (DOM access)
+Uses `this.$router` or `this.$route`
+Uses `this.providerStore` (keep in MapView, or move to composable)
+Uses `this.mapStore`
+Has side effects (updates state)
+Is async and fetches data
 
 ### Safe to Extract If Method:
-✅ Takes input, returns output  
-✅ No `this` references  
-✅ Pure string/number/array manipulation  
-✅ Has clear documentation what it does  
-✅ Used in multiple places (bonus!)  
+Takes input, returns output
+No `this` references
+Pure string/number/array manipulation
+Has clear documentation what it does
+Used in multiple places (bonus!)
 
 ---
 
-## 📈 Expected Results
+## Expected Results
 
 ### After Phase 2 (Format Functions):
 - **Before:** 7,444 lines
-- **After:** ~7,280 lines  
+- **After:** ~7,280 lines
 - **Saved:** ~165 lines (2.2%)
 - **Benefit:** 7 testable utility functions
 - **Time:** 1 day
@@ -249,7 +249,7 @@ Extract these in order (easiest first):
 - **Benefit:** Reusable logic
 - **Time:** 3-5 days
 
-### Final Target: 
+### Final Target:
 - **~4,500 lines** (40% reduction)
 - **15+ extracted utilities**
 - **3-5 composables**
@@ -257,7 +257,7 @@ Extract these in order (easiest first):
 
 ---
 
-## 🎯 Next Action
+## Next Action
 
 **Ready to start Phase 2, Step 1:**
 
@@ -275,13 +275,13 @@ touch src/utils/formatting.js
 # 3. Follow extraction checklist
 ```
 
-**Estimated time:** 15-20 minutes  
-**Risk:** None  
+**Estimated time:** 15-20 minutes
+**Risk:** None
 **Benefit:** First utility extracted!
 
 ---
 
-## 📝 Notes
+## Notes
 
 - All 72 methods documented
 - 7 functions ready for immediate extraction
@@ -289,5 +289,5 @@ touch src/utils/formatting.js
 - Test script ready
 - Can stop after any extraction
 
-**Status:** ✅ Phase 1.1 Complete - Ready for Phase 2
+**Status:** Phase 1.1 Complete - Ready for Phase 2
 

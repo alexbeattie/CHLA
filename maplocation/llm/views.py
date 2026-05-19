@@ -16,7 +16,18 @@ from django.utils.decorators import method_decorator
 from django.http import StreamingHttpResponse
 
 from .query import answer_query, explain_eligibility, find_providers_by_criteria
-from .bedrock import test_connection, chat_completion_streaming, get_system_prompt_for_locale
+from .autism_research import (
+    AutismResearchError,
+    ask_autism_research,
+    check_autism_research_health,
+)
+from .bedrock import (
+    test_connection,
+    chat_completion,
+    chat_completion_streaming,
+    get_system_prompt_for_locale,
+)
+from .observability import llm_monitor_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +39,53 @@ class LLMBurstThrottle(AnonRateThrottle):
 class LLMSensitiveThrottle(AnonRateThrottle):
     """Stricter limit for endpoints that handle uploaded images/documents."""
     rate = "10/minute"
+
+
+def _request_trace_ids(request):
+    """Extract stable IDs for observability without changing API responses."""
+    user = getattr(request, "user", None)
+    user_id = None
+    if getattr(user, "is_authenticated", False) and getattr(user, "pk", None):
+        user_id = str(user.pk)
+
+    session = getattr(request, "session", None)
+    session_id = getattr(session, "session_key", None)
+    return user_id, session_id
+
+
+def _research_question_with_context(question, user_context):
+    """Attach app location context to research questions without changing user text."""
+    if not isinstance(user_context, dict) or not user_context:
+        return question
+
+    context_parts = []
+    zip_code = user_context.get("zip_code")
+    if zip_code:
+        context_parts.append(f"user ZIP code: {zip_code}")
+        try:
+            from locations.models import RegionalCenter
+
+            regional_center = RegionalCenter.find_by_zip_code(zip_code)
+            if regional_center:
+                context_parts.append(
+                    f"user Regional Center: {regional_center.regional_center}"
+                )
+        except Exception:
+            logger.exception("Could not resolve Regional Center for research context")
+
+    if user_context.get("diagnosis"):
+        context_parts.append(f"diagnosis/context: {user_context['diagnosis']}")
+    if user_context.get("memory_context"):
+        context_parts.append(f"remembered context: {user_context['memory_context']}")
+
+    if not context_parts:
+        return question
+
+    return (
+        f"{question}\n\n"
+        "App context for this user. Use this when the user asks for nearby, local, "
+        f"or geographically relevant research/trials: {'; '.join(context_parts)}."
+    )
 
 
 class AskKiNDDView(APIView):
@@ -228,10 +286,15 @@ class LLMHealthView(APIView):
     def get(self, request):
         try:
             working = test_connection()
+            try:
+                autism_rag = check_autism_research_health()
+            except AutismResearchError as exc:
+                autism_rag = {"status": "unavailable", "error": str(exc)}
             return Response(
                 {
                     "status": "healthy" if working else "unhealthy",
                     "bedrock": working,
+                    "autism_research_rag": autism_rag,
                     "models": {
                         "embeddings": "amazon.titan-embed-text-v2:0",
                         "chat": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
@@ -242,6 +305,86 @@ class LLMHealthView(APIView):
             return Response(
                 {"status": "unhealthy", "error": str(e)},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+
+class LLMMonitorView(APIView):
+    """
+    GET /api/llm/monitor/
+
+    Lightweight local monitor for recent LLM/Bedrock calls.
+    Does not expose raw prompts or responses.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response(llm_monitor_snapshot())
+
+
+class AutismResearchView(APIView):
+    """
+    POST /api/llm/autism-research/
+
+    Proxy endpoint for the Autism Research RAG service.
+
+    Request body:
+    {
+        "question": "Which genes have strongest SFARI evidence?",
+        "top_k": 5,
+        "evidence_types": ["gene_evidence"],
+        "access_classes": ["public_open"],
+        "context": {"zip_code": "90210"}
+    }
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
+
+    def post(self, request):
+        question = request.data.get("question") or request.data.get("query")
+        if not question:
+            return Response(
+                {"error": "question is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(question) > 1000:
+            return Response(
+                {"error": "Question too long (max 1000 characters)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user_context = request.data.get("context", {})
+        research_question = _research_question_with_context(question, user_context)
+
+        try:
+            result = ask_autism_research(
+                research_question,
+                top_k=request.data.get("top_k"),
+                evidence_types=request.data.get("evidence_types"),
+                access_classes=request.data.get("access_classes"),
+                min_year=request.data.get("min_year"),
+                rerank=request.data.get("rerank"),
+            )
+            return Response(
+                {
+                    "query": question,
+                    "answer": result.get("answer", ""),
+                    "citations": result.get("citations", []),
+                    "model": result.get("model"),
+                    "retrieval": result.get("retrieval", []),
+                }
+            )
+        except AutismResearchError as exc:
+            return Response(
+                {"error": f"Autism Research RAG unavailable: {str(exc)}"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        except Exception as exc:
+            logger.exception("Autism Research RAG proxy error")
+            return Response(
+                {"error": f"Autism Research RAG error: {str(exc)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -295,6 +438,8 @@ class StreamingAskView(APIView):
                     semantic_search,
                     format_provider_context,
                     format_user_context,
+                    should_retrieve_providers,
+                    get_web_context,
                 )
                 from locations.models import RegionalCenter
 
@@ -310,30 +455,59 @@ class StreamingAskView(APIView):
                 if regional_center:
                     enhanced_query += f" {regional_center.regional_center}"
 
-                try:
-                    relevant_providers = semantic_search(enhanced_query, limit=15)
-                except Exception:
-                    from .query import keyword_search
+                if should_retrieve_providers(query, user_context):
+                    try:
+                        relevant_providers = semantic_search(enhanced_query, limit=8)
+                    except Exception:
+                        from .query import keyword_search
 
-                    relevant_providers = keyword_search(enhanced_query, limit=15)
+                        relevant_providers = keyword_search(enhanced_query, limit=8)
+                else:
+                    relevant_providers = []
 
                 provider_context = format_provider_context(relevant_providers)
                 user_context_str = format_user_context(user_context, regional_center)
+                web_context = get_web_context(query)
 
                 full_context = f"""PROVIDERS IN DATABASE:
 {provider_context}
 
-{user_context_str}"""
+{user_context_str}
+
+{web_context}"""
 
                 system_prompt = get_system_prompt_for_locale(locale)
 
-                for chunk in chat_completion_streaming(
-                    user_message=query,
-                    context=full_context,
-                    system_prompt=system_prompt,
-                    conversation_history=conversation_history,
-                ):
-                    yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
+                emitted_chunks = False
+                try:
+                    for chunk in chat_completion_streaming(
+                        user_message=query,
+                        context=full_context,
+                        system_prompt=system_prompt,
+                        conversation_history=conversation_history,
+                    ):
+                        emitted_chunks = True
+                        yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
+                except Exception:
+                    logger.exception("Bedrock stream interrupted")
+                    if not emitted_chunks:
+                        fallback_answer = chat_completion(
+                            user_message=query,
+                            context=full_context,
+                            system_prompt=system_prompt,
+                            conversation_history=conversation_history,
+                        )
+                        yield (
+                            "data: "
+                            f"{json.dumps({'type': 'chunk', 'content': fallback_answer})}"
+                            "\n\n"
+                        )
+                    else:
+                        yield (
+                            "data: "
+                            f"{json.dumps({'type': 'chunk', 'content': '\n\n**Note:** The streaming connection was interrupted, so this answer may be incomplete.'})}"
+                            "\n\n"
+                        )
 
                 yield f"data: {json.dumps({'type': 'done', 'providers_referenced': [str(p.id) for p in relevant_providers], 'regional_center': regional_center.regional_center if regional_center else None})}\n\n"
 
@@ -384,8 +558,15 @@ class AgentAskView(APIView):
         try:
             from .agent import chat_with_agent
 
+            user_id, session_id = _request_trace_ids(request)
             result = chat_with_agent(
-                query, user_context, conversation_history=conversation_history, locale=locale
+                query,
+                user_context,
+                conversation_history=conversation_history,
+                locale=locale,
+                user_id=user_id,
+                session_id=session_id,
+                feature="chla",
             )
             return Response(
                 {
@@ -616,9 +797,9 @@ class StreamingAgentAskView(APIView):
     """
     POST /api/llm/agent-stream/
 
-    Streaming agent endpoint using Server-Sent Events (SSE).
+    Agent endpoint using Server-Sent Events (SSE).
     The agent has tool access (search providers, check eligibility, etc.)
-    and streams its response in real time.
+    and returns the completed agent answer as a single SSE chunk.
 
     Request body:
     {
@@ -649,33 +830,27 @@ class StreamingAgentAskView(APIView):
 
         def event_stream():
             try:
-                from .agent import create_kindd_agent
+                from .agent import chat_with_agent
 
-                agent = create_kindd_agent(locale=locale)
+                user_id, session_id = _request_trace_ids(request)
+                result = chat_with_agent(
+                    query,
+                    user_context,
+                    locale=locale,
+                    user_id=user_id,
+                    session_id=session_id,
+                    feature="chla",
+                )
 
-                enhanced_message = query
-                if user_context:
-                    context_parts = []
-                    if user_context.get("zip_code"):
-                        context_parts.append(f"User's ZIP: {user_context['zip_code']}")
-                    if user_context.get("child_age"):
-                        context_parts.append(f"Child's age: {user_context['child_age']} years")
-                    if user_context.get("diagnosis"):
-                        context_parts.append(f"Diagnosis: {user_context['diagnosis']}")
-                    if user_context.get("insurance"):
-                        context_parts.append(f"Insurance: {user_context['insurance']}")
-                    if user_context.get("memory_context"):
-                        context_parts.append(f"History: {user_context['memory_context']}")
-                    if context_parts:
-                        enhanced_message = f"[User context: {', '.join(context_parts)}]\n\n{query}"
+                yield (
+                    f"data: "
+                    f"{json.dumps({'type': 'chunk', 'content': result['answer']})}\n\n"
+                )
 
-                for event in agent.stream(enhanced_message):
-                    if hasattr(event, "data") and event.data:
-                        yield f"data: {json.dumps({'type': 'chunk', 'content': event.data})}\n\n"
-                    elif isinstance(event, str):
-                        yield f"data: {json.dumps({'type': 'chunk', 'content': event})}\n\n"
-
-                yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                yield (
+                    f"data: "
+                    f"{json.dumps({'type': 'done', 'regional_center': result.get('regional_center')})}\n\n"
+                )
 
             except ImportError:
                 yield f"data: {json.dumps({'type': 'error', 'message': 'Agent streaming not available; Strands SDK not installed.'})}\n\n"

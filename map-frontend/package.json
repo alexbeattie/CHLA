@@ -31,7 +31,16 @@
     "@vitest/ui": "^4.0.3",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^20.0.8",
+    "puppeteer": "^23.11.1",
     "vite": "^6.3.4",
+    "vite-plugin-prerender": "^1.0.8",
     "vitest": "^4.0.3"
+  },
+  "overrides": {
+    "vite-plugin-prerender": {
+      "@prerenderer/renderer-puppeteer": {
+        "puppeteer": "$puppeteer"
+      }
+    }
   }
 }

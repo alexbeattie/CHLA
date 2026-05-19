@@ -207,7 +207,7 @@ python manage.py import_regional_center_providers --file /Users/alexbeattie/Deve
 Set the Mapbox token:
 
 ```bash
-export MAPBOX_ACCESS_TOKEN="pk.eyJ1IjoiYmVhdHR5LWFkbWluIiwiYSI6ImNsejFjNGt0YzFqMGMyanF3YW5hdWFmc3UifQ.sn7Uj_gDzzKL6PQq7vO7fw"
+export MAPBOX_ACCESS_TOKEN="YOUR_MAPBOX_TOKEN"
 
 # Then run with --geocode flag
 python manage.py import_regional_center_providers --file ../data/file.xlsx --regional-center "Pasadena" --geocode

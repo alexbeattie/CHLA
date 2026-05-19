@@ -1,15 +1,15 @@
 # Provider Database - Admin Data Entry Guide
 
-## 📊 Overview
+## Overview
 
-**File:** `providers_complete_export.csv`  
-**Total Providers:** 376  
-**File Size:** 150KB  
+**File:** `providers_complete_export.csv`
+**Total Providers:** 376
+**File Size:** 150KB
 **Critical Issue:** 99.5% of providers are missing diagnosis and age group data
 
 ---
 
-## ⚠️ Missing Data Summary
+## Missing Data Summary
 
 | Field | Missing | Percentage |
 |-------|---------|------------|
@@ -20,7 +20,7 @@
 
 ---
 
-## 📝 Fields That NEED Data
+## Fields That NEED Data
 
 ### 1. `diagnoses_treated` (JSON Array)
 
@@ -74,7 +74,7 @@
 
 ---
 
-## 📋 CSV Editing Instructions
+## CSV Editing Instructions
 
 ### Option 1: Excel / Google Sheets (Recommended)
 
@@ -118,7 +118,7 @@ For each provider, you can:
 
 ---
 
-## ✅ Data Entry Checklist
+## Data Entry Checklist
 
 For each provider, ensure:
 
@@ -132,7 +132,7 @@ For each provider, ensure:
 
 ---
 
-## 🔄 Re-Import Process
+## Re-Import Process
 
 After filling in the data:
 
@@ -146,7 +146,7 @@ This will update the database with your changes.
 
 ---
 
-## 💡 Quick Examples
+## Quick Examples
 
 ### Provider 1: Pure ABA Therapy
 ```csv
@@ -174,29 +174,29 @@ age_groups: ["0-5", "6-12", "13-18", "19+"]
 
 ---
 
-## ❓ Common Questions
+## Common Questions
 
-**Q: What if I don't know what diagnoses a provider treats?**  
+**Q: What if I don't know what diagnoses a provider treats?**
 A: Look at their `therapy_types` column for clues:
 - ABA therapy → likely Autism Spectrum Disorder
 - Speech therapy → likely Speech and Language Disorder
 - If truly unknown, use `["Other"]`
 
-**Q: Can a provider have multiple diagnoses?**  
+**Q: Can a provider have multiple diagnoses?**
 A: Yes! Most providers serve multiple diagnoses. Just include all that apply.
 
-**Q: What if a provider serves all age groups?**  
+**Q: What if a provider serves all age groups?**
 A: Use `["All Ages"]` as a single option.
 
-**Q: What's the difference between `"0-5"` and `"All Ages"`?**  
+**Q: What's the difference between `"0-5"` and `"All Ages"`?**
 A: `"0-5"` is specific to early childhood. `"All Ages"` means they serve everyone from infants to adults.
 
-**Q: Should I include `"Other"` for every provider?**  
+**Q: Should I include `"Other"` for every provider?**
 A: No. Only use `"Other"` if the provider treats diagnoses not listed in the options, or as a placeholder if unknown.
 
 ---
 
-## 🚨 Important Notes
+## Important Notes
 
 1. **Use EXACT spelling** from the valid options lists
 2. **Keep JSON syntax correct** - double quotes, brackets, commas
@@ -206,7 +206,7 @@ A: No. Only use `"Other"` if the provider treats diagnoses not listed in the opt
 
 ---
 
-## 📞 Need Help?
+## Need Help?
 
 If you encounter any issues or have questions:
 - Check the examples above
@@ -215,5 +215,5 @@ If you encounter any issues or have questions:
 
 ---
 
-**Good luck! This data will dramatically improve the user search experience! 🎯**
+**Good luck! This data will dramatically improve the user search experience! **
 

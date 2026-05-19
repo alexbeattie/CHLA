@@ -2,7 +2,7 @@
 
 SwiftUI iOS app for NDD Resource Map - Healthcare provider directory for LA County Regional Centers.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -24,7 +24,7 @@ SwiftUI iOS app for NDD Resource Map - Healthcare provider directory for LA Coun
    - Select an iOS Simulator (iPhone 15 Pro recommended)
    - Press `Cmd+R` to build and run
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 chla-ios/
@@ -58,14 +58,14 @@ chla-ios/
 └── README.md
 ```
 
-## 🔌 API Integration
+## API Integration
 
 The app connects to the Django backend:
 
-| Environment | URL                             |
+| Environment | URL |
 | ----------- | ------------------------------- |
-| Development | `http://localhost:8000/api`     |
-| Production  | `https://api.kinddhelp.com/api` |
+| Development | `http://localhost:8000/api` |
+| Production | `https://api.kinddhelp.com/api` |
 
 ### API Endpoints Used
 
@@ -93,53 +93,53 @@ source ../venv/bin/activate
 python3 manage.py runserver
 ```
 
-## ✨ Features
+## Features
 
-### 🗺️ Map View
+### Map View
 
 - Interactive map with provider markers
 - User location tracking
 - Tap markers to view provider details
 - Search and filter functionality
 
-### 📋 Provider List
+### Provider List
 
 - Sortable list of providers
 - Distance-based sorting
 - Quick search with scopes
 - Pull to refresh
 
-### 🏢 Regional Centers
+### Regional Centers
 
 - Browse all LA County regional centers
 - View service areas and ZIP codes
 - Find providers by regional center
 
-### ⚙️ Settings
+### Settings
 
 - Search radius preferences
 - Filter preferences
 - API health check
 - Reset onboarding
 
-### 🚀 Onboarding
+### Onboarding
 
 - Welcome flow for new users
 - Location permission request
 - Age group selection
 - Diagnosis and therapy preferences
 
-## 🎨 Design System
+## Design System
 
 ### Colors (defined in `Color+Extensions.swift`)
 
-| Color            | Usage                        |
+| Color | Usage |
 | ---------------- | ---------------------------- |
-| `.accentBlue`    | Primary interactive elements |
-| `.accentPurple`  | Secondary accents            |
-| `.successGreen`  | Success states               |
-| `.warningOrange` | Warnings                     |
-| `.errorRed`      | Errors                       |
+| `.accentBlue` | Primary interactive elements |
+| `.accentPurple` | Secondary accents |
+| `.successGreen` | Success states |
+| `.warningOrange` | Warnings |
+| `.errorRed` | Errors |
 
 ### Components
 
@@ -150,7 +150,7 @@ python3 manage.py runserver
 - `FlowLayout` - Flexible tag layout
 - `SelectionButton` - Toggle selection
 
-## 🔧 Configuration
+## Configuration
 
 ### Location Permissions
 
@@ -159,7 +159,7 @@ The app requests location access for finding nearby providers. Permissions are c
 - `NSLocationWhenInUseUsageDescription`
 - `NSLocationAlwaysAndWhenInUseUsageDescription`
 
-## 📱 Testing
+## Testing
 
 ### Running on Simulator
 
@@ -174,7 +174,7 @@ The app requests location access for finding nearby providers. Permissions are c
 3. You'll need a valid Apple Developer account
 4. Press `Cmd+R` to build and deploy
 
-## 🐛 Debugging
+## Debugging
 
 ### API Issues
 
@@ -189,12 +189,12 @@ The app requests location access for finding nearby providers. Permissions are c
 2. In Simulator, use Features → Location to simulate
 3. Check for `LocationError` in console
 
-## 🔗 Related
+## Related
 
 - [Django Backend](../maplocation/) - API server
 - [Vue Frontend](../map-frontend/) - Web app
 - [Main Docs](../docs/) - Project documentation
 
-## 📄 License
+## License
 
 Private - NDD Resources Project

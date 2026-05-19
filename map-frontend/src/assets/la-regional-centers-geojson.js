@@ -1,4 +1,4 @@
-// LA Regional Centers GeoJSON with CHLA brand colors
+// LA Regional Centers GeoJSON with brand colors
 // Service areas correspond to the actual 7 regional centers and follow real geographic features
 // Designed to fill the entire LA County like puzzle pieces
 
@@ -9,7 +9,7 @@ export const laRegionalCentersGeoJSON = {
       "type": "Feature",
       "properties": {
         "name": "North Los Angeles County",
-        "color": "#ffcc0a", // CHLA Yellow
+        "color": "#ffcc0a", // brand yellow
         "fillColor": "#ffcc0a",
         "fillOpacity": 0.6,
         "strokeColor": "#333333",
@@ -41,7 +41,7 @@ export const laRegionalCentersGeoJSON = {
       "type": "Feature",
       "properties": {
         "name": "San Gabriel/Pomona",
-        "color": "#22b2e7", // CHLA Light Blue
+        "color": "#22b2e7", // brand light blue
         "fillColor": "#22b2e7",
         "fillOpacity": 0.6,
         "strokeColor": "#333333",
@@ -67,7 +67,7 @@ export const laRegionalCentersGeoJSON = {
       "type": "Feature",
       "properties": {
         "name": "Eastern Los Angeles",
-        "color": "#5aba4b", // CHLA Green
+        "color": "#5aba4b", // brand green
         "fillColor": "#5aba4b",
         "fillOpacity": 0.6,
         "strokeColor": "#333333",
@@ -124,7 +124,7 @@ export const laRegionalCentersGeoJSON = {
       "type": "Feature",
       "properties": {
         "name": "Lanterman",
-        "color": "#73398c", // CHLA Purple
+        "color": "#73398c", // brand purple
         "fillColor": "#73398c",
         "fillOpacity": 0.6,
         "strokeColor": "#333333",
@@ -150,7 +150,7 @@ export const laRegionalCentersGeoJSON = {
       "type": "Feature",
       "properties": {
         "name": "South Central Los Angeles",
-        "color": "#ee293d", // CHLA Red
+        "color": "#ee293d", // brand red
         "fillColor": "#ee293d",
         "fillOpacity": 0.6,
         "strokeColor": "#333333",

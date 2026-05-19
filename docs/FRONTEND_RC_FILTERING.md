@@ -3,19 +3,19 @@
 ## Problem
 
 Currently, when searching by ZIP code (e.g., 91769 Pomona), the map shows:
-- ❌ ALL providers within 25-mile radius (~100+ providers)
-- ❌ Regional center boundary is not visually highlighted
+- ALL providers within 25-mile radius (~100+ providers)
+- Regional center boundary is not visually highlighted
 
 **What we want:**
-- ✅ ONLY providers within the regional center's service area (~64 providers for San Gabriel/Pomona)
-- ✅ Regional center polygon/boundary visually highlighted on map
-- ✅ Accurate count of providers in that specific regional center
+- ONLY providers within the regional center's service area (~64 providers for San Gabriel/Pomona)
+- Regional center polygon/boundary visually highlighted on map
+- Accurate count of providers in that specific regional center
 
 ---
 
 ## Solution Overview
 
-### Backend (✅ COMPLETED - commit 87b5d42)
+### Backend (COMPLETED - commit 87b5d42)
 
 New API endpoint created:
 ```
@@ -37,7 +37,7 @@ GET /api/providers-v2/by_regional_center/?zip_code=91769
 }
 ```
 
-### Frontend (⏳ TODO)
+### Frontend (TODO)
 
 Need to update `/Users/alexbeattie/Developer/CHLA/map-frontend/src/views/MapView.vue`
 
@@ -279,10 +279,10 @@ After implementing frontend changes:
 
 ## File Locations
 
-**Backend (✅ Done):**
+**Backend (Done):**
 - `/Users/alexbeattie/Developer/CHLA/maplocation/locations/views.py` (lines 1255-1357)
 
-**Frontend (⏳ TODO):**
+**Frontend (TODO):**
 - `/Users/alexbeattie/Developer/CHLA/map-frontend/src/views/MapView.vue`
   - Line ~2400: `fetchProviders()` method
   - Add new methods: `highlightRegionalCenter()`, `highlightRegionalCenterZips()`, `clearRegionalCenterFilter()`
@@ -337,15 +337,15 @@ const url = /^\d{5}$/.test(searchZip)
 ```
 
 This one-line change will:
-- ✅ Use regional center filtering for ZIP searches
-- ✅ Fall back to radius search for address searches
-- ❌ Won't highlight the regional center (but you can add that later)
+- Use regional center filtering for ZIP searches
+- Fall back to radius search for address searches
+- Won't highlight the regional center (but you can add that later)
 
 ---
 
 ## Summary
 
-- ✅ **Backend API ready** (commit 87b5d42)
-- ⏳ **Frontend changes needed** (update MapView.vue)
-- 📝 **Expected result**: ZIP 91769 shows 64 providers in San Gabriel/Pomona RC only
-- 🎨 **Visual improvement**: Highlighted regional center boundary on map
+- **Backend API ready** (commit 87b5d42)
+- **Frontend changes needed** (update MapView.vue)
+- **Expected result**: ZIP 91769 shows 64 providers in San Gabriel/Pomona RC only
+- **Visual improvement**: Highlighted regional center boundary on map

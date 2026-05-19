@@ -12,7 +12,6 @@ struct SettingsView: View {
     @StateObject private var locationService = LocationService()
     @ObservedObject private var languageManager = LanguageManager.shared
 
-    @State private var showResetAlert = false
     @State private var apiHealthy = false
     @State private var isCheckingAPI = false
 
@@ -30,10 +29,7 @@ struct SettingsView: View {
                 Section {
                     Picker(selection: $languageManager.currentLanguage) {
                         ForEach(AppLanguage.allCases) { language in
-                            HStack {
-                                Text(language.flag)
-                                Text(language.displayName)
-                            }
+                            Text(language.displayName)
                             .tag(language)
                         }
                     } label: {
@@ -48,6 +44,29 @@ struct SettingsView: View {
                     Text(L10n.Language.title)
                 } footer: {
                     Text("Choose your preferred language for the app interface")
+                }
+
+                Section {
+                    Button {
+                        appState.resetOnboarding()
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Restart Welcome Setup")
+                                    .font(.headline)
+                                Text("Update your ZIP code, care context, and app preferences.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "text.bubble")
+                                .foregroundColor(.indigo)
+                        }
+                    }
+                } header: {
+                    Text("Setup")
+                } footer: {
+                    Text("This reopens onboarding without deleting saved conversations.")
                 }
 
                 // Search Preferences
@@ -65,7 +84,17 @@ struct SettingsView: View {
                     Button {
                         appState.resetOnboarding()
                     } label: {
-                        Label("Edit Profile & Onboarding", systemImage: "person.text.rectangle")
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Edit Setup Answers")
+                                Text("Revisit onboarding questions and care context")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "person.text.rectangle")
+                                .foregroundColor(.indigo)
+                        }
                     }
 
                     NavigationLink {
@@ -218,12 +247,6 @@ struct SettingsView: View {
                 // Reset
                 Section {
                     Button(role: .destructive) {
-                        showResetAlert = true
-                    } label: {
-                        Label("Reset Onboarding", systemImage: "arrow.counterclockwise")
-                    }
-
-                    Button(role: .destructive) {
                         appState.searchFilters = SearchFilters()
                     } label: {
                         Label("Reset Filters", systemImage: "xmark.circle")
@@ -231,18 +254,10 @@ struct SettingsView: View {
                 } header: {
                     Text("Reset")
                 } footer: {
-                    Text("Resetting onboarding will show the welcome screens again on next launch.")
+                    Text("Use Edit Profile & Onboarding above to revisit the welcome setup.")
                 }
             }
             .navigationTitle("Settings")
-            .alert("Reset Onboarding?", isPresented: $showResetAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Reset", role: .destructive) {
-                    appState.resetOnboarding()
-                }
-            } message: {
-                Text("This will show the welcome screens again on next launch.")
-            }
             .onAppear {
                 Task { await checkAPIHealth() }
             }
@@ -275,7 +290,7 @@ struct SettingsView: View {
             apiHealthy = response.isHealthy
         } catch {
             apiHealthy = false
-            print("❌ API health check failed: \(error)")
+            print("API health check failed: \(error)")
         }
         isCheckingAPI = false
     }

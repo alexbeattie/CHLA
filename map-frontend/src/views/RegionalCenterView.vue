@@ -1,12 +1,19 @@
 <template>
   <div class="regional-center-page">
     <!-- Hero Section -->
-    <section class="hero-section" :style="{ background: `linear-gradient(135deg, ${rcData.color} 0%, ${rcData.colorDark} 100%)` }">
+    <section
+      class="hero-section"
+      :style="{
+        background: `linear-gradient(135deg, ${rcData.color} 0%, ${rcData.colorDark} 100%)`,
+      }"
+    >
       <div class="container">
         <div class="breadcrumb">
-          <router-link to="/">{{ $t('regionalCenter.home') }}</router-link>
+          <router-link to="/">{{ $t("regionalCenter.home") }}</router-link>
           <span class="separator">›</span>
-          <router-link to="/regional-centers">{{ $t('nav.regionalCenters') }}</router-link>
+          <router-link to="/regional-centers">{{
+            $t("nav.regionalCenters")
+          }}</router-link>
           <span class="separator">›</span>
           <span>{{ rcData.name }}</span>
         </div>
@@ -15,23 +22,37 @@
         <div class="hero-stats">
           <div class="stat">
             <i class="bi bi-hospital"></i>
-            <span>{{ rcData.providerCount }}+ {{ $t('regionalCenter.resources') }}</span>
+            <span
+              >{{ rcData.providerCount }}+
+              {{ $t("regionalCenter.resources") }}</span
+            >
           </div>
           <div class="stat">
             <i class="bi bi-geo-alt"></i>
-            <span>{{ rcData.citiesCount }} {{ $t('regionalCenter.citiesServed') }}</span>
+            <span
+              >{{ rcData.citiesCount }}
+              {{ $t("regionalCenter.citiesServed") }}</span
+            >
           </div>
           <div class="stat">
             <i class="bi bi-people"></i>
-            <span>{{ rcData.population }} {{ $t('regionalCenter.residents') }}</span>
+            <span
+              >{{ rcData.population }}
+              {{ $t("regionalCenter.residents") }}</span
+            >
           </div>
         </div>
-        
+
         <!-- Hero CTA Button -->
         <div class="hero-cta">
-          <button @click="searchProviders" class="btn btn-primary btn-lg btn-hero">
+          <button
+            @click="searchProviders"
+            class="btn btn-primary btn-lg btn-hero"
+          >
             <i class="bi bi-map me-2"></i>
-            {{ $t('regionalCenter.viewAllResources', { name: rcData.shortName }) }}
+            {{
+              $t("regionalCenter.viewAllResources", { name: rcData.shortName })
+            }}
           </button>
         </div>
       </div>
@@ -41,12 +62,16 @@
     <section class="quick-search-section">
       <div class="container">
         <div class="search-card">
-          <h2>{{ $t('regionalCenter.findResourcesIn', { name: rcData.shortName }) }}</h2>
-          <p>{{ $t('regionalCenter.enterZipToSee') }}</p>
+          <h2>
+            {{
+              $t("regionalCenter.findResourcesIn", { name: rcData.shortName })
+            }}
+          </h2>
+          <p>{{ $t("regionalCenter.enterZipToSee") }}</p>
           <div class="search-form">
-            <input 
-              type="text" 
-              v-model="zipCode" 
+            <input
+              type="text"
+              v-model="zipCode"
               :placeholder="$t('regionalCenter.zipPlaceholder')"
               @keyup.enter="searchByZip"
               maxlength="5"
@@ -54,7 +79,7 @@
             />
             <button @click="searchByZip" class="btn btn-primary">
               <i class="bi bi-search me-2"></i>
-              {{ $t('regionalCenter.searchResourcesBtn') }}
+              {{ $t("regionalCenter.searchResourcesBtn") }}
             </button>
           </div>
         </div>
@@ -64,23 +89,29 @@
     <!-- Main Content -->
     <section class="content-section">
       <div class="container">
-        
         <!-- About This Regional Center -->
         <div class="content-block">
-          <h2>{{ $t('regionalCenter.aboutRc', { name: rcData.name }) }}</h2>
+          <h2>{{ $t("regionalCenter.aboutRc", { name: rcData.name }) }}</h2>
           <div class="rc-info-grid">
             <div class="rc-description">
               <p v-html="rcData.description"></p>
-              
+
               <div class="contact-info">
-                <h3>{{ $t('regionalCenter.contactInfo') }}</h3>
+                <h3>{{ $t("regionalCenter.contactInfo") }}</h3>
                 <div class="contact-item">
                   <i class="bi bi-telephone-fill"></i>
-                  <a :href="`tel:${rcData.phone}`">{{ rcData.phoneFormatted }}</a>
+                  <a :href="`tel:${rcData.phone}`">{{
+                    rcData.phoneFormatted
+                  }}</a>
                 </div>
                 <div class="contact-item">
                   <i class="bi bi-globe"></i>
-                  <a :href="rcData.website" target="_blank" rel="noopener noreferrer">{{ $t('regionalCenter.visitWebsite') }}</a>
+                  <a
+                    :href="formatWebsite(rcData.website)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >{{ $t("regionalCenter.visitWebsite") }}</a
+                  >
                 </div>
                 <div class="contact-item">
                   <i class="bi bi-geo-alt-fill"></i>
@@ -90,7 +121,7 @@
             </div>
 
             <div class="rc-highlights">
-              <h3>{{ $t('regionalCenter.serviceHighlights') }}</h3>
+              <h3>{{ $t("regionalCenter.serviceHighlights") }}</h3>
               <ul class="highlights-list">
                 <li v-for="highlight in rcData.highlights" :key="highlight">
                   <i class="bi bi-check-circle-fill"></i>
@@ -108,11 +139,21 @@
               <i class="bi bi-map"></i>
             </div>
             <div class="cta-content">
-              <h3>{{ $t('regionalCenter.readyToFindResources') }}</h3>
-              <p>{{ $t('regionalCenter.viewAllAbaResources', { name: rcData.shortName }) }}</p>
+              <h3>{{ $t("regionalCenter.readyToFindResources") }}</h3>
+              <p>
+                {{
+                  $t("regionalCenter.viewAllAbaResources", {
+                    name: rcData.shortName,
+                  })
+                }}
+              </p>
               <button @click="searchProviders" class="btn btn-primary">
                 <i class="bi bi-map me-2"></i>
-                {{ $t('regionalCenter.viewAllResources', { name: rcData.shortName }) }}
+                {{
+                  $t("regionalCenter.viewAllResources", {
+                    name: rcData.shortName,
+                  })
+                }}
               </button>
             </div>
           </div>
@@ -120,8 +161,10 @@
 
         <!-- Cities & ZIP Codes Served -->
         <div class="content-block">
-          <h2>{{ $t('regionalCenter.citiesCommunities') }}</h2>
-          <p>{{ $t('regionalCenter.citiesServedIntro', { name: rcData.name }) }}</p>
+          <h2>{{ $t("regionalCenter.citiesCommunities") }}</h2>
+          <p>
+            {{ $t("regionalCenter.citiesServedIntro", { name: rcData.name }) }}
+          </p>
           <div class="cities-grid">
             <div v-for="city in displayedCities" :key="city" class="city-chip">
               <i class="bi bi-geo-alt"></i>
@@ -129,22 +172,56 @@
             </div>
           </div>
           <div v-if="rcData.cities.length > 15" class="text-center mt-3">
-            <button @click="toggleCities" class="btn btn-outline-secondary btn-sm">
-              <i :class="showAllCities ? 'bi bi-chevron-up' : 'bi bi-chevron-down'" class="me-1"></i>
-              {{ showAllCities ? $t('regionalCenter.showLess') : $t('regionalCenter.showAllCities', { count: rcData.cities.length }) }}
+            <button
+              @click="toggleCities"
+              class="btn btn-outline-secondary btn-sm"
+            >
+              <i
+                :class="
+                  showAllCities ? 'bi bi-chevron-up' : 'bi bi-chevron-down'
+                "
+                class="me-1"
+              ></i>
+              {{
+                showAllCities
+                  ? $t("regionalCenter.showLess")
+                  : $t("regionalCenter.showAllCities", {
+                      count: rcData.cities.length,
+                    })
+              }}
             </button>
           </div>
-          
+
           <div class="zip-section">
-            <h3>{{ $t('regionalCenter.zipCodesIn', { name: rcData.shortName }) }}</h3>
-            <p class="text-muted">{{ $t('regionalCenter.zipCodesServed', { name: rcData.name }) }}</p>
+            <h3>
+              {{ $t("regionalCenter.zipCodesIn", { name: rcData.shortName }) }}
+            </h3>
+            <p class="text-muted">
+              {{ $t("regionalCenter.zipCodesServed", { name: rcData.name }) }}
+            </p>
             <div class="zip-codes">
-              <span v-for="zip in displayedZips" :key="zip" class="zip-badge">{{ zip }}</span>
+              <span v-for="zip in displayedZips" :key="zip" class="zip-badge">{{
+                zip
+              }}</span>
             </div>
             <div v-if="rcData.zipCodes.length > 30" class="text-center mt-3">
-              <button @click="toggleZips" class="btn btn-outline-secondary btn-sm">
-                <i :class="showAllZips ? 'bi bi-chevron-up' : 'bi bi-chevron-down'" class="me-1"></i>
-                {{ showAllZips ? $t('regionalCenter.showLess') : $t('regionalCenter.showAllZips', { count: rcData.zipCodes.length }) }}
+              <button
+                @click="toggleZips"
+                class="btn btn-outline-secondary btn-sm"
+              >
+                <i
+                  :class="
+                    showAllZips ? 'bi bi-chevron-up' : 'bi bi-chevron-down'
+                  "
+                  class="me-1"
+                ></i>
+                {{
+                  showAllZips
+                    ? $t("regionalCenter.showLess")
+                    : $t("regionalCenter.showAllZips", {
+                        count: rcData.zipCodes.length,
+                      })
+                }}
               </button>
             </div>
           </div>
@@ -152,91 +229,111 @@
 
         <!-- Services Available -->
         <div class="content-block highlight-block">
-          <h2>{{ $t('regionalCenter.servicesAvailable', { name: rcData.shortName }) }}</h2>
-          <p>{{ $t('regionalCenter.eligibleFor', { name: rcData.name }) }}</p>
+          <h2>
+            {{
+              $t("regionalCenter.servicesAvailable", { name: rcData.shortName })
+            }}
+          </h2>
+          <p>{{ $t("regionalCenter.eligibleFor", { name: rcData.name }) }}</p>
           <div class="services-grid">
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-clipboard2-pulse"></i>
               </div>
-              <h3>{{ $t('regionalCenter.abaTherapy') }}</h3>
-              <p>{{ $t('regionalCenter.abaTherapyDesc') }}</p>
+              <h3>{{ $t("regionalCenter.abaTherapy") }}</h3>
+              <p>{{ $t("regionalCenter.abaTherapyDesc") }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-chat-dots"></i>
               </div>
-              <h3>{{ $t('regionalCenter.speechTherapy') }}</h3>
-              <p>{{ $t('regionalCenter.speechTherapyDesc') }}</p>
+              <h3>{{ $t("regionalCenter.speechTherapy") }}</h3>
+              <p>{{ $t("regionalCenter.speechTherapyDesc") }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-activity"></i>
               </div>
-              <h3>{{ $t('regionalCenter.occupationalTherapy') }}</h3>
-              <p>{{ $t('regionalCenter.occupationalTherapyDesc') }}</p>
+              <h3>{{ $t("regionalCenter.occupationalTherapy") }}</h3>
+              <p>{{ $t("regionalCenter.occupationalTherapyDesc") }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-person-walking"></i>
               </div>
-              <h3>{{ $t('regionalCenter.physicalTherapy') }}</h3>
-              <p>{{ $t('regionalCenter.physicalTherapyDesc') }}</p>
+              <h3>{{ $t("regionalCenter.physicalTherapy") }}</h3>
+              <p>{{ $t("regionalCenter.physicalTherapyDesc") }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-people"></i>
               </div>
-              <h3>{{ $t('regionalCenter.socialSkillsGroups') }}</h3>
-              <p>{{ $t('regionalCenter.socialSkillsGroupsDesc') }}</p>
+              <h3>{{ $t("regionalCenter.socialSkillsGroups") }}</h3>
+              <p>{{ $t("regionalCenter.socialSkillsGroupsDesc") }}</p>
             </div>
             <div class="service-card">
               <div class="service-icon">
                 <i class="bi bi-house-heart"></i>
               </div>
-              <h3>{{ $t('regionalCenter.respiteCare') }}</h3>
-              <p>{{ $t('regionalCenter.respiteCareDesc') }}</p>
+              <h3>{{ $t("regionalCenter.respiteCare") }}</h3>
+              <p>{{ $t("regionalCenter.respiteCareDesc") }}</p>
             </div>
           </div>
         </div>
 
         <!-- How to Get Services -->
         <div class="content-block">
-          <h2>{{ $t('regionalCenter.howToAccessServices') }}</h2>
+          <h2>{{ $t("regionalCenter.howToAccessServices") }}</h2>
           <div class="steps">
             <div class="step">
               <div class="step-number">1</div>
               <div class="step-content">
-                <h3>{{ $t('regionalCenter.contactRc', { name: rcData.shortName }) }}</h3>
-                <p>{{ $t('regionalCenter.contactRcDesc', { phone: rcData.phoneFormatted }) }}</p>
+                <h3>
+                  {{
+                    $t("regionalCenter.contactRc", { name: rcData.shortName })
+                  }}
+                </h3>
+                <p>
+                  {{
+                    $t("regionalCenter.contactRcDesc", {
+                      phone: rcData.phoneFormatted,
+                    })
+                  }}
+                </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">2</div>
               <div class="step-content">
-                <h3>{{ $t('regionalCenter.intakeAssessment') }}</h3>
-                <p>{{ $t('regionalCenter.intakeAssessmentDesc') }}</p>
+                <h3>{{ $t("regionalCenter.intakeAssessment") }}</h3>
+                <p>{{ $t("regionalCenter.intakeAssessmentDesc") }}</p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">3</div>
               <div class="step-content">
-                <h3>{{ $t('regionalCenter.developIpp') }}</h3>
-                <p>{{ $t('regionalCenter.developIppDesc') }}</p>
+                <h3>{{ $t("regionalCenter.developIpp") }}</h3>
+                <p>{{ $t("regionalCenter.developIppDesc") }}</p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">4</div>
               <div class="step-content">
-                <h3>{{ $t('regionalCenter.chooseResources') }}</h3>
-                <p>{{ $t('regionalCenter.chooseResourcesDesc', { name: rcData.shortName }) }}</p>
+                <h3>{{ $t("regionalCenter.chooseResources") }}</h3>
+                <p>
+                  {{
+                    $t("regionalCenter.chooseResourcesDesc", {
+                      name: rcData.shortName,
+                    })
+                  }}
+                </p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">5</div>
               <div class="step-content">
-                <h3>{{ $t('regionalCenter.beginServices') }}</h3>
-                <p>{{ $t('regionalCenter.beginServicesDesc') }}</p>
+                <h3>{{ $t("regionalCenter.beginServices") }}</h3>
+                <p>{{ $t("regionalCenter.beginServicesDesc") }}</p>
               </div>
             </div>
           </div>
@@ -244,27 +341,41 @@
 
         <!-- CTA Section -->
         <div class="cta-section">
-          <h2>{{ $t('regionalCenter.findAbaResources', { name: rcData.shortName }) }}</h2>
-          <p>{{ $t('regionalCenter.viewResourcesOnMap', { name: rcData.shortName }) }}</p>
+          <h2>
+            {{
+              $t("regionalCenter.findAbaResources", { name: rcData.shortName })
+            }}
+          </h2>
+          <p>
+            {{
+              $t("regionalCenter.viewResourcesOnMap", {
+                name: rcData.shortName,
+              })
+            }}
+          </p>
           <div class="cta-buttons">
             <button @click="searchProviders" class="btn btn-primary btn-lg">
               <i class="bi bi-map me-2"></i>
-              {{ $t('regionalCenter.viewAllResources', { name: rcData.shortName }) }}
+              {{
+                $t("regionalCenter.viewAllResources", {
+                  name: rcData.shortName,
+                })
+              }}
             </button>
             <router-link to="/faq" class="btn btn-outline-light btn-lg">
               <i class="bi bi-question-circle me-2"></i>
-              {{ $t('regionalCenter.learnMore') }}
+              {{ $t("regionalCenter.learnMore") }}
             </router-link>
           </div>
         </div>
 
         <!-- Other Regional Centers -->
         <div class="content-block">
-          <h2>{{ $t('regionalCenter.otherRcTitle') }}</h2>
-          <p>{{ $t('regionalCenter.notInRc', { name: rcData.shortName }) }}</p>
+          <h2>{{ $t("regionalCenter.otherRcTitle") }}</h2>
+          <p>{{ $t("regionalCenter.notInRc", { name: rcData.shortName }) }}</p>
           <div class="rc-links-grid">
-            <router-link 
-              v-for="rc in otherRegionalCenters" 
+            <router-link
+              v-for="rc in otherRegionalCenters"
               :key="rc.slug"
               :to="`/regional-centers/${rc.slug}`"
               class="rc-link-card"
@@ -275,174 +386,193 @@
             </router-link>
           </div>
         </div>
-
       </div>
     </section>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import { REGIONAL_CENTERS } from '@/data/regionalCenters';
+import { ref, computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+import { REGIONAL_CENTERS } from "@/data/regionalCenters";
+import { useSeo } from "@/composables/useSeo";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.kinddhelp.com';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://api.kinddhelp.com";
 
 export default {
-  name: 'RegionalCenterView',
-  
+  name: "RegionalCenterView",
+
   setup() {
     const { t } = useI18n();
     const route = useRoute();
     const router = useRouter();
-    const zipCode = ref('');
+
+    useSeo(() => ({ path: `/regional-centers/${route.params.slug}` }));
+    const zipCode = ref("");
     const actualZipCodes = ref([]);
     const actualCities = ref([]);
     const loading = ref(true);
     const showAllCities = ref(false);
     const showAllZips = ref(false);
-    
+
     const rcSlug = computed(() => route.params.slug);
     const rcData = computed(() => {
       const baseData = REGIONAL_CENTERS[rcSlug.value] || {};
       // Replace hardcoded data with actual data from API
       return {
         ...baseData,
-        zipCodes: actualZipCodes.value.length > 0 ? actualZipCodes.value : baseData.zipCodes || [],
-        cities: actualCities.value.length > 0 ? actualCities.value : baseData.cities || []
+        zipCodes:
+          actualZipCodes.value.length > 0
+            ? actualZipCodes.value
+            : baseData.zipCodes || [],
+        cities:
+          actualCities.value.length > 0
+            ? actualCities.value
+            : baseData.cities || [],
       };
     });
-    
+
     // Display limited items initially (approximately 3 rows)
     const displayedCities = computed(() => {
       const cities = rcData.value.cities || [];
       if (showAllCities.value || cities.length <= 15) return cities;
       return cities.slice(0, 15); // Show first 15 (approx 3 rows)
     });
-    
+
     const displayedZips = computed(() => {
       const zips = rcData.value.zipCodes || [];
       if (showAllZips.value || zips.length <= 30) return zips;
       return zips.slice(0, 30); // Show first 30 (approx 3 rows)
     });
-    
+
     const toggleCities = () => {
       showAllCities.value = !showAllCities.value;
     };
-    
+
     const toggleZips = () => {
       showAllZips.value = !showAllZips.value;
     };
-    
+
     const otherRegionalCenters = computed(() => {
       return Object.values(REGIONAL_CENTERS)
-        .filter(rc => rc.slug !== rcSlug.value)
-        .map(rc => ({
+        .filter((rc) => rc.slug !== rcSlug.value)
+        .map((rc) => ({
           name: rc.shortName,
           slug: rc.slug,
-          tagline: rc.tagline
+          tagline: rc.tagline,
         }));
     });
-    
+
     const searchProviders = () => {
       // Navigate to map and show all providers for this regional center
       // Use regional center name for API query to show all relevant providers
       router.push({
-        path: '/',
-        query: { 
-          q: rcData.value.name,  // Search by regional center name
-          regionalCenter: rcData.value.name  // Explicit regional center filter
-        }
+        path: "/",
+        query: {
+          q: rcData.value.name, // Search by regional center name
+          regionalCenter: rcData.value.name, // Explicit regional center filter
+        },
       });
     };
-    
+
     const searchByZip = () => {
       // Navigate to map with specific ZIP code search
       if (zipCode.value && zipCode.value.length === 5) {
         router.push({
-          path: '/',
-          query: { q: zipCode.value }
+          path: "/",
+          query: { q: zipCode.value },
         });
       }
     };
-    
+
+    const formatWebsite = (website) => {
+      if (!website) return "";
+      return website.startsWith("http") ? website : `https://${website}`;
+    };
+
     const fetchActualData = async () => {
       try {
         loading.value = true;
         const response = await fetch(`${API_BASE_URL}/api/regional-centers/`);
         const data = await response.json();
-        
+
         // API returns paginated response with results array
         const regionalCenters = data.results || data;
-        
+
         // Find the matching regional center by name
-        const matchingRC = regionalCenters.find(rc => 
-          rc.regional_center === rcData.value.name
+        const matchingRC = regionalCenters.find(
+          (rc) => rc.regional_center === rcData.value.name
         );
-        
+
         if (matchingRC) {
           // Fetch ZIP codes from API
           if (matchingRC.zip_codes) {
             actualZipCodes.value = matchingRC.zip_codes;
-            console.log(`✅ Loaded ${actualZipCodes.value.length} ZIP codes for ${matchingRC.regional_center} from API`);
+            console.log(
+              `✅ Loaded ${actualZipCodes.value.length} ZIP codes for ${matchingRC.regional_center} from API`
+            );
           }
-          
+
           // Fetch cities/service areas from API
           if (matchingRC.service_areas) {
             actualCities.value = matchingRC.service_areas;
-            console.log(`✅ Loaded ${actualCities.value.length} cities for ${matchingRC.regional_center} from API`);
+            console.log(
+              `✅ Loaded ${actualCities.value.length} cities for ${matchingRC.regional_center} from API`
+            );
           }
         }
       } catch (error) {
-        console.error('Error fetching data from API:', error);
+        console.error("Error fetching data from API:", error);
       } finally {
         loading.value = false;
       }
     };
-    
+
     onMounted(async () => {
       // Fetch actual ZIP codes and cities from API
       await fetchActualData();
-      
+
       // Track page view
       if (window.gtag) {
-        window.gtag('event', 'page_view', {
+        window.gtag("event", "page_view", {
           page_title: `${rcData.value.name} | KINDD`,
-          page_path: route.path
+          page_path: route.path,
         });
       }
     });
-    
+
     // Watch for route changes (when clicking other RC links)
     watch(rcSlug, async (newSlug, oldSlug) => {
       if (newSlug !== oldSlug) {
         // Reset UI state
         showAllCities.value = false;
         showAllZips.value = false;
-        zipCode.value = '';
-        
+        zipCode.value = "";
+
         // Scroll to top of page
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
         // Refetch data for new regional center
         await fetchActualData();
-        
+
         // Track page view
         if (window.gtag) {
-          window.gtag('event', 'page_view', {
+          window.gtag("event", "page_view", {
             page_title: `${rcData.value.name} | KINDD`,
-            page_path: route.path
+            page_path: route.path,
           });
         }
       }
     });
-    
+
     return {
       t,
       rcData,
       otherRegionalCenters,
       zipCode,
+      formatWebsite,
       searchProviders,
       searchByZip,
       loading,
@@ -451,9 +581,9 @@ export default {
       showAllCities,
       showAllZips,
       toggleCities,
-      toggleZips
+      toggleZips,
     };
-  }
+  },
 };
 </script>
 
@@ -472,15 +602,22 @@ export default {
 }
 
 .hero-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+  background: radial-gradient(
+      circle at 20% 50%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 50%
+    ),
     linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.1) 100%);
   pointer-events: none;
 }
@@ -563,8 +700,8 @@ export default {
 }
 
 .btn-hero {
-  background-color: #FFC923 !important;
-  border-color: #FFC923 !important;
+  background-color: #ffc923 !important;
+  border-color: #ffc923 !important;
   color: #004877 !important;
   font-weight: 600;
   padding: 1rem 2.5rem;
@@ -591,9 +728,7 @@ export default {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   padding: 2.5rem;
   border-radius: 16px;
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.1),
-    0 1px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 8px rgba(0, 0, 0, 0.06);
   text-align: center;
   border: 1px solid rgba(0, 72, 119, 0.1);
   position: relative;
@@ -601,7 +736,7 @@ export default {
 }
 
 .search-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -613,8 +748,12 @@ export default {
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .search-card h2 {
@@ -666,17 +805,13 @@ export default {
   padding: 2.5rem;
   border-radius: 12px;
   margin-bottom: 2rem;
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.06),
-    0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
   border-left: 4px solid #004877;
   transition: all 0.3s ease;
 }
 
 .content-block:hover {
-  box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 2px 6px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
   transform: translateY(-2px);
 }
 
@@ -765,7 +900,7 @@ export default {
 }
 
 .highlights-list i {
-  color: #4DAA50;
+  color: #4daa50;
   font-size: 1.25rem;
   flex-shrink: 0;
   margin-top: 0.1rem;
@@ -786,13 +921,13 @@ export default {
   padding: 0.75rem 1rem;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 3px solid #0D9DDB;
+  border-left: 3px solid #0d9ddb;
   font-weight: 500;
   color: #212529;
 }
 
 .city-chip i {
-  color: #0D9DDB;
+  color: #0d9ddb;
 }
 
 /* ZIP Codes */
@@ -813,9 +948,9 @@ export default {
   display: inline-block;
   padding: 0.5rem 1rem;
   background: #e7f3ff;
-  border: 1px solid #0D9DDB;
+  border: 1px solid #0d9ddb;
   border-radius: 6px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-weight: 600;
   color: #004877;
   font-size: 0.9rem;
@@ -838,7 +973,7 @@ export default {
 }
 
 .service-card:hover {
-  border-color: #FFC923;
+  border-color: #ffc923;
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -876,7 +1011,7 @@ export default {
   flex-shrink: 0;
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #004877, #0D9DDB);
+  background: linear-gradient(135deg, #004877, #0d9ddb);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -900,7 +1035,7 @@ export default {
 /* Inline CTA Card */
 .cta-inline {
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border: 2px solid #0D9DDB;
+  border: 2px solid #0d9ddb;
   border-radius: 12px;
   padding: 0;
   margin: 2rem 0;
@@ -917,7 +1052,7 @@ export default {
   flex-shrink: 0;
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%);
+  background: linear-gradient(135deg, #004877 0%, #0d9ddb 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -944,8 +1079,8 @@ export default {
 }
 
 .cta-content .btn {
-  background-color: #0D9DDB;
-  border-color: #0D9DDB;
+  background-color: #0d9ddb;
+  border-color: #0d9ddb;
   color: white;
   font-weight: 600;
   padding: 0.75rem 2rem;
@@ -962,7 +1097,7 @@ export default {
 }
 
 .cta-section {
-  background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%);
+  background: linear-gradient(135deg, #004877 0%, #0d9ddb 100%);
   color: white;
   padding: 3rem;
   border-radius: 12px;
@@ -991,8 +1126,8 @@ export default {
 }
 
 .btn-primary {
-  background-color: #FFC923;
-  border-color: #FFC923;
+  background-color: #ffc923;
+  border-color: #ffc923;
   color: #004877;
   font-weight: 600;
   padding: 0.75rem 2rem;
@@ -1049,7 +1184,7 @@ export default {
 }
 
 .rc-link-card:hover {
-  border-color: #0D9DDB;
+  border-color: #0d9ddb;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -1071,7 +1206,7 @@ export default {
   top: 1.5rem;
   right: 1.5rem;
   font-size: 1.5rem;
-  color: #0D9DDB;
+  color: #0d9ddb;
   transition: transform 0.3s ease;
 }
 
@@ -1082,7 +1217,7 @@ export default {
 /* Highlight Block */
 .highlight-block {
   background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
-  border-left: 6px solid #0D9DDB;
+  border-left: 6px solid #0d9ddb;
 }
 
 /* Responsive */
@@ -1153,4 +1288,3 @@ export default {
   }
 }
 </style>
-
