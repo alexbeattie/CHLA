@@ -29,7 +29,9 @@
             />
           </router-link>
           <span class="brand-separator d-none d-md-inline">|</span>
-          <span class="brand-subtitle d-none d-md-inline">NDD Resource Map</span>
+          <span class="brand-subtitle d-none d-md-inline"
+            >NDD Resource Map</span
+          >
         </div>
 
         <nav class="navbar-links d-none d-md-flex">

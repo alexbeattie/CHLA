@@ -55,6 +55,34 @@ export default defineConfig(({ mode, command }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
+    build: {
+      // Mapbox GL is intentionally large; keep it isolated in its own vendor
+      // chunk while raising the warning threshold to avoid noisy deploy output.
+      chunkSizeWarningLimit: 1700,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) {
+              return undefined
+            }
+            if (id.includes('mapbox-gl')) {
+              return 'vendor-mapbox'
+            }
+            if (
+              id.includes('jspdf') ||
+              id.includes('html2canvas') ||
+              id.includes('dompurify')
+            ) {
+              return 'vendor-pdf'
+            }
+            if (id.includes('vue') || id.includes('pinia')) {
+              return 'vendor-vue'
+            }
+            return 'vendor'
+          },
+        },
+      },
+    },
     server: {
       port: env.VITE_PORT || 3000,
       proxy: {
