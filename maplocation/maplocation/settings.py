@@ -191,6 +191,8 @@ default_cors = [
     "http://127.0.0.1:3002",
     "http://localhost:3003",
     "http://127.0.0.1:3003",
+    "https://kinddhelp.org",
+    "https://www.kinddhelp.org",
     "https://kinddhelp.com",
     "https://www.kinddhelp.com",
 ]
@@ -223,6 +225,11 @@ default_csrf_origins = [
     "http://127.0.0.1:3001",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://api.kinddhelp.com",
+    "https://kinddhelp.org",
+    "https://www.kinddhelp.org",
+    "https://kinddhelp.com",
+    "https://www.kinddhelp.com",
 ]
 
 if csrf_from_env:
