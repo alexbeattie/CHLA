@@ -604,6 +604,26 @@
         @viewport-change="handleViewportChange"
       />
 
+      <div
+        v-if="locationStore && locationStore.locations.length > 0"
+        class="map-layer-controls"
+        @click.stop
+      >
+        <button
+          type="button"
+          class="map-layer-toggle"
+          :class="{ active: locationStore.showInclusivePlaygrounds }"
+          :aria-pressed="locationStore.showInclusivePlaygrounds"
+          @click="toggleInclusivePlaygrounds"
+        >
+          <i class="bi bi-tree-fill" aria-hidden="true"></i>
+          <span>Playgrounds</span>
+          <span class="map-layer-count">{{
+            locationStore.locations.length
+          }}</span>
+        </button>
+      </div>
+
       <!-- Provider Details Overlay -->
       <provider-details
         v-if="providerStore && providerStore.selectedProvider"
@@ -708,6 +728,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 import { useProviderStore } from "@/stores/providerStore";
 import { useMapStore } from "@/stores/mapStore";
 import { useFilterStore } from "@/stores/filterStore";
+import { useLocationStore } from "@/stores/locationStore";
 
 // Services
 import {
@@ -779,6 +800,7 @@ export default {
       providerStore: null,
       mapStore: null,
       filterStore: null,
+      locationStore: null,
 
       // Composables (initialized in created())
       geolocation: null,
@@ -810,7 +832,7 @@ export default {
       selectedRegionalCenterDistance: null,
 
       // Display type
-      displayType: "providers", // 'regionalCenters' or 'providers'
+      displayType: "providers", // 'regionalCenters', 'providers', or 'locations'
 
       // Regional Center Legend in navbar
       showRCLegend: false,
@@ -1060,7 +1082,7 @@ export default {
 
     // Filtered locations
     filteredLocations() {
-      return this.locations;
+      return this.locationStore?.locations || this.locations;
     },
 
     // LA Regional Centers list with colors and abbreviations
@@ -1127,6 +1149,7 @@ export default {
     this.providerStore = useProviderStore();
     this.mapStore = useMapStore();
     this.filterStore = useFilterStore();
+    this.locationStore = useLocationStore();
 
     // Initialize composables
     const geolocation = useGeolocation();
@@ -1202,6 +1225,7 @@ export default {
 
     // Fetch regional centers data
     await this.regionalCenterData.fetchRegionalCenters();
+    await this.locationStore.loadInclusivePlaygrounds();
 
     // Check if onboarding should be shown
     this.checkOnboardingStatus();
@@ -2134,14 +2158,20 @@ export default {
         // Create marker element
         const el = document.createElement("div");
         el.className = "regional-center-marker";
-        el.style.width = "24px";
-        el.style.height = "24px";
+        el.innerHTML = '<i class="bi bi-building-fill" aria-hidden="true"></i>';
+        el.style.width = "30px";
+        el.style.height = "30px";
+        el.style.display = "flex";
+        el.style.alignItems = "center";
+        el.style.justifyContent = "center";
         el.style.borderRadius = "50%";
-        el.style.backgroundColor = "#10b981"; // Green for regional centers
-        el.style.border = "3px solid white";
-        el.style.boxShadow = "0 2px 6px rgba(0,0,0,0.4)";
+        el.style.backgroundColor = "#7c3aed"; // Purple for regional centers
+        el.style.color = "#ffffff";
+        el.style.border = "2px solid white";
+        el.style.boxShadow = "0 2px 7px rgba(15,23,42,0.3)";
         el.style.cursor = "pointer";
         el.style.zIndex = "100";
+        el.setAttribute("aria-label", `Regional center: ${center.name}`);
 
         // Create marker
         const marker = new mapboxgl.Marker(el)
@@ -2891,7 +2921,8 @@ export default {
     },
 
     // Update filtered locations based on filters
-    async updateFilteredLocations() {
+    async updateFilteredLocations(options = {}) {
+      const { validateLocation = true } = options || {};
       console.log("Universal search with text:", this.searchText);
       console.log("Filters:", this.filterOptions);
       console.log("Current radius:", this.radius);
@@ -2906,6 +2937,17 @@ export default {
         // UNIVERSAL SEARCH: Handle different types of input
         if (this.searchText && this.searchText.trim()) {
           const query = this.searchText.trim();
+
+          if (
+            !validateLocation &&
+            (/^\d{1,5}$/.test(query) || looksLikeAddress(query))
+          ) {
+            console.log(
+              "Deferring address/ZIP validation until explicit search:",
+              query
+            );
+            return;
+          }
 
           // Detect if it's a standalone ZIP code (5 digits)
           const zipCode = detectStandaloneZip(query);
@@ -2946,7 +2988,7 @@ export default {
 
           // Check if it looks like an address (contains comma, or street number, or city/state)
           // This catches: "123 Main St", "Main St, LA", "Los Angeles, CA", etc.
-          if (looksLikeAddress(query)) {
+          if (looksLikeAddress(query) && validateLocation) {
             console.log("Address detected:", query);
 
             // Only check for ZIP code if it appears AFTER "CA" or at the end
@@ -3084,6 +3126,7 @@ export default {
     // Debounce search to prevent too many updates
     debounceSearch() {
       console.log("debounceSearch called, searchText:", this.searchText);
+      this.error = null;
       if (this.searchDebounce) {
         clearTimeout(this.searchDebounce);
       }
@@ -3094,7 +3137,7 @@ export default {
         if (this.map) {
           this.map.stop();
         }
-        this.updateFilteredLocations();
+        this.updateFilteredLocations({ validateLocation: false });
       }, 500); // Increased delay to reduce jankiness
     },
 
@@ -3453,9 +3496,100 @@ export default {
       }
     },
 
+    resetMapOverlayPaintState() {
+      if (!this.map) return;
+
+      const centerNames = getRegionalCentersList();
+      const regionalCenterColorMatch = [
+        "match",
+        ["get", "REGIONALCENTER"],
+        ...centerNames.flatMap((rc) => [rc.name, rc.color]),
+        "#9e9e9e",
+      ];
+
+      const userRCName = this.userRegionalCenterName;
+      const regionalCenterOpacity = userRCName
+        ? ["case", ["==", ["get", "REGIONALCENTER"], userRCName], 0.25, 0.15]
+        : 0.15;
+
+      try {
+        if (this.map.getLayer("california-counties-fill")) {
+          this.map.setLayoutProperty(
+            "california-counties-fill",
+            "visibility",
+            "none"
+          );
+          this.map.setPaintProperty(
+            "california-counties-fill",
+            "fill-opacity",
+            0
+          );
+        }
+        if (this.map.getLayer("california-counties-outline")) {
+          this.map.setLayoutProperty(
+            "california-counties-outline",
+            "visibility",
+            "none"
+          );
+          this.map.setPaintProperty(
+            "california-counties-outline",
+            "line-opacity",
+            0
+          );
+        }
+        if (this.map.getLayer("rc-static-fill")) {
+          this.map.setLayoutProperty("rc-static-fill", "visibility", "visible");
+          this.map.setPaintProperty(
+            "rc-static-fill",
+            "fill-color",
+            regionalCenterColorMatch
+          );
+          this.map.setPaintProperty(
+            "rc-static-fill",
+            "fill-opacity",
+            regionalCenterOpacity
+          );
+        }
+        if (this.map.getLayer("rc-static-outline")) {
+          this.map.setLayoutProperty(
+            "rc-static-outline",
+            "visibility",
+            "visible"
+          );
+          this.map.setPaintProperty(
+            "rc-static-outline",
+            "line-color",
+            regionalCenterColorMatch
+          );
+          this.map.setPaintProperty("rc-static-outline", "line-opacity", 0.9);
+          this.map.setPaintProperty("rc-static-outline", "line-width", 3);
+        }
+        if (this.map.getLayer("la-zip-codes-fill")) {
+          this.map.setLayoutProperty("la-zip-codes-fill", "visibility", "none");
+        }
+        if (this.map.getLayer("la-zip-codes-outline")) {
+          this.map.setLayoutProperty(
+            "la-zip-codes-outline",
+            "visibility",
+            "none"
+          );
+        }
+      } catch (error) {
+        console.warn("[MapView] Could not reset overlay paint state:", error);
+      }
+
+      try {
+        if (this.map.getLayer("rc-static-fill"))
+          this.map.moveLayer("rc-static-fill");
+        if (this.map.getLayer("rc-static-outline"))
+          this.map.moveLayer("rc-static-outline");
+      } catch (_) {}
+    },
+
     // Set display type
     setDisplayType(type) {
       this.displayType = type;
+      this.resetMapOverlayPaintState();
 
       // Fetch data if needed
       if (type === "providers" && this.providers.length === 0) {
@@ -3465,6 +3599,8 @@ export default {
         this.regionalCenters.length === 0
       ) {
         this.regionalCenterData.fetchRegionalCenters();
+      } else if (type === "locations" && this.filteredLocations.length === 0) {
+        this.locationStore?.loadInclusivePlaygrounds();
       }
 
       // Update markers
@@ -3520,24 +3656,17 @@ export default {
             });
           }
         }
-        // Ensure service areas are visible and layers are present
-        (async () => {
-          try {
-            if (!this.serviceAreasLoaded) {
-              await this.fetchServiceAreas();
-            }
-            if (this.serviceAreasLoaded) {
-              if (
-                !this.map.getSource("service-areas") ||
-                !this.map.getLayer("california-counties-fill")
-              ) {
-                this.addServiceAreasToMap();
-              }
-              // Apply visual highlight to LA only (no camera move)
-              this.highlightLACountyVisual();
-            }
-          } catch (_) {}
-        })();
+        this.resetMapOverlayPaintState();
+      } else if (type === "locations") {
+        this.locationStore?.loadInclusivePlaygrounds();
+        this.resetMapOverlayPaintState();
+        if (this.map && !this.isMapMoving) {
+          this.map.flyTo({
+            center: [-118.2437, 34.0522],
+            zoom: 8.5,
+            duration: 600,
+          });
+        }
       }
     },
 
@@ -3564,8 +3693,37 @@ export default {
       } else if (this.displayType === "regionalCenters") {
         this.regionalCenterData.fetchRegionalCenters();
       } else {
-        this.updateFilteredLocations();
+        this.locationStore?.loadInclusivePlaygrounds();
       }
+    },
+
+    centerOnLocation(location) {
+      if (!location?.latitude || !location?.longitude) {
+        return;
+      }
+
+      this.locationStore?.selectLocation(location.id);
+      const coords = {
+        lat: Number(location.latitude),
+        lng: Number(location.longitude),
+      };
+
+      if (this.$refs.mapCanvas?.centerOn) {
+        this.$refs.mapCanvas.centerOn(coords, 14);
+      } else if (this.map) {
+        this.map.flyTo({
+          center: [coords.lng, coords.lat],
+          zoom: 14,
+          duration: 600,
+        });
+      }
+    },
+
+    toggleInclusivePlaygrounds() {
+      if (!this.locationStore) return;
+      this.locationStore.setShowInclusivePlaygrounds(
+        !this.locationStore.showInclusivePlaygrounds
+      );
     },
 
     handleRegionalCenterMatched(center) {
@@ -3691,8 +3849,11 @@ export default {
       }
     },
 
-    highlightLACountyVisual() {
+    highlightLACountyVisual({ force = false } = {}) {
       if (!this.map) return;
+      if (!force) {
+        return;
+      }
       if (this.map.getLayer("california-counties-fill")) {
         // Emphasize LA via color/opacity without adjusting camera
         this.map.setPaintProperty("california-counties-fill", "fill-opacity", [

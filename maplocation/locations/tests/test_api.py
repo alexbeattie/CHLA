@@ -5,6 +5,8 @@ Tests for API endpoints.
 import pytest
 from django.urls import reverse
 
+from locations.models import Location, LocationCategory
+
 
 @pytest.mark.django_db
 class TestRegionalCenterAPI:
@@ -73,3 +75,31 @@ class TestProviderAPI:
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
+
+
+@pytest.mark.django_db
+class TestLocationAPI:
+    """Tests for Location API endpoints."""
+
+    def test_list_playground_locations(self, api_client):
+        """Test listing inclusive playground locations."""
+        category = LocationCategory.objects.create(name="Inclusive Playgrounds")
+        Location.objects.create(
+            name="Test Playground",
+            address="123 Play St",
+            city="Los Angeles",
+            state="CA",
+            zip_code="90001",
+            latitude=34.0522,
+            longitude=-118.2437,
+            category=category,
+            is_accessible=True,
+        )
+
+        url = reverse("location-list")
+        response = api_client.get(url, {"category": category.id})
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
+        assert data["results"][0]["name"] == "Test Playground"

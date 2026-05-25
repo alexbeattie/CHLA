@@ -25,9 +25,12 @@ export function isLACountyZip(zipCode) {
 export function isInLACounty(lat, lng) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return false;
   if (isNaN(lat) || isNaN(lng)) return false;
-  
-  return lat >= 33.7 && lat <= 34.8 &&
-         lng >= -118.9 && lng <= -117.6;
+
+  // Use the same broad LA County envelope used by the map viewport logic.
+  // This is intentionally permissive because exact county membership should
+  // come from ZIP/regional-center data, not a brittle rectangle.
+  return lat >= 33.3 && lat <= 34.9 &&
+    lng >= -119.1 && lng <= -117.5;
 }
 
 /**
@@ -49,15 +52,15 @@ export function extractZipCode(text) {
  */
 export function extractZipFromAddress(address) {
   if (!address || typeof address !== 'string') return null;
-  
+
   // Look for ZIP after "CA" or "California"
   const afterCAMatch = address.match(/\b(?:CA|California)\s+(\d{5})\b/i);
   if (afterCAMatch) return afterCAMatch[1];
-  
+
   // Look for ZIP at end of address
   const endMatch = address.match(/,\s*(\d{5})$/);
   if (endMatch) return endMatch[1];
-  
+
   return null;
 }
 
@@ -68,11 +71,11 @@ export function extractZipFromAddress(address) {
  */
 export function looksLikeAddress(text) {
   if (!text || typeof text !== 'string') return false;
-  
+
   // Has comma, or starts with street number, or contains city/state
-  return /,/.test(text) || 
-         /^\d+\s+\w/.test(text) || 
-         /\b(ca|california|los angeles|la)\b/i.test(text);
+  return /,/.test(text) ||
+    /^\d+\s+\w/.test(text) ||
+    /\b(ca|california|los angeles|la)\b/i.test(text);
 }
 
 /**
@@ -84,9 +87,9 @@ export function looksLikeAddress(text) {
 export function isValidCaliforniaCoordinate(lat, lng) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return false;
   if (isNaN(lat) || isNaN(lng)) return false;
-  
+
   // California roughly: 32-42°N, -125--114°W
   return lat >= 32.0 && lat <= 42.0 &&
-         lng >= -125.0 && lng <= -114.0;
+    lng >= -125.0 && lng <= -114.0;
 }
 

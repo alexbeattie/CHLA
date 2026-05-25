@@ -232,6 +232,65 @@
   z-index: 9999; /* Above everything including map markers */
 }
 
+.map-layer-controls {
+  position: absolute;
+  top: 16px;
+  right: 64px;
+  z-index: 900;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.map-layer-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid rgba(22, 163, 74, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.14);
+  color: #14532d;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.map-layer-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
+}
+
+.map-layer-toggle.active {
+  background: #ecfdf3;
+  border-color: rgba(22, 163, 74, 0.42);
+}
+
+.map-layer-toggle i {
+  color: #16a34a;
+  font-size: 15px;
+}
+
+.map-layer-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .legend-item-compact {
   display: flex;
   align-items: center;
@@ -279,6 +338,7 @@
   align-items: center;
   gap: 8px;
   max-width: 280px;
+  overflow: hidden;
   padding: 6px 10px 6px 6px;
   background: color-mix(in srgb, var(--regional-center-color) 10%, #ffffff);
   border: 1px solid
@@ -301,6 +361,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 34px;
   height: 34px;
   border-radius: 999px;
@@ -314,6 +375,7 @@
 }
 
 .regional-center-identity-text {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1199,6 +1261,7 @@
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   border: none;
+  max-width: calc(100vw - 48px);
   overflow: hidden;
   max-height: 70vh;
   overflow-y: auto;
