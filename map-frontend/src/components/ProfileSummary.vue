@@ -150,31 +150,31 @@ export default {
 .profile-summary {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.875rem;
 }
 
 /* Card Base Styles */
 .profile-card,
 .regional-center-card,
 .no-profile-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e5e7eb;
+  background: rgba(248, 250, 252, 0.85);
+  border-radius: 20px;
+  padding: 1.1rem;
+  box-shadow: none;
+  border: 1px solid rgba(226, 232, 240, 0.85);
   transition: all 0.2s ease;
 }
 
 .profile-card:hover,
 .regional-center-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
 }
 
 /* Highlight Your Regional Center Card */
 .regional-center-card {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border: 2px solid #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(219, 234, 254, 0.95) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.24);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
 }
@@ -190,7 +190,7 @@ export default {
 }
 
 .regional-center-card:hover {
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 18px 32px rgba(59, 130, 246, 0.12);
   transform: translateY(-2px);
 }
 
@@ -356,8 +356,8 @@ export default {
 
 /* No Profile State */
 .no-profile-card {
-  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-  border: 2px dashed #d1d5db;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px dashed #cbd5e1;
   text-align: center;
 }
 

@@ -1,7 +1,7 @@
 <template>
   <div class="provider-list">
     <!-- List Header -->
-    <div class="list-header">
+    <div v-if="showHeader" class="list-header">
       <div class="header-content">
         <h2 class="list-title">
           <i class="bi bi-hospital"></i>
@@ -145,6 +145,11 @@ export default {
     },
     // Show sort controls
     showSortControls: {
+      type: Boolean,
+      default: true
+    },
+    // Show the list header block
+    showHeader: {
       type: Boolean,
       default: true
     },
@@ -443,14 +448,14 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #f9fafb;
+  background-color: transparent;
 }
 
 /* Header */
 .list-header {
-  padding: 16px;
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0 0 16px;
+  background: transparent;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
   flex-shrink: 0;
 }
 
@@ -465,7 +470,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #1f2937;
   margin: 0;
@@ -477,12 +482,12 @@ export default {
 }
 
 .provider-count {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: #6b7280;
-  background-color: #f3f4f6;
-  padding: 4px 12px;
-  border-radius: 12px;
+  color: #475569;
+  background-color: #eef2ff;
+  padding: 6px 12px;
+  border-radius: 999px;
 }
 
 /* Sort Controls */
@@ -501,11 +506,11 @@ export default {
 
 .sort-select {
   padding: 6px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
   font-size: 14px;
   color: #374151;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.88);
   cursor: pointer;
   transition: border-color 0.2s ease;
 }
@@ -594,7 +599,7 @@ export default {
 }
 
 .provider-items {
-  padding: 8px;
+  padding: 4px 0;
 }
 
 /* Scroll to Top Button */
@@ -630,19 +635,19 @@ export default {
 
 /* Load More */
 .load-more-container {
-  padding: 16px;
-  background: white;
-  border-top: 1px solid #e5e7eb;
+  padding: 20px 0 0;
+  background: transparent;
+  border-top: 0;
   flex-shrink: 0;
 }
 
 .load-more-btn {
   width: 100%;
-  padding: 12px;
-  background-color: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  padding: 13px 16px;
+  background-color: #f8fafc;
+  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 18px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -683,7 +688,7 @@ export default {
 /* Responsive */
 @media (max-width: 768px) {
   .list-header {
-    padding: 12px;
+    padding: 0 0 14px;
   }
 
   .list-title {
@@ -691,7 +696,7 @@ export default {
   }
 
   .provider-items {
-    padding: 12px;
+    padding: 4px 0;
   }
 
   .scroll-top-btn {

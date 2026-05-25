@@ -91,17 +91,6 @@
       </div>
     </nav>
 
-    <!-- Search Bar -->
-    <div v-if="!showOnboarding" class="search-bar-wrapper">
-      <search-bar
-        :placeholder="$t('search.placeholder')"
-        :show-results-summary="true"
-        :auto-focus="false"
-        @search="handleNewSearch"
-        @clear="handleSearchClear"
-      />
-    </div>
-
     <!-- Onboarding Flow -->
     <onboarding-flow
       :showOnboarding="showOnboarding"
@@ -126,127 +115,141 @@
     <div class="sidebar-container" :class="{ 'mobile-open': showMobileSidebar }">
       <!-- Unified Scrollable Content -->
       <div class="sidebar-content">
-        <!-- CHLA Header -->
-        <div class="chla-header">
-          <div class="chla-logo-container">
-            <img
-              src="@/assets/chla-logo.svg"
-              alt="Children's Hospital Los Angeles"
-              class="chla-logo"
-            />
-          </div>
-          <div class="chla-mission">
-            <p class="chla-tagline">{{ $t("sidebar.tagline") }}</p>
-          </div>
-        </div>
-
-        <!-- Simple Display Toggle -->
-        <div class="display-toggle mb-3">
-          <div class="btn-group w-100 d-flex">
+        <div class="sidebar-hero-card">
+          <div class="sidebar-brand-row">
+            <div class="chla-logo-container">
+              <img
+                src="@/assets/chla-logo.svg"
+                alt="Children's Hospital Los Angeles"
+                class="chla-logo"
+              />
+            </div>
             <button
-              class="btn flex-grow-1"
-              :class="{
-                'btn-chla-primary': displayType === 'regionalCenters',
-                'btn-chla-outline': displayType !== 'regionalCenters',
-              }"
-              @click="setDisplayType('regionalCenters')"
+              class="sidebar-hero-action"
+              @click="handleStartOver"
+              :title="$t('nav.startOver')"
             >
-              <i class="bi bi-building me-1"></i>
-              <span>{{ $t("sidebar.regionalCenters") }}</span>
-            </button>
-            <button
-              class="btn flex-grow-1"
-              :class="{
-                'btn-chla-primary': displayType === 'providers',
-                'btn-chla-outline': displayType !== 'providers',
-              }"
-              @click="setDisplayType('providers')"
-            >
-              <i class="bi bi-hospital me-1"></i>
-              <span>{{ $t("sidebar.services") }}</span>
+              <i class="bi bi-arrow-counterclockwise"></i>
+              <span>{{ $t("nav.startOver") }}</span>
             </button>
           </div>
+          <p class="sidebar-kicker">Los Angeles County</p>
+          <h1 class="sidebar-title">Compare nearby services with confidence.</h1>
+          <p class="sidebar-description">
+            Search by ZIP, address, provider, or service type and keep the map in
+            view while you compare options.
+          </p>
+
+          <div class="display-toggle display-toggle-hero">
+            <div class="btn-group w-100 d-flex">
+              <button
+                class="btn flex-grow-1"
+                :class="{
+                  'btn-chla-primary': displayType === 'regionalCenters',
+                  'btn-chla-outline': displayType !== 'regionalCenters',
+                }"
+                @click="setDisplayType('regionalCenters')"
+              >
+                <i class="bi bi-building me-1"></i>
+                <span>{{ $t("sidebar.regionalCenters") }}</span>
+              </button>
+              <button
+                class="btn flex-grow-1"
+                :class="{
+                  'btn-chla-primary': displayType === 'providers',
+                  'btn-chla-outline': displayType !== 'providers',
+                }"
+                @click="setDisplayType('providers')"
+              >
+                <i class="bi bi-hospital me-1"></i>
+                <span>{{ $t("sidebar.services") }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sidebar-meta-row">
+            <div class="sidebar-meta-pill">
+              <i class="bi bi-shield-check"></i>
+              <span>{{ $t("sidebar.tagline") }}</span>
+            </div>
+            <div class="sidebar-meta-pill">
+              <i class="bi bi-map"></i>
+              <span>{{ displayType === "providers" ? "Map + compare" : "Explore centers" }}</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Profile Summary Component (Collapsible) -->
-        <div
-          class="collapsible-section mb-3"
-          v-if="userData.age || userData.diagnosis || displayRegionalCenter"
-        >
-          <div class="collapsible-header" @click="toggleSection('profile')">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-person-circle text-primary me-2"></i>
-              <strong>{{ $t("sidebar.yourProfile") }}</strong>
+        <div class="sidebar-panel sidebar-panel-profile">
+          <div class="sidebar-panel-header">
+            <div>
+              <p class="sidebar-panel-kicker">Profile</p>
+              <h2>{{ $t("sidebar.yourProfile") }}</h2>
             </div>
-            <i
-              class="bi toggle-icon"
-              :class="sectionsCollapsed.profile ? 'bi-chevron-down' : 'bi-chevron-up'"
-            ></i>
+            <button class="sidebar-inline-action" @click="handleEditProfile">
+              {{ userData.age || userData.diagnosis || displayRegionalCenter ? "Edit" : "Set up" }}
+            </button>
           </div>
-          <div class="collapsible-content" v-show="!sectionsCollapsed.profile">
-            <profile-summary
-              :profile="userData"
-              :regional-center="displayRegionalCenter"
-              @edit-profile="handleEditProfile"
-            />
-          </div>
+          <profile-summary
+            :profile="userData"
+            :regional-center="displayRegionalCenter"
+            @edit-profile="handleEditProfile"
+          />
         </div>
 
-        <!-- Simple Search (Collapsible) -->
-        <!-- Search Section (only show for providers) -->
-        <div v-if="displayType === 'providers'" class="collapsible-section mb-3">
-          <div class="collapsible-header" @click="toggleSection('search')">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-search text-secondary me-2"></i>
-              <strong>{{ $t("sidebar.searchServices") }}</strong>
+        <div v-if="displayType === 'providers'" class="sidebar-panel sidebar-panel-search">
+          <div class="sidebar-panel-header">
+            <div>
+              <p class="sidebar-panel-kicker">Search</p>
+              <h2>{{ $t("sidebar.searchServices") }}</h2>
             </div>
-            <i
-              class="bi toggle-icon"
-              :class="sectionsCollapsed.search ? 'bi-chevron-down' : 'bi-chevron-up'"
-            ></i>
+            <button
+              v-if="searchText && searchText.trim()"
+              class="sidebar-inline-action"
+              type="button"
+              @click="clearSearch"
+            >
+              {{ $t("common.clear") }}
+            </button>
           </div>
-          <div class="collapsible-content" v-show="!sectionsCollapsed.search">
-            <div class="info-card-content">
-              <div class="input-group">
-                <input
-                  type="text"
-                  class="form-control"
-                  v-model.trim="searchText"
-                  :placeholder="$t('sidebar.searchPlaceholder')"
-                  @keyup.enter="updateFilteredLocations"
-                  @input="debounceSearch"
-                  @focus="console.log('Search input focused')"
-                  @blur="console.log('Search input blurred')"
-                />
-                <button
-                  v-if="searchText && searchText.trim()"
-                  class="btn btn-outline-secondary"
-                  type="button"
-                  @click="clearSearch"
-                  :title="$t('sidebar.clearSearch')"
-                >
-                  <i class="bi bi-x"></i>
-                </button>
-                <button
-                  class="btn btn-chla-primary"
-                  type="button"
-                  @click="updateFilteredLocations"
-                  :disabled="loading"
-                >
-                  <i class="bi bi-search" v-if="!loading"></i>
-                  <div class="spinner-border spinner-border-sm" role="status" v-else>
-                    <span class="visually-hidden">{{ $t("sidebar.searching") }}</span>
-                  </div>
-                </button>
-              </div>
-              <div class="small text-muted mt-2" v-if="displayType === 'providers'">
-                <em>{{ $t("sidebar.searchHint") }}</em>
-              </div>
-              <!-- Error Message Display -->
-              <div v-if="error" class="alert alert-danger mt-2 mb-0 py-2" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                {{ error }}
-              </div>
+
+          <div class="sidebar-search-shell">
+            <label class="sidebar-search-field">
+              <i class="bi bi-search"></i>
+              <input
+                type="text"
+                class="sidebar-search-input"
+                v-model.trim="searchText"
+                :placeholder="$t('sidebar.searchPlaceholder')"
+                @keyup.enter="updateFilteredLocations"
+                @input="debounceSearch"
+              />
+              <button
+                v-if="searchText && searchText.trim()"
+                class="sidebar-search-clear"
+                type="button"
+                @click="clearSearch"
+                :title="$t('sidebar.clearSearch')"
+              >
+                <i class="bi bi-x"></i>
+              </button>
+              <button
+                class="sidebar-search-submit"
+                type="button"
+                @click="updateFilteredLocations"
+                :disabled="loading"
+              >
+                <i class="bi bi-search" v-if="!loading"></i>
+                <div class="spinner-border spinner-border-sm" role="status" v-else>
+                  <span class="visually-hidden">{{ $t("sidebar.searching") }}</span>
+                </div>
+              </button>
+            </label>
+
+            <p class="sidebar-search-hint">{{ $t("sidebar.searchHint") }}</p>
+
+            <div v-if="error" class="sidebar-inline-error" role="alert">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              {{ error }}
             </div>
           </div>
         </div>
@@ -254,7 +257,7 @@
         <!-- Location Notice -->
         <!-- Location Notice - Only show if location not detected and no profile -->
         <div
-          class="location-notice mb-3"
+          class="location-notice sidebar-notice-card"
           v-if="!userLocation.detected && !userData.age && !userData.diagnosis"
         >
           <div class="form-control border-info bg-info bg-opacity-10">
@@ -270,108 +273,119 @@
           </div>
         </div>
 
-        <!-- Filter Section (Collapsible) -->
-        <div class="collapsible-section mb-3">
-          <div class="collapsible-header" @click="toggleSection('filters')">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-funnel-fill text-warning me-2"></i>
-              <strong>{{ $t("common.filters") }}</strong>
+        <!-- Filter Section -->
+        <div class="sidebar-panel sidebar-panel-filters">
+          <div class="sidebar-panel-header">
+            <div>
+              <p class="sidebar-panel-kicker">Refine</p>
+              <h2>{{ $t("common.filters") }}</h2>
             </div>
-            <i
-              class="bi toggle-icon"
-              :class="sectionsCollapsed.filters ? 'bi-chevron-down' : 'bi-chevron-up'"
-            ></i>
+            <span
+              v-if="filterStore && filterStore.activeFilterCount > 0"
+              class="sidebar-active-count"
+            >
+              {{ filterStore.activeFilterCount }} active
+            </span>
           </div>
-          <div class="collapsible-content" v-show="!sectionsCollapsed.filters">
-            <div class="info-card-content">
-              <!-- Radius Filter (when geolocation is available) -->
-              <div class="mb-3" v-if="userLocation.latitude && userLocation.longitude">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <label class="form-label mb-0 small">
-                    <span v-if="searchText && searchText.trim()">
-                      Search: "<strong>{{ searchText }}</strong
-                      >"
-                    </span>
-                    <span v-else>
-                      {{ $t("sidebar.distanceRadius") }}:
-                      <strong>{{ radius }} {{ $t("common.miles") }}</strong>
-                    </span>
-                  </label>
-                  <span class="badge bg-info small"
-                    >{{ countLocationsInRadius }} found</span
-                  >
-                </div>
-                <input
-                  type="range"
-                  v-model.number="radius"
-                  class="form-range"
-                  min="5"
-                  max="50"
-                  step="5"
-                  @input="onRadiusChange"
-                />
-                <div class="d-flex justify-content-between small text-muted">
-                  <span>5 miles</span>
-                  <span>50 miles</span>
-                </div>
-              </div>
 
-              <!-- Filter Panel -->
-              <filter-panel
-                v-if="filterStore"
-                :show-favorites="false"
-                :show-summary="true"
-                :manual-apply="false"
-                @filter-change="handleFilterChange"
-                @reset="handleFilterReset"
+          <div class="info-card-content">
+            <!-- Radius Filter (when geolocation is available) -->
+            <div class="sidebar-radius-card" v-if="userLocation.latitude && userLocation.longitude">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label mb-0 small">
+                  <span v-if="searchText && searchText.trim()">
+                    Search: "<strong>{{ searchText }}</strong
+                    >"
+                  </span>
+                  <span v-else>
+                    {{ $t("sidebar.distanceRadius") }}:
+                    <strong>{{ radius }} {{ $t("common.miles") }}</strong>
+                  </span>
+                </label>
+                <span class="badge bg-info small">{{ countLocationsInRadius }} found</span>
+              </div>
+              <input
+                type="range"
+                v-model.number="radius"
+                class="form-range"
+                min="5"
+                max="50"
+                step="5"
+                @input="onRadiusChange"
               />
-
-              <!-- Browse All Resources Link -->
-              <div class="mt-3 text-center">
-                <a href="#" class="browse-all-link" @click.prevent="loadAllProviders">
-                  {{ $t("sidebar.browseAll") }}
-                </a>
+              <div class="d-flex justify-content-between small text-muted">
+                <span>5 miles</span>
+                <span>50 miles</span>
               </div>
+            </div>
+
+            <!-- Filter Panel -->
+            <filter-panel
+              v-if="filterStore"
+              :show-favorites="false"
+              :show-summary="true"
+              :manual-apply="false"
+              @filter-change="handleFilterChange"
+              @reset="handleFilterReset"
+            />
+
+            <!-- Browse All Resources Link -->
+            <div class="sidebar-footer-link">
+              <a href="#" class="browse-all-link" @click.prevent="loadAllProviders">
+                {{ $t("sidebar.browseAll") }}
+              </a>
             </div>
           </div>
         </div>
 
         <!-- Results Section with Sticky Header -->
-        <div class="results-section">
+        <div class="results-section sidebar-panel">
           <!-- Sticky Header -->
           <div class="results-sticky-header">
-            <div class="info-card-header">
+            <div class="results-header-copy">
+              <p class="results-kicker">
+                {{ displayType === "regionalCenters" ? "Explore" : "Matches" }}
+              </p>
+              <div class="info-card-header">
+                <div class="d-flex align-items-center flex-grow-1">
+                  <i
+                    :class="
+                      displayType === 'regionalCenters'
+                        ? 'bi bi-building-fill text-info me-2'
+                        : 'bi bi-list-ul text-success me-2'
+                    "
+                  ></i>
+                  <strong>
+                    {{
+                      displayType === "locations"
+                        ? "Locations"
+                        : displayType === "regionalCenters"
+                        ? $t("nav.regionalCenters")
+                        : $t("provider.providers")
+                    }}
+                  </strong>
+                  <span
+                    :class="
+                      displayType === 'regionalCenters'
+                        ? 'badge bg-info ms-2'
+                        : 'badge bg-success ms-2'
+                    "
+                  >
+                    {{
+                      displayType === "locations"
+                        ? filteredLocations.length
+                        : displayType === "regionalCenters"
+                        ? regionalCenterData?.regionalCenters?.length || 0
+                        : filteredProviders.length
+                    }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="results-header-actions">
               <div class="d-flex align-items-center flex-grow-1">
-                <i
-                  :class="
-                    displayType === 'regionalCenters'
-                      ? 'bi bi-building-fill text-info me-2'
-                      : 'bi bi-list-ul text-success me-2'
-                  "
-                ></i>
-                <strong>
-                  {{
-                    displayType === "locations"
-                      ? "Locations"
-                      : displayType === "regionalCenters"
-                      ? $t("nav.regionalCenters")
-                      : $t("provider.providers")
-                  }}
-                </strong>
-                <span
-                  :class="
-                    displayType === 'regionalCenters'
-                      ? 'badge bg-info ms-2'
-                      : 'badge bg-success ms-2'
-                  "
-                >
-                  {{
-                    displayType === "locations"
-                      ? filteredLocations.length
-                      : displayType === "regionalCenters"
-                      ? regionalCenterData?.regionalCenters?.length || 0
-                      : filteredProviders.length
-                  }}
+                <span class="results-helper-text">
+                  {{ displayType === "regionalCenters" ? "Closest service areas" : "Updated for your current filters" }}
                 </span>
               </div>
               <!-- PDF Download Button -->
@@ -438,6 +452,7 @@
               :selected-id="providerStore.selectedProviderId"
               :loading="providerStore.loading"
               :show-distance="true"
+              :show-header="false"
               :auto-scroll-to-selected="true"
               :show-load-more="true"
               :has-more="hasMoreProviders"
@@ -473,6 +488,7 @@
                   :selected-id="providerStore.selectedProviderId"
                   :loading="providerStore.loading"
                   :show-distance="true"
+                  :show-header="false"
                   :auto-scroll-to-selected="true"
                   :show-load-more="true"
                   :has-more="hasMoreProviders"

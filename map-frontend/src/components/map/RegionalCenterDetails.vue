@@ -185,16 +185,17 @@ const handleGetDirections = () => {
 /* Panel styling */
 .regional-center-details-panel {
   position: fixed;
-  top: 60px;
-  left: 380px; /* Next to sidebar */
+  top: var(--map-navbar-height, 72px);
+  left: var(--map-sidebar-width, 430px); /* Next to sidebar */
   bottom: 0;
-  width: 400px;
-  background: white;
-  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+  width: min(400px, calc(100vw - var(--map-sidebar-width, 430px)));
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 24px 0 50px rgba(15, 23, 42, 0.14);
   z-index: 1000; /* Above map markers */
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  backdrop-filter: blur(14px);
 }
 
 /* Header */
@@ -413,7 +414,7 @@ const handleGetDirections = () => {
 
 @media (max-width: 768px) {
   .regional-center-details-panel {
-    top: 60px;
+    top: var(--map-navbar-height, 72px);
     width: 100%;
     max-width: none;
   }

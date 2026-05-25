@@ -364,27 +364,43 @@ export default {
 
 <style scoped>
 .provider-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #ffffff 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 24px;
+  padding: 22px;
+  margin-bottom: 14px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.provider-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .provider-card:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
-  transform: translateY(-3px);
+  border-color: rgba(37, 99, 235, 0.25);
+  box-shadow: 0 24px 50px rgba(37, 99, 235, 0.12);
+  transform: translateY(-4px);
+}
+
+.provider-card:hover::before,
+.provider-card.selected::before {
+  opacity: 1;
 }
 
 .provider-card.selected {
-  border-color: #3b82f6;
-  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.18), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-color: rgba(37, 99, 235, 0.28);
+  background: linear-gradient(135deg, #ffffff 0%, #f3f8ff 100%);
+  box-shadow: 0 24px 55px rgba(37, 99, 235, 0.16);
 }
 
 .provider-card:focus {
@@ -398,15 +414,15 @@ export default {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .provider-icon {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-radius: 12px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -427,20 +443,27 @@ export default {
 }
 
 .provider-name {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
   color: #111827;
   margin: 0;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   line-height: 1.4;
   letter-spacing: -0.01em;
 }
 
 .provider-type {
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.7);
 }
 
 .selected-indicator {
@@ -466,10 +489,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   gap: 12px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+  border: 1px solid rgba(191, 219, 254, 0.7);
 }
 
 .provider-distance {
@@ -478,7 +503,7 @@ export default {
   gap: 7px;
   font-size: 14px;
   font-weight: 600;
-  color: #3b82f6;
+  color: #1d4ed8;
   letter-spacing: -0.01em;
 }
 
@@ -490,11 +515,11 @@ export default {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 16px;
+  padding: 10px 16px;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -525,7 +550,7 @@ export default {
   gap: 10px;
   font-size: 14px;
   color: #4b5563;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   line-height: 1.6;
 }
 
@@ -541,9 +566,9 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #f3f4f6;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
 }
 
 .contact-item {
@@ -551,6 +576,9 @@ export default {
   align-items: center;
   gap: 7px;
   font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f8fafc;
 }
 
 .contact-item i {
@@ -600,9 +628,9 @@ export default {
 .insurance-badge {
   display: inline-flex;
   align-items: center;
-  padding: 5px 12px;
+  padding: 6px 12px;
   background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
@@ -664,7 +692,7 @@ export default {
 .therapy-chip {
   display: inline-flex;
   align-items: center;
-  padding: 5px 12px;
+  padding: 6px 12px;
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border: 1px solid #bfdbfe;
   border-radius: 20px;
@@ -693,7 +721,8 @@ export default {
   gap: 8px;
   font-size: 13px;
   color: #4b5563;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  padding-top: 4px;
 }
 
 .ages-label {
@@ -729,14 +758,14 @@ export default {
 /* Responsive */
 @media (max-width: 768px) {
   .provider-card {
-    padding: 16px;
+    padding: 18px;
     margin-bottom: 10px;
-    border-radius: 14px;
+    border-radius: 20px;
   }
 
   .provider-icon {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     font-size: 20px;
   }
 
@@ -751,7 +780,7 @@ export default {
   }
 
   .btn-get-directions {
-    padding: 7px 14px;
+    padding: 8px 14px;
     font-size: 12px;
   }
 
