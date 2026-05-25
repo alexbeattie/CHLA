@@ -3,6 +3,7 @@
  * Global test configuration and mocks
  */
 
+import { config } from '@vue/test-utils';
 import { vi } from 'vitest';
 
 // Mock environment variables
@@ -20,4 +21,35 @@ global.console = {
   info: vi.fn(),
   warn: vi.fn(),
   error: vi.fn(),
+};
+
+const testTranslations: Record<string, string> = {
+  'provider.providers': 'Providers',
+  'sidebar.result': 'result',
+  'sidebar.results': 'results',
+  'providerCard.away': 'away',
+  'providerCard.directions': 'Directions',
+  'providerCard.getDirectionsTo': 'Get directions to {name}',
+  'providerCard.directionsTitle': 'Directions',
+  'providerCard.website': 'Website',
+  'providerCard.accepts': 'Accepts',
+  'providerCard.services': 'Services',
+  'providerCard.more': 'more',
+  'providerCard.ages': 'Ages',
+  'providerCard.locationNotAvailable': 'Location not available',
+};
+
+config.global.mocks = {
+  ...config.global.mocks,
+  $t: (key: string, params?: Record<string, string | number>) => {
+    let value = testTranslations[key] ?? key;
+
+    if (params) {
+      Object.entries(params).forEach(([paramKey, paramValue]) => {
+        value = value.replace(`{${paramKey}}`, String(paramValue));
+      });
+    }
+
+    return value;
+  },
 };

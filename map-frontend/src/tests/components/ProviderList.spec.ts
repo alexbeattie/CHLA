@@ -578,7 +578,7 @@ describe('ProviderList', () => {
 
       expect(wrapper.vm.showInsurance).toBe(true);
       expect(wrapper.vm.showTherapies).toBe(true);
-      expect(wrapper.vm.showAgeGroups).toBe(false);
+      expect(wrapper.vm.showAgeGroups).toBe(true);
       expect(wrapper.vm.maxTherapiesToShow).toBe(3);
       expect(wrapper.vm.showSortControls).toBe(true);
       expect(wrapper.vm.emptyTitle).toBe('No providers found');
