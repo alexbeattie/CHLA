@@ -46,7 +46,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gdal-bin libgdal-dev libgeos-dev libproj-dev
+          sudo apt-get install -y gdal-bin libgdal-dev libgeos-dev libproj-dev postgresql-client
 
       - name: Install Python dependencies
         run: |
@@ -65,6 +65,7 @@ jobs:
           secret = json.loads(
               client.get_secret_value(SecretId=os.environ["RDS_SECRET_ID"])["SecretString"]
           )
+          print(f"::add-mask::{secret['password']}")
 
           env_values = {
               "DB_NAME": secret["dbname"],
@@ -85,6 +86,18 @@ jobs:
           cd maplocation
           python manage.py fix_migrations || echo "Migration fix skipped or failed"
           python manage.py migrate --noinput
+
+      - name: Repair location table schema
+        run: |
+          cd maplocation
+          python manage.py dbshell <<'SQL'
+          CREATE EXTENSION IF NOT EXISTS postgis;
+          ALTER TABLE locations_location
+            ADD COLUMN IF NOT EXISTS location geography(Point,4326);
+          CREATE INDEX IF NOT EXISTS locations_location_location_gix
+            ON locations_location
+            USING GIST (location);
+          SQL
 
       - name: Import inclusive playgrounds
         env:
