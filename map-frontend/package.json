@@ -37,10 +37,6 @@
     "vitest": "^4.0.3"
   },
   "overrides": {
-    "vite-plugin-prerender": {
-      "@prerenderer/renderer-puppeteer": {
-        "puppeteer": "$puppeteer"
-      }
-    }
+    "puppeteer": "$puppeteer"
   }
 }
