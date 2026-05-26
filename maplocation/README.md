@@ -629,10 +629,10 @@ python manage.py shell
 
 ## Additional Resources
 
-- **Full Stack Documentation**: See `../STACK_DOCUMENTATION.md` for complete architecture
-- **Admin Security**: See `ADMIN_SECURITY_OPTIONS.md` for security implementations
-- **Quick Admin Setup**: See `QUICK_ADMIN_SECURITY.md`
-- **Manual Sync Commands**: See `manual_sync_commands.md` for database sync procedures
+- **Full Stack Documentation**: See [`../docs/STACK.md`](../docs/STACK.md) for complete architecture
+- **Admin Security**: See [`../docs/archive/ADMIN_SECURITY_OPTIONS.md`](../docs/archive/ADMIN_SECURITY_OPTIONS.md) for security implementations
+- **Quick Admin Setup**: See [`../docs/archive/QUICK_ADMIN_SECURITY.md`](../docs/archive/QUICK_ADMIN_SECURITY.md)
+- **Manual Sync Commands**: See [`../docs/archive/manual_sync_commands.md`](../docs/archive/manual_sync_commands.md) for database sync procedures
 
 ### Useful Django Commands
 

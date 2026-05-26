@@ -181,6 +181,6 @@ The legacy endpoint uses the old `Provider` model and only has 1 record remainin
 
 ## Related Documentation
 
-- `STACK_DOCUMENTATION.md` - Full stack architecture
+- `docs/STACK.md` - Full stack architecture
 - `locations/views.py:192` - RegionalCenterViewSet with comprehensive docstrings
 - `locations/urls.py:23` - API routing configuration

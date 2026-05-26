@@ -580,7 +580,7 @@ Even without full integration, we now have:
 - [Vue 3 Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
 - [Using Composition API with Options API](https://vuejs.org/guide/extras/composition-api-faq.html#can-i-use-both-apis-together)
 - [Strangler Fig Pattern](https://martinfowler.com/bliki/StranglerFigApplication.html)
-- Week 1: `/docs/MAPVIEW_REFACTOR_PLAN.md`
+- Refactor history (archived): `/docs/archive/2025-10/MAPVIEW_REFACTOR_PLAN.md`
 
 ---
 

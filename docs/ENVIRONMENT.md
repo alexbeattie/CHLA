@@ -357,7 +357,7 @@ openssl rand -base64 32
 
 ## Related Documentation
 
-- [Quick Start Guide](QUICK_START.md)
-- [Deployment Guide](DEPLOY.md)
-- [CI/CD Guide](.github/CICD_GUIDE.md)
-- [GitHub Secrets](.github/SECRETS.md)
+- [Quick Start Guide](../QUICK_START.md)
+- [Deployment Guide](./DEPLOYMENT.md)
+- [CI/CD Guide](../.github/CICD_GUIDE.md)
+- [GitHub Secrets](../.github/SECRETS.md)

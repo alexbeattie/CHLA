@@ -8,7 +8,7 @@ Welcome to the KiNDD - NDD Resource Navigator documentation. This directory cont
 - **Deployment**: [Deployment Guide](./DEPLOYMENT.md)
 - **CI/CD**: [GitHub Actions Guide](./GITHUB_ACTIONS.md)
 - **Database**: [Database Sync Guide](./DATABASE_SYNC.md)
-- **Architecture**: [Stack Documentation](../STACK_DOCUMENTATION.md)
+- **Architecture**: [Stack Documentation](./STACK.md)
 
 ---
 
@@ -25,7 +25,12 @@ Welcome to the KiNDD - NDD Resource Navigator documentation. This directory cont
 | [CLINICAL_TEAM_HANDOFF.md](./CLINICAL_TEAM_HANDOFF.md) | Clinical stakeholder onboarding: Slack copy, Postgres + RAG snapshot runbooks, verification checklist | Product, Clinical Leads, On-call Eng |
 | [../maplocation/README.md](../maplocation/README.md) | Backend getting started guide | New Developers |
 | [../README.md](../README.md) | Main project overview and quick start | Everyone |
-| [../STACK_DOCUMENTATION.md](../STACK_DOCUMENTATION.md) | Complete architecture and stack details | Architects, Senior Devs |
+| [./STACK.md](./STACK.md) | Complete architecture and stack details | Architects, Senior Devs |
+| [./ENVIRONMENT.md](./ENVIRONMENT.md) | Backend environment variable reference | Developers, DevOps |
+| [./ADMIN_DATA_ENTRY_GUIDE.md](./ADMIN_DATA_ENTRY_GUIDE.md) | Admin/operator data entry workflow | Operators, Admins |
+| [./QUICK_START_CICD.md](./QUICK_START_CICD.md) | CI/CD quickstart | Developers, DevOps |
+| [./LLM_INTEGRATION_GAMEPLAN.md](./LLM_INTEGRATION_GAMEPLAN.md) | LLM integration plan | Architects, Devs |
+| [./DATABASE_SYNC_OPS.md](./DATABASE_SYNC_OPS.md) | Operational runbook for AWS RDS sync | DevOps, Developers |
 
 ### Archived Documentation
 
@@ -52,7 +57,7 @@ Start here to get up and running:
 
 1. [Main README](../README.md) - Project overview
 2. [Backend Getting Started](../maplocation/README.md) - Setup backend
-3. [Stack Documentation](../STACK_DOCUMENTATION.md) - Understand architecture
+3. [Stack Documentation](./STACK.md) - Understand architecture
 
 ### For Nonprofit and Clinical Onboarding
 
@@ -77,14 +82,14 @@ Infrastructure and deployment:
 
 - [Deployment Guide](./DEPLOYMENT.md) - Production deployment
 - [GitHub Actions Guide](./GITHUB_ACTIONS.md) - CI/CD pipeline
-- [Stack Documentation](../STACK_DOCUMENTATION.md) - AWS resources
+- [Stack Documentation](./STACK.md) - AWS resources
 - [Database Sync Guide](./DATABASE_SYNC.md) - Database management
 
 ### For Architects
 
 High-level architecture and decisions:
 
-- [Stack Documentation](../STACK_DOCUMENTATION.md) - Complete architecture
+- [Stack Documentation](./STACK.md) - Complete architecture
 - [Main README](../README.md) - Feature overview
 - [Backend README](../maplocation/README.md) - Backend structure
 
@@ -127,7 +132,7 @@ High-level architecture and decisions:
 ### Understanding the Stack
 
 1. Read [Main README](../README.md) - Overview
-2. Read [Stack Documentation](../STACK_DOCUMENTATION.md) - Detailed architecture
+2. Read [Stack Documentation](./STACK.md) - Detailed architecture
 3. Review [Backend README](../maplocation/README.md) - Backend specifics
 4. Check AWS Console for live resources
 

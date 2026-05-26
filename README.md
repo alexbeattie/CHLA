@@ -108,11 +108,11 @@ A comprehensive healthcare provider mapping application helping families navigat
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Deploy to production
 - **[GitHub Actions/CI/CD](docs/GITHUB_ACTIONS.md)** - Automatic deployment setup
 - **[Database Sync](docs/DATABASE_SYNC.md)** - Manage migrations and data
-- **[Stack Documentation](STACK_DOCUMENTATION.md)** - Complete architecture reference
+- **[Stack Documentation](docs/STACK.md)** - Complete architecture reference
 
 ### By Role
 
-- **New Developers**: Start with [Getting Started](maplocation/README.md) and [Stack Docs](STACK_DOCUMENTATION.md)
+- **New Developers**: Start with [Getting Started](maplocation/README.md) and [Stack Docs](docs/STACK.md)
 - **Developers**: Use [Deployment](docs/DEPLOYMENT.md) and [Database Sync](docs/DATABASE_SYNC.md)
 - **DevOps**: See [GitHub Actions](docs/GITHUB_ACTIONS.md) and [Deployment](docs/DEPLOYMENT.md)
 
@@ -141,7 +141,7 @@ repo-root/
 │   ├── GITHUB_ACTIONS.md
 │   └── DATABASE_SYNC.md
 ├── .github/workflows/     # GitHub Actions CI/CD
-└── STACK_DOCUMENTATION.md # Architecture reference
+└── docs/STACK.md          # Architecture reference
 ```
 
 ### Key Technologies

@@ -4,14 +4,13 @@ Import providers TO RDS from JSON file
 """
 import os
 import sys
+from pathlib import Path as _Path
+sys.path.insert(0, str(_Path(__file__).resolve().parents[2]))  # maplocation/
+from scripts._rds_env import load_prod_rds_env
 import json
 
 # Configure for RDS
-os.environ["DB_HOST"] = "chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com"
-os.environ["DB_NAME"] = "postgres"
-os.environ["DB_USER"] = "chla_admin"
-os.environ["DB_PASSWORD"] = "CHLASecure2024"
-os.environ["DB_SSL_REQUIRE"] = "true"
+load_prod_rds_env()
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "maplocation.settings")
 
 import django

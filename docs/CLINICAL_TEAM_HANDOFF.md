@@ -162,12 +162,12 @@ These are the docs to actively share with the clinical channel, in the order the
 **Do not post in the clinical channel by default** (these mix infra/credentials/operational identifiers with low clinical value):
 
 - `QUICK_START.md`, `QUICK_START_CICD.md`
-- `STACK_DOCUMENTATION.md` (contains AWS hostnames, bucket names, RDS identifiers)
+- `docs/STACK.md` (contains AWS hostnames, bucket names, RDS identifiers)
 - `maplocation/README.md`, `map-frontend/ENVIRONMENT_SWITCHING.md`
 - `docs/DEPLOYMENT.md`, `docs/GITHUB_ACTIONS.md`, `docs/DATABASE_SYNC.md`, `docs/EB_DEPLOYMENT_ISSUE.md`
 - Refactor / week-by-week / SEO / session-summary docs
 
-Sharing a redacted excerpt of `STACK_DOCUMENTATION.md` is fine if clinicians need to understand a specific user-impact issue; do not share the full file.
+Sharing a redacted excerpt of `docs/STACK.md` is fine if clinicians need to understand a specific user-impact issue; do not share the full file.
 
 ---
 

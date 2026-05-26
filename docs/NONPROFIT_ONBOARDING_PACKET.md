@@ -106,7 +106,7 @@ Start with these documents:
 5. `docs/GITHUB_ACTIONS.md`
 6. `docs/DATABASE_SYNC.md`
 7. `maplocation/BEDROCK_SETUP.md`
-8. `STACK_DOCUMENTATION.md`
+8. `docs/STACK.md`
 
 What they should understand:
 
@@ -180,16 +180,16 @@ These documents are useful, but should not be included in a broad nonprofit onbo
 
 | Document | Why restricted |
 | ----------------------------------------------------------- | ------------------------------------------------------------------- |
-| `STACK_DOCUMENTATION.md` | Contains infrastructure identifiers and operational details |
+| `docs/STACK.md` | Contains infrastructure identifiers and operational details |
 | `docs/DEPLOYMENT.md` | Contains deployment procedures and infrastructure details |
 | `docs/GITHUB_ACTIONS.md` | Contains CI/CD and secrets setup context |
-| `.github/SECRETS.md` and `.github/GITHUB_SECRETS_SETUP.md` | Secret-management documentation |
-| `ENV_SETTINGS.md` | Environment configuration; may contain sensitive or outdated values |
+| `.github/SECRETS.md` | Secret-management documentation |
+| `docs/ENVIRONMENT.md` | Environment configuration; may contain sensitive or outdated values |
 | `maplocation/BEDROCK_SETUP.md` | AI infrastructure, IAM, model access, and production setup details |
-| `maplocation/DATABASE_SYNC_GUIDE.md` | Database sync details; may include operational values |
+| `docs/DATABASE_SYNC_OPS.md` | Database sync details; may include operational values |
 | `map-frontend/ENVIRONMENT_SWITCHING.md` | Developer environment operations |
-| Refactor session notes under `docs/` | Useful historical context, but too detailed for general onboarding |
-| Archived docs under `docs/archive/` and `archive/old-docs/` | Historical only; use only when tracing decisions |
+| Refactor session notes under `docs/archive/2025-10/` | Useful historical context, but too detailed for general onboarding |
+| Archived docs under `docs/archive/` | Historical only; use only when tracing decisions |
 
 ## 8. Discovery and Development Documentation Map
 

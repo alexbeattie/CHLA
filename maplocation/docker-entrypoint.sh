@@ -1,6 +1,29 @@
 #!/bin/bash
 set -e
 
+# --- Fetch production secrets from AWS Secrets Manager ---
+# The EB instance role grants secretsmanager:GetSecretValue on kindd/prod/*.
+echo "Fetching production secrets from AWS Secrets Manager..."
+
+SECRET_JSON=$(aws secretsmanager get-secret-value \
+    --secret-id kindd/prod/rds \
+    --query SecretString --output text \
+    --region "${AWS_REGION:-us-west-2}")
+
+export DB_HOST=$(echo "$SECRET_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['host'])")
+export DB_PORT=$(echo "$SECRET_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['port'])")
+export DB_NAME=$(echo "$SECRET_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['dbname'])")
+export DB_USER=$(echo "$SECRET_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['username'])")
+export DB_PASSWORD=$(echo "$SECRET_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['password'])")
+unset SECRET_JSON
+
+export DJANGO_SECRET_KEY=$(aws secretsmanager get-secret-value \
+    --secret-id kindd/prod/django-secret-key \
+    --query SecretString --output text \
+    --region "${AWS_REGION:-us-west-2}")
+
+echo "Secrets fetched."
+
 echo "Fixing migration history if needed..."
 python manage.py fix_migrations || echo "Migration fix skipped or failed"
 

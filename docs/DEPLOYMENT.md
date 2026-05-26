@@ -344,7 +344,7 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 
 ## Additional Resources
 
-- [Full Stack Documentation](../STACK_DOCUMENTATION.md)
+- [Full Stack Documentation](./STACK.md)
 - [Database Sync Guide](./DATABASE_SYNC.md)
 - [Backend Getting Started](../maplocation/README.md)
 - [GitHub Actions Setup](./GITHUB_ACTIONS.md)

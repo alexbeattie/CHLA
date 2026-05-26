@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     libgeos-dev \
     libproj-dev \
     postgresql-client \
+    awscli \
     && rm -rf /var/lib/apt/lists/*
 
 # Set GDAL environment variables

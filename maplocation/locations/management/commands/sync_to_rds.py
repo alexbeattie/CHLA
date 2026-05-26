@@ -5,28 +5,21 @@ Django management command to sync provider data from local DB to RDS.
 from django.core.management.base import BaseCommand
 from django.db import connections
 from locations.models import ProviderV2, InsuranceCarrier, ProviderInsuranceCarrier
+from locations.utils.rds_secret import get_rds_settings
 
 
 class Command(BaseCommand):
     help = "Sync provider data from local database to RDS production database"
 
     def handle(self, *args, **options):
-        # RDS connection settings (copy all required fields from default connection)
-
         default_db = connections["default"].settings_dict
 
         rds_settings = {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": "postgres",
-            "USER": "chla_admin",
-            "PASSWORD": "CHLASecure2024",
-            "HOST": "chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com",
-            "PORT": "5432",
+            **get_rds_settings(use_postgis=False),
             "ATOMIC_REQUESTS": default_db.get("ATOMIC_REQUESTS", False),
             "AUTOCOMMIT": default_db.get("AUTOCOMMIT", True),
             "CONN_MAX_AGE": default_db.get("CONN_MAX_AGE", 0),
             "CONN_HEALTH_CHECKS": default_db.get("CONN_HEALTH_CHECKS", False),
-            "OPTIONS": default_db.get("OPTIONS", {}),
             "TIME_ZONE": default_db.get("TIME_ZONE", None),
             "TEST": default_db.get("TEST", {}),
         }
