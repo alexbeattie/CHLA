@@ -234,11 +234,13 @@ export function usePopups() {
       <div class="provider-popup" style="
         padding: 24px;
         font-family: var(--kindd-font-family);
+        box-sizing: border-box;
+        width: min(360px, calc(100vw - 48px));
         max-width: 360px;
         background: white;
         border-radius: 8px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        overflow: visible;
+        overflow: hidden;
       ">
         <!-- Header -->
         <div style="
@@ -252,6 +254,8 @@ export function usePopups() {
             font-size: 18px;
             font-weight: 600;
             line-height: 1.3;
+            overflow-wrap: anywhere;
+            word-break: break-word;
           ">${title}</h5>
           ${
             item.type && String(item.type).toLowerCase() !== "main"
@@ -265,6 +269,11 @@ export function usePopups() {
               font-weight: 500;
               text-transform: uppercase;
               letter-spacing: 0.3px;
+              display: inline-block;
+              max-width: 100%;
+              white-space: normal;
+              overflow-wrap: anywhere;
+              word-break: break-word;
             ">${item.type}</span>
           `
               : ""

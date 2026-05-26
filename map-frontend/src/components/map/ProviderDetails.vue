@@ -6,11 +6,7 @@
         <i class="bi bi-hospital"></i>
         <h2>Provider Details</h2>
       </div>
-      <button
-        class="close-btn"
-        @click="handleClose"
-        aria-label="Close details"
-      >
+      <button class="close-btn" @click="handleClose" aria-label="Close details">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>
@@ -104,7 +100,10 @@
       </div>
 
       <!-- Therapy Types Section -->
-      <div v-if="provider.therapy_types && provider.therapy_types.length > 0" class="detail-section">
+      <div
+        v-if="provider.therapy_types && provider.therapy_types.length > 0"
+        class="detail-section"
+      >
         <div class="section-header">
           <i class="bi bi-clipboard2-pulse"></i>
           <h4>Services Offered</h4>
@@ -120,7 +119,10 @@
       </div>
 
       <!-- Age Groups Section -->
-      <div v-if="provider.age_groups && provider.age_groups.length > 0" class="detail-section">
+      <div
+        v-if="provider.age_groups && provider.age_groups.length > 0"
+        class="detail-section"
+      >
         <div class="section-header">
           <i class="bi bi-people"></i>
           <h4>Age Groups Served</h4>
@@ -139,7 +141,12 @@
       </div>
 
       <!-- Diagnoses Section -->
-      <div v-if="provider.diagnoses_treated && provider.diagnoses_treated.length > 0" class="detail-section">
+      <div
+        v-if="
+          provider.diagnoses_treated && provider.diagnoses_treated.length > 0
+        "
+        class="detail-section"
+      >
         <div class="section-header">
           <i class="bi bi-heart-pulse"></i>
           <h4>Diagnoses Treated</h4>
@@ -191,8 +198,8 @@
 </template>
 
 <script>
-import { computed } from 'vue';
-import { useMapStore } from '@/stores/mapStore';
+import { computed } from "vue";
+import { useMapStore } from "@/stores/mapStore";
 
 /**
  * ProviderDetails Component
@@ -200,34 +207,34 @@ import { useMapStore } from '@/stores/mapStore';
  * Week 4: Component Extraction
  */
 export default {
-  name: 'ProviderDetails',
+  name: "ProviderDetails",
 
   props: {
     // Provider object to display
     provider: {
       type: Object,
-      default: null
+      default: null,
     },
     // Whether the panel is visible
     isVisible: {
       type: Boolean,
-      default: true
+      default: true,
     },
     // Distance to provider in miles
     distance: {
       type: Number,
-      default: null
+      default: null,
     },
     // Show "Get Directions" button
     showDirections: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
 
   emits: [
-    'close',          // When close button is clicked
-    'get-directions'  // When get directions is clicked
+    "close", // When close button is clicked
+    "get-directions", // When get directions is clicked
   ],
 
   setup(props, { emit }) {
@@ -238,20 +245,22 @@ export default {
      */
     const hasCoordinates = computed(() => {
       if (!props.provider) return false;
-      return props.provider.latitude !== null &&
-             props.provider.longitude !== null &&
-             !isNaN(props.provider.latitude) &&
-             !isNaN(props.provider.longitude);
+      return (
+        props.provider.latitude !== null &&
+        props.provider.longitude !== null &&
+        !isNaN(props.provider.latitude) &&
+        !isNaN(props.provider.longitude)
+      );
     });
 
     /**
      * Format distance for display
      */
     const formattedDistance = computed(() => {
-      if (props.distance === null) return '';
+      if (props.distance === null) return "";
 
       if (props.distance < 0.1) {
-        return 'Less than 0.1 mi';
+        return "Less than 0.1 mi";
       } else if (props.distance < 1) {
         return `${props.distance.toFixed(1)} mi`;
       } else {
@@ -266,24 +275,26 @@ export default {
       if (!props.provider?.insurance_accepted) return [];
 
       const insuranceStr = props.provider.insurance_accepted;
-      const separator = insuranceStr.includes('|') ? '|' : ',';
+      const separator = insuranceStr.includes("|") ? "|" : ",";
 
       return insuranceStr
         .split(separator)
-        .map(type => type.trim())
-        .filter(type => type.length > 0);
+        .map((type) => type.trim())
+        .filter((type) => type.length > 0);
     });
 
     /**
      * Format phone number
      */
     const formatPhone = (phone) => {
-      if (!phone) return '';
+      if (!phone) return "";
 
-      const digits = phone.replace(/\D/g, '');
+      const digits = phone.replace(/\D/g, "");
 
       if (digits.length === 10) {
-        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(
+          6
+        )}`;
       }
 
       return phone;
@@ -293,9 +304,9 @@ export default {
      * Format website URL
      */
     const formatWebsite = (website) => {
-      if (!website) return '';
+      if (!website) return "";
 
-      if (!website.startsWith('http://') && !website.startsWith('https://')) {
+      if (!website.startsWith("http://") && !website.startsWith("https://")) {
         return `https://${website}`;
       }
 
@@ -306,18 +317,20 @@ export default {
      * Handle close button click
      */
     const handleClose = () => {
-      console.log('📄 ProviderDetails: Close button clicked');
-      emit('close');
+      console.log("📄 ProviderDetails: Close button clicked");
+      emit("close");
     };
 
     /**
      * Handle get directions click
      */
     const handleGetDirections = async () => {
-      console.log('📄 ProviderDetails: Get directions clicked');
+      console.log("📄 ProviderDetails: Get directions clicked");
 
       if (!props.provider || !hasCoordinates.value) {
-        console.error('❌ ProviderDetails: Cannot get directions - no coordinates');
+        console.error(
+          "❌ ProviderDetails: Cannot get directions - no coordinates"
+        );
         return;
       }
 
@@ -325,21 +338,21 @@ export default {
       try {
         await mapStore.getDirectionsTo({
           lat: props.provider.latitude,
-          lng: props.provider.longitude
+          lng: props.provider.longitude,
         });
 
-        emit('get-directions', {
+        emit("get-directions", {
           providerId: props.provider.id,
           providerName: props.provider.name,
           coordinates: {
             lat: props.provider.latitude,
-            lng: props.provider.longitude
-          }
+            lng: props.provider.longitude,
+          },
         });
 
-        console.log('✅ ProviderDetails: Directions requested');
+        console.log("✅ ProviderDetails: Directions requested");
       } catch (error) {
-        console.error('❌ ProviderDetails: Error getting directions:', error);
+        console.error("❌ ProviderDetails: Error getting directions:", error);
       }
     };
 
@@ -350,9 +363,9 @@ export default {
       formatPhone,
       formatWebsite,
       handleClose,
-      handleGetDirections
+      handleGetDirections,
     };
-  }
+  },
 };
 </script>
 
@@ -436,16 +449,21 @@ export default {
   color: #1f2937;
   margin: 0 0 8px 0;
   line-height: 1.3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .provider-type-badge {
   display: inline-block;
+  max-width: 100%;
   padding: 6px 12px;
   background-color: #eff6ff;
   color: #1e40af;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Distance Section */
@@ -568,12 +586,15 @@ export default {
 
 .insurance-badge {
   display: inline-block;
+  max-width: 100%;
   padding: 8px 14px;
   background-color: #f3f4f6;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   color: #374151;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Therapy List */
@@ -589,6 +610,13 @@ export default {
   gap: 10px;
   padding: 8px 0;
   color: #4b5563;
+  min-width: 0;
+}
+
+.therapy-list span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .therapy-list i {
@@ -606,12 +634,15 @@ export default {
 
 .age-chip {
   display: inline-block;
+  max-width: 100%;
   padding: 8px 14px;
   background-color: #fef3c7;
   color: #92400e;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Diagnoses Chips */
@@ -623,12 +654,15 @@ export default {
 
 .diagnosis-chip {
   display: inline-block;
+  max-width: 100%;
   padding: 8px 14px;
   background-color: #fce7f3;
   color: #9f1239;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Description */

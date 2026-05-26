@@ -459,6 +459,8 @@ export default {
   margin-bottom: 2px;
   line-height: 1.25;
   letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .provider-type {
@@ -467,6 +469,8 @@ export default {
   font-weight: 500;
   letter-spacing: 0.01em;
   line-height: 1.3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .selected-indicator {
@@ -503,6 +507,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
   font-size: 13px;
   font-weight: 600;
   color: #3b82f6;
@@ -518,6 +523,7 @@ export default {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
   padding: 6px 12px;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
@@ -630,6 +636,7 @@ export default {
 .insurance-badge {
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
   padding: 3px 10px;
   background-color: #f9fafb;
   border: 1px solid #e5e7eb;
@@ -639,6 +646,9 @@ export default {
   color: #374151;
   transition: background 0.15s ease, border-color 0.15s ease;
   line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .insurance-badge:hover {
@@ -695,6 +705,7 @@ export default {
 .therapy-chip {
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
   padding: 3px 10px;
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border: 1px solid #bfdbfe;
@@ -704,6 +715,9 @@ export default {
   color: #1e40af;
   transition: background 0.15s ease, border-color 0.15s ease;
   line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .therapy-chip:hover {
@@ -739,6 +753,9 @@ export default {
 
 .ages-list {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Warning */
