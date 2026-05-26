@@ -1,8 +1,8 @@
-# KiNDD App Store Submission - Version 1.3.0
+# KiNDD App Store Submission - Version 1.3.1
 
 ## Version Information
-- **Marketing Version:** 1.3.0
-- **Build Number:** 1
+- **Marketing Version:** 1.3.1
+- **Build Number:** 3
 - **Minimum iOS:** 17.0
 
 ---
@@ -11,7 +11,7 @@
 
 ### English
 ```
-Version 1.3.0 - Spanish Language Support & Enhanced Navigation
+Version 1.3.1 - Spanish Language Support, Enhanced Navigation & Clinician Tools
 
 NEW FEATURES:
 • Full Spanish language support - Switch between English and Español in Settings or from the home screen
@@ -19,19 +19,21 @@ NEW FEATURES:
 • Improved Regional Centers navigation with Map/List toggle
 • Quick access to About & FAQ directly from home screen
 • Redesigned home page with cleaner layout
+• New Clinician Referral Workspace for referral prep and family handoffs
 
 IMPROVEMENTS:
 • Better localization throughout the app
 • Streamlined navigation to key information
 • Enhanced map view as default for Regional Centers
 • Improved accessibility for Spanish-speaking families
+• Clinicians can look up a family's Regional Center by ZIP code, start filtered searches, and share a referral handoff summary
 
 Thank you for using KiNDD to find developmental disability services in Los Angeles County!
 ```
 
 ### Spanish (Español)
 ```
-Versión 1.3.0 - Soporte en Español y Navegación Mejorada
+Versión 1.3.1 - Soporte en Español, Navegación Mejorada y Herramientas Clínicas
 
 NUEVAS FUNCIONES:
 • Soporte completo en español - Cambie entre English y Español en Configuración o desde la pantalla de inicio
@@ -39,12 +41,14 @@ NUEVAS FUNCIONES:
 • Navegación mejorada de Centros Regionales con alternador Mapa/Lista
 • Acceso rápido a Acerca de y Preguntas Frecuentes desde la pantalla de inicio
 • Página de inicio rediseñada con diseño más limpio
+• Nuevo espacio de trabajo para clínicos con preparación de referencias y resumen para familias
 
 MEJORAS:
 • Mejor localización en toda la aplicación
 • Navegación optimizada a información clave
 • Vista de mapa mejorada como predeterminada para Centros Regionales
 • Accesibilidad mejorada para familias hispanohablantes
+• Los clínicos pueden buscar el Centro Regional por código postal, iniciar búsquedas filtradas y compartir un resumen de referencia
 
 ¡Gracias por usar KiNDD para encontrar servicios de discapacidades del desarrollo en el Condado de Los Ángeles!
 ```
@@ -233,16 +237,16 @@ Buscador de Terapia ABA en LA
 
 ### Screenshot Captions
 
-| # | English | Spanish |
-|---|---------|---------|
-| 1 | Find developmental services near you | Encuentre servicios de desarrollo cerca de usted |
-| 2 | Explore all 7 LA County Regional Centers | Explore los 7 Centros Regionales del Condado de LA |
-| 3 | AI assistant answers your questions | El asistente de IA responde sus preguntas |
-| 4 | Full Spanish language support | Soporte completo en español |
-| 5 | Filter by therapy, insurance & more | Filtre por terapia, seguro y más |
-| 6 | Switch languages anytime | Cambie de idioma en cualquier momento |
-| 7 | Learn about resources available | Aprenda sobre los recursos disponibles |
-| 8 | Get answers to common questions | Obtenga respuestas a preguntas comunes |
+| #   | English                                  | Spanish                                            |
+| --- | ---------------------------------------- | -------------------------------------------------- |
+| 1   | Find developmental services near you     | Encuentre servicios de desarrollo cerca de usted   |
+| 2   | Explore all 7 LA County Regional Centers | Explore los 7 Centros Regionales del Condado de LA |
+| 3   | AI assistant answers your questions      | El asistente de IA responde sus preguntas          |
+| 4   | Full Spanish language support            | Soporte completo en español                        |
+| 5   | Filter by therapy, insurance & more      | Filtre por terapia, seguro y más                   |
+| 6   | Switch languages anytime                 | Cambie de idioma en cualquier momento              |
+| 7   | Learn about resources available          | Aprenda sobre los recursos disponibles             |
+| 8   | Get answers to common questions          | Obtenga respuestas a preguntas comunes             |
 
 ---
 
@@ -294,7 +298,8 @@ All provider data is publicly available information about ABA therapy providers 
 
 ## Pre-Submission Checklist
 
-- [ ] Version updated to 1.3.0
+- [ ] Version updated to 1.3.1
+- [ ] Build number updated to 3
 - [ ] Clean build succeeds (Cmd+Shift+K, Cmd+B)
 - [ ] Test on physical device
 - [ ] Test language switching (English ↔ Spanish)
@@ -311,9 +316,10 @@ All provider data is publicly available information about ABA therapy providers 
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | - | Initial release |
-| 1.1.0 | - | Added AI assistant |
-| 1.2.0 | - | Enhanced map features |
-| 1.3.0 | Jan 2026 | Spanish language support, improved navigation, About/FAQ access |
+| Version | Date     | Changes                                                         |
+| ------- | -------- | --------------------------------------------------------------- |
+| 1.0.0   | -        | Initial release                                                 |
+| 1.1.0   | -        | Added AI assistant                                              |
+| 1.2.0   | -        | Enhanced map features                                           |
+| 1.3.0   | Jan 2026 | Spanish language support, improved navigation, About/FAQ access |
+| 1.3.1   | Apr 2026 | Clinician referral workspace and App Store metadata refresh     |
