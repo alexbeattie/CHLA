@@ -125,6 +125,34 @@ npm run dev
 ./scripts/test-deployment-locally.sh
 ```
 
+## Cursor Cloud / Fresh-VM Gotchas
+
+When working from a freshly-provisioned Cursor Cloud VM (or any other fresh
+Linux dev environment), the following are not yet set up automatically:
+
+- **Docker daemon**: `dockerd` is not started by default. Run
+  `sudo dockerd &>/tmp/dockerd.log &` and `sudo chmod 666 /var/run/docker.sock`.
+- **pgvector**: the PostGIS image used in `docker-compose.local.yml` does
+  not include pgvector. After the container starts:
+  ```bash
+  docker exec chla-postgres-local bash -c "apt-get update && apt-get install -y postgresql-16-pgvector"
+  docker exec chla-postgres-local psql -U chla_dev -d chla_local -c "CREATE EXTENSION IF NOT EXISTS vector;"
+  ```
+- **Migration 0026 on a fresh DB**: `0026_delete_provider` fails because
+  `0022` already dropped the `providers` table. Workaround:
+  ```bash
+  python3 manage.py migrate locations 0026_delete_provider --fake
+  python3 manage.py migrate
+  ```
+- **Pre-existing test failures**: backend pytest fixtures and some vitest
+  tests have failures unrelated to the environment — don't treat those as
+  regressions.
+- **Basic Auth on the admin/client portal**: credentials live in AWS
+  Secrets Manager under `kindd/prod/basic-auth-password`,
+  `kindd/prod/admin-password`, and `kindd/prod/client-password`. Fetch
+  with `aws secretsmanager get-secret-value --secret-id <id>`. Never
+  commit these values.
+
 ## Handoff Expectations
 
 When finishing a task, report:
