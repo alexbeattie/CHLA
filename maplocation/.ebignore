@@ -15,3 +15,15 @@ build/
 .eggs/
 *.egg-info/
 staticfiles/
+
+# One-off ops scripts and stale data — keep out of EB deploy bundle
+scripts/
+tests/
+archive/
+backups/
+htmlcov/
+.pytest_cache/
+docs/
+*.md
+db.sqlite3
+ca_counties_real.geojson

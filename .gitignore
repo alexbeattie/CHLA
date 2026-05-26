@@ -36,6 +36,12 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Test coverage artifacts
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
 # Environment files (NEVER commit real credentials!)
 .env
 .env.local
