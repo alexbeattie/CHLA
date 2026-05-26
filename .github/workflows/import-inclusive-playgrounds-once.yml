@@ -80,6 +80,12 @@ jobs:
                   env_file.write(f"{key}<<EOF\n{value}\nEOF\n")
           PY
 
+      - name: Run production migrations
+        run: |
+          cd maplocation
+          python manage.py fix_migrations || echo "Migration fix skipped or failed"
+          python manage.py migrate --noinput
+
       - name: Import inclusive playgrounds
         env:
           MAPBOX_ACCESS_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
