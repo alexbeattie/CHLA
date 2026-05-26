@@ -57,11 +57,11 @@ Based on what the user is asking, consult these guides:
 
 ## Universal Concepts (All Languages)
 
-### 🔐 Environment Variables & Security Best Practices
+### Environment Variables & Security Best Practices
 
-**⚠️ MANDATORY: Always use `.env` files instead of `export` commands.** More secure, project-specific, and standard practice. See language-specific guides for implementation: [Python](./PINECONE-python.md#environment-configuration), [TypeScript](./PINECONE-typescript.md#environment-configuration), [Go](./PINECONE-go.md#environment-configuration), [Java](./PINECONE-java.md#environment-configuration).
+**MANDATORY: Always use `.env` files instead of `export` commands.** More secure, project-specific, and standard practice. See language-specific guides for implementation: [Python](./PINECONE-python.md#environment-configuration), [TypeScript](./PINECONE-typescript.md#environment-configuration), [Go](./PINECONE-go.md#environment-configuration), [Java](./PINECONE-java.md#environment-configuration).
 
-### ⚠️ Critical: Installation & SDK
+### Critical: Installation & SDK
 
 > **Before installing anything**: ALWAYS verify if CLI/SDK is already installed before asking users to install or update:
 >
@@ -69,7 +69,7 @@ Based on what the user is asking, consult these guides:
 > - **SDK**: Check package files or use language-specific verification commands
 > - Only prompt for installation when verification shows it's missing
 
-### ⚠️ Critical: CLI Authentication (When Using CLI)
+### Critical: CLI Authentication (When Using CLI)
 
 > **When using CLI for index creation or management**:
 >
@@ -77,7 +77,7 @@ Based on what the user is asking, consult these guides:
 >
 > **For persistent authentication:** Run `pc auth status` to check if already authenticated. See [PINECONE-cli.md](./PINECONE-cli.md#authentication) for `pc auth configure` and other options.
 
-### ⚠️ MANDATORY: Always Use Latest Version
+### MANDATORY: Always Use Latest Version
 
 **REQUIREMENT**: When creating new projects or adding Pinecone dependencies, you MUST:
 
@@ -94,31 +94,31 @@ Based on what the user is asking, consult these guides:
 - **Java**: Add to `pom.xml` or `build.gradle`
 - **Go**: `go get github.com/pinecone-io/go-pinecone/pinecone`
 
-### 🔧 CLI vs SDK: When to Use Which
+### CLI vs SDK: When to Use Which
 
 **Use the Pinecone CLI for one-time or automated administrative tasks:**
 
-- ✅ **Creating indexes** - `pc index create`
-- ✅ **Deleting indexes** - `pc index delete`
-- ✅ **Configuring indexes** - `pc index configure` (replicas, deletion protection)
-- ✅ **Listing indexes** - `pc index list`
-- ✅ **Describing indexes** - `pc index describe`
-- ✅ **Creating API keys** - `pc api-key create`
-- ✅ **One-off inspection** - Checking stats, configuration
-- ✅ **Automated deployment pipelines** - All initial infrastructure setup
+- **Creating indexes** - `pc index create`
+- **Deleting indexes** - `pc index delete`
+- **Configuring indexes** - `pc index configure` (replicas, deletion protection)
+- **Listing indexes** - `pc index list`
+- **Describing indexes** - `pc index describe`
+- **Creating API keys** - `pc api-key create`
+- **One-off inspection** - Checking stats, configuration
+- **Automated deployment pipelines** - All initial infrastructure setup
 
 **Use the SDK for application code:**
 
-- ✅ **Ensuring index existence and correctness** - Creating/updating indexes as part of application startup
-- ✅ **Dynamic index management** - based on application's logic and requirements
-- ✅ **Vector operations** - upsert, query, search, delete vectors
-- ✅ **Records operations** - upsert, query, search, delete RECORDS (automatic embeddings generation)
-- ✅ **Other services** - explicit embeddings generation, reranking, etc.
-- ✅ **Unit and integration tests**
+- **Ensuring index existence and correctness** - Creating/updating indexes as part of application startup
+- **Dynamic index management** - based on application's logic and requirements
+- **Vector operations** - upsert, query, search, delete vectors
+- **Records operations** - upsert, query, search, delete RECORDS (automatic embeddings generation)
+- **Other services** - explicit embeddings generation, reranking, etc.
+- **Unit and integration tests**
 
-### 🎯 MANDATORY: Index Creation - Choose Your Approach
+### MANDATORY: Index Creation - Choose Your Approach
 
-**⚠️ CRITICAL: When a user needs to create a Pinecone index, you MUST:**
+**CRITICAL: When a user needs to create a Pinecone index, you MUST:**
 
 1. **Explain all four options** (see below)
 2. **Ask the user which method they prefer**
@@ -158,7 +158,7 @@ For detailed CLI installation, authentication, and command reference, see [PINEC
 
 ### Upserting records (text with integrated embeddings)
 
-**⚠️ MANDATORY: Always use namespaces for data isolation. Every upsert operation MUST specify a namespace.**
+**MANDATORY: Always use namespaces for data isolation. Every upsert operation MUST specify a namespace.**
 
 **Namespace patterns:**
 
@@ -214,13 +214,13 @@ Use for exact keyword matching with optional required terms and reranking.
 - `$exists`: field exists
 - `$and`, `$or`: logical operators
 
-## 🚨 Common Mistakes (Must Avoid)
+## Common Mistakes (Must Avoid)
 
 ### 1. **Nested Metadata** (will cause API errors)
 
-- ❌ Nested objects not allowed
-- ✅ Flat structure only
-- ✅ String lists are OK
+- Nested objects not allowed
+- Flat structure only
+- String lists are OK
 
 ### 2. **Batch Size Limits** (will cause API errors)
 
@@ -229,19 +229,19 @@ Use for exact keyword matching with optional required terms and reranking.
 
 ### 3. **Missing Namespaces** (causes data isolation issues)
 
-- ❌ No namespace
-- ✅ Always use namespaces
+- No No namespace
+- Always use namespaces
 
 ### 4. **Skipping Reranking** (reduces search quality)
 
-- ⚠️ **OK but not optimal** - Search works without reranking
-- ✅ **Best practice** - Use reranking in production with `bge-reranker-v2-m3` for better results
+- **OK but not optimal** - Search works without reranking
+- **Best practice** - Use reranking in production with `bge-reranker-v2-m3` for better results
 
 ### 5. **Hardcoded API Keys**
 
-- ❌ Hardcoded keys
-- ✅ Use environment variables
-- ✅ **BEST PRACTICE**: Use `.env` files (or language-specific equivalents) instead of `export` commands
+- No Hardcoded keys
+- Use environment variables
+- **BEST PRACTICE**: Use `.env` files (or language-specific equivalents) instead of `export` commands
 
 ## Key Constraints
 

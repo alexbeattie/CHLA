@@ -4,9 +4,9 @@
 
 This guide provides Go-specific patterns, examples, and best practices for the Pinecone SDK.
 
-## 🚨 MANDATORY RULES - Read First
+## MANDATORY RULES - Read First
 
-**⚠️ CRITICAL: These rules MUST be followed. Violations will cause runtime errors or data issues.**
+**CRITICAL: These rules MUST be followed. Violations will cause runtime errors or data issues.**
 
 1. **MUST use namespaces** - Every operation MUST use `.WithNamespace()` method
 2. **MUST wait 10+ seconds** - After upserting records, MUST wait 10+ seconds before searching
@@ -21,7 +21,7 @@ This guide provides Go-specific patterns, examples, and best practices for the P
 
 ## Installation & Setup
 
-> **⚠️ IMPORTANT**: See [PINECONE.md](./PINECONE.md#-mandatory-always-use-latest-version) for the mandatory requirement to always use the latest version when creating projects.
+> **IMPORTANT**: See [PINECONE.md](./PINECONE.md#-mandatory-always-use-latest-version) for the mandatory requirement to always use the latest version when creating projects.
 
 ### Go Module Installation
 
@@ -76,7 +76,7 @@ import (
 
 ### Environment Configuration
 
-**⚠️ Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices)).**
+**Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices)).**
 
 ```bash
 go get github.com/joho/godotenv
@@ -928,14 +928,14 @@ func loadConfig(configFile string) (*Config, error) {
 }
 ```
 
-## 🚨 Common Mistakes (Must Avoid)
+## Common Mistakes (Must Avoid)
 
 > **For universal common mistakes**, see [PINECONE.md](./PINECONE.md#-common-mistakes-must-avoid). Below are Go-specific examples.
 
 ### 1. **Nested Metadata** (will cause API errors)
 
 ```go
-// ❌ WRONG - nested objects not allowed
+// WRONG - nested objects not allowed
 badMetadata := map[string]interface{}{
     "user": map[string]interface{}{
         "name": "John",
@@ -946,7 +946,7 @@ badMetadata := map[string]interface{}{
     },
 }
 
-// ✅ CORRECT - flat structure only
+// CORRECT - flat structure only
 goodMetadata := map[string]interface{}{
     "user_name": "John",
     "user_id":   123,
@@ -960,7 +960,7 @@ goodMetadata := map[string]interface{}{
 // Vector records: MAX 1000 per batch, 2MB total
 // Adjust batchSize accordingly (typically 1000 for vector records)
 
-// ✅ CORRECT - respect limits
+// CORRECT - respect limits
 func batchUpsert(namespace string, records []pinecone.Vector, batchSize int) error {
     ctx := context.Background()
     for i := 0; i < len(records); i += batchSize {
@@ -985,10 +985,10 @@ func batchUpsert(namespace string, records []pinecone.Vector, batchSize int) err
 ### 3. **Missing Namespaces** (causes data isolation issues)
 
 ```go
-// ❌ WRONG - no namespace (default namespace not recommended)
+// WRONG - no namespace (default namespace not recommended)
 // index.Upsert(ctx, pinecone.UpsertParams{Vectors: records})
 
-// ✅ CORRECT - always use namespaces
+// CORRECT - always use namespaces
 index.Upsert(ctx, pinecone.UpsertParams{
     Vectors:   records,
     Namespace: "user_123",
@@ -998,12 +998,12 @@ index.Upsert(ctx, pinecone.UpsertParams{
 ### 4. **Hardcoded API Keys**
 
 ```go
-// ❌ WRONG
+// WRONG
 client, err := pinecone.NewClient(pinecone.NewClientParams{
     ApiKey: "pc-abc123...",
 })
 
-// ✅ CORRECT
+// CORRECT
 apiKey := os.Getenv("PINECONE_API_KEY")
 if apiKey == "" {
     return nil, fmt.Errorf("PINECONE_API_KEY required")
@@ -1015,15 +1015,15 @@ client, err := pinecone.NewClient(pinecone.NewClientParams{
 
 ### 5. **Not Waiting for Indexing** (eventual consistency)
 
-> **⚠️ IMPORTANT FOR AGENTS**: Include wait logic in generated code (e.g., `time.Sleep(10 * time.Second)`). **DO NOT** execute `sleep` commands in the terminal yourself.
+> **IMPORTANT FOR AGENTS**: Include wait logic in generated code (e.g., `time.Sleep(10 * time.Second)`). **DO NOT** execute `sleep` commands in the terminal yourself.
 
 ```go
-// ❌ WRONG - search immediately after upsert
+// WRONG - search immediately after upsert
 ctx := context.Background()
 indexConn.WithNamespace(namespace).UpsertRecords(ctx, records)
 results, err := indexConn.WithNamespace(namespace).SearchRecords(ctx, &pinecone.SearchRecordsRequest{...}) // May return no results!
 
-// ✅ CORRECT - wait for indexing (10+ seconds) - include in generated code
+// CORRECT - wait for indexing (10+ seconds) - include in generated code
 ctx := context.Background()
 indexConn.WithNamespace(namespace).UpsertRecords(ctx, records)
 time.Sleep(10 * time.Second) // Wait for eventual consistency
@@ -1033,10 +1033,10 @@ results, err := indexConn.WithNamespace(namespace).SearchRecords(ctx, &pinecone.
 ### 6. **Type Assertion Errors**
 
 ```go
-// ❌ WRONG - unsafe type assertion
+// WRONG - unsafe type assertion
 category := hit.Metadata["category"].(string) // May panic if not string
 
-// ✅ CORRECT - safe type assertion with ok check
+// CORRECT - safe type assertion with ok check
 category, ok := hit.Metadata["category"].(string)
 if !ok {
     category = "unknown"
@@ -1045,7 +1045,7 @@ if !ok {
 
 ## ⏳ Indexing Delays & Eventual Consistency
 
-> **⚠️ IMPORTANT FOR AGENTS**: The wait instructions below apply **ONLY to generated code**, not to the agent's own behavior. Include wait logic in the code you generate. **DO NOT** execute `sleep` commands in the terminal yourself.
+> **IMPORTANT FOR AGENTS**: The wait instructions below apply **ONLY to generated code**, not to the agent's own behavior. Include wait logic in the code you generate. **DO NOT** execute `sleep` commands in the terminal yourself.
 
 > **For complete information on eventual consistency**, see [PINECONE-troubleshooting.md](./PINECONE-troubleshooting.md#indexing-delays--eventual-consistency).
 
@@ -1077,7 +1077,7 @@ func waitForRecords(indexConn *pinecone.IndexConnection, namespace string, expec
         }
 
         if count >= expectedCount {
-            fmt.Printf("✓ All %d records indexed\n", count)
+            fmt.Printf("All %d records indexed\n", count)
             return nil
         }
 
@@ -1098,7 +1098,7 @@ if err != nil {
 err = waitForRecords(indexConn, "example-namespace", len(records), 300)
 ```
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 > **For general troubleshooting issues** (search returns no results, rate limits, metadata errors, etc.), see [PINECONE-troubleshooting.md](./PINECONE-troubleshooting.md).
 
@@ -1109,7 +1109,7 @@ err = waitForRecords(indexConn, "example-namespace", len(records), 300)
 **Solution**: Wait 10+ seconds after upsert before searching (include wait logic in generated code)
 
 ```go
-// ✅ CORRECT - include wait in generated code
+// CORRECT - include wait in generated code
 ctx := context.Background()
 err := indexConn.WithNamespace(namespace).UpsertRecords(ctx, records)
 if err != nil {
@@ -1135,14 +1135,14 @@ results, err := indexConn.WithNamespace(namespace).SearchRecords(ctx, &pinecone.
 **Solution**: Check metadata size and flatten nested structures
 
 ```go
-// ❌ WRONG - nested objects
+// WRONG - nested objects
 badMetadata := map[string]interface{}{
     "user": map[string]interface{}{
         "name": "John",
     }, // Nested
 }
 
-// ✅ CORRECT - flat structure
+// CORRECT - flat structure
 goodMetadata := map[string]interface{}{
     "user_name": "John", // Flat
 }
@@ -1155,7 +1155,7 @@ goodMetadata := map[string]interface{}{
 **Solution**: Reduce batch size
 
 ```go
-// ✅ CORRECT - respect batch limits
+// CORRECT - respect batch limits
 batchSize := 96 // For text records (MAX 96 per batch)
 ctx := context.Background()
 for i := 0; i < len(records); i += batchSize {
@@ -1179,10 +1179,10 @@ for i := 0; i < len(records); i += batchSize {
 **Solution**: Use safe type assertions with ok checks
 
 ```go
-// ❌ WRONG - unsafe assertion (if using old API)
+// WRONG - unsafe assertion (if using old API)
 // category := hit.Metadata["category"].(string) // May panic
 
-// ✅ CORRECT - safe assertion with new API (Fields instead of Metadata)
+// CORRECT - safe assertion with new API (Fields instead of Metadata)
 category := "unknown"
 if hit.Fields != nil {
     if cat, ok := hit.Fields["category"].(string); ok {
@@ -1190,7 +1190,7 @@ if hit.Fields != nil {
     }
 }
 
-// ✅ BETTER - helper function
+// Yes BETTER - helper function
 func getStringFromFields(fields map[string]interface{}, key string, defaultValue string) string {
     if fields == nil {
         return defaultValue

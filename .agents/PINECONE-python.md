@@ -4,9 +4,9 @@
 
 This guide provides Python-specific patterns, examples, and best practices for the Pinecone SDK.
 
-## 🚨 MANDATORY RULES - Read First
+## MANDATORY RULES - Read First
 
-**⚠️ CRITICAL: These rules MUST be followed. Violations will cause runtime errors or data issues.**
+**CRITICAL: These rules MUST be followed. Violations will cause runtime errors or data issues.**
 
 1. **MUST use namespaces** - Every upsert, search, fetch, delete operation MUST specify a namespace
 2. **MUST wait 10+ seconds** - After upserting records, MUST wait 10+ seconds before searching
@@ -20,11 +20,11 @@ This guide provides Python-specific patterns, examples, and best practices for t
 
 ## Installation & Setup
 
-> **⚠️ IMPORTANT**: See [PINECONE.md](./PINECONE.md#-mandatory-always-use-latest-version) for the mandatory requirement to always use the latest version when creating projects.
+> **IMPORTANT**: See [PINECONE.md](./PINECONE.md#-mandatory-always-use-latest-version) for the mandatory requirement to always use the latest version when creating projects.
 
 ### Virtual Environment Setup
 
-> **⚠️ MANDATORY**: Before installing any dependencies, you MUST check if a virtual environment is already configured for the project. If no virtual environment is detected, you MUST create one.
+> **MANDATORY**: Before installing any dependencies, you MUST check if a virtual environment is already configured for the project. If no virtual environment is detected, you MUST create one.
 
 **Virtual Environment Requirements:**
 
@@ -130,7 +130,7 @@ pip install --upgrade pinecone
 
 ### Dependency Management
 
-**⚠️ CRITICAL - Package Name**: Always use `pinecone` (NOT `pinecone-client`). The `pinecone-client` package is deprecated and will cause runtime errors.
+**CRITICAL - Package Name**: Always use `pinecone` (NOT `pinecone-client`). The `pinecone-client` package is deprecated and will cause runtime errors.
 
 **requirements.txt:**
 
@@ -167,7 +167,7 @@ pinecone = "*"
 
 ### Environment Configuration
 
-**⚠️ Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices)).**
+**Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices)).**
 
 ```bash
 pip install python-dotenv
@@ -314,7 +314,7 @@ for hit in reranked_results.result.hits:
 
 ### Upserting Records
 
-**⚠️ Before upserting, verify:**
+**Before upserting, verify:**
 
 1. Namespace is specified (MANDATORY)
 2. Field names match `--field_map` used when creating index (MANDATORY)
@@ -422,7 +422,7 @@ docs_only = list_all_ids(index, "user_123", prefix="doc_")
 
 ### Semantic Search with Reranking (Best Practice)
 
-**⚠️ Before searching, verify:**
+**Before searching, verify:**
 
 1. Namespace is specified (MANDATORY)
 2. Wait 10+ seconds after upserting before searching (MANDATORY)

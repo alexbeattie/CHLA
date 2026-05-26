@@ -103,13 +103,13 @@ This guide covers common troubleshooting issues that apply across all programmin
 **Example**:
 
 ```typescript
-// ❌ WRONG - nested objects not allowed
+// WRONG - nested objects not allowed
 {
   user: { name: "John", id: 123 },
   tags: [{ type: "urgent" }]
 }
 
-// ✅ CORRECT - flat structure only
+// CORRECT - flat structure only
 {
   user_name: "John",
   user_id: 123,
@@ -204,7 +204,7 @@ This guide covers common troubleshooting issues that apply across all programmin
 
 ## Indexing Delays & Eventual Consistency
 
-> **⚠️ IMPORTANT FOR AGENTS**: The wait instructions below apply **ONLY to generated code**, not to the agent's own behavior. When generating code that upserts records and then queries them, include wait logic in the generated code. **DO NOT** execute `sleep` commands in the terminal yourself.
+> **IMPORTANT FOR AGENTS**: The wait instructions below apply **ONLY to generated code**, not to the agent's own behavior. When generating code that upserts records and then queries them, include wait logic in the generated code. **DO NOT** execute `sleep` commands in the terminal yourself.
 
 Pinecone uses **eventual consistency**. This means records don't immediately appear in searches or stats after upserting.
 

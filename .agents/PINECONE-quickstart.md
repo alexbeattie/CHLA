@@ -8,7 +8,7 @@ This guide provides step-by-step instructions for building your first Pinecone a
 
 ## Choosing Your Quickstart
 
-⚠️ **MANDATORY: When you are asked to help get started with Pinecone:**
+**MANDATORY: When you are asked to help get started with Pinecone:**
 
 1. **Always ask: What do you want to build?**
 
@@ -72,7 +72,7 @@ This guide provides step-by-step instructions for building your first Pinecone a
 
 Before starting any quickstart, complete these steps:
 
-> **⚠️ Important**: Check if prerequisites are already installed before prompting users to install them:
+> **Important**: Check if prerequisites are already installed before prompting users to install them:
 >
 > - **CLI**: Run `pc version` to check if installed
 > - **SDK**: Check if package files exist or run language-specific commands to verify
@@ -176,7 +176,7 @@ implementation 'io.pinecone:pinecone-client:5.1.0'
 
 ### 3. Configure API Key
 
-**⚠️ Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices) for details).**
+**Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices) for details).**
 
 **Recommended Workflow (CLI + SDK):**
 

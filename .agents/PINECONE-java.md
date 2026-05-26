@@ -4,9 +4,9 @@
 
 This guide provides Java-specific patterns, examples, and best practices for the Pinecone SDK.
 
-## 🚨 MANDATORY RULES - Read First
+## MANDATORY RULES - Read First
 
-**⚠️ CRITICAL: These rules MUST be followed. Violations will cause runtime errors or data issues.**
+**CRITICAL: These rules MUST be followed. Violations will cause runtime errors or data issues.**
 
 1. **MUST use namespaces** - Every upsert, search, fetch, delete operation MUST specify a namespace parameter
 2. **MUST wait 10+ seconds** - After upserting records, MUST wait 10+ seconds before searching
@@ -20,7 +20,7 @@ This guide provides Java-specific patterns, examples, and best practices for the
 
 ## Installation & Setup
 
-> **⚠️ IMPORTANT**: See [PINECONE.md](./PINECONE.md#-mandatory-always-use-latest-version) for the mandatory requirement to always use the latest version when creating projects.
+> **IMPORTANT**: See [PINECONE.md](./PINECONE.md#-mandatory-always-use-latest-version) for the mandatory requirement to always use the latest version when creating projects.
 
 ### Finding the Latest Version
 
@@ -88,7 +88,7 @@ import java.util.*;
 
 ### Environment Configuration
 
-**⚠️ Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices)).**
+**Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices)).**
 
 **Maven:**
 ```xml
@@ -951,20 +951,20 @@ public class RecommendationEngine {
 }
 ```
 
-## 🚨 Common Mistakes (Must Avoid)
+## Common Mistakes (Must Avoid)
 
 > **For universal common mistakes**, see [PINECONE.md](./PINECONE.md#-common-mistakes-must-avoid). Below are Java-specific examples.
 
 ### 1. **Nested Metadata** (will cause API errors)
 
 ```java
-// ❌ WRONG - nested objects not allowed
+// WRONG - nested objects not allowed
 Map<String, Object> badMetadata = Map.of(
     "user", Map.of("name", "John", "id", 123), // Nested
     "tags", Arrays.asList(Map.of("type", "urgent")) // Nested in list
 );
 
-// ✅ CORRECT - flat structure only
+// CORRECT - flat structure only
 Map<String, Object> goodMetadata = Map.of(
     "user_name", "John",
     "user_id", 123,
@@ -978,7 +978,7 @@ Map<String, Object> goodMetadata = Map.of(
 // Text records: MAX 96 per batch, 2MB total
 // Vector records: MAX 1000 per batch, 2MB total
 
-// ✅ CORRECT - respect limits
+// CORRECT - respect limits
 public void batchUpsert(String namespace, List<Map<String, String>> records, int batchSize) {
     for (int i = 0; i < records.size(); i += batchSize) {
         int endIndex = Math.min(i + batchSize, records.size());
@@ -992,22 +992,22 @@ public void batchUpsert(String namespace, List<Map<String, String>> records, int
 ### 3. **Missing Namespaces** (causes data isolation issues)
 
 ```java
-// ❌ WRONG - no namespace (would need to use default namespace)
+// WRONG - no namespace (would need to use default namespace)
 // index.upsertRecords("", records); // Not recommended
 
-// ✅ CORRECT - always use namespaces
+// CORRECT - always use namespaces
 index.upsertRecords("user_123", records);
 ```
 
 ### 4. **Skipping Reranking** (reduces search quality)
 
 ```java
-// ⚠️ OK but not optimal
+// OK but not optimal
 SearchRecordsResponse basicResults = index.searchRecordsByText(
     queryText, namespace, Arrays.asList("content"), 5, null, null
 );
 
-// ✅ BETTER - use reranking for best results (best practice)
+// Yes BETTER - use reranking for best results (best practice)
 SearchRecordsRequestRerank rerank = new SearchRecordsRequestRerank()
     .model("bge-reranker-v2-m3")
     .topN(5)
@@ -1021,10 +1021,10 @@ SearchRecordsResponse rerankedResults = index.searchRecordsByText(
 ### 5. **Hardcoded API Keys**
 
 ```java
-// ❌ WRONG
+// WRONG
 Pinecone client = new Pinecone.Builder("pc-abc123...").build();
 
-// ✅ CORRECT
+// CORRECT
 String apiKey = System.getenv("PINECONE_API_KEY");
 if (apiKey == null || apiKey.isEmpty()) {
     throw new IllegalArgumentException("PINECONE_API_KEY required");
@@ -1034,14 +1034,14 @@ Pinecone client = new Pinecone.Builder(apiKey).build();
 
 ### 6. **Not Waiting for Indexing** (eventual consistency)
 
-> **⚠️ IMPORTANT FOR AGENTS**: Include wait logic in generated code (e.g., `TimeUnit.SECONDS.sleep(10)`). **DO NOT** execute `sleep` commands in the terminal yourself.
+> **IMPORTANT FOR AGENTS**: Include wait logic in generated code (e.g., `TimeUnit.SECONDS.sleep(10)`). **DO NOT** execute `sleep` commands in the terminal yourself.
 
 ```java
-// ❌ WRONG - search immediately after upsert
+// WRONG - search immediately after upsert
 index.upsertRecords(namespace, records);
 SearchRecordsResponse results = index.searchRecordsByText(...); // May return no results!
 
-// ✅ CORRECT - wait for indexing (10+ seconds) - include in generated code
+// CORRECT - wait for indexing (10+ seconds) - include in generated code
 index.upsertRecords(namespace, records);
 TimeUnit.SECONDS.sleep(10); // Wait for eventual consistency
 SearchRecordsResponse results = index.searchRecordsByText(...);
@@ -1049,7 +1049,7 @@ SearchRecordsResponse results = index.searchRecordsByText(...);
 
 ## ⏳ Indexing Delays & Eventual Consistency
 
-> **⚠️ IMPORTANT FOR AGENTS**: The wait instructions below apply **ONLY to generated code**, not to the agent's own behavior. Include wait logic in the code you generate. **DO NOT** execute `sleep` commands in the terminal yourself.
+> **IMPORTANT FOR AGENTS**: The wait instructions below apply **ONLY to generated code**, not to the agent's own behavior. Include wait logic in the code you generate. **DO NOT** execute `sleep` commands in the terminal yourself.
 
 > **For complete information on eventual consistency**, see [PINECONE-troubleshooting.md](./PINECONE-troubleshooting.md#indexing-delays--eventual-consistency).
 
@@ -1075,7 +1075,7 @@ public void waitForRecords(String namespace, int expectedCount, int maxWaitSecon
                    stats.getNamespaces().get(namespace).getVectorCount() : 0;
 
         if (count >= expectedCount) {
-            System.out.println("✓ All " + count + " records indexed");
+            System.out.println("All " + count + " records indexed");
             return;
         }
 
@@ -1093,7 +1093,7 @@ index.upsertRecords("example-namespace", records);
 waitForRecords("example-namespace", records.size(), 300);
 ```
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 > **For general troubleshooting issues** (search returns no results, rate limits, metadata errors, etc.), see [PINECONE-troubleshooting.md](./PINECONE-troubleshooting.md).
 
@@ -1104,7 +1104,7 @@ waitForRecords("example-namespace", records.size(), 300);
 **Solution**: Wait 10+ seconds after upsert before searching (include wait logic in generated code)
 
 ```java
-// ✅ CORRECT - include wait in generated code
+// CORRECT - include wait in generated code
 index.upsertRecords(namespace, records);
 TimeUnit.SECONDS.sleep(10);
 SearchRecordsResponse results = index.searchRecordsByText(queryText, namespace, ...);
@@ -1117,12 +1117,12 @@ SearchRecordsResponse results = index.searchRecordsByText(queryText, namespace, 
 **Solution**: Check metadata size and flatten nested structures
 
 ```java
-// ❌ WRONG - nested objects
+// WRONG - nested objects
 Map<String, Object> badMetadata = Map.of(
     "user", Map.of("name", "John") // Nested
 );
 
-// ✅ CORRECT - flat structure
+// CORRECT - flat structure
 Map<String, Object> goodMetadata = Map.of(
     "user_name", "John" // Flat
 );
@@ -1135,7 +1135,7 @@ Map<String, Object> goodMetadata = Map.of(
 **Solution**: Reduce batch size
 
 ```java
-// ✅ CORRECT - respect batch limits
+// CORRECT - respect batch limits
 int batchSize = 96; // For text records
 for (int i = 0; i < records.size(); i += batchSize) {
     List<Vector> batch = records.subList(i, Math.min(i + batchSize, records.size()));

@@ -8,7 +8,7 @@ This guide provides comprehensive CLI setup, authentication, and command referen
 
 ## Installation
 
-> **⚠️ Before installing**: ALWAYS check if the CLI is already installed by running `pc version`. Only prompt for installation if the command fails or CLI is not found.
+> **Before installing**: ALWAYS check if the CLI is already installed by running `pc version`. Only prompt for installation if the command fails or CLI is not found.
 
 ### macOS (Homebrew)
 
@@ -26,9 +26,9 @@ Download from [GitHub Releases](https://github.com/pinecone-io/cli/releases) (Li
 
 ## Authentication
 
-> **⚠️ Before configuring authentication**: ALWAYS check if the CLI is already authenticated by running `pc auth status`. Only prompt for authentication setup if the command fails or shows `UNSET` values.
+> **Before configuring authentication**: ALWAYS check if the CLI is already authenticated by running `pc auth status`. Only prompt for authentication setup if the command fails or shows `UNSET` values.
 >
-> **⚠️ After verifying authentication**: If CLI is authenticated, check the target organization and project by running `pc target --show`. Ask the user to confirm this is where indexes should be created before proceeding with index creation. If those are missing ask the user to Double check the configured key belongs to the correct organization and project. If user wants to change the target, use `pc target -o "org-name" -p "project-name"` to help them set it.
+> **After verifying authentication**: If CLI is authenticated, check the target organization and project by running `pc target --show`. Ask the user to confirm this is where indexes should be created before proceeding with index creation. If those are missing ask the user to Double check the configured key belongs to the correct organization and project. If user wants to change the target, use `pc target -o "org-name" -p "project-name"` to help them set it.
 
 Choose one method:
 
@@ -40,7 +40,7 @@ Only use if you can confirm the user has an interactive terminal with browser ac
 pc auth login
 ```
 
-**⚠️ Important for agents**: This command prints a login URL and prompts the user to press Enter to open the browser. **This requires an interactive terminal with browser access**.
+**Important for agents**: This command prints a login URL and prompts the user to press Enter to open the browser. **This requires an interactive terminal with browser access**.
 
 **If running in a non-interactive environment** (headless server, CI/CD, remote terminal, or agent environment without browser access):
 
@@ -222,7 +222,7 @@ pc index create -n my-app-prod -m cosine -c aws -r us-east-1 \
 
 ## CLI Troubleshooting
 
-> **⚠️ For agents**: If a CLI command is not recognized or returns an "Unknown command" error:
+> **For agents**: If a CLI command is not recognized or returns an "Unknown command" error:
 >
 > 1. First check the CLI version with `pc version`
 > 2. Compare with the latest version from [GitHub Releases](https://github.com/pinecone-io/cli/releases)
@@ -263,13 +263,13 @@ pc index describe --name my-index
 
 | Task                       | Use CLI | Use SDK |
 | -------------------------- | ------- | ------- |
-| One-time index creation    | ✅      | ❌      |
-| Development setup          | ✅      | ❌      |
-| Automated deployment       | ✅      | ✅      |
-| Application startup checks | ❌      | ✅      |
-| Dynamic index creation     | ❌      | ✅      |
-| Data operations            | ❌      | ✅      |
-| Runtime index management   | ❌      | ✅      |
+| One-time index creation    | Yes      | No      |
+| Development setup          | Yes      | No      |
+| Automated deployment       | Yes      | Yes      |
+| Application startup checks | No      | Yes      |
+| Dynamic index creation     | No      | Yes      |
+| Data operations            | No      | Yes      |
+| Runtime index management   | No      | Yes      |
 
 ## Best Practices
 

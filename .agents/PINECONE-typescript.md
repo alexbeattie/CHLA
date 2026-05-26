@@ -4,9 +4,9 @@
 
 This guide provides TypeScript/Node.js-specific patterns, examples, and best practices for the Pinecone SDK.
 
-## 🚨 MANDATORY RULES - Read First
+## MANDATORY RULES - Read First
 
-**⚠️ CRITICAL: These rules MUST be followed. Violations will cause runtime errors or data issues.**
+**CRITICAL: These rules MUST be followed. Violations will cause runtime errors or data issues.**
 
 1. **MUST use namespaces** - Every upsert, search, fetch, delete operation MUST use `.namespace()` method
 2. **MUST wait 10+ seconds** - After upserting records, MUST wait 10+ seconds before searching
@@ -21,7 +21,7 @@ This guide provides TypeScript/Node.js-specific patterns, examples, and best pra
 
 ## Installation & Setup
 
-> **⚠️ IMPORTANT**: See [PINECONE.md](./PINECONE.md#-mandatory-always-use-latest-version) for the mandatory requirement to always use the latest version when creating projects.
+> **IMPORTANT**: See [PINECONE.md](./PINECONE.md#-mandatory-always-use-latest-version) for the mandatory requirement to always use the latest version when creating projects.
 
 ### Package Installation
 
@@ -78,7 +78,7 @@ import { Pinecone } from "@pinecone-database/pinecone";
 
 ### Environment Configuration
 
-**⚠️ Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices)).**
+**Use `.env` files (see [PINECONE.md](./PINECONE.md#-environment-variables--security-best-practices)).**
 
 ```bash
 npm install dotenv
@@ -119,7 +119,7 @@ class PineconeClient {
 }
 ```
 
-## 🛡️ TypeScript Types & Type Safety
+## TypeScript Types & Type Safety
 
 When working with the Pinecone SDK, proper type handling prevents runtime errors:
 
@@ -128,19 +128,19 @@ When working with the Pinecone SDK, proper type handling prevents runtime errors
 Search results return `hit.fields` as a generic object. Always cast to a typed structure:
 
 ```typescript
-// ❌ WRONG - TypeScript error: Property 'content' does not exist on type 'object'
+// WRONG - TypeScript error: Property 'content' does not exist on type 'object'
 for (const hit of results.result.hits) {
   console.log(hit.fields.content); // Compile error!
 }
 
-// ✅ CORRECT - Use type casting with Record<string, any>
+// CORRECT - Use type casting with Record<string, any>
 for (const hit of results.result.hits) {
   const fields = hit.fields as Record<string, any>;
   const content = String(fields?.content ?? "");
   const category = String(fields?.category ?? "unknown");
 }
 
-// ✅ BETTER - Define an interface for your records
+// Yes BETTER - Define an interface for your records
 interface Document {
   content: string;
   category: string;
@@ -891,21 +891,21 @@ function buildRecommendationEngine() {
 }
 ```
 
-## 🚨 Common Mistakes (Must Avoid)
+## Common Mistakes (Must Avoid)
 
 > **For universal common mistakes**, see [PINECONE.md](./PINECONE.md#-common-mistakes-must-avoid). Below are TypeScript-specific examples.
 
 ### 1. **Nested Metadata** (will cause API errors)
 
 ```typescript
-// ❌ WRONG - nested objects not allowed
+// WRONG - nested objects not allowed
 const badRecord = {
   _id: "doc1",
   user: { name: "John", id: 123 }, // Nested
   tags: [{ type: "urgent" }], // Nested in list
 };
 
-// ✅ CORRECT - flat structure only
+// CORRECT - flat structure only
 const goodRecord = {
   _id: "doc1",
   user_name: "John",
@@ -920,7 +920,7 @@ const goodRecord = {
 // Text records: MAX 96 per batch, 2MB total
 // Vector records: MAX 1000 per batch, 2MB total
 
-// ✅ CORRECT - respect limits
+// CORRECT - respect limits
 for (let i = 0; i < records.length; i += 96) {
   const batch = records.slice(i, i + 96);
   await index.namespace(namespace).upsertRecords(batch);
@@ -930,10 +930,10 @@ for (let i = 0; i < records.length; i += 96) {
 ### 3. **Missing Namespaces** (causes data isolation issues)
 
 ```typescript
-// ❌ WRONG - no namespace
+// WRONG - no namespace
 await index.upsertRecords(records); // Old API pattern
 
-// ✅ CORRECT - always use namespaces
+// CORRECT - always use namespaces
 await index.namespace("user_123").upsertRecords(records);
 await index.namespace("user_123").searchRecords(params);
 await index.namespace("user_123").deleteMany(["doc1"]);
@@ -942,12 +942,12 @@ await index.namespace("user_123").deleteMany(["doc1"]);
 ### 4. **Skipping Reranking** (reduces search quality)
 
 ```typescript
-// ⚠️ OK but not optimal
+// OK but not optimal
 const results = await index.namespace("ns").searchRecords({
   query: { topK: 5, inputs: { text: "query" } },
 });
 
-// ✅ BETTER - use reranking for best results (best practice)
+// Yes BETTER - use reranking for best results (best practice)
 const rerankedResults = await index.namespace("ns").searchRecords({
   query: {
     topK: 10,
@@ -964,23 +964,23 @@ const rerankedResults = await index.namespace("ns").searchRecords({
 ### 5. **Hardcoded API Keys**
 
 ```typescript
-// ❌ WRONG
+// WRONG
 const pc = new Pinecone({ apiKey: "pc-abc123..." });
 
-// ✅ CORRECT
+// CORRECT
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 ```
 
 ### 6. **Missing Async/Await** (TypeScript-specific)
 
 ```typescript
-// ❌ WRONG - forgetting await
+// WRONG - forgetting await
 const results = index.namespace("ns").searchRecords({
   query: { topK: 5, inputs: { text: "query" } },
 });
 console.log(results); // Will log a Promise, not results
 
-// ✅ CORRECT - use await
+// CORRECT - use await
 const results = await index.namespace("ns").searchRecords({
   query: { topK: 5, inputs: { text: "query" } },
 });
@@ -989,7 +989,7 @@ console.log(results);
 
 ## ⏳ Indexing Delays & Eventual Consistency
 
-> **⚠️ IMPORTANT FOR AGENTS**: The wait instructions below apply **ONLY to generated code**, not to the agent's own behavior. Include wait logic in the code you generate (e.g., `await new Promise(r => setTimeout(r, 10000))`). **DO NOT** execute `sleep` commands in the terminal yourself.
+> **IMPORTANT FOR AGENTS**: The wait instructions below apply **ONLY to generated code**, not to the agent's own behavior. Include wait logic in the code you generate (e.g., `await new Promise(r => setTimeout(r, 10000))`). **DO NOT** execute `sleep` commands in the terminal yourself.
 
 > **For complete information on eventual consistency**, see [PINECONE-troubleshooting.md](./PINECONE-troubleshooting.md#indexing-delays--eventual-consistency).
 
@@ -1015,7 +1015,7 @@ async function waitForRecords(
     const count = stats.namespaces?.[namespace]?.recordCount ?? 0;
 
     if (count >= expectedCount) {
-      console.log(`✓ All ${count} records indexed`);
+      console.log(`All ${count} records indexed`);
       return;
     }
 
@@ -1033,7 +1033,7 @@ await index.namespace("ns").upsertRecords(records);
 await waitForRecords(index, "ns", records.length);
 ```
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 > **For general troubleshooting issues** (search returns no results, rate limits, metadata errors, etc.), see [PINECONE-troubleshooting.md](./PINECONE-troubleshooting.md).
 
@@ -1044,12 +1044,12 @@ await waitForRecords(index, "ns", records.length);
 **Solution**: Use type casting
 
 ```typescript
-// ❌ WRONG - TypeScript error: Property 'content' does not exist on type 'object'
+// WRONG - TypeScript error: Property 'content' does not exist on type 'object'
 for (const hit of results.result.hits) {
   console.log(hit.fields.content); // Compile error!
 }
 
-// ✅ CORRECT - Use type casting
+// CORRECT - Use type casting
 for (const hit of results.result.hits) {
   const fields = hit.fields as Record<string, any>;
   const content = String(fields?.content ?? "");
@@ -1078,10 +1078,10 @@ for (const hit of results.result.hits) {
 **Solution**:
 
 ```bash
-# ✅ CORRECT
+# CORRECT
 npm install @pinecone-database/pinecone
 
-# ❌ WRONG - deprecated package
+# WRONG - deprecated package
 npm install pinecone-client
 
 # If already installed, verify:
@@ -1095,19 +1095,19 @@ npm list @pinecone-database/pinecone
 **Solution**:
 
 ```typescript
-// ❌ WRONG - forgetting await
+// WRONG - forgetting await
 const results = index.namespace("ns").searchRecords({
   query: { topK: 5, inputs: { text: "query" } },
 });
 console.log(results); // Will log a Promise, not results
 
-// ✅ CORRECT - use await
+// CORRECT - use await
 const results = await index.namespace("ns").searchRecords({
   query: { topK: 5, inputs: { text: "query" } },
 });
 console.log(results);
 
-// ✅ CORRECT - async function
+// CORRECT - async function
 async function searchData() {
   const results = await index.namespace("ns").searchRecords({
     query: { topK: 5, inputs: { text: "query" } },
@@ -1123,11 +1123,11 @@ async function searchData() {
 **Solution**:
 
 ```typescript
-// ✅ CORRECT - properly typed index
+// CORRECT - properly typed index
 const index = pc.index("my-index"); // Type is inferred
 await index.namespace("ns").upsertRecords(records);
 
-// ✅ CORRECT - explicit typing if needed
+// CORRECT - explicit typing if needed
 import { Index } from "@pinecone-database/pinecone";
 const index: Index = pc.index("my-index");
 ```
