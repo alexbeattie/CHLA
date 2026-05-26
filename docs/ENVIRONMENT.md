@@ -30,14 +30,10 @@ cp .env.example .env.production
 
 ### Database (AWS RDS)
 
-```bash
-DB_HOST=chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com
-DB_NAME=postgres
-DB_USER=chla_admin
-DB_PASSWORD=<stored in AWS Secrets Manager: kindd/prod/rds-password>
-DB_PORT=5432
-DB_SSL_REQUIRE=true
-```
+All connection details live in AWS Secrets Manager as `kindd/prod/rds` —
+a JSON blob with keys `host`, `port`, `dbname`, `username`, `password`,
+`sslmode`. The EB containers populate `DB_HOST/PORT/NAME/USER/PASSWORD`
+from this secret at startup via `maplocation/docker-entrypoint.sh`.
 
 **RDS Instance Info:**
 

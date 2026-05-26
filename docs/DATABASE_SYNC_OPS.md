@@ -32,11 +32,15 @@ This script:
 ## Database Credentials
 
 ### AWS RDS (Production)
-- **Host:** `chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com`
-- **Database:** `postgres`
-- **User:** `chla_admin`
-- **Password:** stored in AWS Secrets Manager as `kindd/prod/rds-password`
-- **SSL:** Required
+- **All connection details:** stored in AWS Secrets Manager as `kindd/prod/rds`,
+  a JSON blob with keys `host`, `port`, `dbname`, `username`, `password`, `sslmode`.
+- **SSL:** Required.
+
+Fetch with:
+```bash
+aws secretsmanager get-secret-value --secret-id kindd/prod/rds \
+    --query SecretString --output text --region us-west-2
+```
 
 ### Local (Development)
 - **Host:** `localhost`
@@ -54,10 +58,17 @@ If you need to sync manually:
 ### Step 1: Export from RDS
 
 ```bash
-PGPASSWORD="$(aws secretsmanager get-secret-value --secret-id kindd/prod/rds-password --query SecretString --output text)" pg_dump \
-    -h chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com \
-    -U chla_admin \
-    -d postgres \
+SECRET=$(aws secretsmanager get-secret-value --secret-id kindd/prod/rds \
+    --query SecretString --output text --region us-west-2)
+RDS_HOST=$(echo "$SECRET" | python3 -c "import sys,json;print(json.load(sys.stdin)['host'])")
+RDS_USER=$(echo "$SECRET" | python3 -c "import sys,json;print(json.load(sys.stdin)['username'])")
+RDS_DB=$(echo "$SECRET"   | python3 -c "import sys,json;print(json.load(sys.stdin)['dbname'])")
+RDS_PW=$(echo "$SECRET"   | python3 -c "import sys,json;print(json.load(sys.stdin)['password'])")
+
+PGPASSWORD="$RDS_PW" pg_dump \
+    -h "$RDS_HOST" \
+    -U "$RDS_USER" \
+    -d "$RDS_DB" \
     --data-only \
     --no-owner \
     --no-privileges \

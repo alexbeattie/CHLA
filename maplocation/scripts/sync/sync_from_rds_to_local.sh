@@ -10,11 +10,16 @@ echo ""
 echo " WARNING: This will overwrite your LOCAL database with RDS data!"
 echo ""
 
-# RDS Configuration
-RDS_HOST="chla-postgres-db.cpkvcu4f59w6.us-west-2.rds.amazonaws.com"
-RDS_DB="postgres"
-RDS_USER="chla_admin"
-RDS_PASSWORD="$(aws secretsmanager get-secret-value --secret-id kindd/prod/rds-password --query SecretString --output text)"
+# RDS Configuration — fetched from AWS Secrets Manager (kindd/prod/rds JSON blob)
+SECRET_JSON=$(aws secretsmanager get-secret-value \
+    --secret-id kindd/prod/rds \
+    --query SecretString --output text \
+    --region "${AWS_REGION:-us-west-2}")
+RDS_HOST=$(echo "$SECRET_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['host'])")
+RDS_DB=$(echo "$SECRET_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['dbname'])")
+RDS_USER=$(echo "$SECRET_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['username'])")
+RDS_PASSWORD=$(echo "$SECRET_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['password'])")
+unset SECRET_JSON
 
 # Local Configuration
 LOCAL_HOST="localhost"
