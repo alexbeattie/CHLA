@@ -1,15 +1,15 @@
 # SEO Deployment - Step-by-Step Guide
 
-## 📋 Overview
+## Overview
 
 This guide walks you through deploying the SEO improvements to production and setting up external services.
 
-**Estimated Time:** 2-3 hours  
+**Estimated Time:** 2-3 hours
 **Difficulty:** Beginner to Intermediate
 
 ---
 
-## ✅ Phase 1: COMPLETED
+## Phase 1: COMPLETED
 
 The following are already done and will deploy automatically:
 
@@ -26,7 +26,7 @@ The following are already done and will deploy automatically:
 
 ---
 
-## 🚀 Step 1: Deploy to Production (5 minutes)
+## Step 1: Deploy to Production (5 minutes)
 
 The SEO improvements are ready to deploy. Just push to GitHub:
 
@@ -56,11 +56,11 @@ git push origin main
    - `<meta property="og:title"...`
    - `<script type="application/ld+json"...`
 
-✅ **Success:** Meta tags visible in page source
+**Success:** Meta tags visible in page source
 
 ---
 
-## 🖼️ Step 2: Create Social Media Images (30-60 minutes)
+## Step 2: Create Social Media Images (30-60 minutes)
 
 ### Option A: Use Canva (Easiest - Recommended)
 
@@ -70,10 +70,10 @@ git push origin main
    - Custom size: **1200 x 630 pixels**
    - Search templates: "Social Media Banner" or "Facebook Post"
    - Customize:
-     - Background: CHLA dark blue (#004877)
+     - Background: brand dark blue (#004877)
      - Add text: "Find ABA Therapy Providers in Los Angeles"
-     - Subtext: "Free Interactive Map by Children's Hospital LA"
-     - Upload CHLA logo if available
+     - Subtext: "Free Interactive NDD Resource Map"
+     - Upload KiNDD logo if available
      - Add location/map icon
    - Download as JPG
    - Save as `og-image.jpg`
@@ -97,7 +97,7 @@ git push origin main
 Use https://realfavicongenerator.net/:
 
 1. Visit https://realfavicongenerator.net/
-2. Upload KINDD or CHLA logo (minimum 512x512px PNG)
+2. Upload KiNDD logo (minimum 512x512px PNG)
 3. Customize:
    - iOS background: #004877
    - Android theme: #004877
@@ -128,7 +128,7 @@ git push origin main
 
 ---
 
-## 🔍 Step 3: Test Social Sharing (10 minutes)
+## Step 3: Test Social Sharing (10 minutes)
 
 After deployment completes:
 
@@ -138,10 +138,10 @@ After deployment completes:
 2. Enter: `https://kinddhelp.com`
 3. Click **"Scrape Again"** (important!)
 4. Verify:
-   - ✅ Title: "Find ABA Therapy & Autism Services..."
-   - ✅ Description shows correctly
-   - ✅ Image displays (your og-image.jpg)
-   - ✅ No errors
+   - Title: "Find ABA Therapy & Autism Services..."
+   - Description shows correctly
+   - Image displays (your og-image.jpg)
+   - No errors
 
 ### Test Twitter Sharing:
 
@@ -149,9 +149,9 @@ After deployment completes:
 2. Enter: `https://kinddhelp.com`
 3. Click **"Preview card"**
 4. Verify:
-   - ✅ Card type: "Summary Card with Large Image"
-   - ✅ Title and description correct
-   - ✅ Image displays
+   - Card type: "Summary Card with Large Image"
+   - Title and description correct
+   - Image displays
 
 ### Test LinkedIn Sharing:
 
@@ -170,7 +170,7 @@ After deployment completes:
 
 ---
 
-## 📊 Step 4: Set Up Google Analytics (20 minutes)
+## Step 4: Set Up Google Analytics (20 minutes)
 
 ### Create GA4 Property:
 
@@ -180,7 +180,7 @@ After deployment completes:
 
 2. **Create Account:**
    - Click "Start measuring"
-   - Account name: "CHLA Provider Map" or your choice
+   - Account name: "KiNDD - NDD Resource Navigator" or your choice
    - Check data sharing settings
    - Click "Next"
 
@@ -256,11 +256,11 @@ git push origin main
 3. Visit https://kinddhelp.com in another browser tab
 4. Should see "1 user in the last 30 minutes"
 
-✅ **Success:** Real-time data appears in GA4
+**Success:** Real-time data appears in GA4
 
 ---
 
-## 🔎 Step 5: Google Search Console (20 minutes)
+## Step 5: Google Search Console (20 minutes)
 
 ### Add Property:
 
@@ -321,7 +321,7 @@ git push origin main
 
 ---
 
-## 🔍 Step 6: Bing Webmaster Tools (15 minutes)
+## Step 6: Bing Webmaster Tools (15 minutes)
 
 ### Add Site:
 
@@ -356,7 +356,7 @@ git push origin main
 
 ---
 
-## 🧪 Step 7: Validation & Testing (20 minutes)
+## Step 7: Validation & Testing (20 minutes)
 
 ### Validate Structured Data:
 
@@ -403,7 +403,7 @@ git push origin main
 
 ---
 
-## 📈 Step 8: Monitor & Optimize (Ongoing)
+## Step 8: Monitor & Optimize (Ongoing)
 
 ### Week 1 Checklist:
 
@@ -434,7 +434,7 @@ git push origin main
 
 ---
 
-## 📊 Success Metrics Dashboard
+## Success Metrics Dashboard
 
 Track these in Google Analytics 4:
 
@@ -461,7 +461,7 @@ Track these in Google Analytics 4:
 
 ---
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Issue: Images not showing in social preview
 
@@ -503,7 +503,7 @@ Track these in Google Analytics 4:
 
 ---
 
-## 🎉 Completion Checklist
+## Completion Checklist
 
 Before marking SEO implementation complete:
 
@@ -522,7 +522,7 @@ Before marking SEO implementation complete:
 
 ---
 
-## 📚 Next Steps (Phase 3)
+## Next Steps (Phase 3)
 
 After completing the above:
 
@@ -548,8 +548,8 @@ After completing the above:
 
 ---
 
-**Estimated Total Time:** 2-3 hours  
-**Difficulty:** Beginner-friendly with this guide  
+**Estimated Total Time:** 2-3 hours
+**Difficulty:** Beginner-friendly with this guide
 **Impact:** High - significantly improves discoverability
 
 **Questions?** Refer to:
@@ -559,6 +559,6 @@ After completing the above:
 
 ---
 
-**Last Updated:** November 5, 2025  
-**Status:** Ready to execute 🚀
+**Last Updated:** November 5, 2025
+**Status:** Ready to execute
 

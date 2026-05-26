@@ -1,7 +1,7 @@
 {
-  "name": "KINDD - CHLA ABA Provider Map",
-  "short_name": "KINDD",
-  "description": "Find ABA therapy providers and autism services across Los Angeles County",
+  "name": "NDD Resource Map - KiNDD",
+  "short_name": "KiNDD",
+  "description": "Find neurodevelopmental disorder (NDD) services and Regional Center providers across Los Angeles County.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -32,4 +32,3 @@
   "scope": "/",
   "prefer_related_applications": false
 }
-

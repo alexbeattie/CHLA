@@ -18,7 +18,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo -e "${GREEN}╔══════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║   Database Sync: Local → AWS RDS                    ║${NC}"
+echo -e "${GREEN}║ Database Sync: Local → AWS RDS ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -38,7 +38,7 @@ LOCAL_DB_HOST=$DB_HOST
 LOCAL_DB_PORT=$DB_PORT
 LOCAL_DB_NAME=$DB_NAME
 LOCAL_DB_USER=$DB_USER
-echo -e "${GREEN}✓ Local environment loaded${NC}"
+echo -e "${GREEN}Local environment loaded${NC}"
 echo ""
 
 # Step 2: Load production environment
@@ -56,7 +56,7 @@ RDS_DB_PORT=$DB_PORT
 RDS_DB_NAME=$DB_NAME
 RDS_DB_USER=$DB_USER
 RDS_DB_PASSWORD=$DB_PASSWORD
-echo -e "${GREEN}✓ Production environment loaded${NC}"
+echo -e "${GREEN}Production environment loaded${NC}"
 echo ""
 
 # Step 3: Backup RDS (safety first!)
@@ -68,7 +68,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         --db-instance-identifier chla-postgres-db \
         --db-snapshot-identifier "manual-backup-$TIMESTAMP" \
         --region us-west-2 || echo "Backup failed (non-critical)"
-    echo -e "${GREEN}✓ Backup initiated${NC}"
+    echo -e "${GREEN}Backup initiated${NC}"
 fi
 echo ""
 
@@ -88,7 +88,7 @@ python3 manage.py dumpdata \
     locations.ProviderRegionalCenter \
     > "$EXPORT_FILE"
 
-echo -e "${GREEN}✓ Exported to: $EXPORT_FILE${NC}"
+echo -e "${GREEN}Exported to: $EXPORT_FILE${NC}"
 echo ""
 
 # Step 5: Test RDS connection
@@ -102,9 +102,9 @@ export DB_SSL_REQUIRE=true
 
 python3 manage.py check --database default > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✓ RDS connection successful${NC}"
+    echo -e "${GREEN}RDS connection successful${NC}"
 else
-    echo -e "${RED}✗ Cannot connect to RDS${NC}"
+    echo -e "${RED}Cannot connect to RDS${NC}"
     exit 1
 fi
 echo ""
@@ -112,7 +112,7 @@ echo ""
 # Step 6: Apply migrations to RDS
 echo -e "${YELLOW}6. Applying migrations to RDS...${NC}"
 python3 manage.py migrate --database default
-echo -e "${GREEN}✓ Migrations applied${NC}"
+echo -e "${GREEN}Migrations applied${NC}"
 echo ""
 
 # Step 7: Import data to RDS
@@ -126,7 +126,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 python3 manage.py loaddata "$EXPORT_FILE"
-echo -e "${GREEN}✓ Data imported to RDS${NC}"
+echo -e "${GREEN}Data imported to RDS${NC}"
 echo ""
 
 # Step 8: Verify sync
@@ -149,13 +149,13 @@ from locations.models import RegionalCenter
 print(RegionalCenter.objects.count())
 ")
 
-echo -e "${GREEN}✓ RDS now has:${NC}"
-echo "  - Providers: $PROVIDER_COUNT"
-echo "  - Regional Centers: $RC_COUNT"
+echo -e "${GREEN}RDS now has:${NC}"
+echo " - Providers: $PROVIDER_COUNT"
+echo " - Regional Centers: $RC_COUNT"
 echo ""
 
 echo -e "${GREEN}╔══════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║   Sync Complete!                                     ║${NC}"
+echo -e "${GREEN}║ Sync Complete! ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo "Backup file saved: $EXPORT_FILE"

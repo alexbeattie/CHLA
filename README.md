@@ -1,8 +1,8 @@
-# CHLA Provider Map Project
+# KiNDD - NDD Resource Navigator
 
-A comprehensive healthcare provider mapping application for Children's Hospital Los Angeles, helping families find autism and developmental disability services in California.
+A comprehensive healthcare provider mapping application helping families navigate neurodevelopmental disorder (NDD) services in California.
 
-## 🌟 Features
+## Features
 
 - **Interactive Map**: Searchable map of healthcare providers and regional centers
 - **Mobile-Responsive**: Optimized mobile experience with slide-out sidebar
@@ -11,12 +11,12 @@ A comprehensive healthcare provider mapping application for Children's Hospital 
 - **Service Areas**: Visual representation of county-based service coverage
 - **User Profiles**: Save user information for personalized recommendations
 
-## 🚀 Live Application
+## Live Application
 
 - **Frontend**: <https://kinddhelp.com>
 - **API**: <https://api.kinddhelp.com>
 
-## 🏗️ Architecture
+## Architecture
 
 ### Frontend (Vue.js)
 
@@ -38,7 +38,7 @@ A comprehensive healthcare provider mapping application for Children's Hospital 
 - **CDN**: CloudFront for global content delivery
 - **Monitoring**: Elastic Beanstalk health monitoring
 
-## 🛠️ Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -97,7 +97,7 @@ A comprehensive healthcare provider mapping application for Children's Hospital 
 
 **For detailed setup instructions, see [Backend Getting Started Guide](maplocation/README.md)**
 
-## 📚 Documentation
+## Documentation
 
 ### Quick Links
 
@@ -108,22 +108,22 @@ A comprehensive healthcare provider mapping application for Children's Hospital 
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Deploy to production
 - **[GitHub Actions/CI/CD](docs/GITHUB_ACTIONS.md)** - Automatic deployment setup
 - **[Database Sync](docs/DATABASE_SYNC.md)** - Manage migrations and data
-- **[Stack Documentation](STACK_DOCUMENTATION.md)** - Complete architecture reference
+- **[Stack Documentation](docs/STACK.md)** - Complete architecture reference
 
 ### By Role
 
-- **New Developers**: Start with [Getting Started](maplocation/README.md) and [Stack Docs](STACK_DOCUMENTATION.md)
+- **New Developers**: Start with [Getting Started](maplocation/README.md) and [Stack Docs](docs/STACK.md)
 - **Developers**: Use [Deployment](docs/DEPLOYMENT.md) and [Database Sync](docs/DATABASE_SYNC.md)
 - **DevOps**: See [GitHub Actions](docs/GITHUB_ACTIONS.md) and [Deployment](docs/DEPLOYMENT.md)
 
 **All documentation organized in [/docs](docs/)** - Old/outdated docs moved to [/docs/archive](docs/archive/)
 
-## 🔧 Development
+## Development
 
 ### Project Structure
 
 ```
-CHLA/
+repo-root/
 ├── maplocation/           # Django backend
 │   ├── manage.py
 │   ├── requirements.txt
@@ -141,7 +141,7 @@ CHLA/
 │   ├── GITHUB_ACTIONS.md
 │   └── DATABASE_SYNC.md
 ├── .github/workflows/     # GitHub Actions CI/CD
-└── STACK_DOCUMENTATION.md # Architecture reference
+└── docs/STACK.md          # Architecture reference
 ```
 
 ### Key Technologies
@@ -151,7 +151,7 @@ CHLA/
 - **Database**: PostgreSQL with PostGIS extension
 - **Deployment**: AWS (EB, RDS, S3, CloudFront, Route 53)
 
-## 🚀 Deployment
+## Deployment
 
 ### Manual Deployment
 
@@ -181,11 +181,11 @@ gh run watch
 ```
 
 **New Features:**
-- ✅ Automated testing (backend + frontend)
-- ✅ Linting and code quality checks
-- ✅ Health checks with automatic rollback
-- ✅ Database migration automation
-- ✅ Deployment verification
+- Automated testing (backend + frontend)
+- Linting and code quality checks
+- Health checks with automatic rollback
+- Database migration automation
+- Deployment verification
 
 **See:** [CI/CD Guide](.github/CICD_GUIDE.md) | [Secrets Setup](.github/SECRETS.md)
 
@@ -198,7 +198,7 @@ gh run watch
 ./scripts/deploy-test.sh
 ```
 
-## 📱 Mobile Features
+## Mobile Features
 
 The application includes a responsive mobile design with:
 
@@ -208,7 +208,7 @@ The application includes a responsive mobile design with:
 - **Full-width map** when sidebar is hidden
 - **Touch-friendly interface** with proper tap targets
 
-## 🗺️ API Endpoints
+## API Endpoints
 
 ### Providers
 
@@ -225,7 +225,7 @@ The application includes a responsive mobile design with:
 - `GET /api/california-counties/` - Get California county boundaries
 - `GET /api/service-areas/` - Get service area coverage
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ### Backend (Django)
 
@@ -248,7 +248,7 @@ DB_PORT=5432
 VITE_API_BASE_URL=https://api.kinddhelp.com/api
 ```
 
-## 🧪 Testing
+## Testing
 
 ### Backend Tests
 
@@ -264,7 +264,7 @@ cd map-frontend
 npm run test
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -286,21 +286,21 @@ npm run test
 
 See [Deployment Guide](docs/DEPLOYMENT.md) and [GitHub Actions Guide](docs/GITHUB_ACTIONS.md) for detailed troubleshooting.
 
-## 📊 Performance
+## Performance
 
 - **Frontend**: Cached via CloudFront globally
 - **Backend**: Auto-scaling via Elastic Beanstalk
 - **Database**: PostGIS optimized queries for geographic data
 - **Mobile**: Optimized for mobile devices with efficient rendering
 
-## 🔒 Security
+## Security
 
 - **HTTPS**: SSL certificates via AWS Certificate Manager
 - **CORS**: Properly configured for cross-origin requests
 - **Environment Variables**: Sensitive data stored securely
 - **Database**: Private subnets with security groups
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -308,7 +308,7 @@ See [Deployment Guide](docs/DEPLOYMENT.md) and [GitHub Actions Guide](docs/GITHU
 4. Submit a pull request
 5. CI/CD will test your changes automatically
 
-## 📞 Support
+## Support
 
 For questions or issues:
 
@@ -317,10 +317,10 @@ For questions or issues:
 3. Check GitHub Issues
 4. Contact the development team
 
-## 📄 License
+## License
 
 [Add your license information here]
 
 ---
 
-**Built with ❤️ for Children's Hospital Los Angeles**
+**KiNDD - NDD Resource Navigator**

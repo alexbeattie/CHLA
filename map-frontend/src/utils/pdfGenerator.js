@@ -12,36 +12,36 @@ import autoTable from 'jspdf-autotable';
  */
 export function generateProviderPDF(providers, searchInfo = {}) {
   const doc = new jsPDF();
-  
+
   // Header
   doc.setFontSize(20);
   doc.setTextColor(0, 72, 119); // Brand blue
   doc.text('KINDD Provider List', 105, 20, { align: 'center' });
-  
+
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
   doc.text('Los Angeles County Developmental Services', 105, 27, { align: 'center' });
-  
+
   // Search criteria
   let yPos = 40;
   doc.setFontSize(11);
   doc.setTextColor(0, 0, 0);
-  
+
   if (searchInfo.location) {
     doc.text(`Search Location: ${searchInfo.location}`, 15, yPos);
     yPos += 7;
   }
-  
+
   if (searchInfo.regionalCenter) {
     doc.text(`Regional Center: ${searchInfo.regionalCenter}`, 15, yPos);
     yPos += 7;
   }
-  
+
   if (searchInfo.filters && Object.keys(searchInfo.filters).length > 0) {
     doc.text('Filters Applied:', 15, yPos);
     yPos += 5;
     doc.setFontSize(9);
-    
+
     if (searchInfo.filters.therapies && searchInfo.filters.therapies.length > 0) {
       doc.text(`  • Therapies: ${searchInfo.filters.therapies.join(', ')}`, 15, yPos);
       yPos += 5;
@@ -57,12 +57,12 @@ export function generateProviderPDF(providers, searchInfo = {}) {
     doc.setFontSize(11);
     yPos += 3;
   }
-  
+
   doc.setFontSize(10);
   doc.text(`Total Providers: ${providers.length}`, 15, yPos);
   doc.text(`Generated: ${new Date().toLocaleDateString()}`, 140, yPos);
   yPos += 10;
-  
+
   // Provider table
   const tableData = providers.map((provider, index) => {
     // Format address - handle JSON format
@@ -86,16 +86,16 @@ export function generateProviderPDF(providers, searchInfo = {}) {
       } else {
         address = provider.address;
       }
-      
+
       // Truncate if too long
       if (address.length > 45) {
         address = address.substring(0, 42) + '...';
       }
     }
-    
+
     // Format phone
     const phone = provider.phone || 'N/A';
-    
+
     // Format website - make it readable and clickable
     let website = 'N/A';
     if (provider.website) {
@@ -107,15 +107,15 @@ export function generateProviderPDF(providers, searchInfo = {}) {
       cleanUrl = cleanUrl.replace(/\/$/, '');
       // Remove www. for cleaner look
       cleanUrl = cleanUrl.replace(/^www\./, '');
-      
+
       website = cleanUrl;
-      
+
       // Truncate if too long
       if (website.length > 35) {
         website = website.substring(0, 32) + '...';
       }
     }
-    
+
     return [
       provider.name || 'Unknown',
       address,
@@ -123,7 +123,7 @@ export function generateProviderPDF(providers, searchInfo = {}) {
       website
     ];
   });
-  
+
   autoTable(doc, {
     startY: yPos,
     head: [['Provider Name', 'Address', 'Phone', 'Website']],
@@ -149,7 +149,7 @@ export function generateProviderPDF(providers, searchInfo = {}) {
     },
     margin: { left: 10, right: 10 },
   });
-  
+
   // Footer on last page
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
@@ -163,17 +163,17 @@ export function generateProviderPDF(providers, searchInfo = {}) {
       { align: 'center' }
     );
     doc.text(
-      'Visit kinddhelp.com for the most up-to-date provider information',
+      'Visit kinddhelp.org for the most up-to-date provider information',
       105,
       doc.internal.pageSize.height - 5,
       { align: 'center' }
     );
   }
-  
+
   // Generate filename
   const date = new Date().toISOString().split('T')[0];
   let filename = `KINDD-Providers-${date}.pdf`;
-  
+
   if (searchInfo.regionalCenter) {
     const rcShort = searchInfo.regionalCenter.replace(/\s+/g, '-').substring(0, 20);
     filename = `KINDD-${rcShort}-${date}.pdf`;
@@ -181,10 +181,10 @@ export function generateProviderPDF(providers, searchInfo = {}) {
     const locShort = searchInfo.location.replace(/\s+/g, '-').substring(0, 20);
     filename = `KINDD-${locShort}-${date}.pdf`;
   }
-  
+
   // Save the PDF
   doc.save(filename);
-  
+
   return filename;
 }
 

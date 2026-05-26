@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,6 +11,13 @@ from django.core.cache import cache
 from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+
+
+def _provider_dedup_key(name, phone):
+    """Normalized signature used to detect duplicate ProviderV2 rows."""
+    name_key = (name or "").strip().lower()
+    phone_key = "".join(ch for ch in (phone or "") if ch.isdigit())
+    return name_key, phone_key
 
 # from django.contrib.gis.geos import Point
 # from django.contrib.gis.measure import D
@@ -709,6 +718,40 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             return ProviderV2WriteSerializer
         return ProviderV2Serializer
 
+    def get_queryset(self):
+        """Return providers deduplicated by (lowercase name, digits-only phone).
+
+        The provider table contains rows for the same real-world provider with
+        slight formatting drift (e.g., "Los Angeles CA" vs "Los Angeles, CA").
+        We keep one canonical row per (name, phone) signature by selecting the
+        smallest id in each group. Read endpoints get clean data; writes
+        (create/update/destroy/retrieve by id) still operate on individual
+        rows because they use object-level lookups that bypass list filtering.
+
+        Dedup is computed in Python because PostgreSQL has no aggregate Min
+        for the UUID column type and Django's DISTINCT ON does not accept
+        annotation aliases. The cost is one cheap projection across all
+        provider rows; results are then cached at the list endpoint.
+        """
+        base = super().get_queryset()
+
+        if getattr(self, "action", None) in {
+            "retrieve",
+            "update",
+            "partial_update",
+            "destroy",
+            "create",
+        }:
+            return base
+
+        groups = defaultdict(list)
+        for row in ProviderV2.objects.values("id", "name", "phone"):
+            key = _provider_dedup_key(row["name"], row["phone"])
+            groups[key].append(row["id"])
+
+        canonical_ids = [min(ids, key=str) for ids in groups.values()]
+        return base.filter(id__in=canonical_ids)
+
     def list(self, request, *args, **kwargs):
         """
         List all providers with caching.
@@ -755,7 +798,7 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                 )
 
             # Search for providers serving the area
-            providers = ProviderV2.objects.filter(
+            providers = self.get_queryset().filter(
                 Q(coverage_areas__contains=[area_param])
                 | Q(areas__icontains=area_param)
             )
@@ -893,8 +936,8 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             insurance_filters = request.query_params.getlist("insurance")
             specialization = request.query_params.get("specialization")
 
-            # Start with all providers
-            providers = ProviderV2.objects.all()
+            # Start with the same deduplicated provider set used by list().
+            providers = self.get_queryset()
 
             # Apply text search
             if query:
@@ -1209,7 +1252,7 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
             filtered_provider_ids = []
 
             # Get all providers and filter by ZIP code match
-            for provider in ProviderV2.objects.only("id", "address"):
+            for provider in self.get_queryset().only("id", "address"):
                 address_str = (
                     provider.address
                     if isinstance(provider.address, str)
@@ -1222,7 +1265,7 @@ class ProviderV2ViewSet(viewsets.ModelViewSet):
                     filtered_provider_ids.append(provider.id)
 
             # Filter queryset to only matching providers
-            providers = ProviderV2.objects.filter(id__in=filtered_provider_ids)
+            providers = self.get_queryset().filter(id__in=filtered_provider_ids)
 
             # Apply additional filters
             # Apply insurance filter using ProviderInsuranceCarrier relationship
@@ -1454,7 +1497,7 @@ def api_documentation(request):
     base_url = request.build_absolute_uri("/api/")
 
     docs = {
-        "message": "CHLA Provider Map - Complete API Reference",
+        "message": "KiNDD - NDD Resource Navigator - Complete API Reference",
         "version": "2.0",
         "base_url": base_url,
         "core_endpoints": {

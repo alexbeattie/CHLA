@@ -4,7 +4,7 @@
  * Extracted from MapView.vue to reduce component complexity
  */
 
-import type { Provider } from '@/stores/providerStore';
+import type { Provider } from "@/stores/providerStore";
 
 export interface PopupItem {
   name?: string;
@@ -44,12 +44,12 @@ export function usePopups() {
     if (!hours) return "Hours not available";
 
     // If it's already a string, return it
-    if (typeof hours === 'string') {
+    if (typeof hours === "string") {
       return hours;
     }
 
     // If it's an object, try to format it nicely
-    if (typeof hours === 'object') {
+    if (typeof hours === "object") {
       try {
         return formatHoursObject(hours);
       } catch (e) {
@@ -65,16 +65,24 @@ export function usePopups() {
    * Format hours object into readable text
    */
   const formatHoursObject = (hoursObj: any): string => {
-    if (!hoursObj || typeof hoursObj !== 'object') {
+    if (!hoursObj || typeof hoursObj !== "object") {
       return "Hours not available";
     }
 
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const days = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
     const formattedHours: string[] = [];
 
-    days.forEach(day => {
+    days.forEach((day) => {
       const dayHours = hoursObj[day.toLowerCase()] || hoursObj[day];
-      if (dayHours && dayHours !== 'Closed' && dayHours !== '') {
+      if (dayHours && dayHours !== "Closed" && dayHours !== "") {
         formattedHours.push(`${day}: ${dayHours}`);
       }
     });
@@ -83,7 +91,7 @@ export function usePopups() {
       return "Hours not available";
     }
 
-    return formattedHours.join('\n');
+    return formattedHours.join("\n");
   };
 
   /**
@@ -163,7 +171,13 @@ export function usePopups() {
    * Helper function to check if data exists and is not empty/null
    */
   const hasData = (value: any): boolean => {
-    return value && value !== "[]" && value !== "null" && value !== "" && value !== "{}";
+    return (
+      value &&
+      value !== "[]" &&
+      value !== "null" &&
+      value !== "" &&
+      value !== "{}"
+    );
   };
 
   /**
@@ -176,10 +190,19 @@ export function usePopups() {
 
     try {
       // Handle JSON-encoded address object
-      if (item.address && typeof item.address === "string" && item.address.startsWith("{")) {
+      if (
+        item.address &&
+        typeof item.address === "string" &&
+        item.address.startsWith("{")
+      ) {
         const addressData = JSON.parse(item.address);
         if (typeof addressData === "object") {
-          return [addressData.street, addressData.city, addressData.state, addressData.zip]
+          return [
+            addressData.street,
+            addressData.city,
+            addressData.state,
+            addressData.zip,
+          ]
             .filter(Boolean)
             .join(", ");
         }
@@ -210,12 +233,14 @@ export function usePopups() {
     return `
       <div class="provider-popup" style="
         padding: 24px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-family: var(--kindd-font-family);
+        box-sizing: border-box;
+        width: min(360px, calc(100vw - 48px));
         max-width: 360px;
         background: white;
         border-radius: 8px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        overflow: visible;
+        overflow: hidden;
       ">
         <!-- Header -->
         <div style="
@@ -229,8 +254,12 @@ export function usePopups() {
             font-size: 18px;
             font-weight: 600;
             line-height: 1.3;
+            overflow-wrap: anywhere;
+            word-break: break-word;
           ">${title}</h5>
-          ${item.type && String(item.type).toLowerCase() !== "main" ? `
+          ${
+            item.type && String(item.type).toLowerCase() !== "main"
+              ? `
             <span style="
               background: #f8f9fa;
               color: #6c757d;
@@ -240,13 +269,22 @@ export function usePopups() {
               font-weight: 500;
               text-transform: uppercase;
               letter-spacing: 0.3px;
+              display: inline-block;
+              max-width: 100%;
+              white-space: normal;
+              overflow-wrap: anywhere;
+              word-break: break-word;
             ">${item.type}</span>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
 
         <!-- Content -->
         <div style="margin-bottom: 20px;">
-          ${fullAddress ? `
+          ${
+            fullAddress
+              ? `
             <div style="
               display: flex;
               align-items: flex-start;
@@ -264,9 +302,13 @@ export function usePopups() {
               ">Address</span>
               <div style="color: #212529; font-size: 14px; line-height: 1.4;">${fullAddress}</div>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
 
-          ${phone ? `
+          ${
+            phone
+              ? `
             <div style="
               display: flex;
               align-items: center;
@@ -288,9 +330,13 @@ export function usePopups() {
                 font-weight: 500;
               ">${phone}</a>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
 
-          ${item.website ? `
+          ${
+            item.website
+              ? `
             <div style="
               display: flex;
               align-items: center;
@@ -312,9 +358,13 @@ export function usePopups() {
                 font-weight: 500;
               ">Visit Website</a>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
 
-          ${hasData(item.insurance) ? `
+          ${
+            hasData(item.insurance)
+              ? `
             <div style="
               display: flex;
               align-items: flex-start;
@@ -329,11 +379,17 @@ export function usePopups() {
                 text-transform: uppercase;
                 letter-spacing: 0.3px;
               ">Insurance</span>
-              <div style="color: #212529; font-size: 14px; line-height: 1.4;">${formatInsurance(item.insurance)}</div>
+              <div style="color: #212529; font-size: 14px; line-height: 1.4;">${formatInsurance(
+                item.insurance
+              )}</div>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
 
-          ${hasData(item.languages) ? `
+          ${
+            hasData(item.languages)
+              ? `
             <div style="
               display: flex;
               align-items: flex-start;
@@ -348,11 +404,17 @@ export function usePopups() {
                 text-transform: uppercase;
                 letter-spacing: 0.3px;
               ">Languages</span>
-              <div style="color: #212529; font-size: 14px; line-height: 1.4;">${formatLanguages(item.languages)}</div>
+              <div style="color: #212529; font-size: 14px; line-height: 1.4;">${formatLanguages(
+                item.languages
+              )}</div>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
 
-          ${hasData(item.hours) ? `
+          ${
+            hasData(item.hours)
+              ? `
             <div style="
               display: flex;
               align-items: flex-start;
@@ -374,9 +436,13 @@ export function usePopups() {
                 white-space: pre-line;
               ">${formatHours(item.hours)}</div>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
 
-          ${item.description ? `
+          ${
+            item.description
+              ? `
             <div style="
               margin-top: 16px;
               padding-top: 16px;
@@ -389,7 +455,9 @@ export function usePopups() {
                 white-space: pre-line;
               ">${formatDescription(item.description)}</div>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
 
         <!-- Actions -->
@@ -419,72 +487,80 @@ export function usePopups() {
   /**
    * Create regional center popup content
    */
-  const createRegionalCenterPopup = (name: string, data?: RegionalCenterData): string => {
+  const createRegionalCenterPopup = (
+    name: string,
+    data?: RegionalCenterData
+  ): string => {
     // Hardcoded regional center data (TODO: move to constants or API)
     const regionalCenterDetails: Record<string, RegionalCenterData> = {
-      "Harbor": {
+      Harbor: {
         name: "Harbor Regional Center",
         phone: "(310) 540-1711",
         website: "https://www.harborrc.org/",
         service_area: "South Bay, Long Beach, and surrounding areas",
-        description: "Serving individuals with developmental disabilities in the Harbor area."
+        description:
+          "Serving individuals with developmental disabilities in the Harbor area.",
       },
       "South Central Los Angeles": {
         name: "South Central Los Angeles Regional Center",
         phone: "(213) 744-7000",
         website: "https://www.sclarc.org/",
         service_area: "South Los Angeles and surrounding communities",
-        description: "Providing services to individuals with developmental disabilities in South LA."
+        description:
+          "Providing services to individuals with developmental disabilities in South LA.",
       },
-      "Westside": {
+      Westside: {
         name: "Westside Regional Center",
         phone: "(310) 258-4000",
         website: "https://www.westsiderc.org/",
         service_area: "West Los Angeles, Santa Monica, Malibu",
-        description: "Serving the Westside communities with developmental disability services."
+        description:
+          "Serving the Westside communities with developmental disability services.",
       },
       "Eastern Los Angeles": {
         name: "Eastern Los Angeles Regional Center",
         phone: "(626) 299-4700",
         website: "https://www.elarc.org/",
         service_area: "East LA, San Gabriel Valley, Pomona Valley",
-        description: "Supporting individuals with developmental disabilities in Eastern LA County."
+        description:
+          "Supporting individuals with developmental disabilities in Eastern LA County.",
       },
       "North Los Angeles County": {
         name: "North Los Angeles County Regional Center",
         phone: "(818) 778-1900",
         website: "https://www.nlacrc.org/",
         service_area: "San Fernando Valley, Santa Clarita Valley",
-        description: "Providing services to North LA County communities."
+        description: "Providing services to North LA County communities.",
       },
       "San Gabriel/Pomona": {
         name: "San Gabriel/Pomona Regional Center",
         phone: "(626) 854-3000",
         website: "https://www.sgprc.org/",
         service_area: "San Gabriel Valley and Pomona Valley",
-        description: "Serving the eastern communities of Los Angeles County."
+        description: "Serving the eastern communities of Los Angeles County.",
       },
       "Frank D. Lanterman": {
         name: "Frank D. Lanterman Regional Center",
         phone: "(213) 383-1300",
         website: "https://www.lanterman.org/",
         service_area: "Central and Northeast LA",
-        description: "One of the largest regional centers serving LA County."
-      }
+        description: "One of the largest regional centers serving LA County.",
+      },
     };
 
-    const centerData = data || regionalCenterDetails[name] || {
-      name: name,
-      phone: "Contact information not available",
-      website: "",
-      service_area: "Service area information not available",
-      description: ""
-    };
+    const centerData = data ||
+      regionalCenterDetails[name] || {
+        name: name,
+        phone: "Contact information not available",
+        website: "",
+        service_area: "Service area information not available",
+        description: "",
+      };
 
     return `
       <div class="regional-center-popup" style="
         padding: 24px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-family: var(--kindd-font-family);
         max-width: 400px;
         background: white;
         border-radius: 8px;
@@ -517,7 +593,9 @@ export function usePopups() {
 
         <!-- Content -->
         <div style="margin-bottom: 20px;">
-          ${centerData.service_area ? `
+          ${
+            centerData.service_area
+              ? `
             <div style="
               background: #f8f9fa;
               padding: 12px 16px;
@@ -539,9 +617,13 @@ export function usePopups() {
                 font-weight: 500;
               ">${centerData.service_area}</div>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
 
-          ${centerData.phone ? `
+          ${
+            centerData.phone
+              ? `
             <div style="
               display: flex;
               align-items: center;
@@ -558,9 +640,13 @@ export function usePopups() {
                 font-weight: 500;
               ">${centerData.phone}</a>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
 
-          ${centerData.website ? `
+          ${
+            centerData.website
+              ? `
             <div style="
               display: flex;
               align-items: center;
@@ -577,9 +663,13 @@ export function usePopups() {
                 font-weight: 500;
               ">Visit Website</a>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
 
-          ${centerData.description ? `
+          ${
+            centerData.description
+              ? `
             <div style="
               margin-top: 16px;
               padding-top: 16px;
@@ -591,11 +681,15 @@ export function usePopups() {
                 line-height: 1.6;
               ">${centerData.description}</div>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
 
         <!-- Action -->
-        ${centerData.website ? `
+        ${
+          centerData.website
+            ? `
           <div style="padding-top: 16px; border-top: 1px solid #dee2e6;">
             <a href="${centerData.website}" target="_blank" style="
               display: block;
@@ -610,7 +704,9 @@ export function usePopups() {
               transition: background 0.2s;
             ">Learn More</a>
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
     `;
   };
@@ -624,6 +720,6 @@ export function usePopups() {
     formatAddress,
     hasData,
     createSimplePopup,
-    createRegionalCenterPopup
+    createRegionalCenterPopup,
   };
 }

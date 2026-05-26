@@ -1,17 +1,12 @@
 <template>
   <div class="sidebar-container" :class="{ 'mobile-open': showMobileSidebar }">
     <div class="sidebar">
-      <!-- CHLA Header -->
+      <!-- Brand Header -->
       <div class="chla-header">
-        <div class="chla-logo-container">
-          <img
-            src="@/assets/chla-logo.svg"
-            alt="Children's Hospital Los Angeles"
-            class="chla-logo"
-          />
-        </div>
         <div class="chla-mission">
-          <p class="chla-tagline">We create hope and build healthier futures</p>
+          <p class="chla-tagline">
+            Find the right NDD services for your family
+          </p>
         </div>
       </div>
 
@@ -46,9 +41,15 @@
       <!-- User Profile Summary -->
       <div
         class="info-card-section mb-3"
-        v-if="userProfile.age || userProfile.diagnosis || userProfile.therapies?.length"
+        v-if="
+          userProfile.age ||
+          userProfile.diagnosis ||
+          userProfile.therapies?.length
+        "
       >
-        <div class="form-control info-card border-primary bg-primary bg-opacity-10">
+        <div
+          class="form-control info-card border-primary bg-primary bg-opacity-10"
+        >
           <div class="info-card-header">
             <i class="bi bi-person-circle text-primary me-2"></i>
             <strong>Your Profile</strong>
@@ -80,7 +81,9 @@
           <div class="info-card-content mt-2">
             <div class="info-card-item">
               <strong>Your regional center is:</strong>
-              <span class="ms-1">{{ regionalCenter.name || "Detecting location..." }}</span>
+              <span class="ms-1">{{
+                regionalCenter.name || "Detecting location..."
+              }}</span>
             </div>
             <div class="info-card-item" v-if="regionalCenter.address">
               <i class="bi bi-geo-alt-fill text-primary me-2"></i>
@@ -88,13 +91,21 @@
             </div>
             <div class="info-card-item" v-if="regionalCenter.phone">
               <i class="bi bi-telephone-fill text-success me-2"></i>
-              <a :href="'tel:' + regionalCenter.phone" class="text-decoration-none">
+              <a
+                :href="'tel:' + regionalCenter.phone"
+                class="text-decoration-none"
+              >
                 {{ regionalCenter.phone }}
               </a>
             </div>
             <div class="info-card-item" v-if="regionalCenter.website">
               <i class="bi bi-globe text-warning me-2"></i>
-              <a :href="regionalCenter.website" target="_blank" class="text-decoration-none">
+              <a
+                :href="formatWebsite(regionalCenter.website)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-decoration-none"
+              >
                 Visit Website
               </a>
             </div>
@@ -149,6 +160,13 @@ export default {
   },
 
   emits: ["display-type-change"],
+
+  methods: {
+    formatWebsite(website) {
+      if (!website) return "";
+      return website.startsWith("http") ? website : `https://${website}`;
+    },
+  },
 };
 </script>
 
@@ -174,7 +192,7 @@ export default {
   gap: 1rem;
 }
 
-/* CHLA Header */
+/* Brand Header */
 .chla-header {
   text-align: center;
   padding: 1rem 0;

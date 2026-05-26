@@ -1,0 +1,218 @@
+//
+//  SpeechRecognizer.swift
+//  CHLA-iOS
+//
+//  Speech-to-text service using Apple's Speech framework
+//
+
+import Foundation
+import Speech
+import AVFoundation
+
+@MainActor
+class SpeechRecognizer: ObservableObject {
+    @Published var transcript: String = ""
+    @Published var isRecording: Bool = false
+    @Published var isAuthorized: Bool = false
+    @Published var error: String?
+    
+    private var audioEngine: AVAudioEngine?
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+    private let speechRecognizer: SFSpeechRecognizer?
+    
+    init() {
+        // Initialize with device locale for better recognition
+        speechRecognizer = SFSpeechRecognizer(locale: Locale.current)
+        
+        // Check initial authorization status
+        checkAuthorization()
+    }
+    
+    func checkAuthorization() {
+        SFSpeechRecognizer.requestAuthorization { [weak self] status in
+            Task { @MainActor in
+                switch status {
+                case .authorized:
+                    self?.isAuthorized = true
+                case .denied, .restricted, .notDetermined:
+                    self?.isAuthorized = false
+                @unknown default:
+                    self?.isAuthorized = false
+                }
+            }
+        }
+    }
+    
+    func requestAuthorization() async -> Bool {
+        return await withCheckedContinuation { continuation in
+            SFSpeechRecognizer.requestAuthorization { status in
+                Task { @MainActor in
+                    let authorized = status == .authorized
+                    self.isAuthorized = authorized
+                    continuation.resume(returning: authorized)
+                }
+            }
+        }
+    }
+    
+    func startRecording() {
+        // Reset state
+        error = nil
+        transcript = ""
+        
+        // Check authorization
+        guard isAuthorized else {
+            Task {
+                let granted = await requestAuthorization()
+                if granted {
+                    startRecording()
+                } else {
+                    error = "Speech recognition not authorized. Please enable in Settings."
+                }
+            }
+            return
+        }
+        
+        // Check if recognizer is available
+        guard let speechRecognizer = speechRecognizer, speechRecognizer.isAvailable else {
+            error = "Speech recognition is not available on this device."
+            return
+        }
+        
+        // Configure audio session
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        } catch {
+            self.error = "Failed to configure audio session: \(error.localizedDescription)"
+            return
+        }
+        
+        // Create audio engine
+        audioEngine = AVAudioEngine()
+        guard let audioEngine = audioEngine else {
+            error = "Failed to create audio engine."
+            return
+        }
+        
+        // Create recognition request
+        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        guard let recognitionRequest = recognitionRequest else {
+            error = "Failed to create recognition request."
+            return
+        }
+        
+        recognitionRequest.shouldReportPartialResults = true
+        recognitionRequest.addsPunctuation = true
+        
+        // Check microphone permission (separate from speech recognition permission)
+        let microphoneStatus = AVAudioApplication.shared.recordPermission
+        guard microphoneStatus == .granted else {
+            if microphoneStatus == .undetermined {
+                AVAudioApplication.requestRecordPermission { [weak self] granted in
+                    Task { @MainActor in
+                        if granted {
+                            self?.startRecording()
+                        } else {
+                            self?.error = "Microphone access denied. Please enable in Settings."
+                        }
+                    }
+                }
+            } else {
+                error = "Microphone access denied. Please enable in Settings > Privacy > Microphone."
+            }
+            return
+        }
+        
+        // Configure audio input - get input node and format first
+        let inputNode = audioEngine.inputNode
+        let recordingFormat = inputNode.outputFormat(forBus: 0)
+        
+        // Validate the audio format is usable (channelCount > 0 and valid sample rate)
+        // outputFormat(forBus:) returns AVAudioFormat (non-optional), but the format
+        // can have invalid properties when audio hardware is unavailable or permissions fail
+        guard recordingFormat.channelCount > 0 else {
+            error = "No audio input available. Please check microphone permissions."
+            return
+        }
+        
+        guard recordingFormat.sampleRate > 0 else {
+            error = "Invalid audio format. Please restart the app and try again."
+            return
+        }
+        
+        // Install tap on input node before starting engine
+        // This configures the audio graph before we prepare/start
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
+            self?.recognitionRequest?.append(buffer)
+        }
+        
+        // Prepare and start audio engine
+        audioEngine.prepare()
+        
+        do {
+            try audioEngine.start()
+        } catch {
+            // Clean up the tap we just installed since start failed
+            inputNode.removeTap(onBus: 0)
+            self.error = "Failed to start audio engine: \(error.localizedDescription)"
+            return
+        }
+        
+        // Start recognition task after audio engine is running
+        recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
+            Task { @MainActor in
+                guard let self = self else { return }
+                
+                if let result = result {
+                    self.transcript = result.bestTranscription.formattedString
+                }
+                
+                if let error = error {
+                    // Ignore cancellation errors
+                    let nsError = error as NSError
+                    if nsError.domain != "kAFAssistantErrorDomain" || nsError.code != 216 {
+                        self.error = error.localizedDescription
+                    }
+                    self.stopRecording()
+                }
+            }
+        }
+        
+        isRecording = true
+    }
+    
+    func stopRecording() {
+        // Stop audio engine
+        audioEngine?.stop()
+        audioEngine?.inputNode.removeTap(onBus: 0)
+        audioEngine = nil
+        
+        // End recognition request
+        recognitionRequest?.endAudio()
+        recognitionRequest = nil
+        
+        // Cancel recognition task
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        
+        isRecording = false
+        
+        // Deactivate audio session
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Failed to deactivate audio session: \(error)")
+        }
+    }
+    
+    func toggleRecording() {
+        if isRecording {
+            stopRecording()
+        } else {
+            startRecording()
+        }
+    }
+}

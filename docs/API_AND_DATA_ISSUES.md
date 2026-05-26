@@ -1,11 +1,11 @@
-# CHLA Provider Map - API & Data Quality Issues
+# KiNDD - NDD Resource Navigator - API & Data Quality Issues
 
 **Date**: 2025-10-27
 **Status**: Critical data quality issues identified
 
 ---
 
-## 🚨 Critical Data Issues
+## Critical Data Issues
 
 ### 1. Regional Center Duplicate Entries
 
@@ -53,13 +53,13 @@
 **Problem**: ALL Regional Centers have `is_la_regional_center=False`
 
 **Expected**: The following 7 LA County Regional Centers should have `is_la_regional_center=True`:
-1. ✅ North Los Angeles County Regional Center
-2. ✅ Eastern Los Angeles Regional Center
-3. ✅ Frank D. Lanterman Regional Center
-4. ✅ Harbor Regional Center
-5. ✅ San Gabriel/Pomona Regional Center
-6. ✅ South Central Los Angeles Regional Center
-7. ✅ Westside Regional Center
+1. North Los Angeles County Regional Center
+2. Eastern Los Angeles Regional Center
+3. Frank D. Lanterman Regional Center
+4. Harbor Regional Center
+5. San Gabriel/Pomona Regional Center
+6. South Central Los Angeles Regional Center
+7. Westside Regional Center
 
 **Impact**:
 - `service_area_boundaries` endpoint returns empty data
@@ -105,15 +105,15 @@
 
 ---
 
-## 📊 Provider Endpoint Versions
+## Provider Endpoint Versions
 
 ### Current State (3 endpoints, 2 models)
 
 | Endpoint | ViewSet | Model | Count | Status | Recommendation |
 |----------|---------|-------|-------|--------|----------------|
-| `/api/providers/` | `ProviderV2ViewSet` | `ProviderV2` | 299 | ✅ **PRIMARY** | Keep - This is the main endpoint |
-| `/api/providers-v2/` | `ProviderV2ViewSet` | `ProviderV2` | 299 | ⚠️ **ALIAS** | Keep for backward compatibility |
-| `/api/providers-legacy/` | `ProviderViewSet` | `Provider` | 1 | ⚠️ **DEPRECATED** | Can be removed after migration |
+| `/api/providers/` | `ProviderV2ViewSet` | `ProviderV2` | 299 | **PRIMARY** | Keep - This is the main endpoint |
+| `/api/providers-v2/` | `ProviderV2ViewSet` | `ProviderV2` | 299 | **ALIAS** | Keep for backward compatibility |
+| `/api/providers-legacy/` | `ProviderViewSet` | `Provider` | 1 | **DEPRECATED** | Can be removed after migration |
 
 ### Explanation
 
@@ -135,7 +135,7 @@ The legacy endpoint uses the old `Provider` model and only has 1 record remainin
 
 ---
 
-## 🎯 New API Documentation Endpoint
+## New API Documentation Endpoint
 
 **URL**: `/api/docs/`
 
@@ -157,14 +157,14 @@ The legacy endpoint uses the old `Provider` model and only has 1 record remainin
 
 ---
 
-## 📝 Action Items
+## Action Items
 
 ### Immediate (Data Quality)
-1. ✅ **Create `/api/docs/` endpoint** - DONE
-2. ✅ **Create `zip_code_analysis` endpoint** - DONE
-3. ⏳ **Deduplicate Regional Centers** - Remove 22 duplicate entries
-4. ⏳ **Set `is_la_regional_center=True`** - For the 7 LA County RCs
-5. ⏳ **Import complete ZIP code coverage** - For all LA County RCs
+1. **Create `/api/docs/` endpoint** - DONE
+2. **Create `zip_code_analysis` endpoint** - DONE
+3. **Deduplicate Regional Centers** - Remove 22 duplicate entries
+4. **Set `is_la_regional_center=True`** - For the 7 LA County RCs
+5. **Import complete ZIP code coverage** - For all LA County RCs
 
 ### Short Term (Frontend)
 1. Update frontend to use `/api/docs/` for API discovery
@@ -179,8 +179,8 @@ The legacy endpoint uses the old `Provider` model and only has 1 record remainin
 
 ---
 
-## 🔗 Related Documentation
+## Related Documentation
 
-- `STACK_DOCUMENTATION.md` - Full stack architecture
+- `docs/STACK.md` - Full stack architecture
 - `locations/views.py:192` - RegionalCenterViewSet with comprehensive docstrings
 - `locations/urls.py:23` - API routing configuration

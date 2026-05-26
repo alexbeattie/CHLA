@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import platform
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "graphene_django",
+    "llm.apps.LLMConfig",
     "locations",
     "users",  # New app for user profiles
 ]
@@ -168,8 +170,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # GDAL configuration for GeoDjango (macOS only, AWS EB will use system GDAL)
-import platform
-
 if platform.system() == "Darwin":  # macOS
     GDAL_LIBRARY_PATH = (
         "/Applications/Postgres.app/Contents/Versions/16/lib/libgdal.dylib"
@@ -191,6 +191,8 @@ default_cors = [
     "http://127.0.0.1:3002",
     "http://localhost:3003",
     "http://127.0.0.1:3003",
+    "https://kinddhelp.org",
+    "https://www.kinddhelp.org",
     "https://kinddhelp.com",
     "https://www.kinddhelp.com",
 ]
@@ -223,6 +225,11 @@ default_csrf_origins = [
     "http://127.0.0.1:3001",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://api.kinddhelp.com",
+    "https://kinddhelp.org",
+    "https://www.kinddhelp.org",
+    "https://kinddhelp.com",
+    "https://www.kinddhelp.com",
 ]
 
 if csrf_from_env:
@@ -253,7 +260,7 @@ REST_FRAMEWORK = {
 
 # Basic Auth for Admin Portal
 BASIC_AUTH_USERNAME = os.environ.get("BASIC_AUTH_USERNAME", "clientaccess")
-BASIC_AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "changeme123!")
+BASIC_AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "")
 
 # Caching Configuration
 # Use in-memory cache for simple deployment (no Redis required)
@@ -287,3 +294,45 @@ BEDROCK_CHAT_MODEL = "anthropic.claude-3-5-sonnet-20241022-v2:0"
 # LLM settings
 LLM_MAX_TOKENS = 1500
 LLM_TEMPERATURE = 0.3
+
+# Autism Research RAG service. In local development this is the FastAPI app at
+# `uvicorn autism_rag.api.server:app --host 127.0.0.1 --port 8000`.
+AUTISM_RAG_API_URL = os.environ.get("AUTISM_RAG_API_URL", "http://127.0.0.1:8000")
+AUTISM_RAG_TIMEOUT_SECONDS = int(os.environ.get("AUTISM_RAG_TIMEOUT_SECONDS", "45"))
+
+# ============================================================================
+# Logging
+# ============================================================================
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {
+            "format": "%(asctime)s %(levelname)s [%(name)s] %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": LOG_LEVEL,
+    },
+    "loggers": {
+        "llm": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "locations": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+    },
+}

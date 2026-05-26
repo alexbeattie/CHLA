@@ -2,8 +2,8 @@
   <div
     class="provider-card"
     :class="{
-      'selected': selected,
-      'has-coordinates': hasCoordinates
+      selected: selected,
+      'has-coordinates': hasCoordinates,
     }"
     :data-provider-id="provider.id"
     @click="handleClick"
@@ -39,7 +39,9 @@
       <button
         class="btn-get-directions"
         @click.stop="handleGetDirections"
-        :aria-label="$t('providerCard.getDirectionsTo', { name: provider.name })"
+        :aria-label="
+          $t('providerCard.getDirectionsTo', { name: provider.name })
+        "
         :title="$t('providerCard.directionsTitle')"
       >
         <i class="bi bi-pin-map-fill"></i>
@@ -76,7 +78,10 @@
     </div>
 
     <!-- Insurance Badges -->
-    <div v-if="showInsurance && insuranceTypes.length > 0" class="provider-insurance">
+    <div
+      v-if="showInsurance && insuranceTypes.length > 0"
+      class="provider-insurance"
+    >
       <div class="insurance-label">
         <i class="bi bi-credit-card"></i>
         <span>{{ $t("providerCard.accepts") }}</span>
@@ -94,7 +99,14 @@
     </div>
 
     <!-- Therapy Types -->
-    <div v-if="showTherapies && provider.therapy_types && provider.therapy_types.length > 0" class="provider-therapies">
+    <div
+      v-if="
+        showTherapies &&
+        provider.therapy_types &&
+        provider.therapy_types.length > 0
+      "
+      class="provider-therapies"
+    >
       <div class="therapies-label">
         <i class="bi bi-clipboard2-pulse"></i>
         <span>{{ $t("providerCard.services") }}</span>
@@ -111,19 +123,25 @@
           v-if="provider.therapy_types.length > maxTherapiesToShow"
           class="therapy-chip more-chip"
         >
-          +{{ provider.therapy_types.length - maxTherapiesToShow }} {{ $t("providerCard.more") }}
+          +{{ provider.therapy_types.length - maxTherapiesToShow }}
+          {{ $t("providerCard.more") }}
         </span>
       </div>
     </div>
 
     <!-- Age Groups -->
-    <div v-if="showAgeGroups && provider.age_groups && provider.age_groups.length > 0" class="provider-ages">
+    <div
+      v-if="
+        showAgeGroups && provider.age_groups && provider.age_groups.length > 0
+      "
+      class="provider-ages"
+    >
       <div class="ages-label">
         <i class="bi bi-people"></i>
         <span>{{ $t("providerCard.ages") }}</span>
       </div>
       <div class="ages-list">
-        {{ provider.age_groups.join(', ') }}
+        {{ provider.age_groups.join(", ") }}
       </div>
     </div>
 
@@ -136,7 +154,7 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed } from "vue";
 
 /**
  * ProviderCard Component
@@ -144,67 +162,69 @@ import { computed } from 'vue';
  * Week 4: Component Extraction
  */
 export default {
-  name: 'ProviderCard',
+  name: "ProviderCard",
 
   props: {
     // Provider data object
     provider: {
       type: Object,
-      required: true
+      required: true,
     },
     // Whether this provider is selected
     selected: {
       type: Boolean,
-      default: false
+      default: false,
     },
     // Distance to provider in miles (optional)
     distance: {
       type: Number,
-      default: null
+      default: null,
     },
     // Show insurance information
     showInsurance: {
       type: Boolean,
-      default: true
+      default: true,
     },
     // Show therapy types
     showTherapies: {
       type: Boolean,
-      default: true
+      default: true,
     },
     // Show age groups
     showAgeGroups: {
       type: Boolean,
-      default: true
+      default: true,
     },
     // Maximum therapies to display
     maxTherapiesToShow: {
       type: Number,
-      default: 3
-    }
+      default: 3,
+    },
   },
 
-  emits: ['click', 'select', 'get-directions'],
+  emits: ["click", "select", "get-directions"],
 
   setup(props, { emit }) {
     /**
      * Check if provider has valid coordinates
      */
     const hasCoordinates = computed(() => {
-      return props.provider.latitude !== null &&
-             props.provider.longitude !== null &&
-             !isNaN(props.provider.latitude) &&
-             !isNaN(props.provider.longitude);
+      return (
+        props.provider.latitude !== null &&
+        props.provider.longitude !== null &&
+        !isNaN(props.provider.latitude) &&
+        !isNaN(props.provider.longitude)
+      );
     });
 
     /**
      * Format distance for display
      */
     const formattedDistance = computed(() => {
-      if (props.distance === null) return '';
+      if (props.distance === null) return "";
 
       if (props.distance < 0.1) {
-        return 'Less than 0.1 mi';
+        return "Less than 0.1 mi";
       } else if (props.distance < 1) {
         return `${props.distance.toFixed(1)} mi`;
       } else {
@@ -219,7 +239,7 @@ export default {
       if (!props.provider.address) return null;
 
       // Handle JSON object address
-      if (typeof props.provider.address === 'object') {
+      if (typeof props.provider.address === "object") {
         const addr = props.provider.address;
         const parts = [];
 
@@ -228,11 +248,11 @@ export default {
         if (addr.state) parts.push(addr.state);
         if (addr.zip) parts.push(addr.zip);
 
-        return parts.join(', ');
+        return parts.join(", ");
       }
 
       // Handle string address (might be JSON string)
-      if (typeof props.provider.address === 'string') {
+      if (typeof props.provider.address === "string") {
         try {
           const addr = JSON.parse(props.provider.address);
           const parts = [];
@@ -242,7 +262,7 @@ export default {
           if (addr.state) parts.push(addr.state);
           if (addr.zip) parts.push(addr.zip);
 
-          return parts.join(', ');
+          return parts.join(", ");
         } catch (e) {
           // If not JSON, return as-is
           return props.provider.address;
@@ -261,9 +281,9 @@ export default {
       let insuranceData = props.provider.insurance_accepted;
 
       // Handle JSON object or empty object
-      if (typeof insuranceData === 'object') {
+      if (typeof insuranceData === "object") {
         if (Array.isArray(insuranceData)) {
-          return insuranceData.filter(type => type && type.length > 0);
+          return insuranceData.filter((type) => type && type.length > 0);
         }
         // Empty object {} means no insurance
         if (Object.keys(insuranceData).length === 0) {
@@ -273,17 +293,17 @@ export default {
       }
 
       // Handle string (might be JSON string like "{Aetna,Cigna}")
-      if (typeof insuranceData === 'string') {
+      if (typeof insuranceData === "string") {
         // Remove curly braces if present
-        insuranceData = insuranceData.replace(/^{|}$/g, '').trim();
+        insuranceData = insuranceData.replace(/^{|}$/g, "").trim();
 
         if (!insuranceData) return [];
 
         // Split by comma
         return insuranceData
-          .split(',')
-          .map(type => type.trim().replace(/^"|"$/g, '')) // Remove quotes
-          .filter(type => type.length > 0);
+          .split(",")
+          .map((type) => type.trim().replace(/^"|"$/g, "")) // Remove quotes
+          .filter((type) => type.length > 0);
       }
 
       return [];
@@ -301,14 +321,16 @@ export default {
      * Format phone number for display
      */
     const formatPhone = (phone) => {
-      if (!phone) return '';
+      if (!phone) return "";
 
       // Remove all non-digit characters
-      const digits = phone.replace(/\D/g, '');
+      const digits = phone.replace(/\D/g, "");
 
       // Format as (XXX) XXX-XXXX if 10 digits
       if (digits.length === 10) {
-        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(
+          6
+        )}`;
       }
 
       // Return original if not 10 digits
@@ -319,10 +341,10 @@ export default {
      * Format website URL
      */
     const formatWebsite = (website) => {
-      if (!website) return '';
+      if (!website) return "";
 
       // Add https:// if no protocol
-      if (!website.startsWith('http://') && !website.startsWith('https://')) {
+      if (!website.startsWith("http://") && !website.startsWith("https://")) {
         return `https://${website}`;
       }
 
@@ -333,18 +355,22 @@ export default {
      * Handle card click
      */
     const handleClick = () => {
-      console.log(`🔘 ProviderCard: Clicked on provider ${props.provider.id} - ${props.provider.name}`);
+      console.log(
+        `🔘 ProviderCard: Clicked on provider ${props.provider.id} - ${props.provider.name}`
+      );
 
-      emit('click', props.provider);
-      emit('select', props.provider.id);
+      emit("click", props.provider);
+      emit("select", props.provider.id);
     };
 
     /**
      * Handle get directions button click
      */
     const handleGetDirections = () => {
-      console.log(`🗺️ ProviderCard: Get directions to provider ${props.provider.id} - ${props.provider.name}`);
-      emit('get-directions', props.provider);
+      console.log(
+        `🗺️ ProviderCard: Get directions to provider ${props.provider.id} - ${props.provider.name}`
+      );
+      emit("get-directions", props.provider);
     };
 
     return {
@@ -356,9 +382,9 @@ export default {
       formatPhone,
       formatWebsite,
       handleClick,
-      handleGetDirections
+      handleGetDirections,
     };
-  }
+  },
 };
 </script>
 
@@ -366,59 +392,58 @@ export default {
 .provider-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 12px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .provider-card:hover {
   border-color: #3b82f6;
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
-  transform: translateY(-3px);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.1), 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .provider-card.selected {
   border-color: #3b82f6;
   background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.18), 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.15), 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .provider-card:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 /* Header */
 .provider-header {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .provider-icon {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 18px;
   color: #3b82f6;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .provider-card.selected .provider-icon {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 }
 
 .provider-title {
@@ -427,27 +452,33 @@ export default {
 }
 
 .provider-name {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
   color: #111827;
   margin: 0;
-  margin-bottom: 4px;
-  line-height: 1.4;
+  margin-bottom: 2px;
+  line-height: 1.25;
   letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .provider-type {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b7280;
   font-weight: 500;
   letter-spacing: 0.01em;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .selected-indicator {
   flex-shrink: 0;
   color: #3b82f6;
-  font-size: 26px;
+  font-size: 22px;
   animation: fadeIn 0.3s ease;
+  line-height: 1;
 }
 
 @keyframes fadeIn {
@@ -466,96 +497,100 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  gap: 12px;
-  padding-bottom: 14px;
+  margin-bottom: 8px;
+  gap: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #f3f4f6;
 }
 
 .provider-distance {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 14px;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
   font-weight: 600;
   color: #3b82f6;
   letter-spacing: -0.01em;
+  line-height: 1;
 }
 
 .provider-distance i {
-  font-size: 17px;
+  font-size: 14px;
 }
 
 .btn-get-directions {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 12px;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 7px;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.2);
+  line-height: 1;
+  height: 30px;
 }
 
 .btn-get-directions:hover {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .btn-get-directions:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.25);
 }
 
 .btn-get-directions i {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* Address */
 .provider-address {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 13px;
   color: #4b5563;
-  margin-bottom: 14px;
-  line-height: 1.6;
+  margin-bottom: 6px;
+  line-height: 1.35;
 }
 
 .provider-address i {
   flex-shrink: 0;
-  margin-top: 3px;
+  margin-top: 2px;
   color: #9ca3af;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 /* Contact Info */
 .provider-contact {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 14px;
-  padding-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #f3f4f6;
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.3;
 }
 
 .contact-item i {
   color: #6b7280;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .contact-link {
@@ -572,48 +607,53 @@ export default {
 
 /* Insurance Badges */
 .provider-insurance {
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .insurance-label {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 11px;
   font-weight: 600;
   color: #6b7280;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  line-height: 1;
 }
 
 .insurance-label i {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .insurance-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 5px;
 }
 
 .insurance-badge {
   display: inline-flex;
   align-items: center;
-  padding: 5px 12px;
+  max-width: 100%;
+  padding: 3px 10px;
   background-color: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 20px;
+  border-radius: 16px;
   font-size: 11px;
   font-weight: 500;
   color: #374151;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .insurance-badge:hover {
   background-color: #f3f4f6;
   border-color: #d1d5db;
-  transform: translateY(-1px);
 }
 
 .insurance-badge.badge-insurance {
@@ -636,47 +676,52 @@ export default {
 
 /* Therapy Types */
 .provider-therapies {
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .therapies-label {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 11px;
   font-weight: 600;
   color: #6b7280;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  line-height: 1;
 }
 
 .therapies-label i {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .therapies-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 5px;
 }
 
 .therapy-chip {
   display: inline-flex;
   align-items: center;
-  padding: 5px 12px;
+  max-width: 100%;
+  padding: 3px 10px;
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border: 1px solid #bfdbfe;
-  border-radius: 20px;
+  border-radius: 16px;
   font-size: 11px;
   font-weight: 500;
   color: #1e40af;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .therapy-chip:hover {
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  transform: translateY(-1px);
 }
 
 .therapy-chip.more-chip {
@@ -690,16 +735,17 @@ export default {
 .provider-ages {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12.5px;
   color: #4b5563;
-  margin-bottom: 8px;
+  margin-bottom: 0;
+  line-height: 1.3;
 }
 
 .ages-label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-weight: 600;
   color: #6b7280;
   flex-shrink: 0;
@@ -707,6 +753,9 @@ export default {
 
 .ages-list {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Warning */

@@ -20,7 +20,9 @@
       <div class="panel-content">
         <!-- Name -->
         <div class="rc-header">
-          <h3 class="rc-name">{{ regionalCenter.regional_center || regionalCenter.name }}</h3>
+          <h3 class="rc-name">
+            {{ regionalCenter.regional_center || regionalCenter.name }}
+          </h3>
         </div>
 
         <!-- Distance -->
@@ -44,9 +46,15 @@
                 Suite {{ regionalCenter.suite }}
               </div>
               <div class="address-line">
-                <span v-if="regionalCenter.city">{{ regionalCenter.city }}, </span>
-                <span v-if="regionalCenter.state">{{ regionalCenter.state }} </span>
-                <span v-if="regionalCenter.zip_code">{{ regionalCenter.zip_code }}</span>
+                <span v-if="regionalCenter.city"
+                  >{{ regionalCenter.city }},
+                </span>
+                <span v-if="regionalCenter.state"
+                  >{{ regionalCenter.state }}
+                </span>
+                <span v-if="regionalCenter.zip_code">{{
+                  regionalCenter.zip_code
+                }}</span>
               </div>
             </div>
             <button
@@ -76,7 +84,7 @@
             <div v-if="regionalCenter.website" class="contact-item">
               <i class="bi bi-globe"></i>
               <a
-                :href="regionalCenter.website"
+                :href="formatWebsite(regionalCenter.website)"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="contact-link"
@@ -104,24 +112,24 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed } from "vue";
 
 const props = defineProps({
   regionalCenter: {
     type: Object,
-    default: null
+    default: null,
   },
   isVisible: {
     type: Boolean,
-    default: false
+    default: false,
   },
   distance: {
     type: Number,
-    default: null
-  }
+    default: null,
+  },
 });
 
-const emit = defineEmits(['close', 'get-directions']);
+const emit = defineEmits(["close", "get-directions"]);
 
 /**
  * Check if regional center has coordinates
@@ -130,12 +138,11 @@ const hasCoordinates = computed(() => {
   return props.regionalCenter?.latitude && props.regionalCenter?.longitude;
 });
 
-
 /**
  * Format distance
  */
 const formattedDistance = computed(() => {
-  if (props.distance === null) return '';
+  if (props.distance === null) return "";
   return `${props.distance.toFixed(1)} mi`;
 });
 
@@ -143,27 +150,34 @@ const formattedDistance = computed(() => {
  * Format phone number
  */
 const formatPhone = (phone) => {
-  if (!phone) return '';
-  const cleaned = phone.replace(/\D/g, '');
+  if (!phone) return "";
+  const cleaned = phone.replace(/\D/g, "");
   if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(
+      6
+    )}`;
   }
   return phone;
+};
+
+const formatWebsite = (website) => {
+  if (!website) return "";
+  return website.startsWith("http") ? website : `https://${website}`;
 };
 
 /**
  * Handle get directions click
  */
 const handleGetDirections = () => {
-  emit('get-directions', {
+  emit("get-directions", {
     provider: props.regionalCenter,
     coordinates: {
       lat: props.regionalCenter.latitude,
-      lng: props.regionalCenter.longitude
-    }
+      lng: props.regionalCenter.longitude,
+    },
   });
   // Close the panel after getting directions
-  emit('close');
+  emit("close");
 };
 </script>
 

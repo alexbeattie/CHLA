@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import MapView from '../views/MapView.vue'
 import FaqView from '../views/FaqView.vue'
 import AboutView from '../views/AboutView.vue'
+import CliniciansView from '../views/CliniciansView.vue'
 import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
 import TermsOfServiceView from '../views/TermsOfServiceView.vue'
 import RegionalCentersIndexView from '../views/RegionalCentersIndexView.vue'
@@ -29,6 +30,11 @@ const routes = [
     path: '/about',
     name: 'about',
     component: AboutView
+  },
+  {
+    path: '/clinicians',
+    name: 'clinicians',
+    component: CliniciansView
   },
   {
     path: '/privacy',

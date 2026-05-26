@@ -1,152 +1,21 @@
-# CHLA Provider Map - Cursor/AI Rules
+# KiNDD - NDD Resource Navigator Cursor Rules
 
-## Project Context
-Healthcare provider mapping application for LA County Regional Centers
-- Frontend: Vue 3 + Vite + TypeScript
-- Backend: Django + PostGIS + PostgreSQL
-- Deployment: AWS (S3/CloudFront + Elastic Beanstalk + RDS)
+Follow `AGENTS.md` for the shared repo workflow and `CURSOR.md` for the Cursor session flow.
 
-## Critical Commands
+## Non-Negotiables
 
-### Development
-```bash
-# Backend
-cd maplocation && source ../venv/bin/activate && python3 manage.py runserver
+- Never add secrets, credentials, or production-only values to code or docs.
+- Product name is `KiNDD - NDD Resource Navigator`; short form is `KiNDD`.
+- Do not introduce `CHLA` or `Children's Hospital Los Angeles` into new user-facing copy, docs, app strings, or marketing examples. Existing infrastructure identifiers such as DB users, EB environment names, S3 buckets, package names, and folder paths keep their current names until a dedicated rename.
+- Do not use emojis in code, docs, app strings, shell scripts, or commit messages.
+- Frontend work should follow Vue Composition API patterns and keep reusable logic out of giant view files.
+- Backend work should use `python3`, env-driven configuration, and explicit migrations for schema changes.
+- Prefer the smallest safe diff over broad rewrites.
+- Run the smallest relevant verification step before handing work off.
 
-# Frontend  
-cd map-frontend && ./switch-env.sh dev && npm run dev
+## Preferred References
 
-# Database (Docker)
-docker-compose -f docker-compose.local.yml up -d
-```
-
-### Testing (ALWAYS run before pushing!)
-```bash
-./scripts/quick-test.sh           # 10 seconds - run before every commit
-./scripts/test-deployment-locally.sh  # 3 minutes - before deployment
-```
-
-### Deployment
-```bash
-# Manual (backup method)
-cd maplocation && ./deploy.sh
-cd map-frontend && ./deploy.sh
-
-# GitHub Actions (primary)
-git push origin main  # automatic deployment
-```
-
-## Code Standards
-
-### Python/Django
-- Always use `python3` not `python`
-- Use PostGIS for geographic queries
-- Follow Django best practices
-- Add docstrings to all public methods
-- Use type hints where possible
-
-### Vue/TypeScript
-- Use Composition API (not Options API)
-- TypeScript strict mode
-- Pinia for state management
-- Composables in `/composables` directory
-
-### Database
-- All distances in MILES (not kilometers)
-- Use PostGIS for spatial operations
-- Migrations required for schema changes
-
-## Security
-
-### NEVER commit:
-- `.env` files with real credentials
-- Database backups (`.sql`, `.dump`)
-- AWS credentials
-- Secret keys or passwords
-
-### ALWAYS:
-- Use `.env.example` templates
-- Store secrets in GitHub Secrets for CI/CD
-- Rotate passwords every 90 days
-- Use different credentials for local vs production
-
-## File Organization
-
-### Environment Files
-- `.env.local` - Local development (not committed)
-- `.env.production` - Production (not committed)
-- `.env.example` - Template (committed)
-
-### Documentation
-- `QUICK_START.md` - Getting started guide
-- `ENV_SETTINGS.md` - All environment variables and settings
-- `DEPLOY.md` - Deployment procedures
-- `.github/CICD_GUIDE.md` - CI/CD documentation
-
-## Common Pitfalls
-
-1. **Unit Mismatch**: Always use miles for distances
-2. **Database Sync**: Use sync scripts, don't manually copy
-3. **Environment**: Always specify `.env.local` or `.env.production`
-4. **CORS**: Update both backend and frontend configs
-5. **CloudFront**: Cache invalidation takes 5-15 minutes
-
-## Quick Reference
-
-### Local URLs
-- Backend: http://localhost:8000
-- Frontend: http://localhost:5173
-- Admin: http://localhost:8000/admin/
-
-### Production URLs
-- Backend: https://api.kinddhelp.com
-- Frontend: https://kinddhelp.com
-- Admin: https://api.kinddhelp.com/admin/
-
-### Authentication
-- Basic Auth: clientaccess / changeme123!
-- Admin: admin / admin123
-- Client: client1 / client-password-123
-
-### AWS Configuration
-- Region: us-west-2
-- Profile: personal
-- EB Environment: chla-api-env
-- S3 Bucket: kinddhelp-frontend-1755148345
-- CloudFront: E2W6EECHUV4LMM
-
-## Before Making Changes
-
-1. Read relevant documentation first
-2. Check existing patterns in codebase
-3. Run quick tests locally
-4. Create feature branch for non-trivial changes
-5. Test thoroughly before merging to main
-
-## When Stuck
-
-1. Check `QUICK_START.md` for common commands
-2. Check `ENV_SETTINGS.md` for configuration
-3. Run `./scripts/quick-test.sh` to diagnose issues
-4. Check GitHub Actions logs for deployment issues
-5. Review error messages carefully - they usually point to the issue
-
-## Performance
-
-- Frontend build: ~30 seconds
-- Backend deployment: ~3-5 minutes
-- Frontend deployment: ~2-3 minutes (+ cache invalidation)
-- Quick tests: ~10 seconds
-- Full tests: ~3 minutes
-
-## Workflow
-
-1. Make changes locally
-2. Test with `./scripts/quick-test.sh`
-3. Commit to feature branch
-4. Push to GitHub (triggers quick-ci)
-5. Create PR (runs full tests)
-6. Merge to main (triggers deployment)
-7. Monitor GitHub Actions for success
-8. Verify deployment at production URLs
-
+- `QUICK_START.md`
+- `.github/copilot-instructions.md`
+- `maplocation/README.md`
+- `map-frontend/ENVIRONMENT_SWITCHING.md`

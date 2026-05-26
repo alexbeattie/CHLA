@@ -45,7 +45,7 @@ class ProviderStore: ObservableObject {
             providers = try await APIService.shared.getProviders()
         } catch {
             self.error = error
-            print("❌ Error fetching providers: \(error)")
+            print("Error fetching providers: \(error)")
         }
 
         isLoading = false
@@ -69,7 +69,7 @@ class ProviderStore: ObservableObject {
             )
         } catch {
             self.error = error
-            print("❌ Error searching nearby: \(error)")
+            print("Error searching nearby: \(error)")
         }
 
         isLoading = false
@@ -101,7 +101,7 @@ class ProviderStore: ObservableObject {
             )
         } catch {
             self.error = error
-            print("❌ Error searching: \(error)")
+            print("Error searching: \(error)")
         }
 
         isLoading = false
@@ -123,7 +123,7 @@ class ProviderStore: ObservableObject {
             providers = response.results
         } catch {
             self.error = error
-            print("❌ Error searching by regional center: \(error)")
+            print("Error searching by regional center: \(error)")
         }
 
         isLoading = false

@@ -5,9 +5,9 @@
 **Good News!** Provider imports now happen automatically on every deployment via `.ebextensions` configuration.
 
 When you push to `main`, the deployment will automatically:
-1. ✅ Populate regional center ZIP codes (San Gabriel, Pasadena/Eastern LA)
-2. ✅ Import Pasadena providers (39 providers)
-3. ✅ Import San Gabriel/Pomona providers (39 providers)
+1. Populate regional center ZIP codes (San Gabriel, Pasadena/Eastern LA)
+2. Import Pasadena providers (39 providers)
+3. Import San Gabriel/Pomona providers (39 providers)
 
 **Total: 78 providers imported automatically!**
 
@@ -48,7 +48,7 @@ Click on **"Providers V2"** in the admin sidebar.
 4. Wait ~30-60 seconds
 5. You'll see a success message:
    ```
-   ✅ Pasadena providers import completed!
+   Pasadena providers import completed!
 
    Import complete!
      Created: 39
@@ -67,7 +67,7 @@ Click on **"Providers V2"** in the admin sidebar.
 4. Wait ~30-60 seconds
 5. You'll see a success message:
    ```
-   ✅ San Gabriel/Pomona providers import completed!
+   San Gabriel/Pomona providers import completed!
 
    Import complete!
      Created: 39
@@ -168,11 +168,11 @@ This:
 
 ## Benefits of This Approach
 
-- ✅ **No SSH required** - Works through web browser
-- ✅ **One-click import** - Just select action and click Go
-- ✅ **Safe to run multiple times** - Uses update_or_create()
-- ✅ **Immediate feedback** - See results right away
-- ✅ **Error handling** - Shows clear error messages if something fails
+- **No SSH required** - Works through web browser
+- **One-click import** - Just select action and click Go
+- **Safe to run multiple times** - Uses update_or_create()
+- **Immediate feedback** - See results right away
+- **Error handling** - Shows clear error messages if something fails
 
 ---
 
@@ -216,21 +216,21 @@ When you search any of these ZIP codes, the map should display:
 #### **Provider Data Quality**
 
 All 78 imported providers will have:
-- ✅ `insurance_accepted` contains "Regional Center" text (required for filtering)
-- ✅ Geocoded addresses with map markers
-- ✅ Parsed therapy types from Services column
-- ✅ Parsed insurance information
+- `insurance_accepted` contains "Regional Center" text (required for filtering)
+- Geocoded addresses with map markers
+- Parsed therapy types from Services column
+- Parsed insurance information
 
 ---
 
 ## Summary
 
-1. ⏳ Wait for deployment (~15-20 min)
-2. 🔐 Login to https://api.kinddhelp.com/client-portal/
-3. 📋 Go to "Providers V2"
-4. ✅ Run "Import Pasadena providers" action
-5. ✅ Run "Import San Gabriel providers" action
-6. 🎉 Done! 78 new providers now in production
+1. Wait for deployment (~15-20 min)
+2. Login to https://api.kinddhelp.com/client-portal/
+3. Go to "Providers V2"
+4. Run "Import Pasadena providers" action
+5. Run "Import San Gabriel providers" action
+6. Done! 78 new providers now in production
 
 **Total time: ~2 minutes of actual work once deployment is done**
 

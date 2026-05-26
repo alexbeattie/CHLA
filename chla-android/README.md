@@ -4,7 +4,7 @@ Native Android app for the KINDD (Kids in Need of Developmental Disabilities) Re
 
 ## Overview
 
-KINDD is a free resource map developed by Children's Hospital Los Angeles to help families find ABA therapy and developmental disability services in Los Angeles County.
+KiNDD - NDD Resource Navigator is a free resource map helping families find ABA therapy and neurodevelopmental disorder (NDD) services in Los Angeles County.
 
 ## Features
 
@@ -90,4 +90,4 @@ Strings are defined in:
 
 ## License
 
-Copyright © Children's Hospital Los Angeles
+Copyright © KiNDD - NDD Resource Navigator

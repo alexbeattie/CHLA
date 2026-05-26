@@ -20,8 +20,8 @@ if [ -z "$ACCESS_KEY" ] || [ -z "$SECRET_KEY" ]; then
 fi
 
 echo "Found credentials:"
-echo "  Access Key: ${ACCESS_KEY:0:10}...${ACCESS_KEY: -4}"
-echo "  Secret Key: ${SECRET_KEY:0:10}...${SECRET_KEY: -4}"
+echo " Access Key: ${ACCESS_KEY:0:10}...${ACCESS_KEY: -4}"
+echo " Secret Key: ${SECRET_KEY:0:10}...${SECRET_KEY: -4}"
 echo ""
 
 # Set secrets with explicit stdin

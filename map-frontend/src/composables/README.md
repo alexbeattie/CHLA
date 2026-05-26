@@ -306,8 +306,7 @@ npm run test:coverage    # Run with coverage report
 ## 📖 Documentation
 
 - **Integration Guide:** `/docs/COMPOSABLES_INTEGRATION_GUIDE.md`
-- **Refactoring Plan:** `/docs/MAPVIEW_REFACTOR_PLAN.md`
-- **Session Summary:** `/docs/SESSION_SUMMARY.md`
+- **Refactor history (archived):** `/docs/archive/2025-10/MAPVIEW_REFACTOR_PLAN.md`, `/docs/archive/2025-10/SESSION_SUMMARY.md`
 
 ---
 

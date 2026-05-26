@@ -60,7 +60,7 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun KINDDTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // Disabled to use CHLA brand colors
+    dynamicColor: Boolean = false, // Disabled to use project brand colors
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

@@ -15,12 +15,12 @@ These images are referenced in `index.html` but need to be created and placed in
 ### **Max File Size:** < 8 MB (aim for < 300 KB)
 
 ### Content Requirements:
-- **Background:** CHLA dark blue (#004877) or gradient
-- **Logo:** KINDD logo or CHLA logo
+- **Background:** brand dark blue (#004877) or gradient
+- **Logo:** KiNDD logo
 - **Main Text:** "Find ABA Therapy Providers in Los Angeles"
-- **Subtext:** "Free Interactive Map by Children's Hospital LA"
+- **Subtext:** "Free Interactive NDD Resource Map"
 - **Visual:** Map outline of LA County or marker icon
-- **Branding:** CHLA butterfly icon (if space permits)
+- **Branding:** KiNDD icon (if space permits)
 
 ### Safe Zones:
 - Keep text/logos at least 40px from edges
@@ -30,7 +30,7 @@ These images are referenced in `index.html` but need to be created and placed in
 1. **Canva** (Free): https://canva.com
    - Search template: "Open Graph Image"
    - Use 1200x630px custom size
-   
+
 2. **Figma** (Free): https://figma.com
    - Create frame: 1200x630px
    - Export as JPG (quality 85%)
@@ -45,8 +45,8 @@ These images are referenced in `index.html` but need to be created and placed in
 3. Custom size: 1200 x 630 px
 4. Search for "Social Media Banner" templates
 5. Customize with:
-   - CHLA brand colors (#004877, #FFC923, etc.)
-   - Upload CHLA logo from /map-frontend/src/assets/
+   - Brand colors (#004877, #FFC923, etc.)
+   - Upload KiNDD logo from /map-frontend/src/assets/
    - Add text: Main headline + subtext
    - Add map visual or location icon
 6. Download as JPG
@@ -91,7 +91,7 @@ You can often reuse the same og-image.jpg for Twitter if you adjust the safe zon
 #### Steps:
 1. Go to https://realfavicongenerator.net/
 2. Upload your master icon:
-   - Use KINDD logo or CHLA butterfly icon
+   - Use KiNDD logo
    - Minimum 512x512px PNG
    - Transparent background preferred
    - High contrast design works best
@@ -104,7 +104,7 @@ You can often reuse the same og-image.jpg for Twitter if you adjust the safe zon
 6. Extract all files to `/map-frontend/public/`
 
 ### Manual Creation (Advanced):
-If you have the CHLA logo in SVG or high-res PNG:
+If you have the KiNDD logo in SVG or high-res PNG:
 1. Open in image editor (Photoshop, GIMP, Figma)
 2. Create artboards for each size
 3. Export each size as PNG
@@ -153,7 +153,7 @@ https://placehold.co/1200x630/004877/white?text=KINDD+Provider+Map
 
 ---
 
-## CHLA Brand Guidelines Reference
+## Brand Guidelines Reference
 
 ### Colors (from chla_brand_guidelines.md):
 
@@ -193,7 +193,7 @@ https://placehold.co/1200x630/004877/white?text=KINDD+Provider+Map
 - Ensure text is readable
 
 ### 3. Brand Consistency
-- Use CHLA brand colors
+- Use the project brand colors
 - Include recognizable logo
 - Maintain professional appearance
 
@@ -256,9 +256,9 @@ Before deploying, ensure these files exist in `/map-frontend/public/`:
 - [ ] `apple-touch-icon.png` (180x180)
 - [ ] `android-chrome-192x192.png`
 - [ ] `android-chrome-512x512.png`
-- [ ] `site.webmanifest` (✅ Already created)
-- [ ] `robots.txt` (✅ Already created)
-- [ ] `sitemap.xml` (✅ Already created)
+- [ ] `site.webmanifest` (Already created)
+- [ ] `robots.txt` (Already created)
+- [ ] `sitemap.xml` (Already created)
 
 ---
 
@@ -267,7 +267,7 @@ Before deploying, ensure these files exist in `/map-frontend/public/`:
 ```
 ┌─────────────────────────────────────────────────────┐
 │                                                     │
-│  [CHLA Logo]                    [Butterfly Icon]   │
+│  [KiNDD Logo]                                       │
 │                                                     │
 │                                                     │
 │            Find ABA Therapy Providers              │
@@ -275,13 +275,13 @@ Before deploying, ensure these files exist in `/map-frontend/public/`:
 │                                                     │
 │                                                     │
 │         Free Interactive Map • 370+ Providers      │
-│          Powered by Children's Hospital LA         │
+│              KiNDD - NDD Resource Navigator         │
 │                                                     │
 │                   [Map Visual]                     │
 │                                                     │
 └─────────────────────────────────────────────────────┘
     1200px width x 630px height
-    Background: CHLA Blue (#004877)
+    Background: brand blue (#004877)
     Text: White with yellow accent
 ```
 
@@ -310,13 +310,13 @@ Before deploying, ensure these files exist in `/map-frontend/public/`:
 
 ---
 
-**Priority:** High  
-**Estimated Time:** 30-60 minutes  
-**Skills Needed:** Basic graphic design (Canva templates make this easy)  
+**Priority:** High
+**Estimated Time:** 30-60 minutes
+**Skills Needed:** Basic graphic design (Canva templates make this easy)
 **Impact:** Significantly improves social sharing and click-through rates
 
 ---
 
-**Last Updated:** November 5, 2025  
+**Last Updated:** November 5, 2025
 **Next Step:** Create images and test social sharing
 

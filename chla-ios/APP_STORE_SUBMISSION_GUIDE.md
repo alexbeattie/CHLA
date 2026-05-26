@@ -130,7 +130,7 @@ Questions or feedback? Contact support@kinddhelp.com
 ### Required Sizes
 | Display | Size | Device |
 |---------|------|--------|
-| 6.9" | 1290 x 2796 | iPhone 15 Pro Max ✅ |
+| 6.9" | 1290 x 2796 | iPhone 15 Pro Max |
 | 6.5" | Auto-scales from 6.9" | - |
 
 ### Screenshot Locations

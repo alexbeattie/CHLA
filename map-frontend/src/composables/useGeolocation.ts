@@ -163,7 +163,7 @@ export function useGeolocation() {
           countrycodes: 'us',
         },
         headers: {
-          'User-Agent': 'CHLA-Provider-Map/1.0',
+          'User-Agent': 'KiNDD-Resource-Navigator/1.0',
         },
       });
 
@@ -194,7 +194,7 @@ export function useGeolocation() {
           limit: 1,
         },
         headers: {
-          'User-Agent': 'CHLA-Provider-Map/1.0',
+          'User-Agent': 'KiNDD-Resource-Navigator/1.0',
         },
       });
 

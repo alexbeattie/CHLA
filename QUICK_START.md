@@ -1,8 +1,8 @@
-# CHLA Provider Map - Quick Start Guide
+# KiNDD - NDD Resource Navigator - Quick Start Guide
 
 **Get up and running in 5 minutes**
 
-## 🚀 First Time Setup
+## First Time Setup
 
 ### 1. Start Local Database (Docker)
 ```bash
@@ -31,7 +31,7 @@ cd map-frontend
 npm install
 ```
 
-## 🏃 Daily Development
+## Daily Development
 
 ### Start Everything (One Command)
 ```bash
@@ -50,7 +50,7 @@ Access:
 - Backend API: http://localhost:8000/api/
 - Admin: http://localhost:8000/admin/
 
-## 📊 Database Management
+## Database Management
 
 ### Pull Production Data to Local
 ```bash
@@ -74,9 +74,9 @@ source .env.production
 python3 manage.py migrate
 ```
 
-## 🚢 Deployment
+## Deployment
 
-### Test Before Deploying (⚡ Fast - 10 seconds)
+### Test Before Deploying (Fast - 10 seconds)
 ```bash
 ./scripts/quick-test.sh
 ```
@@ -104,7 +104,7 @@ git push origin main
 gh workflow run ci-cd.yml
 ```
 
-## 🐛 Quick Debugging
+## Quick Debugging
 
 ### Backend Not Working?
 ```bash
@@ -130,7 +130,7 @@ psql -h localhost -p 5433 -U chla_dev -d chla_local
 psql -h <RDS_HOST> -U chla_admin -d postgres --set=sslmode=require
 ```
 
-## 🔧 Common Commands
+## Common Commands
 
 ```bash
 # Backend
@@ -157,21 +157,23 @@ eb logs                               # View logs
 aws s3 ls s3://kinddhelp-frontend-1755148345/  # Check S3
 ```
 
-## ⚡ Speed Tips
+## Speed Tips
 
 1. **Before every commit**: `./scripts/quick-test.sh` (10 seconds)
 2. **Before deployment**: `./scripts/test-deployment-locally.sh` (3 min)
 3. **Use Docker for DB**: Faster than managing PostgreSQL manually
 4. **Keep envs in sync**: Run db sync scripts regularly
 
-## 📚 Full Documentation
+## Full Documentation
 
 - [Complete Deployment Guide](DEPLOY.md)
 - [CI/CD Documentation](.github/CICD_GUIDE.md)
 - [Environment Setup](.github/SECRETS.md)
-- [Repository Rules](.cursorrules) (for Cursor/Claude)
+- [Shared Agent Workflow](AGENTS.md)
+- [Cursor Workflow](CURSOR.md)
+- [Claude Workflow](CLAUDE.md)
 
-## 🆘 Help
+## Help
 
 **Something broken?**
 1. Check you're using correct environment (`.env.local` vs `.env.production`)
@@ -183,4 +185,3 @@ aws s3 ls s3://kinddhelp-frontend-1755148345/  # Check S3
 - Check recent git commits for breaking changes
 - Try syncing database: `./scripts/db-sync-rds-to-local.sh`
 - Restart Docker: `docker-compose down && docker-compose up`
-

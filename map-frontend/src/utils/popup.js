@@ -21,7 +21,7 @@ function hasData(value) {
  */
 export function createSimplePopup(item) {
   console.log("Creating simple popup for item:", item);
-  
+
   const title = item.name || item.regional_center || "Location";
   const phone = item.phone || item.telephone;
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;
@@ -52,7 +52,7 @@ export function createSimplePopup(item) {
   return `
     <div class="provider-popup" style="
       padding: 24px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: var(--kindd-font-family);
       max-width: 360px;
       background: white;
       border-radius: 8px;

@@ -48,7 +48,7 @@ cd ../map-frontend
 # Create production env file
 cat > .env.production << EOF
 VITE_API_BASE_URL=https://api.kinddhelp.com
-VITE_MAPBOX_TOKEN=pk.eyJ1IjoiYmVhdHR5LWFkbWluIiwiYSI6ImNsejFjNGt0YzFqMGMyanF3YW5hdWFmc3UifQ.sn7Uj_gDzzKL6PQq7vO7fw
+VITE_MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 EOF
 
 # Build

@@ -2,12 +2,12 @@
 
 After deploying the import command code, you need to run the imports on the production database.
 
-## ⚠️ Important Note
+## Important Note
 
 **Provider data is stored in the database, NOT in code.** When you push code to production:
-- ✅ The import command gets deployed
-- ✅ Migrations run automatically
-- ❌ Provider data does NOT transfer
+- The import command gets deployed
+- Migrations run automatically
+- Provider data does NOT transfer
 
 You must manually run the import commands on production to add the providers to the RDS database.
 
@@ -20,9 +20,9 @@ You must manually run the import commands on production to add the providers to 
 Monitor deployment: https://github.com/YOUR_USERNAME/CHLAProj/actions
 
 Wait until you see:
-- ✅ Backend deployed successfully
-- ✅ Migrations completed
-- ✅ All checks passed
+- Backend deployed successfully
+- Migrations completed
+- All checks passed
 
 **Estimated time:** ~15-25 minutes
 
@@ -169,7 +169,7 @@ If you want to geocode addresses on production (adds lat/long coordinates):
 ### 1. Set Mapbox Token on EB
 
 ```bash
-eb setenv MAPBOX_ACCESS_TOKEN="pk.eyJ1IjoiYmVhdHR5LWFkbWluIiwiYSI6ImNsejFjNGt0YzFqMGMyanF3YW5hdWFmc3UifQ.sn7Uj_gDzzKL6PQq7vO7fw" --region us-west-2
+eb setenv MAPBOX_ACCESS_TOKEN="YOUR_MAPBOX_TOKEN" --region us-west-2
 ```
 
 ### 2. SSH and Run with --geocode Flag
@@ -353,4 +353,4 @@ The command will **UPDATE** existing providers (matched by name + address) inste
 
 ---
 
-**After completing the import, 78 new providers will be live on production!** 🎉
+**After completing the import, 78 new providers will be live on production!**

@@ -7,7 +7,7 @@ cd /Users/alexbeattie/Developer/CHLA/maplocation
 source venv/bin/activate
 
 # Set Mapbox token (for geocoding)
-export MAPBOX_ACCESS_TOKEN="pk.eyJ1IjoiYmVhdHR5LWFkbWluIiwiYSI6ImNsejFjNGt0YzFqMGMyanF3YW5hdWFmc3UifQ.sn7Uj_gDzzKL6PQq7vO7fw"
+export MAPBOX_ACCESS_TOKEN="YOUR_MAPBOX_TOKEN"
 
 echo "========================================"
 echo "Importing Pasadena Provider List"

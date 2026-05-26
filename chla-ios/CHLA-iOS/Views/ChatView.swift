@@ -8,12 +8,42 @@
 
 import SwiftUI
 import CoreLocation
+import Textual
 import UIKit
 import PhotosUI
 
+// PreviewEnv.swift (or at the top of ChatView.swift for a quick test)
+enum PreviewEnv {
+    static var isPreview: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+        #else
+        return false
+        #endif
+    }
+}
+extension AppState {
+    static func preview() -> AppState {
+        let state = AppState()
+        state.userZipCode = "90012"
+        state.userChildAge = 3
+        state.userInsurance = "Medi-Cal"
+        // Set any other lightweight preview defaults here
+        return state
+    }
+}
+
 struct ChatView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var llmService = LLMService.shared
     @StateObject private var locationService = LocationService()
+    @StateObject private var speechRecognizer = SpeechRecognizer()
+    @StateObject private var textToSpeech = TextToSpeech()
+    @StateObject private var conversationHistory = ConversationHistory()
+    @StateObject private var userMemory = UserMemory()
+
+    // Track text that existed before recording started (for proper speech appending)
+    @State private var textBeforeRecording: String = ""
     @EnvironmentObject var appState: AppState
     @State private var inputText = ""
     @FocusState private var isFocused: Bool
@@ -21,28 +51,93 @@ struct ChatView: View {
     @State private var showingExportSheet = false
     @State private var exportText = ""
     @State private var userZipCode: String?
-    
-    // Image picker state
+    @State private var showingHistory = false
+    @State private var currentConversationId: UUID?
+    @State private var showingRestartSetupConfirmation = false
+
+    // Attachment flow state (Step 1: Type, Step 2: Source)
+    @State private var showingAttachmentTypeSheet = false  // Step 1: Choose analysis type
+    @State private var showingSourceOptions = false         // Step 2: Choose source
+    @State private var pendingAnalysisType: ImageAnalysisType = .document
+    @State private var typeWasSelected = false  // Track if user selected a type vs cancelled
+
+    // Image/Document picker state
     @State private var showingImagePicker = false
     @State private var showingCamera = false
-    @State private var showingImageTypeSheet = false
-    @State private var showingImageAnalysisSheet = false
     @State private var showingDocumentPicker = false
     @State private var selectedImage: UIImage?
-    @State private var selectedImageType: ImageAnalysisType = .insuranceCard
 
     // Quick prompt suggestions - computed property for localization
+    // Smart context-aware prompts
     private var quickPrompts: [(String, String, String)] {
-        [
-            ("🔍", L10n.Chat.findProviders, L10n.Chat.suggestion1),
-            ("📋", L10n.Chat.assessment, "chat.assessmentPrompt".localized),
-            ("🏥", L10n.Chat.myRC, L10n.Chat.suggestion2),
-            ("👶", L10n.Chat.earlyStart, L10n.Chat.suggestion4),
-            ("💊", L10n.Chat.insurance, L10n.Chat.suggestion3),
-            ("📅", L10n.Chat.waitlists, "chat.waitlistsPrompt".localized),
-            ("🎂", L10n.Chat.age3Transition, "chat.age3Prompt".localized),
-            ("🗣️", L10n.Chat.speech, "chat.speechPrompt".localized)
+        var prompts: [(String, String, String)] = []
+
+        let hour = Calendar.current.component(.hour, from: Date())
+        let hasHistory = !conversationHistory.conversations.isEmpty
+        let hasActiveConversation = !llmService.messages.isEmpty
+        let userRC = appState.selectedRegionalCenter?.regionalCenter
+        let userZip = userZipCode ?? appState.userZipCode
+
+        // Context: Time-based greeting prompts
+        if hour < 12 && !hasActiveConversation {
+            prompts.append(("sun.max", "Morning Start", "What early intervention services should I consider for my child?"))
+        } else if hour >= 17 && !hasActiveConversation {
+            prompts.append(("moon", "Evening Help", "Can you summarize the key services available for developmental delays?"))
+        }
+
+        // Context: Returning user - different prompts
+        if hasHistory && !hasActiveConversation {
+            prompts.append(("clock.arrow.circlepath", "Continue", "I have some follow-up questions from our last conversation."))
+        }
+
+        // Context: Regional Center known
+        if let rc = userRC {
+            prompts.append(("building.2", "My RC", "What services does \(rc) Regional Center offer?"))
+        }
+
+        // Context: ZIP code known - local providers
+        if let zip = userZip, !zip.isEmpty {
+            prompts.append(("location", "Near Me", "Find providers near \(zip)"))
+        }
+
+        // Core prompts - always show these
+        let corePrompts: [(String, String, String)] = [
+            ("magnifyingglass", L10n.Chat.findProviders, L10n.Chat.suggestion1),
+            ("doc.text.magnifyingglass", "Research", "Which genes have the strongest SFARI evidence for autism?"),
+            ("checklist", L10n.Chat.assessment, L10n.Chat.assessmentPrompt),
+            ("building.2", L10n.Chat.myRC, L10n.Chat.suggestion2),
+            ("figure.and.child.holdinghands", L10n.Chat.earlyStart, L10n.Chat.suggestion4),
+            ("creditcard", L10n.Chat.insurance, L10n.Chat.suggestion3),
+            ("calendar", L10n.Chat.waitlists, L10n.Chat.waitlistsPrompt),
+            ("arrow.triangle.branch", L10n.Chat.age3Transition, L10n.Chat.age3Prompt),
+            ("waveform", L10n.Chat.speech, L10n.Chat.speechPrompt)
         ]
+
+        // Add core prompts, skipping duplicates based on context already added
+        for core in corePrompts {
+            // Skip "My RC" if we already added a personalized RC prompt
+            if core.1 == L10n.Chat.myRC && userRC != nil { continue }
+            // Skip "Find Providers" if we already added a localized one
+            if core.1 == L10n.Chat.findProviders && userZip != nil { continue }
+
+            prompts.append(core)
+        }
+
+        // Limit to 8 prompts for UI
+        return Array(prompts.prefix(8))
+    }
+
+    // Count of remembered items for display
+    private var memoryItemCount: Int {
+        var count = 0
+        if userMemory.context.childAge != nil { count += 1 }
+        if userMemory.context.childName != nil { count += 1 }
+        count += userMemory.context.diagnoses.count
+        count += userMemory.context.therapyInterests.count
+        if userMemory.context.regionalCenter != nil { count += 1 }
+        if userMemory.context.insuranceType != nil { count += 1 }
+        if userMemory.context.zipCode != nil { count += 1 }
+        return count
     }
 
     var body: some View {
@@ -68,8 +163,14 @@ struct ChatView: View {
                             ForEach(llmService.messages) { message in
                                 MessageBubble(
                                     message: message,
-                                    onLike: { llmService.setFeedback(message.id, feedback: .liked) },
-                                    onDislike: { llmService.setFeedback(message.id, feedback: .disliked) },
+                                    onLike: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        llmService.setFeedback(message.id, feedback: .liked)
+                                    },
+                                    onDislike: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        llmService.setFeedback(message.id, feedback: .disliked)
+                                    },
                                     onCopy: {
                                         if let text = llmService.copyMessage(message.id) {
                                             UIPasteboard.general.string = text
@@ -77,9 +178,19 @@ struct ChatView: View {
                                         }
                                     },
                                     onShare: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                         exportText = message.content
                                         showingExportSheet = true
                                     },
+                                    onSpeak: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        if textToSpeech.isSpeaking {
+                                            textToSpeech.stop()
+                                        } else {
+                                            textToSpeech.speak(message.content)
+                                        }
+                                    },
+                                    isSpeaking: textToSpeech.isSpeaking,
                                     onAction: { action in
                                         handleAction(action)
                                     }
@@ -87,7 +198,7 @@ struct ChatView: View {
                                 .id(message.id)
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 6)
                         .padding(.bottom, 100)
                     }
                     .onChange(of: llmService.messages.count) { _, _ in
@@ -104,60 +215,149 @@ struct ChatView: View {
                     isFocused: $isFocused,
                     isLoading: llmService.isLoading,
                     isStreaming: llmService.messages.last?.isStreaming == true,
+                    isRecording: speechRecognizer.isRecording,
                     onSend: { sendMessage(inputText) },
                     onCancel: { llmService.cancelStreaming() },
-                    onPhoto: { showingImagePicker = true },
-                    onCamera: { showingCamera = true },
-                    onFiles: { showingDocumentPicker = true }
+                    onAttachment: { showingAttachmentTypeSheet = true },
+                    onMicTap: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        if !speechRecognizer.isRecording {
+                            // Capture existing text before starting to record
+                            textBeforeRecording = inputText
+                        }
+                        speechRecognizer.toggleRecording()
+                    }
                 )
+                .onChange(of: speechRecognizer.transcript) { _, newTranscript in
+                    // The transcript is cumulative (all speech so far), so we combine
+                    // the text that existed before recording with the current transcript
+                    if !newTranscript.isEmpty {
+                        if textBeforeRecording.isEmpty {
+                            inputText = newTranscript
+                        } else {
+                            // Add space separator if existing text doesn't end with space
+                            let separator = textBeforeRecording.hasSuffix(" ") ? "" : " "
+                            inputText = textBeforeRecording + separator + newTranscript
+                        }
+                    }
+                }
+                .onChange(of: speechRecognizer.isRecording) { _, isRecording in
+                    // When recording stops, clear the saved text (transcript is finalized)
+                    if !isRecording {
+                        textBeforeRecording = ""
+                    }
+                }
             }
             .navigationTitle(L10n.Chat.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // History button on leading side
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingHistory = true
+                    } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .foregroundColor(.secondary)
+                    }
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        if !llmService.messages.isEmpty {
-                            Button {
-                                // Get regional center from last message if available
-                                let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
-                                exportText = llmService.exportConversation(
-                                    userZipCode: userZipCode ?? appState.userZipCode,
-                                    regionalCenter: lastRC
-                                )
-                                showingExportSheet = true
-                            } label: {
-                                Label("Share Chat", systemImage: "square.and.arrow.up")
+                    HStack(spacing: 14) {
+                        Button {
+                            showingRestartSetupConfirmation = true
+                        } label: {
+                            Image(systemName: "person.text.rectangle")
+                                .foregroundColor(.accentBlue)
+                        }
+                        .accessibilityLabel("Restart Welcome Setup")
+
+                        Menu {
+                            if !llmService.messages.isEmpty {
+                                Button {
+                                    saveCurrentConversation()
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                } label: {
+                                    Label("Save Chat", systemImage: "square.and.arrow.down")
+                                }
+
+                                Button {
+                                    // Get regional center from last message if available
+                                    let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
+                                    exportText = llmService.exportConversation(
+                                        userZipCode: userZipCode ?? appState.userZipCode,
+                                        regionalCenter: lastRC
+                                    )
+                                    showingExportSheet = true
+                                } label: {
+                                    Label("Share Chat", systemImage: "square.and.arrow.up")
+                                }
+
+                                Button {
+                                    let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
+                                    let text = llmService.exportConversation(
+                                        userZipCode: userZipCode ?? appState.userZipCode,
+                                        regionalCenter: lastRC
+                                    )
+                                    UIPasteboard.general.string = text
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                } label: {
+                                    Label("Copy All", systemImage: "doc.on.doc")
+                                }
+
+                                Divider()
+
+                                Button(role: .destructive) {
+                                    showingClearConfirmation = true
+                                } label: {
+                                    Label(L10n.Chat.clearChat, systemImage: "trash")
+                                }
                             }
 
                             Button {
-                                let lastRC = llmService.messages.last(where: { $0.regionalCenter != nil })?.regionalCenter
-                                let text = llmService.exportConversation(
-                                    userZipCode: userZipCode ?? appState.userZipCode,
-                                    regionalCenter: lastRC
-                                )
-                                UIPasteboard.general.string = text
-                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                showingRestartSetupConfirmation = true
                             } label: {
-                                Label("Copy All", systemImage: "doc.on.doc")
+                                Label("Restart Welcome Setup", systemImage: "person.text.rectangle")
+                            }
+
+                            Toggle(isOn: $llmService.useStreaming) {
+                                Label("Streaming Mode", systemImage: "waveform")
                             }
 
                             Divider()
 
-                            Button(role: .destructive) {
-                                showingClearConfirmation = true
-                            } label: {
-                                Label(L10n.Chat.clearChat, systemImage: "trash")
-                            }
-                        }
+                            // Memory section
+                            if userMemory.context.hasContent {
+                                Menu {
+                                    Text(userMemory.context.contextSummary)
+                                        .font(.caption)
 
-                        Toggle(isOn: $llmService.useStreaming) {
-                            Label("Streaming Mode", systemImage: "waveform")
+                                    Divider()
+
+                                    Button(role: .destructive) {
+                                        userMemory.clearAll()
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    } label: {
+                                        Label("Clear Memory", systemImage: "brain")
+                                    }
+                                } label: {
+                                    Label("Memory (\(memoryItemCount))", systemImage: "brain.head.profile")
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundColor(.secondary)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .foregroundColor(.secondary)
                     }
                 }
+            }
+            .sheet(isPresented: $showingHistory) {
+                ConversationHistorySheet(
+                    history: conversationHistory,
+                    onSelect: { conversation in
+                        loadConversation(conversation)
+                        showingHistory = false
+                    }
+                )
             }
             .confirmationDialog(L10n.Chat.clearConfirmTitle, isPresented: $showingClearConfirmation) {
                 Button(L10n.Chat.clearChat, role: .destructive) {
@@ -165,19 +365,42 @@ struct ChatView: View {
                 }
                 Button(L10n.Common.cancel, role: .cancel) {}
             }
+            .confirmationDialog("Restart Welcome Setup?", isPresented: $showingRestartSetupConfirmation) {
+                Button("Restart Welcome Setup") {
+                    restartWelcomeSetup()
+                }
+                Button(L10n.Common.cancel, role: .cancel) {}
+            } message: {
+                Text("Revisit your ZIP code, care context, and app preferences. Saved chats will stay on this device.")
+            }
             .sheet(isPresented: $showingExportSheet) {
                 ShareSheet(items: [exportText])
             }
-            .confirmationDialog("Analyze Image", isPresented: $showingImageTypeSheet) {
-                Button("📷 Take Photo") {
-                    showingCamera = true
+            // Step 1: Choose what type of document to analyze
+            .sheet(isPresented: $showingAttachmentTypeSheet, onDismiss: {
+                // Only show source options if user actually selected a type (not cancelled)
+                if typeWasSelected {
+                    typeWasSelected = false  // Reset flag
+                    showingSourceOptions = true
                 }
-                Button("🖼️ Choose from Library") {
+            }) {
+                AttachmentTypeSheet(onTypeSelected: { type in
+                    pendingAnalysisType = type
+                    typeWasSelected = true  // Mark that a type was selected
+                })
+            }
+            // Step 2: Choose source (Photo Library, Camera, Files)
+            .confirmationDialog("Choose Source", isPresented: $showingSourceOptions) {
+                Button("Photo Library") {
                     showingImagePicker = true
                 }
+                Button("Take Photo") {
+                    showingCamera = true
+                }
+                Button("Choose File") {
+                    showingDocumentPicker = true
+                }
                 Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("Upload a photo of your insurance card, IEP, or other document")
             }
             .sheet(isPresented: $showingImagePicker) {
                 ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
@@ -185,30 +408,23 @@ struct ChatView: View {
             .fullScreenCover(isPresented: $showingCamera) {
                 ImagePicker(image: $selectedImage, sourceType: .camera)
             }
-            .sheet(isPresented: $showingImageAnalysisSheet) {
-                if let image = selectedImage {
-                    ImageAnalysisSheet(
-                        image: IdentifiableImage(image: image),
-                        onAnalyze: { type in
-                            analyzeSelectedImage(type: type)
-                        },
-                        onCancel: {
-                            selectedImage = nil
-                        }
-                    )
-                }
-            }
             .onChange(of: selectedImage) { _, newImage in
                 if newImage != nil {
-                    showingImageAnalysisSheet = true
+                    // Directly analyze with pre-selected type - no need for second sheet
+                    analyzeSelectedImage(type: pendingAnalysisType)
                 }
             }
             .sheet(isPresented: $showingDocumentPicker) {
+                // Capture analysis type at the moment picker is shown to avoid race condition
+                let capturedType = pendingAnalysisType
                 DocumentPicker { data, fileExtension in
                     // Handle different file types
-                    if let image = UIImage(data: data) {
-                        // It's an image - use the image analysis flow
-                        selectedImage = image
+                    if let image = UIImage(data: data),
+                       let imageData = image.jpegData(compressionQuality: 0.8) {
+                        // It's an image - analyze directly with captured type
+                        Task {
+                            await llmService.analyzeImage(imageData, type: capturedType)
+                        }
                     } else {
                         // It's a document (PDF, Word, etc.) - use document analysis endpoint
                         Task {
@@ -218,15 +434,26 @@ struct ChatView: View {
                 }
             }
             .onAppear {
+                // Skip location and other permission/side-effect work in previews
+                guard !PreviewEnv.isPreview else { return }
                 fetchUserZipCode()
             }
             .onChange(of: locationService.currentLocation) { _, location in
+                // Skip reacting to location updates in previews
+                guard !PreviewEnv.isPreview else { return }
                 if let location = location {
                     Task {
                         await updateZipCodeFromLocation(location)
                     }
                 }
             }
+        }
+    }
+
+    private func restartWelcomeSetup() {
+        dismiss()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            appState.resetOnboarding()
         }
     }
 
@@ -250,9 +477,9 @@ struct ChatView: View {
             let zip = try await locationService.getZipCode(for: location.coordinate)
             userZipCode = zip
             appState.saveUserContext(zipCode: zip)
-            print("📍 Got user ZIP from location: \(zip)")
+            print("Got user ZIP from location: \(zip)")
         } catch {
-            print("❌ Failed to get ZIP from location: \(error)")
+            print("Failed to get ZIP from location: \(error)")
         }
     }
 
@@ -296,44 +523,111 @@ struct ChatView: View {
             if let url = URL(string: urlString) {
                 UIApplication.shared.open(url)
             }
+
+        case .getDirections(let address):
+            // Open in Apple Maps
+            let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            if let url = URL(string: "maps://?daddr=\(encodedAddress)") {
+                UIApplication.shared.open(url)
+            }
+
+        case .showProvidersOnMap(let providers):
+            appState.showProvidersOnMap(providers)
+            dismiss()
+
+        case .showProviderOnMap(let name):
+            appState.showProviderOnMap(named: name)
+            dismiss()
         }
+    }
+
+    // MARK: - Conversation History
+
+    private func saveCurrentConversation() {
+        let messages = llmService.messages.map { msg in
+            (role: msg.role.rawValue, content: msg.content, timestamp: msg.timestamp)
+        }
+        conversationHistory.saveConversation(messages: messages, existingId: currentConversationId)
+
+        // Set current ID if this is a new save
+        if currentConversationId == nil && !conversationHistory.conversations.isEmpty {
+            currentConversationId = conversationHistory.conversations.first?.id
+        }
+    }
+
+    private func loadConversation(_ conversation: SavedConversation) {
+        // Clear current chat
+        llmService.clearChat()
+
+        // Load messages from saved conversation
+        for msg in conversation.messages {
+            guard let role = ChatMessage.MessageRole(rawValue: msg.role) else { continue }
+            llmService.addRestoredMessage(role: role, content: msg.content, timestamp: msg.timestamp)
+        }
+
+        // Set current conversation ID
+        currentConversationId = conversation.id
     }
 
     private func sendMessage(_ text: String) {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
 
+        // Haptic feedback on send
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+
+        // Stop TTS if speaking
+        if textToSpeech.isSpeaking {
+            textToSpeech.stop()
+        }
+
+        // Stop recording if active
+        if speechRecognizer.isRecording {
+            speechRecognizer.stopRecording()
+        }
+
         inputText = ""
         isFocused = false
 
+        // Extract context from user message for memory
+        userMemory.extractContextFromMessage(query)
+
         // Build context from app state - prioritize local userZipCode from location
-        let effectiveZip = userZipCode ?? appState.userZipCode
-        print("📍 Sending query with ZIP: \(effectiveZip ?? "none")")
+        let effectiveZip = userZipCode ?? appState.userZipCode ?? userMemory.context.zipCode
+        print("Sending query with ZIP: \(effectiveZip ?? "none")")
+
+        // Merge app state with remembered context
+        let childAgeString: String? = {
+            if let age = appState.userChildAge {
+                return "\(age) years old"
+            }
+            return userMemory.context.childAge
+        }()
 
         let context = UserContext(
             zipCode: effectiveZip,
-            childAge: appState.userChildAge,
-            diagnosis: appState.userDiagnosis ?? appState.searchFilters.diagnosis,
-            insurance: appState.userInsurance ?? appState.searchFilters.insurance,
-            currentServices: nil
+            childAge: childAgeString,
+            diagnosis: appState.userDiagnosis ?? appState.searchFilters.diagnosis ?? userMemory.context.diagnoses.first,
+            insurance: appState.userInsurance ?? appState.searchFilters.insurance ?? userMemory.context.insuranceType,
+            currentServices: nil,
+            memoryContext: userMemory.llmContextInjection  // Inject remembered context
         )
 
         Task {
             await llmService.ask(query, context: context)
         }
     }
-    
+
     // MARK: - Image Analysis
-    
+
     private func analyzeSelectedImage(type: ImageAnalysisType) {
         guard let image = selectedImage,
               let imageData = image.jpegData(compressionQuality: 0.8) else {
             return
         }
-        
-        showingImageAnalysisSheet = false
+
         selectedImage = nil
-        
+
         Task {
             await llmService.analyzeImage(imageData, type: type)
         }
@@ -353,7 +647,7 @@ struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
     let sourceType: UIImagePickerController.SourceType
     @Environment(\.dismiss) private var dismiss
-    
+
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = sourceType
@@ -361,27 +655,27 @@ struct ImagePicker: UIViewControllerRepresentable {
         picker.allowsEditing = false
         return picker
     }
-    
+
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
+
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let parent: ImagePicker
-        
+
         init(_ parent: ImagePicker) {
             self.parent = parent
         }
-        
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             if let image = info[.originalImage] as? UIImage {
                 parent.image = image
             }
             parent.dismiss()
         }
-        
+
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             parent.dismiss()
         }
@@ -394,9 +688,9 @@ struct ImageAnalysisSheet: View {
     let image: IdentifiableImage
     let onAnalyze: (ImageAnalysisType) -> Void
     let onCancel: () -> Void
-    
+
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
@@ -408,13 +702,13 @@ struct ImageAnalysisSheet: View {
                     .cornerRadius(16)
                     .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
                     .padding(.horizontal)
-                
+
                 // Analysis type selection
                 VStack(alignment: .leading, spacing: 12) {
                     Text("What would you like to analyze?")
                         .font(.headline)
                         .foregroundColor(Color.primary)
-                    
+
                     ForEach(ImageAnalysisType.allCases, id: \.rawValue) { type in
                         AnalysisTypeButton(type: type) {
                             dismiss()
@@ -423,7 +717,7 @@ struct ImageAnalysisSheet: View {
                     }
                 }
                 .padding(.horizontal)
-                
+
                 Spacer()
             }
             .padding(.top, 20)
@@ -444,7 +738,7 @@ struct ImageAnalysisSheet: View {
 struct AnalysisTypeButton: View {
     let type: ImageAnalysisType
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
@@ -454,21 +748,21 @@ struct AnalysisTypeButton: View {
                     .frame(width: 44, height: 44)
                     .background(Color(hex: "6366F1").opacity(0.15))
                     .cornerRadius(12)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(type.title)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(Color(uiColor: .label))
-                    
+
                     Text(typeDescription)
                         .font(.caption)
                         .foregroundColor(Color(uiColor: .secondaryLabel))
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
-                    .foregroundColor(Color(uiColor: .tertiaryLabel))
+                    .foregroundColor(Color(uiColor: .secondaryLabel))
             }
             .padding(16)
             .background(Color(uiColor: .secondarySystemBackground))
@@ -476,7 +770,7 @@ struct AnalysisTypeButton: View {
         }
         .buttonStyle(ScaleButtonStyle())
     }
-    
+
     private var typeDescription: String {
         switch type {
         case .insuranceCard:
@@ -489,6 +783,100 @@ struct AnalysisTypeButton: View {
     }
 }
 
+// MARK: - Attachment Type Sheet (Step 1: Choose what to analyze)
+
+struct AttachmentTypeSheet: View {
+    let onTypeSelected: (ImageAnalysisType) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("What would you like to analyze?")
+                    .font(.title3.weight(.semibold))
+                    .foregroundColor(Color(uiColor: .label))
+                    .padding(.top, 8)
+
+                VStack(spacing: 12) {
+                    ForEach(ImageAnalysisType.allCases, id: \.rawValue) { type in
+                        AttachmentTypeButton(type: type) {
+                            dismiss()
+                            onTypeSelected(type)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+
+                Spacer()
+            }
+            .padding(.top, 20)
+            .navigationTitle("Add Attachment")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(Color(uiColor: .label))
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+}
+
+struct AttachmentTypeButton: View {
+    let type: ImageAnalysisType
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        } label: {
+            HStack(spacing: 16) {
+                Image(systemName: type.icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(Color(hex: "6366F1"))
+                    .frame(width: 50, height: 50)
+                    .background(Color(hex: "6366F1").opacity(0.15))
+                    .cornerRadius(12)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(type.title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(uiColor: .label))
+
+                    Text(typeDescription)
+                        .font(.caption)
+                        .foregroundColor(Color(uiColor: .secondaryLabel))
+                        .lineLimit(2)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .foregroundColor(Color(uiColor: .secondaryLabel))
+            }
+            .padding(16)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .cornerRadius(16)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+
+    private var typeDescription: String {
+        switch type {
+        case .insuranceCard:
+            return "Extract plan name, member ID, coverage"
+        case .document:
+            return "IEP, RC letters, medical reports"
+        case .general:
+            return "Ask any question about an image"
+        }
+    }
+}
+
 // MARK: - Welcome Card
 
 struct WelcomeCard: View {
@@ -496,6 +884,7 @@ struct WelcomeCard: View {
 
     let suggestions = [
         "What ABA providers near 90210 accept Medi-Cal?",
+        "Which genes have the strongest SFARI evidence for autism?",
         "My child is turning 3, what changes?",
         "How do I get a Regional Center assessment?",
         "What's the difference between OT and PT?"
@@ -516,7 +905,7 @@ struct WelcomeCard: View {
                         )
                         .frame(width: 70, height: 70)
 
-                    Image(systemName: "sparkles")
+                    Image(systemName: "message.fill")
                         .font(.system(size: 32))
                         .foregroundColor(.white)
                 }
@@ -593,6 +982,9 @@ enum ChatAction: Identifiable {
     case viewProviderList
     case callPhone(number: String)
     case openWebsite(url: String)
+    case getDirections(address: String)
+    case showProvidersOnMap(providers: [Provider])
+    case showProviderOnMap(name: String)
 
     var id: String {
         switch self {
@@ -602,6 +994,10 @@ enum ChatAction: Identifiable {
         case .viewProviderList: return "list"
         case .callPhone(let num): return "call_\(num)"
         case .openWebsite(let url): return "web_\(url)"
+        case .getDirections(let addr): return "dir_\(addr)"
+        case .showProvidersOnMap(let providers):
+            return "show_map_\(providers.map(\.id.uuidString).joined(separator: "_"))"
+        case .showProviderOnMap(let name): return "show_map_\(name)"
         }
     }
 
@@ -613,6 +1009,9 @@ enum ChatAction: Identifiable {
         case .viewProviderList: return "list.bullet"
         case .callPhone: return "phone"
         case .openWebsite: return "safari"
+        case .getDirections: return "arrow.triangle.turn.up.right.diamond"
+        case .showProvidersOnMap: return "mappin.and.ellipse"
+        case .showProviderOnMap: return "mappin.and.ellipse"
         }
     }
 
@@ -626,6 +1025,9 @@ enum ChatAction: Identifiable {
         case .viewProviderList: return "Browse All"
         case .callPhone: return "Call Now"
         case .openWebsite: return "Visit Website"
+        case .getDirections: return "Get Directions"
+        case .showProvidersOnMap(let providers): return "Show \(providers.count) on Map"
+        case .showProviderOnMap: return "Show on Map"
         }
     }
 }
@@ -669,6 +1071,8 @@ struct MessageBubble: View {
     var onDislike: (() -> Void)?
     var onCopy: (() -> Void)?
     var onShare: (() -> Void)?
+    var onSpeak: (() -> Void)?
+    var isSpeaking: Bool = false
     var onAction: ((ChatAction) -> Void)?
 
     @State private var showActions = false
@@ -679,38 +1083,215 @@ struct MessageBubble: View {
 
         var actions: [ChatAction] = []
         let content = message.content.lowercased()
+        let originalContent = message.content
+        let sourceQuery = message.sourceQuery?.lowercased() ?? ""
+        let isProviderSearchQuestion = isProviderSearchIntent(sourceQuery)
+        let referencedProviders = providersDisplayedInResponse(
+            message.referencedProviders,
+            responseText: originalContent
+        )
 
-        // Detect therapy type mentions
-        if content.contains("aba") || content.contains("applied behavior") {
+        if isProviderSearchQuestion && !referencedProviders.isEmpty {
+            actions.append(.showProvidersOnMap(providers: referencedProviders))
+
+            if let provider = referencedProviders.first,
+               let address = directionsAddress(for: provider),
+               asksForDirections(sourceQuery) {
+                actions.append(.getDirections(address: address))
+            }
+        }
+
+        // Detect phone numbers - look for patterns like (XXX) XXX-XXXX or XXX-XXX-XXXX
+        if isProviderSearchQuestion,
+           asksForContact(sourceQuery),
+           let phoneNumber = extractPhoneNumber(from: originalContent) {
+            actions.append(.callPhone(number: phoneNumber))
+        }
+
+        // Detect addresses - look for street addresses with city/state patterns
+        if isProviderSearchQuestion,
+           asksForDirections(sourceQuery),
+           referencedProviders.isEmpty,
+           let address = extractAddress(from: originalContent) {
+            actions.append(.getDirections(address: address))
+        }
+
+        // Detect therapy type mentions from the user's question, not incidental answer text.
+        if isProviderSearchQuestion && (sourceQuery.contains("aba") || sourceQuery.contains("applied behavior")) {
             actions.append(.searchProviders(therapyType: "ABA"))
         }
-        if content.contains("speech") || content.contains("slp") {
+        if isProviderSearchQuestion && (sourceQuery.contains("speech") || sourceQuery.contains("slp")) {
             actions.append(.searchProviders(therapyType: "Speech"))
         }
-        if content.contains("occupational therapy") || content.contains(" ot ") {
+        if isProviderSearchQuestion && (sourceQuery.contains("occupational therapy") || sourceQuery.contains(" ot ")) {
             actions.append(.searchProviders(therapyType: "OT"))
         }
 
         // Detect Regional Center mentions
-        if content.contains("regional center") && !content.contains("which regional center") {
+        if sourceQuery.contains("regional center") && !sourceQuery.contains("which regional center") {
             actions.append(.viewRegionalCenters)
         }
 
         // Detect map/location suggestions
-        if content.contains("near you") || content.contains("in your area") || content.contains("providers") {
+        if isProviderSearchQuestion && (content.contains("near you") || content.contains("in your area") || content.contains("providers")) {
             if actions.isEmpty {
                 actions.append(.viewMap(zipCode: nil))
             }
         }
 
-        // Limit to 3 actions
-        return Array(actions.prefix(3))
+        // Limit to 4 actions to accommodate phone + directions
+        return Array(actions.prefix(4))
+    }
+
+    private func isProviderSearchIntent(_ query: String) -> Bool {
+        guard !query.isEmpty else { return false }
+        let providerTerms = [
+            "provider",
+            "providers",
+            "therapist",
+            "therapists",
+            "near me",
+            "nearby",
+            "find",
+            "list",
+            "search",
+            "recommend",
+            "recommendation",
+            "waitlist",
+            "waitlists",
+            "accept",
+            "insurance",
+            "call",
+            "phone",
+            "contact"
+        ]
+        return providerTerms.contains { query.contains($0) }
+    }
+
+    private func asksForDirections(_ query: String) -> Bool {
+        query.contains("direction")
+            || query.contains("map")
+            || query.contains("address")
+            || query.contains("location")
+            || query.contains("where is")
+            || query.contains("where are")
+    }
+
+    private func asksForContact(_ query: String) -> Bool {
+        query.contains("phone")
+            || query.contains("call")
+            || query.contains("contact")
+            || query.contains("number")
+    }
+
+    private func providersDisplayedInResponse(
+        _ providers: [Provider],
+        responseText: String
+    ) -> [Provider] {
+        let normalizedResponse = normalizeForMatching(responseText)
+
+        return providers.filter { provider in
+            normalizedResponse.contains(normalizeForMatching(provider.name))
+        }
+        .prefix(4)
+        .map { $0 }
+    }
+
+    private func normalizeForMatching(_ value: String) -> String {
+        value
+            .lowercased()
+            .replacingOccurrences(of: #"[^a-z0-9]+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func directionsAddress(for provider: Provider) -> String? {
+        let address = provider.formattedAddress
+            .replacingOccurrences(of: "\n", with: ", ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !address.isEmpty else { return nil }
+        return "\(provider.name), \(address)"
+    }
+
+    private func extractProviderName(from text: String) -> String? {
+        let ignoredLabels = [
+            "quick answer",
+            "what to watch for",
+            "what to do next",
+            "local help",
+            "sources",
+            "fuentes",
+            "regional center"
+        ]
+
+        let boldPattern = #"\*\*([^*]+)\*\*"#
+        if let regex = try? NSRegularExpression(pattern: boldPattern) {
+            let matches = regex.matches(
+                in: text,
+                range: NSRange(text.startIndex..., in: text)
+            )
+
+            for match in matches {
+                guard let range = Range(match.range(at: 1), in: text) else { continue }
+                let candidate = String(text[range]).trimmingCharacters(in: .whitespacesAndNewlines)
+                let lowercased = candidate.lowercased()
+
+                if ignoredLabels.contains(lowercased) { continue }
+                if candidate.split(separator: " ").count > 7 { continue }
+                if candidate.rangeOfCharacter(from: .decimalDigits) != nil { continue }
+
+                return candidate
+            }
+        }
+
+        let providerPattern = #"(?m)(?:^|[•\-]\s*)([A-Z][A-Za-z0-9&'’., ]{2,80}?)(?:\s*\(|\s+-\s+\(?\d{3}|\s+at\s+)"#
+        if let regex = try? NSRegularExpression(pattern: providerPattern),
+           let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+           let range = Range(match.range(at: 1), in: text) {
+            return String(text[range]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        return nil
+    }
+
+    // Extract first phone number from text
+    private func extractPhoneNumber(from text: String) -> String? {
+        // Pattern for US phone numbers: (XXX) XXX-XXXX, XXX-XXX-XXXX, XXX.XXX.XXXX, XXXXXXXXXX
+        let patterns = [
+            "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}"
+        ]
+
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+               let range = Range(match.range, in: text) {
+                return String(text[range])
+            }
+        }
+        return nil
+    }
+
+    // Extract address from text - looks for street number + street name + city/CA patterns
+    private func extractAddress(from text: String) -> String? {
+        // Look for typical address patterns: "1234 Street Name, City, CA" with optional ZIP
+        let pattern = "\\d+\\s+[A-Za-z]+(?:\\s+[A-Za-z]+)*(?:,\\s*[A-Za-z\\s]+)?(?:,\\s*CA)?(?:\\s*\\d{5})?"
+
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+           let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+           let range = Range(match.range, in: text) {
+            let address = String(text[range]).trimmingCharacters(in: .whitespacesAndNewlines)
+            // Only return if it looks like an address (has at least 3 words)
+            if address.split(separator: " ").count >= 3 {
+                return address
+            }
+        }
+        return nil
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: 2) {
             if message.role == .user {
-                Spacer(minLength: 40)  // Reduced for wider bubbles
+                Spacer(minLength: 28)  // Leave room for avatar while letting text use more width
             }
 
             if message.role == .assistant || message.role == .system {
@@ -726,10 +1307,10 @@ struct MessageBubble: View {
                                     endPoint: .bottomTrailing
                                 ))
                         )
-                        .frame(width: 32, height: 32)
+                        .frame(width: 22, height: 22)
 
-                    Image(systemName: message.role == .system ? "exclamationmark.triangle" : "sparkles")
-                        .font(.system(size: 14))
+                    Image(systemName: message.role == .system ? "exclamationmark.triangle" : "message.fill")
+                        .font(.system(size: 10))
                         .foregroundColor(.white)
                 }
             }
@@ -745,8 +1326,14 @@ struct MessageBubble: View {
                         // Use Markdown-aware text with clickable links
                         MarkdownTextView(
                             content: message.content,
-                            isUserMessage: message.role == .user
+                            isUserMessage: message.role == .user,
+                            citations: message.citations
                         )
+                        .contentTransition(.opacity)
+
+                        if message.role == .assistant && !message.citations.isEmpty {
+                            ResearchSourcesView(citations: message.citations)
+                        }
 
                         // Streaming indicator
                         if message.isStreaming {
@@ -761,7 +1348,7 @@ struct MessageBubble: View {
                         }
 
                         // Suggested action buttons
-                        if !suggestedActions.isEmpty {
+                        if showActions && !suggestedActions.isEmpty {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 8) {
                                     ForEach(suggestedActions) { action in
@@ -781,32 +1368,25 @@ struct MessageBubble: View {
                                 onLike: onLike,
                                 onDislike: onDislike,
                                 onCopy: onCopy,
-                                onShare: onShare
+                                onShare: onShare,
+                                onSpeak: onSpeak,
+                                isSpeaking: isSpeaking
                             )
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .modifier(MessageBubbleChrome(role: message.role))
                     .animation(.easeOut(duration: 0.2), value: message.isStreaming)
-                    .background(
-                        message.role == .user
-                            ? AnyShapeStyle(
-                                LinearGradient(
-                                    colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            : AnyShapeStyle(Color(uiColor: .tertiarySystemBackground))
-                    )
-                    .cornerRadius(18)
                 }
 
                 Text(message.timestamp, style: .time)
                     .font(.caption2)
                     .foregroundColor(Color(uiColor: .tertiaryLabel))
             }
+            .frame(
+                maxWidth: message.role == .user ? nil : .infinity,
+                alignment: message.role == .user ? .trailing : .leading
+            )
 
             if message.role == .user {
                 // User Avatar
@@ -822,7 +1402,34 @@ struct MessageBubble: View {
             }
 
             if message.role != .user {
-                Spacer(minLength: 20)  // Reduced for wider AI bubbles
+                Spacer(minLength: 0)
+            }
+        }
+        .onAppear {
+            scheduleActionReveal()
+        }
+        .onChange(of: message.isStreaming) { _, _ in
+            scheduleActionReveal()
+        }
+        .onChange(of: message.content) { _, _ in
+            if message.isStreaming {
+                showActions = false
+            }
+        }
+    }
+
+    private func scheduleActionReveal() {
+        guard message.role == .assistant else { return }
+        guard !message.isStreaming else {
+            showActions = false
+            return
+        }
+
+        showActions = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
+            guard !message.isStreaming else { return }
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showActions = true
             }
         }
     }
@@ -830,12 +1437,54 @@ struct MessageBubble: View {
 
 // MARK: - Message Actions Bar
 
+private struct MessageBubbleChrome: ViewModifier {
+    let role: ChatMessage.MessageRole
+    private let maxUserWidth = UIScreen.main.bounds.width * 0.78
+
+    func body(content: Content) -> some View {
+        if role == .user {
+            ViewThatFits(in: .horizontal) {
+                padded(content, horizontalPadding: 14)
+                    .background(userBubbleBackground)
+                    .cornerRadius(18)
+
+                padded(content, horizontalPadding: 14)
+                    .frame(maxWidth: maxUserWidth, alignment: .leading)
+                    .background(userBubbleBackground)
+                    .cornerRadius(18)
+            }
+            .frame(maxWidth: maxUserWidth, alignment: .trailing)
+        } else {
+            padded(content, horizontalPadding: 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(uiColor: .tertiarySystemBackground))
+                .cornerRadius(18)
+        }
+    }
+
+    private func padded(_ content: Content, horizontalPadding: CGFloat) -> some View {
+        content
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, 12)
+    }
+
+    private var userBubbleBackground: some ShapeStyle {
+        LinearGradient(
+            colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
 struct MessageActionsBar: View {
     let feedback: ChatMessage.MessageFeedback?
     var onLike: (() -> Void)?
     var onDislike: (() -> Void)?
     var onCopy: (() -> Void)?
     var onShare: (() -> Void)?
+    var onSpeak: (() -> Void)?
+    var isSpeaking: Bool = false
 
     var body: some View {
         HStack(spacing: 16) {
@@ -860,6 +1509,15 @@ struct MessageActionsBar: View {
             Divider()
                 .frame(height: 16)
 
+            // Speak / Stop speaking
+            Button {
+                onSpeak?()
+            } label: {
+                Image(systemName: isSpeaking ? "speaker.wave.2.fill" : "speaker.wave.2")
+                    .font(.system(size: 14))
+                    .foregroundColor(isSpeaking ? Color(hex: "6366F1") : Color(uiColor: .secondaryLabel))
+            }
+
             // Copy
             Button {
                 onCopy?()
@@ -881,6 +1539,223 @@ struct MessageActionsBar: View {
             Spacer()
         }
         .padding(.top, 8)
+    }
+}
+
+// MARK: - Research Sources
+
+struct ResearchSourcesView: View {
+    let citations: [ResearchCitation]
+    @State private var isExpanded = false
+
+    private var displayCitations: [ResearchCitation] {
+        Array(citations.prefix(6))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider()
+                .padding(.top, 4)
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(hex: "4F46E5"))
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("References")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color(uiColor: .secondaryLabel))
+
+                        Text(isExpanded ? "Tap a source to open it" : "\(citations.count) cited sources")
+                            .font(.caption2)
+                            .foregroundColor(Color(uiColor: .tertiaryLabel))
+                    }
+
+                    Spacer()
+
+                    Text("\(citations.count)")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                        .foregroundColor(Color(hex: "4338CA"))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color(hex: "EEF2FF")))
+
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(Color(uiColor: .tertiaryLabel))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                VStack(spacing: 8) {
+                    ForEach(displayCitations) { citation in
+                        ResearchCitationCard(citation: citation)
+                    }
+                }
+
+                if citations.count > displayCitations.count {
+                    Text("+ \(citations.count - displayCitations.count) more sources in full response")
+                        .font(.caption2)
+                        .foregroundColor(Color(uiColor: .secondaryLabel))
+                        .padding(.top, 2)
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+}
+
+struct ResearchCitationCard: View {
+    let citation: ResearchCitation
+
+    private var sourceURL: URL? {
+        URL(string: citation.url)
+    }
+
+    private var evidenceLabel: String {
+        citation.evidenceType?
+            .replacingOccurrences(of: "_", with: " ")
+            .capitalized ?? "Research"
+    }
+
+    private var citationIDText: String? {
+        guard let ids = citation.ids, !ids.isEmpty else { return nil }
+        let preferredKeys = ["PMID", "DOI", "NCT", "NIH_PROJECT", "SFARI_GENE", "ENSEMBL", "URL"]
+        let parts = preferredKeys.compactMap { key -> String? in
+            guard let value = ids[key], !value.isEmpty else { return nil }
+            return "\(key): \(value)"
+        }
+        return parts.isEmpty ? nil : parts.prefix(2).joined(separator: "  •  ")
+    }
+
+    var body: some View {
+        Group {
+            if let sourceURL {
+                Link(destination: sourceURL) {
+                    cardContent
+                }
+            } else {
+                cardContent
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var cardContent: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(citation.displayLabel)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 5)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(citation.title)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color(uiColor: .label))
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+
+                HStack(spacing: 6) {
+                    Label(evidenceLabel, systemImage: "checkmark.seal")
+                        .font(.caption2)
+                        .foregroundColor(Color(hex: "4338CA"))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color(hex: "F5F3FF")))
+
+                    if let year = citation.publishedYear {
+                        Text("• \(year)")
+                            .font(.caption2)
+                            .foregroundColor(Color(uiColor: .secondaryLabel))
+                    }
+                }
+
+                if let citationIDText {
+                    Text(citationIDText)
+                        .font(.caption2)
+                        .foregroundColor(Color(uiColor: .secondaryLabel))
+                        .lineLimit(2)
+                }
+
+                if !citation.url.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "link")
+                            .font(.caption2)
+                        Text(citation.url)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                    .font(.caption2)
+                    .foregroundColor(Color(hex: "4338CA"))
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(uiColor: .systemBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color(uiColor: .separator).opacity(0.45), lineWidth: 1)
+        )
+    }
+}
+
+private extension ResearchCitation {
+    var displayLabel: String {
+        guard label.hasPrefix("S") else { return label }
+        return String(label.dropFirst())
+    }
+
+    var inlineLabel: String {
+        "\(sourceShortName) + \(displayLabel)"
+    }
+
+    private var sourceShortName: String {
+        switch source?.lowercased() {
+        case "sfari_gene":
+            return "SFARI"
+        case "public_literature":
+            return "Medline"
+        case "clinical_trial":
+            return "Trial"
+        case "nih_grants":
+            return "NIH"
+        case "public_web":
+            return "Web"
+        case "controlled_metadata":
+            return "Metadata"
+        default:
+            if let prefix = title.split(separator: ":").first, !prefix.isEmpty {
+                return String(String(prefix).prefix(18)).trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            return "Source"
+        }
     }
 }
 
@@ -921,53 +1796,61 @@ struct ChatInputBar: View {
     var isFocused: FocusState<Bool>.Binding
     let isLoading: Bool
     let isStreaming: Bool
+    var isRecording: Bool = false
     let onSend: () -> Void
     let onCancel: () -> Void
-    var onPhoto: (() -> Void)? = nil
-    var onCamera: (() -> Void)? = nil
-    var onFiles: (() -> Void)? = nil
-    
-    @State private var showingAttachmentOptions = false
+    var onAttachment: (() -> Void)?
+    var onMicTap: (() -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
             Divider()
 
             HStack(spacing: 8) {
-                // Photo/Files button with action sheet
-                Button {
-                    showingAttachmentOptions = true
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundColor(isLoading ? Color(uiColor: .secondaryLabel) : Color(hex: "6366F1"))
+                // Attachment button - opens type selection first
+                if let onAttachment = onAttachment {
+                    Button(action: onAttachment) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(isLoading || isRecording ? Color(uiColor: .secondaryLabel) : Color(hex: "6366F1"))
+                    }
+                    .disabled(isLoading || isStreaming || isRecording)
                 }
-                .disabled(isLoading || isStreaming)
-                .confirmationDialog("Add Attachment", isPresented: $showingAttachmentOptions) {
-                    Button("Photo Library") {
-                        onPhoto?()
-                    }
-                    Button("Take Photo") {
-                        onCamera?()
-                    }
-                    Button("Choose File") {
-                        onFiles?()
-                    }
-                    Button("Cancel", role: .cancel) {}
-                }
-                
-                // Text field
-                HStack {
+
+                // Text field with microphone button
+                HStack(spacing: 8) {
                     TextField("Ask about services...", text: $text, axis: .vertical)
                         .focused(isFocused)
                         .lineLimit(1...5)
-                        .padding(.horizontal, 16)
+                        .padding(.leading, 16)
                         .padding(.vertical, 12)
                         .foregroundColor(Color(uiColor: .label))
-                        .disabled(isStreaming)
+                        .disabled(isStreaming || isRecording)
+
+                    // Microphone button (inside text field area)
+                    if let onMicTap = onMicTap {
+                        Button(action: onMicTap) {
+                            Image(systemName: isRecording ? "mic.fill" : "mic")
+                                .font(.system(size: 18))
+                                .foregroundColor(isRecording ? Color(hex: "EF4444") : Color(hex: "6366F1"))
+                                .frame(width: 32, height: 32)
+                                .background(
+                                    Circle()
+                                        .fill(isRecording ? Color(hex: "EF4444").opacity(0.15) : Color(hex: "6366F1").opacity(0.1))
+                                )
+                                .scaleEffect(isRecording ? 1.1 : 1.0)
+                                .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: isRecording)
+                        }
+                        .disabled(isLoading || isStreaming)
+                        .padding(.trailing, 8)
+                    }
                 }
                 .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(24)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(isRecording ? Color(hex: "EF4444") : Color.clear, lineWidth: 2)
+                )
 
                 // Send/Cancel button
                 Button(action: isStreaming ? onCancel : onSend) {
@@ -1016,14 +1899,14 @@ struct ChatInputBar: View {
 // MARK: - Prompt Capsules Bar
 
 struct PromptCapsulesBar: View {
-    let prompts: [(String, String, String)]  // (emoji, label, full prompt)
+    let prompts: [(String, String, String)]  // (SF Symbol, label, full prompt)
     let onTap: (String) -> Void
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(prompts, id: \.1) { emoji, label, prompt in
-                    PromptCapsule(emoji: emoji, label: label) {
+                ForEach(prompts, id: \.1) { icon, label, prompt in
+                    PromptCapsule(icon: icon, label: label) {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         onTap(prompt)
                     }
@@ -1040,7 +1923,7 @@ struct PromptCapsulesBar: View {
 }
 
 struct PromptCapsule: View {
-    let emoji: String
+    let icon: String
     let label: String
     let action: () -> Void
 
@@ -1049,8 +1932,9 @@ struct PromptCapsule: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Text(emoji)
+                Image(systemName: icon)
                     .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "6366F1"))
                 Text(label)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(Color(hex: "475569"))
@@ -1084,20 +1968,428 @@ struct ScaleButtonStyle: ButtonStyle {
 struct MarkdownTextView: View {
     let content: String
     let isUserMessage: Bool
+    var citations: [ResearchCitation] = []
 
     var body: some View {
-        Text(parseMarkdown())
-            .font(.body)
-            .foregroundColor(isUserMessage ? .white : Color(uiColor: .label))
+        if isUserMessage {
+            messageText(content, font: .body, foregroundColor: .white)
+        } else {
+            let sections = splitSourcesSection(from: content)
+
+            VStack(alignment: .leading, spacing: 12) {
+                assistantMarkdown(sections.main)
+
+                if !sections.sources.isEmpty {
+                    sourcesBlock(sections.sources)
+                }
+            }
+        }
+    }
+
+    private func messageText(
+        _ text: String,
+        font: Font,
+        foregroundColor: Color
+    ) -> some View {
+        Text(parseMarkdown(text))
+            .font(chatBodyFont)
+            .foregroundColor(foregroundColor)
             .tint(isUserMessage ? .white.opacity(0.9) : Color(hex: "6366F1"))
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
     }
-    
-    private func parseMarkdown() -> AttributedString {
+
+    private func assistantMarkdown(_ text: String) -> some View {
+        StructuredText(markdown: markdownWithLinkedCitations(text))
+            .font(chatBodyFont)
+            .foregroundColor(Color(uiColor: .label))
+            .tint(Color(hex: "6366F1"))
+            .textual.inlineStyle(citationInlineStyle)
+            .textual.textSelection(.enabled)
+            .lineSpacing(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var chatBodyFont: Font {
+        .system(size: 16, weight: .regular, design: .default)
+    }
+
+    private var citationInlineStyle: InlineStyle {
+        InlineStyle.default
+            .link(
+                .foregroundColor(Color(hex: "4338CA")),
+                .fontWeight(.semibold),
+                .fontScale(0.68),
+                .baselineOffset(4),
+                .backgroundColor(Color(hex: "F5F3FF"))
+            )
+            .strong(.fontWeight(.semibold))
+    }
+
+    private func markdownWithLinkedCitations(_ text: String) -> String {
+        let citationLinks = Dictionary(
+            uniqueKeysWithValues: citations.compactMap { citation -> (String, (url: String, title: String))? in
+                guard !citation.url.isEmpty else { return nil }
+                return (citation.label, (url: citation.url, title: citation.inlineLabel))
+            }
+        )
+        guard !citationLinks.isEmpty else { return text }
+
+        let pattern = #"\[(S\d+)\]"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return text }
+
+        let matches = regex.matches(
+            in: text,
+            range: NSRange(text.startIndex..., in: text)
+        )
+        guard !matches.isEmpty else { return text }
+
+        var result = text
+        for match in matches.reversed() {
+            guard let fullRange = Range(match.range(at: 0), in: result),
+                  let labelRange = Range(match.range(at: 1), in: result) else {
+                continue
+            }
+
+            let label = String(result[labelRange])
+            guard let citationLink = citationLinks[label] else { continue }
+            result.replaceSubrange(fullRange, with: " [\u{00A0}\(citationLink.title)\u{00A0}](\(citationLink.url))")
+        }
+
+        return result
+    }
+
+    private struct AnswerSection {
+        let title: String?
+        let lines: [AnswerLine]
+    }
+
+    private struct AnswerLine {
+        enum Kind {
+            case paragraph
+            case bullet
+        }
+
+        let kind: Kind
+        let text: String
+    }
+
+    private struct AnswerSectionView: View {
+        let section: AnswerSection
+        let parseMarkdown: (String) -> AttributedString
+
+        private var titleStyle: (icon: String, color: Color) {
+            switch section.title?.lowercased() {
+            case "evidence":
+                return ("checkmark.seal.fill", Color(hex: "4F46E5"))
+            case "interpretation":
+                return ("lightbulb.fill", Color(hex: "0891B2"))
+            case "limitations":
+                return ("exclamationmark.triangle.fill", Color(hex: "D97706"))
+            case "sources", "research sources":
+                return ("link", Color(hex: "2563EB"))
+            default:
+                return ("text.alignleft", Color(hex: "8B5CF6"))
+            }
+        }
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                if let title = section.title, !title.isEmpty {
+                    HStack(spacing: 8) {
+                        Image(systemName: titleStyle.icon)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(titleStyle.color)
+                            .frame(width: 18)
+
+                        Text(title)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color(uiColor: .label))
+                    }
+                    .padding(.top, 2)
+                }
+
+                VStack(alignment: .leading, spacing: 7) {
+                    ForEach(Array(section.lines.enumerated()), id: \.offset) { _, line in
+                        switch line.kind {
+                        case .paragraph:
+                            Text(parseMarkdown(line.text))
+                                .font(.body)
+                                .foregroundColor(Color(uiColor: .label))
+                                .lineSpacing(2)
+                                .textSelection(.enabled)
+                                .fixedSize(horizontal: false, vertical: true)
+                        case .bullet:
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Circle()
+                                    .fill(titleStyle.color.opacity(0.85))
+                                    .frame(width: 5, height: 5)
+
+                                Text(parseMarkdown(line.text))
+                                    .font(.body)
+                                    .foregroundColor(Color(uiColor: .label))
+                                    .lineSpacing(2)
+                                    .textSelection(.enabled)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.leading, 2)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func parseAnswerSections(_ text: String) -> [AnswerSection] {
+        let lines = text
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+        var sections: [AnswerSection] = []
+        var currentTitle: String?
+        var currentLines: [AnswerLine] = []
+
+        func flush() {
+            guard currentTitle != nil || !currentLines.isEmpty else { return }
+            sections.append(AnswerSection(title: currentTitle, lines: currentLines))
+            currentTitle = nil
+            currentLines = []
+        }
+
+        for rawLine in lines {
+            guard !rawLine.isEmpty else { continue }
+
+            if let heading = normalizedHeading(from: rawLine) {
+                flush()
+                currentTitle = heading
+                continue
+            }
+
+            if rawLine.hasPrefix("- ") || rawLine.hasPrefix("• ") {
+                let bulletText = String(rawLine.dropFirst(2))
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                currentLines.append(AnswerLine(kind: .bullet, text: bulletText))
+            } else {
+                currentLines.append(AnswerLine(kind: .paragraph, text: rawLine))
+            }
+        }
+
+        flush()
+        return sections.isEmpty ? [AnswerSection(title: nil, lines: [AnswerLine(kind: .paragraph, text: text)])] : sections
+    }
+
+    private func normalizedHeading(from line: String) -> String? {
+        let stripped = line
+            .replacingOccurrences(of: #"^#{1,6}\s*"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"^\*\*|\*\*$"#, with: "", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet(charactersIn: " :\t"))
+
+        let canonical = stripped.lowercased()
+        let knownHeadings = [
+            "evidence",
+            "interpretation",
+            "limitations",
+            "quick answer",
+            "what this means",
+            "what this may mean",
+            "what it may suggest",
+            "what matters",
+            "what to do next",
+            "sources"
+        ]
+
+        guard knownHeadings.contains(canonical) else { return nil }
+        return stripped
+    }
+
+    private func sourcesBlock(_ sources: [String]) -> some View {
+        let references = sources.map(SourceReference.init(rawValue:))
+
+        return VStack(alignment: .leading, spacing: 10) {
+            Divider()
+                .padding(.top, 4)
+
+            Text("Sources".uppercased())
+                .font(.caption2.weight(.semibold))
+                .foregroundColor(Color(uiColor: .secondaryLabel))
+                .tracking(0.8)
+
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(Array(references.enumerated()), id: \.offset) { _, reference in
+                    if let url = reference.url {
+                        Link(destination: url) {
+                            sourceReferenceRow(reference)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        sourceReferenceRow(reference)
+                    }
+                }
+            }
+        }
+    }
+
+    private func sourceReferenceRow(_ reference: SourceReference) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "link")
+                .font(.caption2.weight(.semibold))
+                .foregroundColor(Color(hex: "6366F1"))
+                .frame(width: 16, height: 16)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(reference.title)
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(Color(uiColor: .secondaryLabel))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let host = reference.host {
+                    Text(host)
+                        .font(.caption2)
+                        .foregroundColor(Color(uiColor: .tertiaryLabel))
+                        .lineLimit(1)
+                }
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func splitSourcesSection(from text: String) -> (main: String, sources: [String]) {
+        let patterns = [
+            "\n**Sources**",
+            "\nSources",
+            "\n**Fuentes**",
+            "\nFuentes"
+        ]
+
+        guard let match = patterns.compactMap({ pattern -> Range<String.Index>? in
+            text.range(of: pattern, options: [.caseInsensitive])
+        }).min(by: { $0.lowerBound < $1.lowerBound }) else {
+            return (text, [])
+        }
+
+        var main = stripTrailingDivider(from: String(text[..<match.lowerBound]))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let sourcesText = String(text[match.upperBound...])
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        var sources: [String] = []
+        var trailingAnswerLines: [String] = []
+
+        for line in sourcesText.components(separatedBy: .newlines) {
+            let cleaned = cleanSourceLine(line)
+            guard !cleaned.isEmpty else { continue }
+
+            if isSourceLine(cleaned) {
+                sources.append(cleaned)
+            } else {
+                trailingAnswerLines.append(cleaned)
+            }
+        }
+
+        if !trailingAnswerLines.isEmpty {
+            main = [main, trailingAnswerLines.joined(separator: "\n")]
+                .filter { !$0.isEmpty }
+                .joined(separator: "\n\n")
+        }
+
+        guard !sources.isEmpty else {
+            return (main, [])
+        }
+
+        return (main, sources)
+    }
+
+    private func stripTrailingDivider(from text: String) -> String {
+        text.replacingOccurrences(
+            of: #"(?m)\n\s*(?:-{3,}|─{3,})\s*$"#,
+            with: "",
+            options: .regularExpression
+        )
+    }
+
+    private func isSourceLine(_ line: String) -> Bool {
+        let lowercased = line.lowercased()
+        if lowercased.contains("http://") || lowercased.contains("https://") {
+            return true
+        }
+        if line.range(of: #"\[[^\]]+\]\([^\)]+\)"#, options: .regularExpression) != nil {
+            return true
+        }
+        return line.range(
+            of: #"\b[a-z0-9][a-z0-9-]*(?:\.[a-z0-9][a-z0-9-]*)+\.[a-z]{2,}\b"#,
+            options: [.regularExpression, .caseInsensitive]
+        ) != nil
+    }
+
+    private func cleanSourceLine(_ line: String) -> String {
+        line
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(
+                of: #"^[-•]\s*"#,
+                with: "",
+                options: .regularExpression
+            )
+    }
+
+    private struct SourceReference {
+        let title: String
+        let url: URL?
+        let host: String?
+
+        init(rawValue: String) {
+            let rawValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            let markdownLinkPattern = #"\[([^\]]+)\]\((https?://[^\s\)]+)\)"#
+            if let regex = try? NSRegularExpression(pattern: markdownLinkPattern),
+               let match = regex.firstMatch(
+                in: rawValue,
+                range: NSRange(rawValue.startIndex..., in: rawValue)
+               ),
+               let titleRange = Range(match.range(at: 1), in: rawValue),
+               let urlRange = Range(match.range(at: 2), in: rawValue) {
+                let urlString = String(rawValue[urlRange])
+                self.title = String(rawValue[titleRange])
+                self.url = URL(string: urlString)
+                self.host = Self.host(from: self.url)
+                return
+            }
+
+            let urlPattern = #"(?:https?://)?[a-z0-9][a-z0-9-]*(?:\.[a-z0-9][a-z0-9-]*)+\.[a-z]{2,}(?:/[^\s\)\]\>\"\']*)?"#
+            guard let regex = try? NSRegularExpression(pattern: urlPattern),
+                  let match = regex.firstMatch(
+                    in: rawValue,
+                    range: NSRange(rawValue.startIndex..., in: rawValue)
+                  ),
+                  let urlRange = Range(match.range, in: rawValue) else {
+                self.title = rawValue
+                self.url = nil
+                self.host = nil
+                return
+            }
+
+            var urlString = String(rawValue[urlRange])
+            if !urlString.lowercased().hasPrefix("http") {
+                urlString = "https://\(urlString)"
+            }
+            let titleText = rawValue
+                .replacingOccurrences(of: String(rawValue[urlRange]), with: "")
+                .trimmingCharacters(in: CharacterSet(charactersIn: " :-\n\t"))
+
+            self.title = titleText.isEmpty ? "Source" : titleText
+            self.url = URL(string: urlString)
+            self.host = Self.host(from: self.url)
+        }
+
+        private static func host(from url: URL?) -> String? {
+            url?.host?.replacingOccurrences(of: "www.", with: "")
+        }
+    }
+
+    private func parseMarkdown(_ text: String) -> AttributedString {
         // Convert asterisk-based markdown to proper formatting
-        let processed = processMarkdownSyntax(content)
-        
+        let processed = processMarkdownSyntax(text)
+
         // Try to parse as markdown first
         if let attributed = try? AttributedString(markdown: processed, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
             var result = attributed
@@ -1105,29 +2397,68 @@ struct MarkdownTextView: View {
             addLinkStyling(&result)
             return result
         }
-        
+
         // Fallback to basic text with link detection
-        var result = AttributedString(content)
+        var result = AttributedString(text)
         addLinkStyling(&result)
         return result
     }
-    
+
     private func processMarkdownSyntax(_ text: String) -> String {
         var result = text
-        
-        // Convert **text** to proper bold (already markdown)
-        // Convert *text* to proper italic (already markdown)
-        // Convert bullet points: "• " or "- " at line start
-        
-        // Replace "• " with "- " for consistent markdown bullets
-        result = result.replacingOccurrences(of: "• ", with: "- ")
-        
+
+        // The chat renderer uses inline Markdown, so blockquote callouts would leak as ">".
+        let blockquotePattern = #"(?m)^\s*>\s?"#
+        if let regex = try? NSRegularExpression(pattern: blockquotePattern) {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: ""
+            )
+        }
+
+        // Remove markdown headers (## Header -> **Header**)
+        // Convert headers to bold text since inline-only markdown can't render headers
+        let headerPattern = "^#{1,6}\\s*"
+        if let regex = try? NSRegularExpression(pattern: headerPattern, options: .anchorsMatchLines) {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: ""
+            )
+        }
+
+        // Remove decorative symbols that appear after header markers.
+
+        // Replace horizontal rules (---) with a subtle divider line
+        // Match --- on its own line (with optional whitespace)
+        let hrPattern = "^\\s*-{3,}\\s*$"
+        if let regex = try? NSRegularExpression(pattern: hrPattern, options: .anchorsMatchLines) {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: "\n─────────────────\n"
+            )
+        }
+
+        let bulletPattern = #"(?m)^\s*[-•]\s+"#
+        if let regex = try? NSRegularExpression(pattern: bulletPattern) {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: "• "
+            )
+        }
+
+        // Clean up code blocks that might not render
+        result = result.replacingOccurrences(of: "```", with: "")
+
         return result
     }
-    
+
     private func addLinkStyling(_ attributed: inout AttributedString) {
         let plainString = String(attributed.characters)
-        
+
         // Detect URLs
         let urlPattern = #"https?://[^\s\)\]\>\"\']+"#
         if let regex = try? NSRegularExpression(pattern: urlPattern, options: []) {
@@ -1171,7 +2502,7 @@ import UniformTypeIdentifiers
 
 struct DocumentPicker: UIViewControllerRepresentable {
     let onDocumentPicked: (Data, String) -> Void  // (data, fileExtension)
-    
+
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
         // Support images, PDFs, and common document types
         var supportedTypes: [UTType] = [
@@ -1185,33 +2516,33 @@ struct DocumentPicker: UIViewControllerRepresentable {
         if let doc = UTType("com.microsoft.word.doc") {
             supportedTypes.append(doc)
         }
-        
+
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: supportedTypes)
         picker.delegate = context.coordinator
         picker.allowsMultipleSelection = false
         return picker
     }
-    
+
     func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(onDocumentPicked: onDocumentPicked)
     }
-    
+
     class Coordinator: NSObject, UIDocumentPickerDelegate {
         let onDocumentPicked: (Data, String) -> Void
-        
+
         init(onDocumentPicked: @escaping (Data, String) -> Void) {
             self.onDocumentPicked = onDocumentPicked
         }
-        
+
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
             guard let url = urls.first else { return }
-            
+
             // Access the security-scoped resource
             guard url.startAccessingSecurityScopedResource() else { return }
             defer { url.stopAccessingSecurityScopedResource() }
-            
+
             do {
                 let data = try Data(contentsOf: url)
                 let fileExtension = url.pathExtension.lowercased()
@@ -1219,13 +2550,124 @@ struct DocumentPicker: UIViewControllerRepresentable {
             } catch {
                 print("Error reading document: \(error)")
             }
+            // Note: UIDocumentPickerViewController auto-dismisses after picking/cancelling
         }
+
+        // Note: documentPickerWasCancelled is called after auto-dismiss, no action needed
     }
 }
 
 // Note: ShareSheet is defined in ContentView.swift
 
+// MARK: - Conversation History Sheet
+
+struct ConversationHistorySheet: View {
+    @ObservedObject var history: ConversationHistory
+    let onSelect: (SavedConversation) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var showingClearConfirmation = false
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if history.conversations.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 48))
+                            .foregroundColor(Color(uiColor: .tertiaryLabel))
+
+                        Text("No Saved Conversations")
+                            .font(.headline)
+                            .foregroundColor(Color(uiColor: .secondaryLabel))
+
+                        Text("Save a conversation using the menu\nto see it here.")
+                            .font(.subheadline)
+                            .foregroundColor(Color(uiColor: .tertiaryLabel))
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(history.conversations) { conversation in
+                            ConversationRow(conversation: conversation)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    onSelect(conversation)
+                                }
+                        }
+                        .onDelete { indexSet in
+                            for index in indexSet {
+                                history.deleteConversation(id: history.conversations[index].id)
+                            }
+                        }
+                    }
+                    .listStyle(.insetGrouped)
+                }
+            }
+            .navigationTitle("Chat History")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+
+                if !history.conversations.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(role: .destructive) {
+                            showingClearConfirmation = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+            }
+            .confirmationDialog("Clear All History?", isPresented: $showingClearConfirmation) {
+                Button("Clear All", role: .destructive) {
+                    history.clearAll()
+                }
+            } message: {
+                Text("This will delete all saved conversations. This action cannot be undone.")
+            }
+        }
+    }
+}
+
+struct ConversationRow: View {
+    let conversation: SavedConversation
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(conversation.title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Color(uiColor: .label))
+                    .lineLimit(1)
+
+                Spacer()
+
+                Text(ConversationHistory.formatDate(conversation.updatedAt))
+                    .font(.caption)
+                    .foregroundColor(Color(uiColor: .tertiaryLabel))
+            }
+
+            Text(conversation.preview)
+                .font(.subheadline)
+                .foregroundColor(Color(uiColor: .secondaryLabel))
+                .lineLimit(2)
+
+            Text("\(conversation.messages.count) messages")
+                .font(.caption2)
+                .foregroundColor(Color(uiColor: .tertiaryLabel))
+        }
+        .padding(.vertical, 4)
+    }
+}
+
 #Preview {
     ChatView()
-        .environmentObject(AppState())
+        .environmentObject(AppState.preview())
 }

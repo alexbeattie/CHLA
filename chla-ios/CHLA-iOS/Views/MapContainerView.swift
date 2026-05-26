@@ -133,6 +133,24 @@ struct MapContainerView: View {
         .onReceive(NotificationCenter.default.publisher(for: .showFilters)) { _ in
             showFilters = true
         }
+        .onChange(of: appState.pendingMapProviderTarget) { _, target in
+            guard let target else { return }
+            Task {
+                await focusMapTarget(target)
+            }
+        }
+        .task(id: appState.pendingMapProviderTarget?.id) {
+            guard let target = appState.pendingMapProviderTarget else { return }
+            await focusMapTarget(target)
+        }
+    }
+
+    private func focusMapTarget(_ target: ProviderMapTarget) async {
+        if target.providers.isEmpty {
+            await focusProvider(named: target.query)
+        } else {
+            focusProviders(target.providers)
+        }
     }
 
     private func setupSearchCallback() {
@@ -155,7 +173,7 @@ struct MapContainerView: View {
 
         let coordinate = locationService.coordinate ?? defaultRegion.center
 
-        print("🔍 Searching for: '\(query)' with radius: \(filters.radiusMiles) miles")
+        print("Searching for: '\(query)' with radius: \(filters.radiusMiles) miles")
 
         await providerStore.search(
             query: query,
@@ -163,7 +181,99 @@ struct MapContainerView: View {
             filters: filters
         )
 
-        print("✅ Search returned \(providerStore.providers.count) results")
+        print("Search returned \(providerStore.providers.count) results")
+    }
+
+    private func focusProvider(named providerName: String) async {
+        visibilityManager.showUI()
+        showResultsSheet = false
+
+        var filters = SearchFilters()
+        filters.radiusMiles = 100
+        let coordinate = locationService.coordinate ?? defaultRegion.center
+
+        await providerStore.search(
+            query: providerName,
+            location: coordinate,
+            filters: filters
+        )
+
+        guard let provider = bestProviderMatch(for: providerName) else {
+            if !providerStore.providers.isEmpty {
+                showResultsSheet = true
+            }
+            appState.pendingMapProviderTarget = nil
+            return
+        }
+
+        withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
+            cameraPosition = .region(MKCoordinateRegion(
+                center: provider.coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.035, longitudeDelta: 0.035)
+            ))
+        }
+
+        selectedProvider = provider
+        appState.pendingMapProviderTarget = nil
+    }
+
+    private func focusProviders(_ providers: [Provider]) {
+        visibilityManager.showUI()
+        selectedProvider = nil
+        providerStore.providers = providers
+
+        withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
+            cameraPosition = .region(mapRegion(for: providers))
+        }
+
+        showResultsSheet = providers.count > 1
+        appState.pendingMapProviderTarget = nil
+    }
+
+    private func mapRegion(for providers: [Provider]) -> MKCoordinateRegion {
+        guard let first = providers.first else {
+            return defaultRegion
+        }
+
+        let coordinates = providers.map(\.coordinate)
+        let minLatitude = coordinates.map(\.latitude).min() ?? first.latitude
+        let maxLatitude = coordinates.map(\.latitude).max() ?? first.latitude
+        let minLongitude = coordinates.map(\.longitude).min() ?? first.longitude
+        let maxLongitude = coordinates.map(\.longitude).max() ?? first.longitude
+
+        let center = CLLocationCoordinate2D(
+            latitude: (minLatitude + maxLatitude) / 2,
+            longitude: (minLongitude + maxLongitude) / 2
+        )
+        let latitudeDelta = max((maxLatitude - minLatitude) * 1.35, 0.04)
+        let longitudeDelta = max((maxLongitude - minLongitude) * 1.35, 0.04)
+
+        return MKCoordinateRegion(
+            center: center,
+            span: MKCoordinateSpan(
+                latitudeDelta: min(latitudeDelta, 0.8),
+                longitudeDelta: min(longitudeDelta, 0.8)
+            )
+        )
+    }
+
+    private func bestProviderMatch(for providerName: String) -> Provider? {
+        let normalizedQuery = normalizeProviderName(providerName)
+
+        return providerStore.providers.first {
+            normalizeProviderName($0.name) == normalizedQuery
+        } ?? providerStore.providers.first {
+            normalizeProviderName($0.name).contains(normalizedQuery)
+        } ?? providerStore.providers.first {
+            normalizedQuery.contains(normalizeProviderName($0.name))
+        } ?? providerStore.providers.first
+    }
+
+    private func normalizeProviderName(_ name: String) -> String {
+        name
+            .lowercased()
+            .replacingOccurrences(of: #"[^a-z0-9]+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func centerOnUserLocation() {
@@ -191,7 +301,7 @@ struct MapContainerView: View {
 
             ForEach(providerStore.providers) { provider in
                 Marker(provider.name, coordinate: provider.coordinate)
-                    .tint(Color.accentBlue)
+                    .tint(providerPinColor(for: provider))
                     .tag(provider)
             }
         }
@@ -205,6 +315,14 @@ struct MapContainerView: View {
             // Tap on map to toggle UI visibility
             visibilityManager.toggleUI()
         }
+    }
+
+    private func providerPinColor(for provider: Provider) -> Color {
+        guard let shortName = provider.regionalCenterShortName else {
+            return .accentBlue
+        }
+
+        return .regionalCenterColor(for: shortName)
     }
 
     private var searchOverlay: some View {

@@ -54,7 +54,9 @@
               v-model="rememberMe"
               class="form-check-input"
             />
-            <label for="rememberMe" class="form-check-label"> Remember me </label>
+            <label for="rememberMe" class="form-check-label">
+              Remember me
+            </label>
           </div>
         </div>
 
@@ -178,7 +180,7 @@ export default {
 }
 
 .logo-text {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--kindd-font-family);
   letter-spacing: 0.1em;
 }
 

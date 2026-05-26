@@ -39,7 +39,7 @@ const MapApp = {
       map.value = L.map('map').setView([37.7749, -122.4194], 13); // Default to San Francisco
       
       // Add MapBox tile layer with API key (replace with your own MapBox API key)
-      const MAPBOX_API_KEY = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'; // This is a public demo key
+      const MAPBOX_API_KEY = 'YOUR_MAPBOX_TOKEN'; // This is a public demo key
       L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
         attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         id: 'mapbox/streets-v11',

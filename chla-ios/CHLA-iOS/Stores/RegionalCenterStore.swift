@@ -45,7 +45,7 @@ class RegionalCenterStore: ObservableObject {
             regionalCenters = try await APIService.shared.getRegionalCenters()
         } catch {
             self.error = error
-            print("❌ Error fetching regional centers: \(error)")
+            print("Error fetching regional centers: \(error)")
         }
 
         isLoading = false
@@ -60,7 +60,7 @@ class RegionalCenterStore: ObservableObject {
             serviceAreaBoundaries = try await APIService.shared.getServiceAreaBoundaries()
         } catch {
             self.error = error
-            print("❌ Error fetching service areas: \(error)")
+            print("Error fetching service areas: \(error)")
         }
 
         isLoading = false
@@ -76,7 +76,7 @@ class RegionalCenterStore: ObservableObject {
             selectedCenter = userRegionalCenter
         } catch {
             self.error = error
-            print("❌ Error finding by ZIP: \(error)")
+            print("Error finding by ZIP: \(error)")
         }
 
         isLoading = false
@@ -104,7 +104,7 @@ class RegionalCenterStore: ObservableObject {
             }
         } catch {
             self.error = error
-            print("❌ Error finding nearby: \(error)")
+            print("Error finding nearby: \(error)")
         }
 
         isLoading = false

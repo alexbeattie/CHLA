@@ -269,11 +269,11 @@
     "map2A": "<p>Our resources are verified through Regional Center vendor lists and direct outreach. We update information regularly, but always recommend calling to confirm details before your first visit.</p>"
   },
   "about": {
-    "title": "About KINDD Provider Map",
-    "subtitle": "Helping families in Los Angeles County find ABA therapy and developmental disability services",
+    "title": "About KiNDD - NDD Resource Navigator",
+    "subtitle": "Helping families in Los Angeles County find ABA therapy and neurodevelopmental disorder (NDD) services",
     "mission": "Our Mission",
-    "missionText": "We create hope and build healthier futures by connecting families with the autism and developmental disability services they need.",
-    "missionDescription": "KINDD (Kids in Need of Developmental Disabilities) is a free, interactive map developed by Children's Hospital Los Angeles to help families find ABA therapy resources and autism services across Los Angeles County.",
+    "missionText": "We help families connect with the neurodevelopmental disorder (NDD) services they need.",
+    "missionDescription": "KiNDD (Kids in Need of Developmental Disabilities) is a free, interactive map that helps families find ABA therapy resources and NDD services across Los Angeles County.",
     "whatWeDo": "What We Do",
     "interactiveMap": "Interactive Map",
     "interactiveMapDesc": "Visualize resource locations geographically and see your Regional Center boundaries.",
@@ -300,11 +300,9 @@
     "step4Title": "Connect with Resources",
     "step4Desc": "View resource details, get directions, and contact them directly.",
     "whoWeServe": "Who We Serve",
-    "whoWeServeText": "KINDD helps families seeking services for children and adults with:",
-    "aboutCHLA": "About Children's Hospital Los Angeles",
-    "chlaDescription": "Children's Hospital Los Angeles (CHLA) has been a leader in pediatric healthcare for over 120 years. As one of the top children's hospitals in the nation, CHLA is committed to creating hope and building healthier futures for children and families.",
+    "whoWeServeText": "KiNDD helps families seeking services for children and adults with:",
     "freeToUse": "Free to Use, No Registration Required",
-    "freeToUseText": "KINDD is completely free to use. There are no fees, subscriptions, or registration required. We don't sell your data or charge providers to be listed. Our goal is simply to help families find the services they need.",
+    "freeToUseText": "KiNDD is completely free to use. There are no fees, subscriptions, or registration required. We don't sell your data or charge providers to be listed. Our goal is simply to help families find the services they need.",
     "verifiedResources": "Verified Resources",
     "rcCovered": "Regional Centers Covered",
     "percentFree": "Free to Use",
@@ -312,14 +310,13 @@
     "startSearch": "Start your search now - it only takes a few seconds.",
     "exploreMap": "Explore the Map",
     "readFaq": "Read FAQ",
-    "learnMoreCHLA": "Learn More About CHLA",
     "contact": "Contact Us"
   },
   "footer": {
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "contact": "Contact",
-    "copyright": "© {year} KINDD. All rights reserved."
+    "copyright": "© {year} KiNDD - NDD Resource Navigator. All rights reserved."
   },
   "errors": {
     "locationNotFound": "Location not found",
@@ -334,7 +331,7 @@
     "selectLanguage": "Select language"
   },
   "sidebar": {
-    "tagline": "We create hope and build healthier futures",
+    "tagline": "Find the right NDD services for your family",
     "regionalCenters": "Regional Centers",
     "services": "Services",
     "yourProfile": "Your Profile",

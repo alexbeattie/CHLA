@@ -1,7 +1,7 @@
-/* 
+/*
   Localizable.strings (English)
-  CHLA-iOS / KINDD
-  
+  KiNDD - NDD Resource Navigator
+
   English translations for the app
 */
 
@@ -162,3 +162,58 @@
 "chat.waitlistsPrompt" = "How long are therapy waitlists?";
 "chat.age3Prompt" = "What happens when my child turns 3?";
 "chat.speechPrompt" = "Find speech therapy providers";
+
+// MARK: - Language
+"language.title" = "Language";
+"language.system" = "System Default";
+"language.english" = "English";
+"language.spanish" = "Spanish";
+
+// MARK: - About Page
+"about.pageTitle" = "About NDD Resources";
+"about.heroSubtitle" = "Helping families find ABA therapy and developmental disability services in LA County";
+"about.ourMission" = "Our Mission";
+"about.missionText1" = "We create hope and build healthier futures by connecting families with autism and developmental disability services.";
+"about.missionText2" = "NDD Resources is a free, interactive map to help families find ABA therapy resources across Los Angeles County.";
+"about.whatWeDo" = "What We Do";
+"about.featureMap" = "Interactive Map";
+"about.featureMapDesc" = "Visualize resource locations and boundaries";
+"about.featureLocation" = "Location Search";
+"about.featureLocationDesc" = "Find resources by ZIP or location";
+"about.featureFilters" = "Smart Filters";
+"about.featureFiltersDesc" = "Filter by insurance, therapy, age";
+"about.featureRC" = "Regional Centers";
+"about.featureRCDesc" = "Find your assigned center";
+"about.featureContact" = "Quick Contact";
+"about.featureContactDesc" = "Call, email, get directions";
+"about.laCountyRC" = "LA County Regional Centers";
+"about.rcDescription" = "Regional Centers are nonprofit agencies that provide services to individuals with developmental disabilities.";
+"about.rcZipNote" = "Your Regional Center is determined by your ZIP code.";
+"about.howItWorks" = "How It Works";
+"about.step1" = "Enter your location or ZIP code";
+"about.step2" = "See your Regional Center on the map";
+"about.step3" = "Filter by insurance, therapy, etc.";
+"about.step4" = "Contact resources directly";
+"about.whoWeServe" = "Who We Serve";
+"about.servingFamilies" = "Families seeking services for:";
+"about.autism" = "Autism Spectrum Disorder";
+"about.developmental" = "Developmental Delays";
+"about.intellectual" = "Intellectual Disabilities";
+"about.communication" = "Communication Disorders";
+"about.learning" = "Learning Disabilities";
+"about.freeToUse" = "Free to Use";
+"about.freeDescription" = "No fees, registration, or subscriptions required.";
+"about.readyToFind" = "Ready to Find a Resource?";
+"about.exploreMap" = "Explore the Map";
+"about.servingLA" = "Serving Los Angeles County families";
+
+// MARK: - FAQ Page
+"faq.pageTitle" = "Frequently Asked Questions";
+"faq.heroSubtitle" = "ABA therapy, Regional Centers, and finding resources";
+"faq.abaBasics" = "ABA Therapy Basics";
+"faq.regionalCenters" = "Regional Centers";
+"faq.insuranceFunding" = "Insurance & Funding";
+"faq.usingApp" = "Using the App";
+"faq.sources" = "Information Sources";
+"faq.sourcesIntro" = "The information in this FAQ is compiled from the following sources:";
+"faq.disclaimer" = "Disclaimer: This information is for educational purposes only and is not medical advice. Always consult with qualified healthcare professionals for medical decisions.";

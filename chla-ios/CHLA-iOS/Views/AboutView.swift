@@ -54,12 +54,12 @@ struct AboutView: View {
             Color.clear
                 .frame(height: 50)
 
-            Text("About NDD Resources")
+            Text(L10n.About.pageTitle)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
 
-            Text("Helping families find ABA therapy and developmental disability services in LA County")
+            Text(L10n.About.heroSubtitle)
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.9))
                 .multilineTextAlignment(.center)
@@ -73,15 +73,15 @@ struct AboutView: View {
     // MARK: - Mission Section
     private var missionSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Our Mission", systemImage: "heart.fill")
+            Label(L10n.About.ourMission, systemImage: "heart.fill")
                 .font(.headline)
                 .foregroundColor(.accentBlue)
 
-            Text("We create hope and build healthier futures by connecting families with autism and developmental disability services.")
+            Text(L10n.About.missionText1)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            Text("NDD Resources is a free, interactive map to help families find ABA therapy resources across Los Angeles County.")
+            Text(L10n.About.missionText2)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -94,16 +94,16 @@ struct AboutView: View {
     // MARK: - Features Section
     private var featuresSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("What We Do", systemImage: "sparkles")
+            Label(L10n.About.whatWeDo, systemImage: "info.circle")
                 .font(.headline)
                 .foregroundColor(.accentBlue)
 
             VStack(spacing: 10) {
-                FeatureRow(icon: "map.fill", title: "Interactive Map", description: "Visualize resource locations and boundaries")
-                FeatureRow(icon: "location.fill", title: "Location Search", description: "Find resources by ZIP or location")
-                FeatureRow(icon: "slider.horizontal.3", title: "Smart Filters", description: "Filter by insurance, therapy, age")
-                FeatureRow(icon: "building.2.fill", title: "Regional Centers", description: "Find your assigned center")
-                FeatureRow(icon: "phone.fill", title: "Quick Contact", description: "Call, email, get directions")
+                FeatureRow(icon: "map.fill", title: L10n.About.featureMap, description: L10n.About.featureMapDesc)
+                FeatureRow(icon: "location.fill", title: L10n.About.featureLocation, description: L10n.About.featureLocationDesc)
+                FeatureRow(icon: "slider.horizontal.3", title: L10n.About.featureFilters, description: L10n.About.featureFiltersDesc)
+                FeatureRow(icon: "building.2.fill", title: L10n.About.featureRC, description: L10n.About.featureRCDesc)
+                FeatureRow(icon: "phone.fill", title: L10n.About.featureContact, description: L10n.About.featureContactDesc)
             }
         }
         .padding(16)
@@ -115,11 +115,11 @@ struct AboutView: View {
     // MARK: - Regional Centers Section
     private var regionalCentersSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("LA County Regional Centers", systemImage: "building.columns.fill")
+            Label(L10n.About.laCountyRC, systemImage: "building.columns.fill")
                 .font(.headline)
                 .foregroundColor(.accentBlue)
 
-            Text("Regional Centers are nonprofit agencies that provide services to individuals with developmental disabilities.")
+            Text(L10n.About.rcDescription)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -133,7 +133,7 @@ struct AboutView: View {
                 RCListItem(name: "Frank D. Lanterman", shortName: "FDLRC")
             }
 
-            Text("Your Regional Center is determined by your ZIP code.")
+            Text(L10n.About.rcZipNote)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
@@ -147,15 +147,15 @@ struct AboutView: View {
     // MARK: - How It Works Section
     private var howItWorksSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("How It Works", systemImage: "questionmark.circle.fill")
+            Label(L10n.About.howItWorks, systemImage: "questionmark.circle.fill")
                 .font(.headline)
                 .foregroundColor(.accentBlue)
 
             VStack(alignment: .leading, spacing: 10) {
-                StepRow(number: "1", text: "Enter your location or ZIP code")
-                StepRow(number: "2", text: "See your Regional Center on the map")
-                StepRow(number: "3", text: "Filter by insurance, therapy, etc.")
-                StepRow(number: "4", text: "Contact resources directly")
+                StepRow(number: "1", text: L10n.About.step1)
+                StepRow(number: "2", text: L10n.About.step2)
+                StepRow(number: "3", text: L10n.About.step3)
+                StepRow(number: "4", text: L10n.About.step4)
             }
         }
         .padding(16)
@@ -167,20 +167,20 @@ struct AboutView: View {
     // MARK: - Who We Serve Section
     private var whoWeServeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Who We Serve", systemImage: "person.3.fill")
+            Label(L10n.About.whoWeServe, systemImage: "person.3.fill")
                 .font(.headline)
                 .foregroundColor(.accentBlue)
 
-            Text("Families seeking services for:")
+            Text(L10n.About.servingFamilies)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 6) {
-                DiagnosisRow(text: "Autism Spectrum Disorder")
-                DiagnosisRow(text: "Developmental Delays")
-                DiagnosisRow(text: "Intellectual Disabilities")
-                DiagnosisRow(text: "Communication Disorders")
-                DiagnosisRow(text: "Learning Disabilities")
+                DiagnosisRow(text: L10n.About.autism)
+                DiagnosisRow(text: L10n.About.developmental)
+                DiagnosisRow(text: L10n.About.intellectual)
+                DiagnosisRow(text: L10n.About.communication)
+                DiagnosisRow(text: L10n.About.learning)
             }
         }
         .padding(16)
@@ -192,18 +192,18 @@ struct AboutView: View {
     // MARK: - Stats Section
     private var statsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Free to Use", systemImage: "gift.fill")
+            Label(L10n.About.freeToUse, systemImage: "gift.fill")
                 .font(.headline)
                 .foregroundColor(.accentBlue)
 
-            Text("No fees, registration, or subscriptions required.")
+            Text(L10n.About.freeDescription)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             HStack {
-                StatBox(value: "370+", label: "Resources")
-                StatBox(value: "7", label: "Centers")
-                StatBox(value: "Free", label: "Always")
+                StatBox(value: "370+", label: L10n.Home.resources)
+                StatBox(value: "7", label: L10n.Home.centers)
+                StatBox(value: L10n.Home.free, label: L10n.Home.always)
             }
         }
         .padding(16)
@@ -215,14 +215,14 @@ struct AboutView: View {
     // MARK: - CTA Section
     private var ctaSection: some View {
         VStack(spacing: 12) {
-            Text("Ready to Find a Resource?")
+            Text(L10n.About.readyToFind)
                 .font(.headline)
                 .foregroundColor(.white)
 
             Button {
                 appState.navigateToMap()
             } label: {
-                Label("Explore the Map", systemImage: "map.fill")
+                Label(L10n.About.exploreMap, systemImage: "map.fill")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.accentBlue)

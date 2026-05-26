@@ -10,8 +10,10 @@
 		04BC3A23DAB7D2BC4099B14B /* FullMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8FA95361CB09C477DD471BB /* FullMapView.swift */; };
 		066B905200A44CF4DA67DA13 /* la_regional_centers.geojson in Resources */ = {isa = PBXBuildFile; fileRef = D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */; };
 		08197465A09964FEDE9838F7 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D436BC3380B8D5D10977DC8 /* APIModels.swift */; };
+		A9F2E6D4C3B1A80765F4E2D1 /* Textual in Frameworks */ = {isa = PBXBuildFile; productRef = A9F2E6D4C3B1A80765F4E2D2 /* Textual */; };
 		0A1B2C3D4E5F6A7B8C9D0E1F /* ModernSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */; };
 		100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */; };
+		11F6A4C8B2D3407E9A1C5F22 /* RegionalCentersMiniMapCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A7D5E9C1B34F608E2A6C11 /* RegionalCentersMiniMapCard.swift */; };
 		1449BCCC6174C33F7BEE7622 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6591C41B29B4E6F007C4177 /* ContentView.swift */; };
 		1CEC881B9CBD2A15E447E8A8 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F17384527B1FBCE7FD88F6 /* APIService.swift */; };
 		3280A258F4FD9C1DBCB63162 /* RegionalCenterStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31DBE152BC605E5607045F5 /* RegionalCenterStore.swift */; };
@@ -38,6 +40,12 @@
 		F1A2B3C4D5E6F708CHATBLD /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F708CHATREF /* ChatView.swift */; };
 		F2B3C4D5E6F70819LLMBLD /* LLMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B3C4D5E6F70819LLMREF /* LLMService.swift */; };
 		F3C4D5E6F7081ALOCBLD /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C4D5E6F7081ALOCREF /* String+Localization.swift */; };
+		SPEECH001RECOGNIZERBLD /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */; };
+		TTS00001SERVICEBLD /* TextToSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = TTS00001SERVICEREF /* TextToSpeech.swift */; };
+		CONVHIST01SERVICEBLD /* ConversationHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CONVHIST01SERVICEREF /* ConversationHistory.swift */; };
+		USRMEM001SERVICEBLD /* UserMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = USRMEM001SERVICEREF /* UserMemory.swift */; };
+		LANGMGR001SERVICEBLD /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LANGMGR001SERVICEREF /* LanguageManager.swift */; };
+		L10N00001LOCALSTRINGS /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = L10N00002VARIANTGRP /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +65,7 @@
 		814A77FB55507E652FC3F4E8 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDetailView.swift; sourceTree = "<group>"; };
 		9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterMatcher.swift; sourceTree = "<group>"; };
+		22A7D5E9C1B34F608E2A6C11 /* RegionalCentersMiniMapCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCentersMiniMapCard.swift; sourceTree = "<group>"; };
 		A123456789HOMEVIEWREF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		AAB7E59A57007FC65E7BCE03 /* RegionalCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenter.swift; sourceTree = "<group>"; };
 		AF1E575CEBC73792782D8E0A /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
@@ -73,10 +82,26 @@
 		F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
 		F2B3C4D5E6F70819LLMREF /* LLMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMService.swift; sourceTree = "<group>"; };
 		F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
+		TTS00001SERVICEREF /* TextToSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeech.swift; sourceTree = "<group>"; };
+		CONVHIST01SERVICEREF /* ConversationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistory.swift; sourceTree = "<group>"; };
+		USRMEM001SERVICEREF /* UserMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMemory.swift; sourceTree = "<group>"; };
+		LANGMGR001SERVICEREF /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		F3C4D5E6F7081ALOCREF /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
 		L10N00003ENSTRINGS /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "CHLA-iOS/Resources/en.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
 		L10N00004ESSTRINGS /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = "CHLA-iOS/Resources/es.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A9F2E6D4C3B1A80765F4E2D3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A9F2E6D4C3B1A80765F4E2D1 /* Textual in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		10BF7A4DA57D3584A2E10381 = {
@@ -102,9 +127,14 @@
 			isa = PBXGroup;
 			children = (
 				D8F17384527B1FBCE7FD88F6 /* APIService.swift */,
+				CONVHIST01SERVICEREF /* ConversationHistory.swift */,
+				LANGMGR001SERVICEREF /* LanguageManager.swift */,
 				F2B3C4D5E6F70819LLMREF /* LLMService.swift */,
 				ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */,
 				9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */,
+				SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */,
+				TTS00001SERVICEREF /* TextToSpeech.swift */,
+				USRMEM001SERVICEREF /* UserMemory.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -122,6 +152,7 @@
 			children = (
 				CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */,
 				F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */,
+				22A7D5E9C1B34F608E2A6C11 /* RegionalCentersMiniMapCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -215,6 +246,7 @@
 			buildConfigurationList = 117510B274FDF781EFE2E32C /* Build configuration list for PBXNativeTarget "CHLA-iOS" */;
 			buildPhases = (
 				54CDF34F01D3A3FE6D86C75F /* Sources */,
+				A9F2E6D4C3B1A80765F4E2D3 /* Frameworks */,
 				3D85C023AFA8C8967C74CB03 /* Resources */,
 			);
 			buildRules = (
@@ -223,6 +255,7 @@
 			);
 			name = "CHLA-iOS";
 			packageProductDependencies = (
+				A9F2E6D4C3B1A80765F4E2D2 /* Textual */,
 			);
 			productName = "CHLA-iOS";
 			productReference = 1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */;
@@ -253,6 +286,9 @@
 			);
 			mainGroup = 10BF7A4DA57D3584A2E10381;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A9F2E6D4C3B1A80765F4E2D4 /* XCRemoteSwiftPackageReference "textual" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -296,6 +332,7 @@
 				400B622708BD81DA6D9E3444 /* MapContainerView.swift in Sources */,
 				100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */,
 				0A1B2C3D4E5F6A7B8C9D0E1F /* ModernSearchView.swift in Sources */,
+				11F6A4C8B2D3407E9A1C5F22 /* RegionalCentersMiniMapCard.swift in Sources */,
 				4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */,
 				EBA84EB20ACAE5C15E1646E2 /* Provider.swift in Sources */,
 				8B442B44FD870077299FF3F9 /* ProviderDetailView.swift in Sources */,
@@ -307,6 +344,11 @@
 				3280A258F4FD9C1DBCB63162 /* RegionalCenterStore.swift in Sources */,
 				C898C110F2BE59F7FAE60387 /* RegionalCentersView.swift in Sources */,
 				5D76754352E7C07BA12CA586 /* SettingsView.swift in Sources */,
+				SPEECH001RECOGNIZERBLD /* SpeechRecognizer.swift in Sources */,
+				TTS00001SERVICEBLD /* TextToSpeech.swift in Sources */,
+				CONVHIST01SERVICEBLD /* ConversationHistory.swift in Sources */,
+				USRMEM001SERVICEBLD /* UserMemory.swift in Sources */,
+				LANGMGR001SERVICEBLD /* LanguageManager.swift in Sources */,
 				F3C4D5E6F7081ALOCBLD /* String+Localization.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -325,6 +367,25 @@
 		};
 /* End PBXVariantGroup section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		A9F2E6D4C3B1A80765F4E2D4 /* XCRemoteSwiftPackageReference "textual" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/textual";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A9F2E6D4C3B1A80765F4E2D2 /* Textual */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A9F2E6D4C3B1A80765F4E2D4 /* XCRemoteSwiftPackageReference "textual" */;
+			productName = Textual;
+		};
+/* End XCSwiftPackageProductDependency section */
+
 /* Begin XCBuildConfiguration section */
 		4AE2292EB90415C35707AFBB /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -335,7 +396,7 @@
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -412,8 +473,8 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.2.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.3.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -491,8 +552,8 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.2.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.3.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -513,7 +574,7 @@
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -13,7 +13,6 @@
     <!-- Main Content -->
     <section class="content-section">
       <div class="container">
-        
         <!-- Mission -->
         <div class="content-block">
           <h2>{{ $t("about.mission") }}</h2>
@@ -85,12 +84,14 @@
           <p>
             {{ $t("about.rcExplanation") }}
           </p>
-          
+
           <h3>{{ $t("about.la7Centers") }}</h3>
           <div class="rc-grid">
             <div class="rc-card">
               <h4>San Gabriel/Pomona</h4>
-              <p>Serves eastern LA County and parts of the San Gabriel Valley</p>
+              <p>
+                Serves eastern LA County and parts of the San Gabriel Valley
+              </p>
             </div>
             <div class="rc-card">
               <h4>Harbor</h4>
@@ -121,7 +122,10 @@
           <div class="info-box">
             <i class="bi bi-info-circle-fill"></i>
             <div>
-              <strong>Important:</strong> Your Regional Center is determined by your ZIP code, not your choice. Each ZIP code in California is assigned to exactly one Regional Center based on geographic boundaries.
+              <strong>Important:</strong> Your Regional Center is determined by
+              your ZIP code, not your choice. Each ZIP code in California is
+              assigned to exactly one Regional Center based on geographic
+              boundaries.
             </div>
           </div>
         </div>
@@ -196,26 +200,6 @@
           </div>
         </div>
 
-        <!-- About CHLA -->
-        <div class="content-block chla-block">
-          <div class="chla-content">
-            <div class="chla-logo-section">
-              <img src="@/assets/chla-logo.svg" alt="Children's Hospital Los Angeles" class="chla-logo" />
-            </div>
-            <div>
-              <h2>{{ $t("about.aboutCHLA") }}</h2>
-              <p>
-                {{ $t("about.chlaDescription") }}
-              </p>
-              <p>
-                <a href="https://www.chla.org" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary">
-                  {{ $t("about.learnMoreCHLA") }} <i class="bi bi-arrow-right"></i>
-                </a>
-              </p>
-            </div>
-          </div>
-        </div>
-
         <!-- Free to Use -->
         <div class="content-block highlight-block">
           <h2>{{ $t("about.freeToUse") }}</h2>
@@ -253,15 +237,19 @@
             </router-link>
           </div>
         </div>
-
       </div>
     </section>
   </div>
 </template>
 
 <script>
+import { useSeo } from "@/composables/useSeo";
+
 export default {
-  name: 'AboutView'
+  name: "AboutView",
+  setup() {
+    useSeo({ path: "/about" });
+  },
 };
 </script>
 
@@ -356,7 +344,7 @@ export default {
 }
 
 .feature-card:hover {
-  border-color: #FFC923;
+  border-color: #ffc923;
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -389,7 +377,7 @@ export default {
 .rc-card {
   padding: 1.25rem;
   background: #f8f9fa;
-  border-left: 4px solid #0D9DDB;
+  border-left: 4px solid #0d9ddb;
   border-radius: 4px;
 }
 
@@ -443,7 +431,7 @@ export default {
   flex-shrink: 0;
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #004877, #0D9DDB);
+  background: linear-gradient(135deg, #004877, #0d9ddb);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -481,29 +469,12 @@ export default {
 }
 
 .diagnosis-item i {
-  color: #4DAA50;
+  color: #4daa50;
   font-size: 1.25rem;
 }
 
 .diagnosis-item span {
   font-weight: 500;
-}
-
-/* CHLA Block */
-.chla-block {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.chla-content {
-  display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 2rem;
-  align-items: center;
-}
-
-.chla-logo {
-  width: 100%;
-  height: auto;
 }
 
 /* Stats Grid */
@@ -538,12 +509,12 @@ export default {
 /* Highlight Block */
 .highlight-block {
   background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
-  border-left: 6px solid #0D9DDB;
+  border-left: 6px solid #0d9ddb;
 }
 
 /* CTA Section */
 .cta-section {
-  background: linear-gradient(135deg, #004877 0%, #0D9DDB 100%);
+  background: linear-gradient(135deg, #004877 0%, #0d9ddb 100%);
   color: white;
   padding: 3rem;
   border-radius: 12px;
@@ -572,8 +543,8 @@ export default {
 }
 
 .btn-primary {
-  background-color: #FFC923;
-  border-color: #FFC923;
+  background-color: #ffc923;
+  border-color: #ffc923;
   color: #004877;
   font-weight: 600;
   padding: 0.75rem 2rem;
@@ -650,16 +621,6 @@ export default {
     grid-template-columns: 1fr;
   }
 
-  .chla-content {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .chla-logo {
-    max-width: 200px;
-    margin: 0 auto;
-  }
-
   .step {
     gap: 1rem;
   }
@@ -687,4 +648,3 @@ export default {
   }
 }
 </style>
-

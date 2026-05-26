@@ -23,9 +23,9 @@ eb deploy chla-api-env --timeout 15
 
 ## Verification
 After manual deployment:
-- ✅ Production API returns complete data
-- ✅ ZIP codes and service areas visible
-- ✅ All 7 LA County Regional Centers have data
+- Production API returns complete data
+- ZIP codes and service areas visible
+- All 7 LA County Regional Centers have data
 
 ## Prevention
 If GitHub Actions shows successful deployment but production isn't updated:
@@ -57,6 +57,6 @@ The timeout might be too short (10 minutes). Consider increasing to 15 if issues
 - `.github/workflows/deploy-production.yml`
 - `maplocation/.elasticbeanstalk/config.yml`
 
-## Current Status: ✅ RESOLVED
+## Current Status: RESOLVED
 Manual deployment on Nov 5, 2025 at 19:27 UTC successfully updated production to latest code.
 

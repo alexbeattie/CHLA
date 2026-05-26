@@ -4,30 +4,31 @@
  * Week 3: Pinia Store Architecture
  */
 
-import { defineStore } from 'pinia';
-import { ref, computed, reactive } from 'vue';
+import { defineStore } from "pinia";
+import { ref, computed, reactive } from "vue";
 
 export interface FilterOptions {
-  acceptsInsurance: boolean;  // Legacy: generic "has insurance" toggle
-  acceptsPrivatePay: boolean;  // DEPRECATED: Will be removed (all providers accept)
+  acceptsInsurance: boolean; // Legacy: generic "has insurance" toggle
+  acceptsPrivatePay: boolean; // DEPRECATED: Will be removed (all providers accept)
   matchesAge: boolean;
   matchesDiagnosis: boolean;
   matchesTherapy: boolean;
   showOnlyFavorites: boolean;
-  therapies: string[];  // Multi-select therapy types
-  diagnoses: string[];  // Multi-select diagnoses
-  insuranceTypes: string[];  // NEW: Multi-select specific insurance types (Medi-Cal, Blue Cross, etc.)
+  therapies: string[]; // Multi-select therapy types
+  diagnoses: string[]; // Multi-select diagnoses
+  insuranceTypes: string[]; // NEW: Multi-select specific insurance types (Medi-Cal, Blue Cross, etc.)
 }
 
 export interface UserData {
+  audienceType?: "family" | "clinician";
   insurance?: string;
   age?: string;
   diagnosis?: string;
   therapy?: string;
-  therapies?: string[];  // Added: Support for multiple therapies from onboarding
+  therapies?: string[]; // Added: Support for multiple therapies from onboarding
 }
 
-export const useFilterStore = defineStore('filter', () => {
+export const useFilterStore = defineStore("filter", () => {
   // ==================== STATE ====================
 
   // Filter toggle state
@@ -40,22 +41,23 @@ export const useFilterStore = defineStore('filter', () => {
     showOnlyFavorites: false,
     therapies: [],
     diagnoses: [],
-    insuranceTypes: []
+    insuranceTypes: [],
   });
 
   // User onboarding data
   const userData = reactive<UserData>({
+    audienceType: "family",
     insurance: undefined,
     age: undefined,
     diagnosis: undefined,
-    therapy: undefined
+    therapy: undefined,
   });
 
   // Available filter options (from backend or config)
   const availableTherapyTypes = ref<string[]>([]);
   const availableAgeGroups = ref<string[]>([]);
   const availableDiagnoses = ref<string[]>([]);
-  const availableInsuranceTypes = ref<string[]>([]);  // Updated: Now populated from INSURANCE_OPTIONS
+  const availableInsuranceTypes = ref<string[]>([]); // Updated: Now populated from INSURANCE_OPTIONS
 
   // ==================== GETTERS ====================
 
@@ -86,7 +88,8 @@ export const useFilterStore = defineStore('filter', () => {
     // Add count for each diagnosis selected
     if (filterOptions.diagnoses) count += filterOptions.diagnoses.length;
     // Add count for each insurance type selected
-    if (filterOptions.insuranceTypes) count += filterOptions.insuranceTypes.length;
+    if (filterOptions.insuranceTypes)
+      count += filterOptions.insuranceTypes.length;
     return count;
   });
 
@@ -108,9 +111,9 @@ export const useFilterStore = defineStore('filter', () => {
 
     // Insurance filters
     if (filterOptions.acceptsInsurance) {
-      params.insurance = 'insurance';
+      params.insurance = "insurance";
     } else if (filterOptions.acceptsPrivatePay) {
-      params.insurance = 'private pay';
+      params.insurance = "private pay";
     }
 
     // User data filters (from onboarding)
@@ -137,7 +140,10 @@ export const useFilterStore = defineStore('filter', () => {
     }
 
     // NEW: Multi-select insurance types filter
-    if (filterOptions.insuranceTypes && filterOptions.insuranceTypes.length > 0) {
+    if (
+      filterOptions.insuranceTypes &&
+      filterOptions.insuranceTypes.length > 0
+    ) {
       params.insuranceTypes = filterOptions.insuranceTypes;
     }
 
@@ -167,7 +173,7 @@ export const useFilterStore = defineStore('filter', () => {
     filterOptions.therapies = [];
     filterOptions.diagnoses = [];
     filterOptions.insuranceTypes = [];
-    console.log('🧹 [Store] Reset all filters');
+    console.log("🧹 [Store] Reset all filters");
   }
 
   /**
@@ -175,11 +181,12 @@ export const useFilterStore = defineStore('filter', () => {
    */
   function resetUserData() {
     userData.insurance = undefined;
+    userData.audienceType = "family";
     userData.age = undefined;
     userData.diagnosis = undefined;
     userData.therapy = undefined;
     userData.therapies = undefined;
-    console.log('🧹 [Store] Reset user data');
+    console.log("🧹 [Store] Reset user data");
   }
 
   /**
@@ -187,17 +194,22 @@ export const useFilterStore = defineStore('filter', () => {
    */
   function toggleFilter(filterName: keyof FilterOptions) {
     const currentValue = filterOptions[filterName];
-    if (typeof currentValue === 'boolean') {
+    if (typeof currentValue === "boolean") {
       (filterOptions[filterName] as boolean) = !currentValue;
 
       // Handle mutual exclusivity for insurance filters
-      if (filterName === 'acceptsInsurance' && filterOptions[filterName]) {
+      if (filterName === "acceptsInsurance" && filterOptions[filterName]) {
         filterOptions.acceptsPrivatePay = false;
-      } else if (filterName === 'acceptsPrivatePay' && filterOptions[filterName]) {
+      } else if (
+        filterName === "acceptsPrivatePay" &&
+        filterOptions[filterName]
+      ) {
         filterOptions.acceptsInsurance = false;
       }
 
-      console.log(`🎛️ [Store] Toggled filter ${filterName}: ${filterOptions[filterName]}`);
+      console.log(
+        `🎛️ [Store] Toggled filter ${filterName}: ${filterOptions[filterName]}`
+      );
     }
   }
 
@@ -205,7 +217,7 @@ export const useFilterStore = defineStore('filter', () => {
    * Set filter from external source (e.g., onboarding flow) - for boolean filters only
    */
   function setFilter(filterName: keyof FilterOptions, value: boolean) {
-    if (typeof filterOptions[filterName] === 'boolean') {
+    if (typeof filterOptions[filterName] === "boolean") {
       (filterOptions[filterName] as boolean) = value;
       console.log(`🎛️ [Store] Set filter ${filterName}: ${value}`);
     }
@@ -258,7 +270,7 @@ export const useFilterStore = defineStore('filter', () => {
    */
   function updateUserData(data: Partial<UserData>) {
     Object.assign(userData, data);
-    console.log('📝 [Store] Updated user data:', data);
+    console.log("📝 [Store] Updated user data:", data);
   }
 
   /**
@@ -282,7 +294,7 @@ export const useFilterStore = defineStore('filter', () => {
     if (options.insuranceTypes) {
       availableInsuranceTypes.value = options.insuranceTypes;
     }
-    console.log('📋 [Store] Set available filter options');
+    console.log("📋 [Store] Set available filter options");
   }
 
   /**
@@ -292,7 +304,7 @@ export const useFilterStore = defineStore('filter', () => {
   function applyOnboardingFilters() {
     if (userData.insurance) {
       const insuranceLower = userData.insurance.toLowerCase();
-      if (insuranceLower.includes('private')) {
+      if (insuranceLower.includes("private")) {
         filterOptions.acceptsPrivatePay = true;
       } else {
         filterOptions.acceptsInsurance = true;
@@ -311,7 +323,7 @@ export const useFilterStore = defineStore('filter', () => {
       filterOptions.matchesTherapy = true;
     }
 
-    console.log('✅ [Store] Applied onboarding filters');
+    console.log("✅ [Store] Applied onboarding filters");
   }
 
   /**
@@ -320,7 +332,7 @@ export const useFilterStore = defineStore('filter', () => {
   function clearAll() {
     resetFilters();
     resetUserData();
-    console.log('🧹 [Store] Cleared all filter data');
+    console.log("🧹 [Store] Cleared all filter data");
   }
 
   // ==================== RETURN ====================
@@ -352,6 +364,6 @@ export const useFilterStore = defineStore('filter', () => {
     updateUserData,
     setAvailableOptions,
     applyOnboardingFilters,
-    clearAll
+    clearAll,
   };
 });

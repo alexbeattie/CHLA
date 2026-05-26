@@ -14,22 +14,33 @@ Configure these secrets in your GitHub repository settings:
 | `AWS_ACCESS_KEY_ID` | AWS access key for deployments | `AKIAIOSFODNN7EXAMPLE` |
 | `AWS_SECRET_ACCESS_KEY` | AWS secret access key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
 
-### Database Configuration (RDS)
+### Database & Django Secrets — AWS Secrets Manager
+
+Production DB credentials and the Django `SECRET_KEY` are **not** stored as
+GitHub secrets or in `.ebextensions`. They live in AWS Secrets Manager and
+are fetched at container startup by `maplocation/docker-entrypoint.sh` using
+the EB instance role (`aws-elasticbeanstalk-ec2-role`).
+
+| Secret ID | Shape | Consumer |
+|---|---|---|
+| `kindd/prod/rds` | JSON: `{host, port, dbname, username, password, sslmode}` | `docker-entrypoint.sh` (prod) and `scripts/_rds_env.py` (dev laptop) |
+| `kindd/prod/django-secret-key` | Plain string | `docker-entrypoint.sh` |
+
+**Required IAM**: the EB instance role needs `secretsmanager:GetSecretValue`
+on `arn:aws:secretsmanager:us-west-2:<account>:secret:kindd/prod/*` (note the
+trailing `-*` for the version-suffix wildcard). Developer IAM identities
+need the same permission to run the ops scripts under `maplocation/scripts/`.
+
+**Rotating**: update the secret value via `aws secretsmanager update-secret`,
+then redeploy or restart the EB environment so the entrypoint refetches.
+
+### Django Configuration (other)
 
 | Secret Name | Description | Example Value |
 |------------|-------------|---------------|
-| `RDS_DB_NAME` | RDS database name | `production_db` |
-| `RDS_DB_USER` | RDS database user | `admin` |
-| `RDS_DB_PASSWORD` | RDS database password | `SecurePassword123!` |
-| `RDS_DB_HOST` | RDS database host | `mydb.123456.us-west-2.rds.amazonaws.com` |
-| `RDS_DB_PORT` | RDS database port | `5432` |
-| `RDS_INSTANCE_ID` | RDS instance identifier | `chla-prod-db` |
 
-### Django Configuration
-
-| Secret Name | Description | Example Value |
-|------------|-------------|---------------|
-| `DJANGO_SECRET_KEY` | Django secret key (generate new) | `django-insecure-...` |
+(Most Django config flows through Secrets Manager now; only non-secret
+configuration belongs in `.ebextensions/03_env_vars.config`.)
 
 ### Deployment URLs
 
@@ -57,16 +68,9 @@ Configure these secrets in your GitHub repository settings:
 gh secret set AWS_ACCESS_KEY_ID --body "your-access-key"
 gh secret set AWS_SECRET_ACCESS_KEY --body "your-secret-key"
 
-# Set RDS credentials
-gh secret set RDS_DB_NAME --body "your-db-name"
-gh secret set RDS_DB_USER --body "your-db-user"
-gh secret set RDS_DB_PASSWORD --body "your-db-password"
-gh secret set RDS_DB_HOST --body "your-db-host"
-gh secret set RDS_DB_PORT --body "5432"
-gh secret set RDS_INSTANCE_ID --body "your-rds-instance-id"
-
-# Set Django secret key (generate with: python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
-gh secret set DJANGO_SECRET_KEY --body "your-django-secret-key"
+# RDS credentials and DJANGO_SECRET_KEY are NOT GitHub secrets — they live
+# in AWS Secrets Manager (kindd/prod/rds and kindd/prod/django-secret-key).
+# See the "Database & Django Secrets" section above.
 
 # Set deployment URLs
 gh secret set BACKEND_URL --body "https://api.kinddhelp.com"
@@ -102,13 +106,13 @@ Get these from your RDS instance:
 
 ## Security Best Practices
 
-- ✅ Never commit secrets to the repository
-- ✅ Rotate secrets regularly (every 90 days recommended)
-- ✅ Use different secrets for production and staging
-- ✅ Limit AWS IAM permissions to minimum required
-- ✅ Enable AWS CloudTrail for audit logging
-- ❌ Never use production secrets in development
-- ❌ Never share secrets via email or chat
+- Never commit secrets to the repository
+- Rotate secrets regularly (every 90 days recommended)
+- Use different secrets for production and staging
+- Limit AWS IAM permissions to minimum required
+- Enable AWS CloudTrail for audit logging
+- Never use production secrets in development
+- Never share secrets via email or chat
 
 ## IAM Permissions Required
 

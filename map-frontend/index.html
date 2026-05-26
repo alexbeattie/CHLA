@@ -1,112 +1,118 @@
 <!DOCTYPE html>
 <html lang="en-US">
-  <head>
-    <!-- Basic Meta Tags -->
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-    <meta http-equiv="content-language" content="en-US" />
-    
-    <!-- SEO Meta Tags -->
-    <title>Find ABA Therapy & Autism Services in Los Angeles | KINDD by CHLA</title>
-    <meta name="description" content="Locate ABA therapy providers and autism services across Los Angeles County's 7 Regional Centers. Free interactive map by Children's Hospital Los Angeles. Find qualified providers accepting insurance near you." />
-    <meta name="keywords" content="ABA therapy Los Angeles, autism services, developmental disability, Regional Center providers, children's therapy, Los Angeles County, CHLA, behavioral therapy, autism diagnosis, ABA providers near me" />
-    <meta name="author" content="Children's Hospital Los Angeles" />
-    <meta name="copyright" content="Children's Hospital Los Angeles" />
-    
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://kinddhelp.com/" />
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://kinddhelp.com/" />
-    <meta property="og:title" content="Find ABA Therapy & Autism Services in Los Angeles | KINDD by CHLA" />
-    <meta property="og:description" content="Locate ABA therapy providers and autism services across Los Angeles County. Free interactive map by Children's Hospital Los Angeles." />
-    <meta property="og:image" content="https://kinddhelp.com/og-image.jpg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:site_name" content="KINDD - CHLA Provider Map" />
-    <meta property="og:locale" content="en_US" />
-    
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://kinddhelp.com/" />
-    <meta name="twitter:title" content="Find ABA Therapy & Autism Services in Los Angeles | KINDD" />
-    <meta name="twitter:description" content="Locate ABA therapy providers across LA County. Free interactive map by Children's Hospital Los Angeles." />
-    <meta name="twitter:image" content="https://kinddhelp.com/twitter-card.jpg" />
-    
-    <!-- Mobile App Meta Tags -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="KINDD" />
-    
-    <!-- Theme Color (CHLA Brand Blue) -->
-    <meta name="theme-color" content="#004877" />
-    <meta name="msapplication-TileColor" content="#004877" />
-    
-    <!-- Geo Targeting -->
-    <meta name="geo.region" content="US-CA" />
-    <meta name="geo.placename" content="Los Angeles" />
-    <meta name="geo.position" content="34.0522;-118.2437" />
-    <meta name="ICBM" content="34.0522, -118.2437" />
-    
-    <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
-    
-    <!-- Preconnect for Performance -->
-    <link rel="preconnect" href="https://api.mapbox.com" />
-    <link rel="dns-prefetch" href="https://api.mapbox.com" />
-    <link rel="preconnect" href="https://api.kinddhelp.com" />
-    <link rel="dns-prefetch" href="https://api.kinddhelp.com" />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-    
-    <!-- External Stylesheets -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
-    
-    <!-- Google Analytics (GA4) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KLQJB06JS2"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-KLQJB06JS2', {
-        'anonymize_ip': true,
-        'cookie_flags': 'SameSite=None;Secure'
-      });
-    </script>
-    
-    <!-- Structured Data (JSON-LD) -->
-    <script type="application/ld+json">
+
+<head>
+  <!-- Basic Meta Tags -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta http-equiv="content-language" content="en-US" />
+
+  <!-- SEO Meta Tags (defaults; overridden per route by useSeo composable) -->
+  <title>NDD Resource Map - KiNDD</title>
+  <meta name="description"
+    content="Find neurodevelopmental disorder (NDD) services and Regional Center providers across Los Angeles County. Free interactive resource map." />
+  <meta name="keywords"
+    content="NDD services, neurodevelopmental disorders, developmental disability, Regional Center providers, Los Angeles County, ABA therapy, behavioral therapy, NDD providers near me" />
+  <meta name="author" content="KiNDD" />
+  <meta name="copyright" content="KiNDD" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://kinddhelp.org/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kinddhelp.org/" />
+  <meta property="og:title" content="NDD Resource Map - KiNDD" />
+  <meta property="og:description"
+    content="Find neurodevelopmental disorder (NDD) services and Regional Center providers across Los Angeles County. Free interactive resource map." />
+  <meta property="og:image" content="https://kinddhelp.org/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="KiNDD" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://kinddhelp.org/" />
+  <meta name="twitter:title" content="NDD Resource Map - KiNDD" />
+  <meta name="twitter:description"
+    content="Find neurodevelopmental disorder (NDD) services and Regional Center providers across Los Angeles County." />
+  <meta name="twitter:image" content="https://kinddhelp.org/twitter-card.jpg" />
+
+  <!-- Mobile App Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="KiNDD" />
+
+  <!-- Theme Color (brand blue) -->
+  <meta name="theme-color" content="#004877" />
+  <meta name="msapplication-TileColor" content="#004877" />
+
+  <!-- Geo Targeting -->
+  <meta name="geo.region" content="US-CA" />
+  <meta name="geo.placename" content="Los Angeles" />
+  <meta name="geo.position" content="34.0522;-118.2437" />
+  <meta name="ICBM" content="34.0522, -118.2437" />
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- Preconnect for Performance -->
+  <link rel="preconnect" href="https://api.mapbox.com" />
+  <link rel="dns-prefetch" href="https://api.mapbox.com" />
+  <link rel="preconnect" href="https://api.kinddhelp.com" />
+  <link rel="dns-prefetch" href="https://api.kinddhelp.com" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- External Stylesheets -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KLQJB06JS2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-KLQJB06JS2', {
+      'anonymize_ip': true,
+      'cookie_flags': 'SameSite=None;Secure'
+    });
+  </script>
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@graph": [
         {
           "@type": "Organization",
-          "name": "Children's Hospital Los Angeles",
-          "alternateName": "CHLA",
-          "url": "https://kinddhelp.com",
-          "logo": "https://kinddhelp.com/assets/chla-logo.svg",
-          "description": "We create hope and build healthier futures. Find ABA therapy and autism services across Los Angeles County.",
+          "name": "KiNDD",
+          "alternateName": "NDD Resource Map",
+          "url": "https://kinddhelp.org",
+          "logo": "https://kinddhelp.org/assets/kindd-logo.svg",
+          "description": "Find neurodevelopmental disorder (NDD) services and Regional Center providers across Los Angeles County.",
           "address": {
             "@type": "PostalAddress",
             "addressLocality": "Los Angeles",
             "addressRegion": "CA",
             "addressCountry": "US"
-          },
-          "sameAs": [
-            "https://www.chla.org"
-          ]
+          }
         },
         {
           "@type": "WebApplication",
-          "name": "KINDD Provider Map",
-          "url": "https://kinddhelp.com",
-          "description": "Interactive map to find ABA therapy providers and autism services across Los Angeles County's 7 Regional Centers",
+          "name": "NDD Resource Map - KiNDD",
+          "url": "https://kinddhelp.org",
+          "description": "Interactive map to find neurodevelopmental disorder (NDD) services across Los Angeles County's 7 Regional Centers.",
           "applicationCategory": "HealthApplication",
           "operatingSystem": "Web Browser",
           "offers": {
@@ -115,8 +121,8 @@
             "priceCurrency": "USD"
           },
           "featureList": [
-            "Find ABA therapy providers by ZIP code",
-            "Search autism services by location",
+            "Find NDD providers by ZIP code",
+            "Search NDD services by location",
             "Filter by insurance accepted",
             "View Regional Center service areas",
             "Get driving directions",
@@ -135,9 +141,11 @@
       ]
     }
     </script>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
 </html>

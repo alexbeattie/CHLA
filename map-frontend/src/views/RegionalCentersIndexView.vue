@@ -41,17 +41,24 @@
             >
               <i
                 :class="
-                  detectingLocation ? 'bi bi-arrow-clockwise spin' : 'bi bi-geo-alt-fill'
+                  detectingLocation
+                    ? 'bi bi-arrow-clockwise spin'
+                    : 'bi bi-geo-alt-fill'
                 "
                 class="me-2"
               ></i>
-              {{ detectingLocation ? $t("regionalCenter.detecting") : $t("regionalCenter.useMyLocation") }}
+              {{
+                detectingLocation
+                  ? $t("regionalCenter.detecting")
+                  : $t("regionalCenter.useMyLocation")
+              }}
             </button>
           </div>
           <div v-if="foundRC" class="found-result">
             <i class="bi bi-check-circle-fill"></i>
             <span
-              >{{ $t("regionalCenter.yourZipServedBy") }} <strong>{{ foundRC.shortName }}</strong></span
+              >{{ $t("regionalCenter.yourZipServedBy") }}
+              <strong>{{ foundRC.shortName }}</strong></span
             >
             <router-link
               :to="`/regional-centers/${foundRC.slug}`"
@@ -137,8 +144,11 @@
                 </div>
               </div>
               <div class="rc-cities">
-                <strong>Major Cities:</strong> {{ rc.cities.slice(0, 5).join(", ") }}
-                <span v-if="rc.cities.length > 5"> +{{ rc.cities.length - 5 }} more</span>
+                <strong>Major Cities:</strong>
+                {{ rc.cities.slice(0, 5).join(", ") }}
+                <span v-if="rc.cities.length > 5">
+                  +{{ rc.cities.length - 5 }} more</span
+                >
               </div>
             </router-link>
           </div>
@@ -231,13 +241,17 @@
 <script>
 import { ref, computed } from "vue";
 import { getAllRegionalCenters } from "@/data/regionalCenters";
+import { useSeo } from "@/composables/useSeo";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.kinddhelp.com";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://api.kinddhelp.com";
 
 export default {
   name: "RegionalCentersIndexView",
 
   setup() {
+    useSeo({ path: "/regional-centers" });
+
     const zipCode = ref("");
     const foundRC = ref(null);
     const notFound = ref(false);
@@ -315,9 +329,7 @@ export default {
             console.log(`📍 Location detected: ${latitude}, ${longitude}`);
 
             // Reverse geocode to get ZIP code using Mapbox
-            const mapboxToken =
-              import.meta.env.VITE_MAPBOX_TOKEN ||
-              "pk.eyJ1IjoiYWxleGJlYXR0aWUiLCJhIjoiY200ZHcwaTc0MDJjcjJscTE3emxhM2xvZCJ9.VnoxlGaFkGT7qKSgJLU_mQ";
+            const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || "";
             const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&types=postcode`;
 
             const response = await fetch(geocodeUrl);
@@ -331,12 +343,16 @@ export default {
               // Automatically find the regional center
               await findRegionalCenter();
             } else {
-              alert("Could not determine your ZIP code. Please enter it manually.");
+              alert(
+                "Could not determine your ZIP code. Please enter it manually."
+              );
               notFound.value = true;
             }
           } catch (error) {
             console.error("Error reverse geocoding:", error);
-            alert("Error detecting your location. Please enter your ZIP code manually.");
+            alert(
+              "Error detecting your location. Please enter your ZIP code manually."
+            );
             notFound.value = true;
           } finally {
             detectingLocation.value = false;
@@ -344,7 +360,9 @@ export default {
         },
         (error) => {
           console.error("Geolocation error:", error);
-          alert("Unable to detect your location. Please enter your ZIP code manually.");
+          alert(
+            "Unable to detect your location. Please enter your ZIP code manually."
+          );
           detectingLocation.value = false;
           notFound.value = true;
         },
@@ -398,7 +416,11 @@ export default {
       rgba(255, 255, 255, 0.12) 0%,
       transparent 50%
     ),
-    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(
+      circle at 70% 70%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 50%
+    ),
     linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.15) 100%);
   pointer-events: none;
 }

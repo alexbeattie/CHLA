@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# CHLA Provider Map - Automated Deployment Script
+# KiNDD - NDD Resource Navigator - Automated Deployment Script
 #
 # Features:
 # - Frontend build with cache busting
@@ -13,12 +13,12 @@
 # - No SSH/SSM required - uses AWS services directly
 #
 # Usage:
-#   ./deploy.sh [environment]
+# ./deploy.sh [environment]
 #
 # Environments: dev, staging, production
 ###############################################################################
 
-set -e  # Exit on error
+set -e # Exit on error
 
 # Colors for output
 RED='\033[0;31m'
@@ -39,19 +39,19 @@ case "$ENVIRONMENT" in
     APP_NAME="chla-provider-map-prod"
     EB_ENV="chla-provider-map-prod"
     S3_BUCKET="chla-provider-map-frontend-prod"
-    CLOUDFRONT_ID="E1234567890ABC"  # TODO: Update with your CloudFront distribution ID
+    CLOUDFRONT_ID="E1234567890ABC" # TODO: Update with your CloudFront distribution ID
     ;;
   staging)
     APP_NAME="chla-provider-map-staging"
     EB_ENV="chla-provider-map-staging"
     S3_BUCKET="chla-provider-map-frontend-staging"
-    CLOUDFRONT_ID="E0987654321XYZ"  # TODO: Update
+    CLOUDFRONT_ID="E0987654321XYZ" # TODO: Update
     ;;
   dev|*)
     APP_NAME="chla-provider-map-dev"
     EB_ENV="chla-provider-map-dev"
     S3_BUCKET="chla-provider-map-frontend-dev"
-    CLOUDFRONT_ID=""  # Dev might not have CloudFront
+    CLOUDFRONT_ID="" # Dev might not have CloudFront
     ;;
 esac
 
@@ -371,7 +371,7 @@ rollback() {
 
 main() {
   log_info "=========================================="
-  log_info "CHLA Provider Map Deployment"
+  log_info "KiNDD - NDD Resource Navigator Deployment"
   log_info "Environment: $ENVIRONMENT"
   log_info "Timestamp: $TIMESTAMP"
   log_info "=========================================="

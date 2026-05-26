@@ -1,7 +1,7 @@
-/* 
+/*
   Localizable.strings (Spanish)
-  CHLA-iOS / KINDD
-  
+  KiNDD - NDD Resource Navigator
+
   Spanish translations for the app
 */
 
@@ -162,3 +162,58 @@
 "chat.waitlistsPrompt" = "¿Cuánto tiempo son las listas de espera de terapia?";
 "chat.age3Prompt" = "¿Qué pasa cuando mi hijo cumple 3 años?";
 "chat.speechPrompt" = "Encontrar proveedores de terapia del habla";
+
+// MARK: - Language
+"language.title" = "Idioma";
+"language.system" = "Predeterminado del Sistema";
+"language.english" = "Inglés";
+"language.spanish" = "Español";
+
+// MARK: - About Page
+"about.pageTitle" = "Acerca de NDD Resources";
+"about.heroSubtitle" = "Ayudando a familias a encontrar terapia ABA y servicios de discapacidades del desarrollo en el Condado de LA";
+"about.ourMission" = "Nuestra Misión";
+"about.missionText1" = "Creamos esperanza y construimos futuros más saludables conectando a familias con servicios de autismo y discapacidades del desarrollo.";
+"about.missionText2" = "NDD Resources es un mapa interactivo gratuito para ayudar a familias a encontrar recursos de terapia ABA en todo el Condado de Los Ángeles.";
+"about.whatWeDo" = "Lo Que Hacemos";
+"about.featureMap" = "Mapa Interactivo";
+"about.featureMapDesc" = "Visualice ubicaciones y límites de recursos";
+"about.featureLocation" = "Búsqueda por Ubicación";
+"about.featureLocationDesc" = "Encuentre recursos por código postal o ubicación";
+"about.featureFilters" = "Filtros Inteligentes";
+"about.featureFiltersDesc" = "Filtre por seguro, terapia, edad";
+"about.featureRC" = "Centros Regionales";
+"about.featureRCDesc" = "Encuentre su centro asignado";
+"about.featureContact" = "Contacto Rápido";
+"about.featureContactDesc" = "Llame, envíe correo, obtenga direcciones";
+"about.laCountyRC" = "Centros Regionales del Condado de LA";
+"about.rcDescription" = "Los Centros Regionales son agencias sin fines de lucro que brindan servicios a personas con discapacidades del desarrollo.";
+"about.rcZipNote" = "Su Centro Regional está determinado por su código postal.";
+"about.howItWorks" = "Cómo Funciona";
+"about.step1" = "Ingrese su ubicación o código postal";
+"about.step2" = "Vea su Centro Regional en el mapa";
+"about.step3" = "Filtre por seguro, terapia, etc.";
+"about.step4" = "Contacte recursos directamente";
+"about.whoWeServe" = "A Quién Servimos";
+"about.servingFamilies" = "Familias que buscan servicios para:";
+"about.autism" = "Trastorno del Espectro Autista";
+"about.developmental" = "Retrasos del Desarrollo";
+"about.intellectual" = "Discapacidades Intelectuales";
+"about.communication" = "Trastornos de la Comunicación";
+"about.learning" = "Discapacidades del Aprendizaje";
+"about.freeToUse" = "Gratis para Usar";
+"about.freeDescription" = "Sin tarifas, registro ni suscripciones requeridas.";
+"about.readyToFind" = "¿Listo para Encontrar un Recurso?";
+"about.exploreMap" = "Explorar el Mapa";
+"about.servingLA" = "Sirviendo a familias del Condado de Los Ángeles";
+
+// MARK: - FAQ Page
+"faq.pageTitle" = "Preguntas Frecuentes";
+"faq.heroSubtitle" = "Terapia ABA, Centros Regionales y cómo encontrar recursos";
+"faq.abaBasics" = "Conceptos Básicos de Terapia ABA";
+"faq.regionalCenters" = "Centros Regionales";
+"faq.insuranceFunding" = "Seguro y Financiamiento";
+"faq.usingApp" = "Usando la Aplicación";
+"faq.sources" = "Fuentes de Información";
+"faq.sourcesIntro" = "La información en estas preguntas frecuentes se recopila de las siguientes fuentes:";
+"faq.disclaimer" = "Aviso: Esta información es solo para fines educativos y no es consejo médico. Siempre consulte con profesionales de la salud calificados para decisiones médicas.";

@@ -46,11 +46,11 @@ psql -h your-rds-endpoint.rds.amazonaws.com -U chla_admin -d your_db_name -f scr
 ```
 
 This script will:
-- ✅ Enable PostGIS extension (if not already enabled)
-- ✅ Add `location` geography column to `providers_v2`
-- ✅ Populate location from existing latitude/longitude
-- ✅ Create spatial indexes (GIST)
-- ✅ Update `regional_centers` table similarly
+- Enable PostGIS extension (if not already enabled)
+- Add `location` geography column to `providers_v2`
+- Populate location from existing latitude/longitude
+- Create spatial indexes (GIST)
+- Update `regional_centers` table similarly
 
 ### 4. Deploy Code to Elastic Beanstalk
 

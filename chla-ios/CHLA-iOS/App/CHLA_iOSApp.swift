@@ -20,6 +20,17 @@ struct CHLA_iOSApp: App {
 }
 
 // MARK: - App State
+struct ProviderMapTarget: Identifiable, Equatable {
+    let id = UUID()
+    let query: String
+    let providers: [Provider]
+
+    init(query: String, providers: [Provider] = []) {
+        self.query = query
+        self.providers = providers
+    }
+}
+
 /// Global application state managing user preferences and session data
 @MainActor
 class AppState: ObservableObject {
@@ -32,6 +43,18 @@ class AppState: ObservableObject {
     @Published var userChildAge: Int?
     @Published var userDiagnosis: String?
     @Published var userInsurance: String?
+    @Published var userAudienceType: String
+    @Published var userRegionalCenterName: String?
+    @Published var userRegionalCenterShortName: String?
+    @Published var pendingMapProviderTarget: ProviderMapTarget?
+
+    var userRegionalCenterColor: Color {
+        guard let shortName = userRegionalCenterShortName else {
+            return .accentBlue
+        }
+
+        return .regionalCenterColor(for: shortName)
+    }
 
     init() {
         // Check if user has completed onboarding
@@ -43,9 +66,20 @@ class AppState: ObservableObject {
         self.userChildAge = UserDefaults.standard.object(forKey: "userChildAge") as? Int
         self.userDiagnosis = UserDefaults.standard.string(forKey: "userDiagnosis")
         self.userInsurance = UserDefaults.standard.string(forKey: "userInsurance")
+        self.userAudienceType = UserDefaults.standard.string(forKey: "userAudienceType") ?? "family"
+        self.userRegionalCenterName = UserDefaults.standard.string(forKey: "userRegionalCenterName")
+        self.userRegionalCenterShortName = UserDefaults.standard.string(forKey: "userRegionalCenterShortName")
     }
 
-    func saveUserContext(zipCode: String? = nil, childAge: Int? = nil, diagnosis: String? = nil, insurance: String? = nil) {
+    func saveUserContext(
+        zipCode: String? = nil,
+        childAge: Int? = nil,
+        diagnosis: String? = nil,
+        insurance: String? = nil,
+        audienceType: String? = nil,
+        regionalCenterName: String? = nil,
+        regionalCenterShortName: String? = nil
+    ) {
         if let zip = zipCode {
             userZipCode = zip
             UserDefaults.standard.set(zip, forKey: "userZipCode")
@@ -61,6 +95,18 @@ class AppState: ObservableObject {
         if let ins = insurance {
             userInsurance = ins
             UserDefaults.standard.set(ins, forKey: "userInsurance")
+        }
+        if let audience = audienceType {
+            userAudienceType = audience
+            UserDefaults.standard.set(audience, forKey: "userAudienceType")
+        }
+        if let rcName = regionalCenterName {
+            userRegionalCenterName = rcName
+            UserDefaults.standard.set(rcName, forKey: "userRegionalCenterName")
+        }
+        if let rcShortName = regionalCenterShortName {
+            userRegionalCenterShortName = rcShortName
+            UserDefaults.standard.set(rcShortName, forKey: "userRegionalCenterShortName")
         }
     }
 
@@ -86,6 +132,21 @@ class AppState: ObservableObject {
 
     /// Navigate to map tab
     func navigateToMap() {
+        selectedTab = 1
+    }
+
+    /// Navigate to the map and ask it to focus a provider by name.
+    func showProviderOnMap(named providerName: String) {
+        pendingMapProviderTarget = ProviderMapTarget(query: providerName)
+        selectedTab = 1
+    }
+
+    /// Navigate to the map and show a known set of providers as pins.
+    func showProvidersOnMap(_ providers: [Provider]) {
+        pendingMapProviderTarget = ProviderMapTarget(
+            query: providers.map(\.name).joined(separator: " "),
+            providers: providers
+        )
         selectedTab = 1
     }
 

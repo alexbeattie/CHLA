@@ -7,29 +7,48 @@
           <i class="bi bi-person-circle"></i>
           <h3>Your Profile</h3>
         </div>
-        <button class="btn-edit" @click="$emit('edit-profile')" title="Edit Profile">
+        <button
+          class="btn-edit"
+          @click="$emit('edit-profile')"
+          title="Edit Profile"
+        >
           <i class="bi bi-pencil"></i>
         </button>
       </div>
-      
+
       <div class="profile-details">
         <div class="detail-item" v-if="profile.age">
           <i class="bi bi-calendar3"></i>
           <span>{{ formatAge(profile.age) }}</span>
         </div>
-        
+
+        <div class="detail-item" v-if="profile.audienceType">
+          <i
+            class="bi"
+            :class="
+              profile.audienceType === 'clinician'
+                ? 'bi-clipboard2-pulse'
+                : 'bi-people'
+            "
+          ></i>
+          <span>{{ formatAudience(profile.audienceType) }}</span>
+        </div>
+
         <div class="detail-item" v-if="profile.diagnosis">
           <i class="bi bi-heart-pulse"></i>
           <span>{{ formatDiagnosis(profile.diagnosis) }}</span>
         </div>
-        
+
         <div class="detail-item funding-sources" v-if="hasFunding">
           <i class="bi bi-wallet2"></i>
           <div class="funding-badges">
             <span class="badge badge-insurance" v-if="profile.hasInsurance">
               Insurance
             </span>
-            <span class="badge badge-regional-center" v-if="profile.hasRegionalCenter">
+            <span
+              class="badge badge-regional-center"
+              v-if="profile.hasRegionalCenter"
+            >
               Regional Center
             </span>
           </div>
@@ -38,27 +57,39 @@
     </div>
 
     <!-- Regional Center Card -->
-    <div class="regional-center-card" v-if="regionalCenter">
+    <div
+      class="regional-center-card"
+      v-if="regionalCenter"
+      :style="regionalCenterThemeStyle"
+    >
       <div class="card-header">
         <div class="header-left">
-          <i class="bi bi-building"></i>
+          <span class="rc-ring" v-if="regionalCenterTheme">
+            {{ regionalCenterTheme.abbreviation }}
+          </span>
+          <i class="bi bi-building" v-else></i>
           <h3>Your Regional Center</h3>
         </div>
       </div>
-      
+
       <div class="regional-center-details">
         <div class="rc-name">{{ regionalCenter.name }}</div>
-        
+
         <div class="rc-contact" v-if="regionalCenter.phone">
           <i class="bi bi-telephone"></i>
           <a :href="'tel:' + regionalCenter.phone" class="contact-link">
             {{ formatPhone(regionalCenter.phone) }}
           </a>
         </div>
-        
+
         <div class="rc-website" v-if="regionalCenter.website">
           <i class="bi bi-globe"></i>
-          <a :href="regionalCenter.website" target="_blank" rel="noopener" class="contact-link">
+          <a
+            :href="formatWebsite(regionalCenter.website)"
+            target="_blank"
+            rel="noopener"
+            class="contact-link"
+          >
             Visit Website
             <i class="bi bi-box-arrow-up-right"></i>
           </a>
@@ -83,8 +114,8 @@
 
 <script>
 export default {
-  name: 'ProfileSummary',
-  
+  name: "ProfileSummary",
+
   props: {
     profile: {
       type: Object,
@@ -92,57 +123,89 @@ export default {
         age: null,
         diagnosis: null,
         hasInsurance: false,
-        hasRegionalCenter: false
-      })
+        hasRegionalCenter: false,
+      }),
     },
     regionalCenter: {
       type: Object,
-      default: null
-    }
+      default: null,
+    },
+    regionalCenterTheme: {
+      type: Object,
+      default: null,
+    },
   },
-  
-  emits: ['edit-profile'],
-  
+
+  emits: ["edit-profile"],
+
   computed: {
     hasProfile() {
-      return this.profile.age || this.profile.diagnosis || this.hasFunding;
+      return (
+        this.profile.age ||
+        this.profile.diagnosis ||
+        this.profile.audienceType ||
+        this.hasFunding
+      );
     },
-    
+
     hasFunding() {
       return this.profile.hasInsurance || this.profile.hasRegionalCenter;
-    }
+    },
+
+    regionalCenterThemeStyle() {
+      if (!this.regionalCenterTheme?.color) {
+        return {};
+      }
+
+      return {
+        "--regional-center-color": this.regionalCenterTheme.color,
+      };
+    },
   },
-  
+
   methods: {
     formatAge(age) {
       // Handle various age formats
-      if (age.includes('-') || age.includes('+')) {
+      if (age.includes("-") || age.includes("+")) {
         return `${age} years`;
       }
       return age;
     },
-    
+
     formatDiagnosis(diagnosis) {
       // Shorten common diagnoses for display
       const shortForms = {
-        'Autism Spectrum Disorder': 'Autism',
-        'Global Development Delay': 'Development Delay',
-        'Intellectual Disability': 'Intellectual Disability',
-        'Speech and Language Disorder': 'Speech/Language',
-        'ADHD': 'ADHD'
+        "Autism Spectrum Disorder": "Autism",
+        "Global Development Delay": "Development Delay",
+        "Intellectual Disability": "Intellectual Disability",
+        "Speech and Language Disorder": "Speech/Language",
+        ADHD: "ADHD",
       };
       return shortForms[diagnosis] || diagnosis;
     },
-    
+
+    formatAudience(audienceType) {
+      return audienceType === "clinician"
+        ? "Clinician mode"
+        : "Family/caregiver mode";
+    },
+
     formatPhone(phone) {
       // Format phone number for display
-      const cleaned = phone.replace(/\D/g, '');
+      const cleaned = phone.replace(/\D/g, "");
       if (cleaned.length === 10) {
-        return `(${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6)}`;
+        return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(
+          6
+        )}`;
       }
       return phone;
-    }
-  }
+    },
+
+    formatWebsite(website) {
+      if (!website) return "";
+      return website.startsWith("http") ? website : `https://${website}`;
+    },
+  },
 };
 </script>
 
@@ -150,7 +213,7 @@ export default {
 .profile-summary {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 /* Card Base Styles */
@@ -158,50 +221,73 @@ export default {
 .regional-center-card,
 .no-profile-card {
   background: white;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 0.75rem 0.875rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid #e5e7eb;
-  transition: all 0.2s ease;
+  transition: box-shadow 0.15s ease;
 }
 
 .profile-card:hover,
 .regional-center-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Highlight Your Regional Center Card */
 .regional-center-card {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border: 2px solid #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--regional-center-color, #3b82f6) 10%, #ffffff) 0%,
+    color-mix(in srgb, var(--regional-center-color, #3b82f6) 22%, #ffffff) 100%
+  );
+  border: 2px solid var(--regional-center-color, #3b82f6);
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--regional-center-color, #3b82f6) 18%, transparent);
   position: relative;
   overflow: hidden;
 }
 
 .regional-center-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 4px;
   height: 100%;
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  background: var(--regional-center-color, #3b82f6);
 }
 
 .regional-center-card:hover {
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--regional-center-color, #3b82f6) 22%, transparent);
 }
 
 .regional-center-card .header-left i {
-  color: #3b82f6;
-  font-size: 1.5rem;
+  color: var(--regional-center-color, #3b82f6);
+  font-size: 1.1rem;
 }
 
 .regional-center-card .card-header h3 {
-  color: #1e40af;
+  color: #1f2937;
   font-weight: 700;
+}
+
+.rc-ring {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--regional-center-color, #3b82f6);
+  box-shadow: 0 0 0 2px #ffffff,
+    0 0 0 4px
+      color-mix(in srgb, var(--regional-center-color, #3b82f6) 35%, transparent);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
 }
 
 /* Card Header */
@@ -209,7 +295,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .header-left {
@@ -219,15 +305,16 @@ export default {
 }
 
 .header-left i {
-  font-size: 1.25rem;
+  font-size: 1rem;
   color: #004877;
 }
 
 .card-header h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1f2937;
+  line-height: 1.2;
 }
 
 /* Edit Button */
@@ -235,10 +322,11 @@ export default {
   background: transparent;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
-  padding: 0.375rem 0.625rem;
+  padding: 0.25rem 0.5rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   color: #6b7280;
+  line-height: 1;
 }
 
 .btn-edit:hover {
@@ -248,28 +336,29 @@ export default {
 }
 
 .btn-edit i {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 /* Profile Details */
 .profile-details {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.375rem;
 }
 
 .detail-item {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  font-size: 0.9375rem;
+  gap: 0.5rem;
+  font-size: 0.825rem;
   color: #374151;
+  line-height: 1.3;
 }
 
 .detail-item i {
-  font-size: 1.125rem;
+  font-size: 0.95rem;
   color: #6b7280;
-  width: 1.25rem;
+  width: 1.125rem;
   text-align: center;
   flex-shrink: 0;
 }
@@ -309,29 +398,30 @@ export default {
 .regional-center-details {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.375rem;
 }
 
 .rc-name {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1f2937;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .rc-contact,
 .rc-website {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  font-size: 0.875rem;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.3;
 }
 
 .rc-contact i,
 .rc-website i {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #6b7280;
-  width: 1.25rem;
+  width: 1.125rem;
   text-align: center;
   flex-shrink: 0;
 }
@@ -417,18 +507,17 @@ export default {
   .no-profile-card {
     padding: 1rem;
   }
-  
+
   .card-header h3 {
     font-size: 0.9375rem;
   }
-  
+
   .detail-item {
     font-size: 0.875rem;
   }
-  
+
   .rc-name {
     font-size: 0.875rem;
   }
 }
 </style>
-

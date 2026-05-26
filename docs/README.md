@@ -1,6 +1,6 @@
-# CHLA Provider Map - Documentation Index
+# KiNDD - NDD Resource Navigator - Documentation Index
 
-Welcome to the CHLA Provider Map documentation! This directory contains all project documentation organized for easy navigation.
+Welcome to the KiNDD - NDD Resource Navigator documentation. This directory contains all project documentation organized for easy navigation.
 
 ## Quick Links
 
@@ -8,7 +8,7 @@ Welcome to the CHLA Provider Map documentation! This directory contains all proj
 - **Deployment**: [Deployment Guide](./DEPLOYMENT.md)
 - **CI/CD**: [GitHub Actions Guide](./GITHUB_ACTIONS.md)
 - **Database**: [Database Sync Guide](./DATABASE_SYNC.md)
-- **Architecture**: [Stack Documentation](../STACK_DOCUMENTATION.md)
+- **Architecture**: [Stack Documentation](./STACK.md)
 
 ---
 
@@ -17,13 +17,20 @@ Welcome to the CHLA Provider Map documentation! This directory contains all proj
 ### Core Documentation
 
 | Document | Description | For |
-|----------|-------------|-----|
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Complete deployment guide for local and production | DevOps, Developers |
 | [GITHUB_ACTIONS.md](./GITHUB_ACTIONS.md) | GitHub Actions CI/CD setup and troubleshooting | DevOps, Developers |
 | [DATABASE_SYNC.md](./DATABASE_SYNC.md) | Database synchronization between local and RDS | Developers, DBAs |
+| [NONPROFIT_ONBOARDING_PACKET.md](./NONPROFIT_ONBOARDING_PACKET.md) | Ordered stakeholder onboarding packet for nonprofit, clinical, program, and technical audiences | Everyone, Partners, Clinical Leads |
+| [CLINICAL_TEAM_HANDOFF.md](./CLINICAL_TEAM_HANDOFF.md) | Clinical stakeholder onboarding: Slack copy, Postgres + RAG snapshot runbooks, verification checklist | Product, Clinical Leads, On-call Eng |
 | [../maplocation/README.md](../maplocation/README.md) | Backend getting started guide | New Developers |
 | [../README.md](../README.md) | Main project overview and quick start | Everyone |
-| [../STACK_DOCUMENTATION.md](../STACK_DOCUMENTATION.md) | Complete architecture and stack details | Architects, Senior Devs |
+| [./STACK.md](./STACK.md) | Complete architecture and stack details | Architects, Senior Devs |
+| [./ENVIRONMENT.md](./ENVIRONMENT.md) | Backend environment variable reference | Developers, DevOps |
+| [./ADMIN_DATA_ENTRY_GUIDE.md](./ADMIN_DATA_ENTRY_GUIDE.md) | Admin/operator data entry workflow | Operators, Admins |
+| [./QUICK_START_CICD.md](./QUICK_START_CICD.md) | CI/CD quickstart | Developers, DevOps |
+| [./LLM_INTEGRATION_GAMEPLAN.md](./LLM_INTEGRATION_GAMEPLAN.md) | LLM integration plan | Architects, Devs |
+| [./DATABASE_SYNC_OPS.md](./DATABASE_SYNC_OPS.md) | Operational runbook for AWS RDS sync | DevOps, Developers |
 
 ### Archived Documentation
 
@@ -50,7 +57,16 @@ Start here to get up and running:
 
 1. [Main README](../README.md) - Project overview
 2. [Backend Getting Started](../maplocation/README.md) - Setup backend
-3. [Stack Documentation](../STACK_DOCUMENTATION.md) - Understand architecture
+3. [Stack Documentation](./STACK.md) - Understand architecture
+
+### For Nonprofit and Clinical Onboarding
+
+Start here for a professional, audience-friendly project orientation:
+
+1. [Nonprofit Onboarding Packet](./NONPROFIT_ONBOARDING_PACKET.md) - Ordered reading path and presentation flow
+2. [Platform Strategy Brief](./PLATFORM_STRATEGY_BRIEF.md) - Mission, architecture, and growth direction
+3. [Regional Centers Concept](./REGIONAL_CENTERS_CONCEPT.md) - Core service-navigation model
+4. [Clinical Team Handoff](./CLINICAL_TEAM_HANDOFF.md) - Clinical review and data handoff workflow
 
 ### For Developers
 
@@ -66,14 +82,14 @@ Infrastructure and deployment:
 
 - [Deployment Guide](./DEPLOYMENT.md) - Production deployment
 - [GitHub Actions Guide](./GITHUB_ACTIONS.md) - CI/CD pipeline
-- [Stack Documentation](../STACK_DOCUMENTATION.md) - AWS resources
+- [Stack Documentation](./STACK.md) - AWS resources
 - [Database Sync Guide](./DATABASE_SYNC.md) - Database management
 
 ### For Architects
 
 High-level architecture and decisions:
 
-- [Stack Documentation](../STACK_DOCUMENTATION.md) - Complete architecture
+- [Stack Documentation](./STACK.md) - Complete architecture
 - [Main README](../README.md) - Feature overview
 - [Backend README](../maplocation/README.md) - Backend structure
 
@@ -116,7 +132,7 @@ High-level architecture and decisions:
 ### Understanding the Stack
 
 1. Read [Main README](../README.md) - Overview
-2. Read [Stack Documentation](../STACK_DOCUMENTATION.md) - Detailed architecture
+2. Read [Stack Documentation](./STACK.md) - Detailed architecture
 3. Review [Backend README](../maplocation/README.md) - Backend specifics
 4. Check AWS Console for live resources
 

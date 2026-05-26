@@ -2,7 +2,7 @@ package com.chla.kindd.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// CHLA Brand Colors
+// Project Brand Colors
 val CHLABlue = Color(0xFF004877)
 val CHLABlueDark = Color(0xFF003355)
 val CHLABlueLight = Color(0xFF0D9DDB)

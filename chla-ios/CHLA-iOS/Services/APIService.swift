@@ -20,7 +20,8 @@ actor APIService {
         var baseURL: String {
             switch self {
             case .development:
-                return "http://localhost:8000/api"
+                // Simulator local stack runs Django on 8001; RAG FastAPI owns 8000.
+                return "http://127.0.0.1:8001/api"
             case .production:
                 return "https://api.kinddhelp.com/api"
             }
@@ -262,8 +263,8 @@ actor APIService {
 
         // Log for debugging in development
         #if DEBUG
-        print("📡 API Request: \(url.absoluteString)")
-        print("📊 Status: \(httpResponse.statusCode)")
+        print("API Request: \(url.absoluteString)")
+        print("Status: \(httpResponse.statusCode)")
         #endif
 
         guard 200...299 ~= httpResponse.statusCode else {
@@ -281,9 +282,9 @@ actor APIService {
             return try decoder.decode(T.self, from: data)
         } catch {
             #if DEBUG
-            print("❌ Decoding error: \(error)")
+            print("Decoding error: \(error)")
             if let jsonString = String(data: data, encoding: .utf8) {
-                print("📄 Response data: \(jsonString.prefix(500))...")
+                print("Response data: \(jsonString.prefix(500))...")
             }
             #endif
             throw APIServiceError.decodingError(error)

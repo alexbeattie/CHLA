@@ -269,11 +269,11 @@
     "map2A": "<p>Nuestros recursos se verifican a través de listas de proveedores de Centros Regionales y contacto directo. Actualizamos la información regularmente, pero siempre recomendamos llamar para confirmar los detalles antes de su primera visita.</p>"
   },
   "about": {
-    "title": "Acerca del Mapa de Proveedores KINDD",
-    "subtitle": "Ayudando a familias en el Condado de Los Ángeles a encontrar terapia ABA y servicios para discapacidades del desarrollo",
+    "title": "Acerca de KiNDD - NDD Resource Navigator",
+    "subtitle": "Ayudando a familias en el Condado de Los Ángeles a encontrar terapia ABA y servicios para trastornos del neurodesarrollo (NDD)",
     "mission": "Nuestra Misión",
-    "missionText": "Creamos esperanza y construimos futuros más saludables conectando a las familias con los servicios de autismo y discapacidades del desarrollo que necesitan.",
-    "missionDescription": "KINDD (Niños que Necesitan Apoyo para Discapacidades del Desarrollo) es un mapa interactivo gratuito desarrollado por el Hospital Infantil de Los Ángeles para ayudar a las familias a encontrar recursos de terapia ABA y servicios de autismo en todo el Condado de Los Ángeles.",
+    "missionText": "Ayudamos a las familias a conectarse con los servicios para trastornos del neurodesarrollo (NDD) que necesitan.",
+    "missionDescription": "KiNDD (Niños que Necesitan Apoyo para Discapacidades del Desarrollo) es un mapa interactivo gratuito que ayuda a las familias a encontrar recursos de terapia ABA y servicios para NDD en todo el Condado de Los Ángeles.",
     "whatWeDo": "Lo Que Hacemos",
     "interactiveMap": "Mapa Interactivo",
     "interactiveMapDesc": "Visualice las ubicaciones de recursos geográficamente y vea los límites de su Centro Regional.",
@@ -300,11 +300,9 @@
     "step4Title": "Conecte con Recursos",
     "step4Desc": "Vea detalles del recurso, obtenga direcciones y contáctelos directamente.",
     "whoWeServe": "A Quién Servimos",
-    "whoWeServeText": "KINDD ayuda a familias que buscan servicios para niños y adultos con:",
-    "aboutCHLA": "Acerca del Hospital Infantil de Los Ángeles",
-    "chlaDescription": "El Hospital Infantil de Los Ángeles (CHLA) ha sido líder en atención médica pediátrica por más de 120 años. Como uno de los mejores hospitales infantiles del país, CHLA está comprometido a crear esperanza y construir futuros más saludables para niños y familias.",
+    "whoWeServeText": "KiNDD ayuda a familias que buscan servicios para niños y adultos con:",
     "freeToUse": "Gratis, Sin Registro Requerido",
-    "freeToUseText": "KINDD es completamente gratis. No hay tarifas, suscripciones ni registro requerido. No vendemos sus datos ni cobramos a los proveedores por estar listados. Nuestro objetivo es simplemente ayudar a las familias a encontrar los servicios que necesitan.",
+    "freeToUseText": "KiNDD es completamente gratis. No hay tarifas, suscripciones ni registro requerido. No vendemos sus datos ni cobramos a los proveedores por estar listados. Nuestro objetivo es simplemente ayudar a las familias a encontrar los servicios que necesitan.",
     "verifiedResources": "Recursos Verificados",
     "rcCovered": "Centros Regionales Cubiertos",
     "percentFree": "Gratis para Usar",
@@ -312,14 +310,13 @@
     "startSearch": "Comience su búsqueda ahora - solo toma unos segundos.",
     "exploreMap": "Explorar el Mapa",
     "readFaq": "Leer Preguntas Frecuentes",
-    "learnMoreCHLA": "Más Información Sobre CHLA",
     "contact": "Contáctenos"
   },
   "footer": {
     "privacyPolicy": "Política de Privacidad",
     "termsOfService": "Términos de Servicio",
     "contact": "Contacto",
-    "copyright": "© {year} KINDD. Todos los derechos reservados."
+    "copyright": "© {year} KiNDD - NDD Resource Navigator. Todos los derechos reservados."
   },
   "errors": {
     "locationNotFound": "Ubicación no encontrada",
@@ -334,7 +331,7 @@
     "selectLanguage": "Seleccionar idioma"
   },
   "sidebar": {
-    "tagline": "Creamos esperanza y construimos futuros más saludables",
+    "tagline": "Encuentre los servicios NDD adecuados para su familia",
     "regionalCenters": "Centros Regionales",
     "services": "Servicios",
     "yourProfile": "Su Perfil",

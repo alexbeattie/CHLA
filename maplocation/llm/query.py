@@ -7,8 +7,111 @@ questions about neurodevelopmental services.
 
 from django.db import connection
 from typing import Optional
+import json
+import logging
+import os
 from locations.models import ProviderV2, RegionalCenter
 from .bedrock import generate_embedding, chat_completion, get_system_prompt_for_locale
+
+
+logger = logging.getLogger(__name__)
+
+PROVIDER_INTENT_TERMS = (
+    "provider",
+    "providers",
+    "therapist",
+    "therapists",
+    "therapy near",
+    "near me",
+    "nearby",
+    "find ",
+    "list ",
+    "accept",
+    "take my insurance",
+    "phone",
+    "address",
+    "located",
+)
+
+WEB_SEARCH_INTENT_TERMS = (
+    "who is",
+    "who's",
+    "current",
+    "chair",
+    "chief",
+    "director",
+    "dean",
+    "president",
+    "ceo",
+    "leadership",
+    "leader",
+    "latest",
+    "today",
+    "news",
+    "policy",
+    "official",
+    "website",
+)
+
+
+def should_retrieve_providers(query: str, user_context: Optional[dict] = None) -> bool:
+    """Only add provider context when the user is actually looking for providers."""
+    query_lower = query.lower()
+    if any(term in query_lower for term in PROVIDER_INTENT_TERMS):
+        return True
+
+    return False
+
+
+def should_search_web(query: str) -> bool:
+    """Detect questions that need current or institution-specific web facts."""
+    query_lower = query.lower()
+    return any(term in query_lower for term in WEB_SEARCH_INTENT_TERMS)
+
+
+def get_web_context(query: str, max_results: int = 4) -> str:
+    """Fetch and format Tavily web results for the normal RAG path."""
+    if not should_search_web(query):
+        return ""
+
+    try:
+        from .agent import web_search
+
+        payload = json.loads(web_search(query, max_results=max_results))
+    except Exception:
+        logger.exception("Web context lookup failed")
+        return ""
+
+    if payload.get("error"):
+        logger.warning(
+            "Web context unavailable",
+            extra={"error": payload.get("error")},
+        )
+        return ""
+
+    results = payload.get("results") or []
+    if not results:
+        return ""
+
+    lines = [
+        "WEB SEARCH RESULTS:",
+        "Use these results for current facts. Prefer official sources and cite URLs.",
+    ]
+    for index, result in enumerate(results, 1):
+        lines.append(
+            "\n".join(
+                [
+                    f"{index}. {result.get('title') or 'Untitled'}",
+                    f"URL: {result.get('url') or ''}",
+                    f"Snippet: {result.get('content') or ''}",
+                ]
+            )
+        )
+
+    if payload.get("answer"):
+        lines.append(f"Tavily answer: {payload['answer']}")
+
+    return "\n\n".join(lines)
 
 
 def semantic_search(query: str, limit: int = 15) -> list[ProviderV2]:
@@ -18,6 +121,9 @@ def semantic_search(query: str, limit: int = 15) -> list[ProviderV2]:
     Uses pgvector for cosine similarity search.
     Falls back to keyword search if embeddings not available.
     """
+
+    if os.environ.get("ENABLE_RUNTIME_SEMANTIC_SEARCH", "false").lower() != "true":
+        return keyword_search(query, limit)
 
     # Check if we have embeddings (field may not exist yet)
     try:
@@ -136,6 +242,9 @@ def format_user_context(
         services = ", ".join(user_context["current_services"])
         lines.append(f"- Current Services: {services}")
 
+    if user_context.get("memory_context"):
+        lines.append(f"- Remembered Context: {user_context['memory_context']}")
+
     return "\n".join(lines)
 
 
@@ -178,16 +287,22 @@ def answer_query(
         if regional_center:
             enhanced_query += f" {regional_center.regional_center}"
 
-    relevant_providers = semantic_search(enhanced_query, limit=15)
+    if should_retrieve_providers(user_query, user_context):
+        relevant_providers = semantic_search(enhanced_query, limit=8)
+    else:
+        relevant_providers = []
 
     # Step 3: Build context for LLM
     provider_context = format_provider_context(relevant_providers)
     user_context_str = format_user_context(user_context or {}, regional_center)
+    web_context = get_web_context(user_query)
 
     full_context = f"""PROVIDERS IN DATABASE:
 {provider_context}
 
-{user_context_str}"""
+{user_context_str}
+
+{web_context}"""
 
     # Step 4: Get locale-specific system prompt and LLM response
     system_prompt = get_system_prompt_for_locale(locale)

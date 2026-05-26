@@ -6,7 +6,7 @@
 
 ---
 
-## 📋 Overview
+## Overview
 
 Week 2 refactoring created 4 composables that extract business logic from MapView.vue:
 
@@ -19,7 +19,7 @@ This guide shows how to integrate them **without breaking existing code**.
 
 ---
 
-## 🎯 Integration Strategy
+## Integration Strategy
 
 ### Phase 1: Add Composables (This Week)
 - Import composables into MapView.vue
@@ -39,7 +39,7 @@ This guide shows how to integrate them **without breaking existing code**.
 
 ---
 
-## 🔧 Step-by-Step Integration
+## Step-by-Step Integration
 
 ### Step 1: Convert MapView to Composition API (Hybrid)
 
@@ -109,7 +109,7 @@ Example: Add regional center highlighting using new composable:
   <!-- NEW: Regional center boundary layer -->
   <div v-if="regionalCenter.hasBoundary" class="regional-center-info">
     <div class="info-box">
-      <h3>📍 {{ regionalCenter.regionalCenterName }}</h3>
+      <h3>{{ regionalCenter.regionalCenterName }}</h3>
       <p>{{ regionalCenter.regionalCenterZipCodes.length }} ZIP codes</p>
     </div>
   </div>
@@ -184,7 +184,7 @@ export default defineComponent({
 
 ---
 
-## 📝 Example: Complete Integration
+## Example: Complete Integration
 
 Here's a complete example showing how MapView.vue would look with composables:
 
@@ -280,7 +280,7 @@ export default defineComponent({
       // Check if ZIP code
       if (/^\d{5}$/.test(query)) {
         // ZIP code search
-        console.log('🎯 ZIP code search:', query);
+        console.log('ZIP code search:', query);
 
         // Find regional center
         const rc = await regionalCenter.findByZipCode(query);
@@ -307,7 +307,7 @@ export default defineComponent({
         }
       } else {
         // Address search
-        console.log('📍 Address search:', query);
+        console.log('Address search:', query);
 
         const filters = filterState.buildFilterParams();
         await providerSearch.searchWithFilters({
@@ -353,7 +353,7 @@ export default defineComponent({
 
 ---
 
-## 🧪 Testing Composables
+## Testing Composables
 
 ### Unit Testing Example
 
@@ -416,7 +416,7 @@ describe('useProviderSearch', () => {
 
 ---
 
-## 🔍 Common Patterns
+## Common Patterns
 
 ### Pattern 1: Combining Multiple Composables
 
@@ -501,9 +501,9 @@ setup() {
 
 ---
 
-## ⚠️ Migration Warnings
+## Migration Warnings
 
-### Don't Do This ❌
+### Don't Do This
 
 ```typescript
 // DON'T mix old data() with composable state
@@ -519,7 +519,7 @@ setup() {
 // Now you have TWO providers sources - confusing!
 ```
 
-### Do This Instead ✅
+### Do This Instead
 
 ```typescript
 setup() {
@@ -534,7 +534,7 @@ setup() {
 
 ---
 
-## 📊 Migration Checklist
+## Migration Checklist
 
 ### Week 2 (Current)
 - [x] Create all composables
@@ -563,24 +563,24 @@ setup() {
 
 ---
 
-## 🎉 Benefits Already Achieved
+## Benefits Already Achieved
 
 Even without full integration, we now have:
 
-✅ **1,143 lines of reusable code** - Can be used in other components
-✅ **Type-safe interfaces** - Full TypeScript support
-✅ **Testable logic** - Easy to unit test
-✅ **Documentation** - Clear API for each composable
-✅ **Future-proof** - Vue 3 Composition API is the future
+**1,143 lines of reusable code** - Can be used in other components
+**Type-safe interfaces** - Full TypeScript support
+**Testable logic** - Easy to unit test
+**Documentation** - Clear API for each composable
+**Future-proof** - Vue 3 Composition API is the future
 
 ---
 
-## 📚 Resources
+## Resources
 
 - [Vue 3 Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
 - [Using Composition API with Options API](https://vuejs.org/guide/extras/composition-api-faq.html#can-i-use-both-apis-together)
 - [Strangler Fig Pattern](https://martinfowler.com/bliki/StranglerFigApplication.html)
-- Week 1: `/docs/MAPVIEW_REFACTOR_PLAN.md`
+- Refactor history (archived): `/docs/archive/2025-10/MAPVIEW_REFACTOR_PLAN.md`
 
 ---
 

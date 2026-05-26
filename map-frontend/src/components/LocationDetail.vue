@@ -1,13 +1,16 @@
 <template>
   <div class="info-popup">
     <div class="popup-header">
-      <h5>{{ location.name || location.regional_center || "Unnamed Location" }}</h5>
+      <h5>
+        {{ location.name || location.regional_center || "Unnamed Location" }}
+      </h5>
       <button @click="$emit('close')" class="close-btn">×</button>
     </div>
 
     <div class="popup-content">
       <div class="address">
-        {{ location.address || "" }}{{ location.city ? ", " + location.city : ""
+        {{ location.address || ""
+        }}{{ location.city ? ", " + location.city : ""
         }}{{ location.state ? ", " + location.state : ""
         }}{{ location.zip_code ? " " + location.zip_code : "" }}
       </div>
@@ -65,7 +68,7 @@ export default {
   max-width: 90%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 500;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--kindd-font-family);
 }
 
 .popup-header {

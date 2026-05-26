@@ -55,6 +55,10 @@
 	<string>KiNDD uses your camera to scan insurance cards and documents for analysis.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>KiNDD needs access to your photos to analyze insurance cards and documents.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>KiNDD uses your microphone to convert speech to text for asking questions.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>KiNDD uses speech recognition to transcribe your voice into text questions.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

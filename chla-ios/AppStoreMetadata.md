@@ -2,17 +2,19 @@
 
 ## Basic Information
 
-| Field                | Value                          |
+
+| Field | Value |
 | -------------------- | ------------------------------ |
-| App Name             | KiNDD Resources                |
-| Subtitle             | Find Regional Center Resources |
-| Bundle ID            | com.nddresources.map           |
-| SKU                  | ndd-resource-map-001           |
-| Primary Language     | English (U.S.)                 |
-| Category (Primary)   | Medical                        |
-| Category (Secondary) | Navigation                     |
-| Age Rating           | 4+                             |
-| Copyright            | © 2025 NDD Resources           |
+| App Name | KiNDD Resources |
+| Subtitle | Find Regional Center Resources |
+| Bundle ID | com.nddresources.map |
+| SKU | ndd-resource-map-001 |
+| Primary Language | English (U.S.) |
+| Category (Primary) | Medical |
+| Category (Secondary) | Navigation |
+| Age Rating | 4+ |
+| Copyright | © 2025 NDD Resources |
+
 
 ## App Description
 
@@ -50,16 +52,19 @@ regional center,disability,healthcare,resources,NLACRC,ELARC,autism,developmenta
 
 ## URLs
 
-| Field            | URL                           |
-| ---------------- | ----------------------------- |
-| Privacy Policy   | https://kinddhelp.com/privacy |
-| Terms of Service | https://kinddhelp.com/terms   |
-| Support URL      | https://kinddhelp.com/about   |
-| Marketing URL    | https://kinddhelp.com         |
+
+| Field | URL |
+| ---------------- | -------------------------------------------------------------- |
+| Privacy Policy | [https://kinddhelp.com/privacy](https://kinddhelp.com/privacy) |
+| Terms of Service | [https://kinddhelp.com/terms](https://kinddhelp.com/terms) |
+| Support URL | [https://kinddhelp.com/about](https://kinddhelp.com/about) |
+| Marketing URL | [https://kinddhelp.com](https://kinddhelp.com) |
+
 
 ## App Review Information
 
 ### Notes for Reviewer
+
 ```
 This app helps users find healthcare resources for individuals with neurodevelopmental disabilities in Los Angeles County. It connects to our API at api.kinddhelp.com to display verified provider data.
 
@@ -69,18 +74,21 @@ No login is required to use the app.
 ```
 
 ### Contact Information
+
 - First Name: Alex
 - Last Name: Beattie
-- Email: support@kinddhelp.com
+- Email: [support@kinddhelp.com](mailto:support@kinddhelp.com)
 - Phone: (Your phone number)
 
 ## Version Information
 
-| Field      | Value           |
+
+| Field | Value |
 | ---------- | --------------- |
-| Version    | 1.0.0           |
-| Build      | 1               |
+| Version | 1.0.0 |
+| Build | 1 |
 | What's New | Initial release |
+
 
 ## Screenshots Location
 
@@ -88,6 +96,7 @@ Screenshots are saved at:
 `/Users/alexbeattie/Developer/CHLA/chla-ios/screenshots/`
 
 Required for 6.7" display (1290 x 2796):
+
 - 01_main_map_6.7.png
 - 02_regional_centers_6.7.png
 - 03_resources_list_6.7.png
@@ -102,18 +111,18 @@ Required for 6.7" display (1290 x 2796):
 
 ## Checklist for App Store Connect
 
-1. [ ] Go to https://appstoreconnect.apple.com
+1. [ ] Go to [https://appstoreconnect.apple.com](https://appstoreconnect.apple.com)
 2. [ ] Click "+" → "New App"
 3. [ ] Fill in:
-   - Platform: iOS
-   - Name: NDD Resource Map
-   - Primary Language: English (U.S.)
-   - Bundle ID: com.nddresources.map
-   - SKU: ndd-resource-map-001
+  - Platform: iOS
+  - Name: NDD Resource Map
+  - Primary Language: English (U.S.)
+  - Bundle ID: com.nddresources.map
+  - SKU: ndd-resource-map-001
 4. [ ] Add App Information:
-   - Subtitle
-   - Category
-   - Age Rating
+  - Subtitle
+  - Category
+  - Age Rating
 5. [ ] Add Privacy Policy URL
 6. [ ] Upload Screenshots
 7. [ ] Write Description

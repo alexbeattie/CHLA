@@ -143,23 +143,6 @@ fun AboutScreen(
 
             Divider()
 
-            // CHLA
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.about_chla),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.about_chla_text),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
             // Free to use
             Card(
                 modifier = Modifier

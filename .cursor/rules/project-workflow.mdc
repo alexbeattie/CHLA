@@ -1,0 +1,25 @@
+# CHLA Project Workflow
+
+Follow `AGENTS.md` for the shared repo workflow and `CURSOR.md` for the Cursor session flow.
+
+## Always
+
+- Keep changes scoped and avoid broad rewrites.
+- Never add secrets, credentials, or production-only values to code or docs.
+- Use source-of-truth docs instead of guessing commands or environment details.
+
+## Frontend
+
+- Use Vue Composition API patterns.
+- Prefer composables, stores, and focused components over adding more logic to `map-frontend/src/views/MapView.vue`.
+
+## Backend
+
+- Use `python3` for Django commands.
+- Keep configuration environment-driven.
+- Add explicit migrations for schema changes.
+
+## Verify
+
+- Run the smallest relevant check before handoff.
+- Use `./scripts/quick-test.sh` for fast smoke coverage when it fits the change.

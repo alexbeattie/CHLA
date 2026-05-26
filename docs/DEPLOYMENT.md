@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Complete guide for deploying the CHLA Provider Map application to production.
+Complete guide for deploying the KiNDD - NDD Resource Navigator application to production.
 
 ## Quick Reference
 
@@ -75,7 +75,7 @@ npm run dev
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
 VITE_PORT=3000
-VITE_MAPBOX_TOKEN=pk.eyJ1IjoiYmVhdHR5LWFkbWluIiwiYSI6ImNsejFjNGt0YzFqMGMyanF3YW5hdWFmc3UifQ.sn7Uj_gDzzKL6PQq7vO7fw
+VITE_MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 ```
 
 ---
@@ -138,7 +138,7 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 **Frontend (map-frontend/.env.production):**
 ```env
 VITE_API_BASE_URL=https://api.kinddhelp.com
-VITE_MAPBOX_TOKEN=pk.eyJ1IjoiYmVhdHR5LWFkbWluIiwiYSI6ImNsejFjNGt0YzFqMGMyanF3YW5hdWFmc3UifQ.sn7Uj_gDzzKL6PQq7vO7fw
+VITE_MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 ```
 
 ### Elastic Beanstalk Environment Variables
@@ -344,7 +344,7 @@ aws cloudfront create-invalidation --distribution-id E2W6EECHUV4LMM --paths "/*"
 
 ## Additional Resources
 
-- [Full Stack Documentation](../STACK_DOCUMENTATION.md)
+- [Full Stack Documentation](./STACK.md)
 - [Database Sync Guide](./DATABASE_SYNC.md)
 - [Backend Getting Started](../maplocation/README.md)
 - [GitHub Actions Setup](./GITHUB_ACTIONS.md)

@@ -600,7 +600,7 @@ struct ProviderDetailView: View {
         var lines: [String] = []
 
         // Name and type
-        lines.append("📍 \(provider.name)")
+        lines.append(provider.name)
         if let type = provider.displayType, !type.isEmpty {
             lines.append(type)
         }
@@ -608,29 +608,29 @@ struct ProviderDetailView: View {
         lines.append("") // Empty line
 
         // Address
-        lines.append("📫 Address:")
+        lines.append("Address:")
         lines.append(provider.formattedAddress)
 
         // Contact info
         if let phone = provider.formattedPhone {
             lines.append("")
-            lines.append("📞 Phone: \(phone)")
+            lines.append("Phone: \(phone)")
         }
 
         if let website = provider.displayWebsite {
-            lines.append("🌐 Website: \(website)")
+            lines.append("Website: \(website)")
         }
 
         // Regional Center
         if let rc = cachedRegionalCenter {
             lines.append("")
-            lines.append("🏢 Regional Center: \(rc.name)")
+            lines.append("Regional Center: \(rc.name)")
         }
 
         // Services (first few)
         if let therapies = provider.therapyTypes, !therapies.isEmpty {
             lines.append("")
-            lines.append("✅ Services:")
+            lines.append("Services:")
             let topServices = therapies.prefix(5)
             for service in topServices {
                 lines.append("  • \(service)")
