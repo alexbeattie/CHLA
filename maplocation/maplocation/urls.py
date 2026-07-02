@@ -22,6 +22,11 @@ from django.http import HttpResponse
 from django.urls import include, path
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 from graphene_django.views import GraphQLView
 
 # Customize admin site
@@ -35,6 +40,18 @@ urlpatterns = [
     path("api/users/", include("users.urls")),
     path("api/llm/", include("llm.urls")),  # LLM/Bedrock endpoints
     path("api-auth/", include("rest_framework.urls")),
+    # OpenAPI schema and interactive API documentation
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/schema/swagger-ui/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path(
+        "api/schema/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
+    ),
     path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
     path(
         "basic/", TemplateView.as_view(template_name="vue_app/basic.html"), name="basic"

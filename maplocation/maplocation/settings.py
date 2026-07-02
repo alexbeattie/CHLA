@@ -14,8 +14,14 @@ import os
 import platform
 from pathlib import Path
 
+from .env import load_local_env
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load local development variables from maplocation/.env. Existing shell,
+# Elastic Beanstalk, and CI environment values still take precedence.
+load_local_env(BASE_DIR)
 
 
 # Quick-start development settings - unsuitable for production
@@ -48,6 +54,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",  # For token authentication
     "rest_framework_gis",  # GIS extensions for Django REST Framework
+    "drf_spectacular",  # OpenAPI schema and Swagger UI
     "corsheaders",
     "django_filters",
     "graphene_django",
@@ -256,6 +263,17 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 1000,  # Show all providers (current DB has ~300)
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "KiNDD - NDD Resource Navigator API",
+    "DESCRIPTION": (
+        "Complete API reference including provider search, regional centers, "
+        "reference data, user auth, and LLM/agent endpoints."
+    ),
+    "VERSION": "2.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 # Basic Auth for Admin Portal

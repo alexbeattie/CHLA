@@ -48,6 +48,9 @@ cd map-frontend && ./switch-env.sh dev && npm run dev
 Access:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000/api/
+- API docs (Swagger UI): http://localhost:8000/api/schema/swagger-ui/
+- API docs (Redoc): http://localhost:8000/api/schema/redoc/
+- OpenAPI schema: http://localhost:8000/api/schema/
 - Admin: http://localhost:8000/admin/
 
 ## Database Management
