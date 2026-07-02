@@ -6321,7 +6321,7 @@ export default {
       // Only fetch providers if we don't already have them from onboarding
       if (!this.providers || this.providers.length === 0) {
         console.log("Loading providers without filters...");
-        await this.searchProviders();
+        await this.providerStore.loadAllProviders();
       } else {
         console.log("Using providers from onboarding:", this.providers.length);
       }
