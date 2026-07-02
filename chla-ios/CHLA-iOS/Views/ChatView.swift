@@ -199,7 +199,7 @@ struct ChatView: View {
                             }
                         }
                         .padding(.horizontal, 6)
-                        .padding(.bottom, 100)
+                        .padding(.bottom, 12)
                     }
                     .onChange(of: llmService.messages.count) { _, _ in
                         scrollToBottom(proxy: proxy)
@@ -1323,13 +1323,18 @@ struct MessageBubble: View {
                     TypingIndicator()
                 } else {
                     VStack(alignment: .leading, spacing: 8) {
-                        // Use Markdown-aware text with clickable links
-                        MarkdownTextView(
-                            content: message.content,
-                            isUserMessage: message.role == .user,
-                            citations: message.citations
-                        )
-                        .contentTransition(.opacity)
+                        if message.role == .assistant && message.isStreaming {
+                            StreamingPlainTextView(content: message.content)
+                                .contentTransition(.opacity)
+                        } else {
+                            // Use Markdown-aware text with clickable links
+                            MarkdownTextView(
+                                content: message.content,
+                                isUserMessage: message.role == .user,
+                                citations: message.citations
+                            )
+                            .contentTransition(.opacity)
+                        }
 
                         if message.role == .assistant && !message.citations.isEmpty {
                             ResearchSourcesView(citations: message.citations)
@@ -1960,6 +1965,210 @@ struct ScaleButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Streaming Text View
+
+private struct StreamingPlainTextView: View {
+    let content: String
+
+    @State private var renderedPrefix = ""
+    @State private var queuedTokens: [String] = []
+    @State private var visibleTokens: [StreamingWordToken] = []
+    @State private var drainTask: Task<Void, Never>?
+
+    var body: some View {
+        StreamingWordFlow(spacing: 0, lineSpacing: 3) {
+            ForEach(visibleTokens) { token in
+                StreamingWordView(text: token.text)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .textSelection(.enabled)
+        .onAppear {
+            syncQueue(with: content)
+            startDrainIfNeeded()
+        }
+        .onChange(of: content) { _, newValue in
+            syncQueue(with: newValue)
+            startDrainIfNeeded()
+        }
+        .onDisappear {
+            drainTask?.cancel()
+            drainTask = nil
+        }
+    }
+
+    private func syncQueue(with newContent: String) {
+        guard newContent != renderedPrefix else { return }
+
+        if newContent.hasPrefix(renderedPrefix) {
+            let newText = String(newContent.dropFirst(renderedPrefix.count))
+            queuedTokens.append(contentsOf: tokenize(newText))
+            renderedPrefix = newContent
+        } else {
+            renderedPrefix = newContent
+            queuedTokens = tokenize(newContent)
+            visibleTokens.removeAll()
+            drainTask?.cancel()
+            drainTask = nil
+        }
+    }
+
+    private func startDrainIfNeeded() {
+        guard drainTask == nil else { return }
+
+        drainTask = Task { @MainActor in
+            while !Task.isCancelled {
+                if queuedTokens.isEmpty {
+                    break
+                }
+
+                let next = queuedTokens.removeFirst()
+                visibleTokens.append(StreamingWordToken(text: next))
+
+                try? await Task.sleep(nanoseconds: 30_000_000)
+            }
+
+            drainTask = nil
+
+            if !queuedTokens.isEmpty {
+                startDrainIfNeeded()
+            }
+        }
+    }
+
+    private func tokenize(_ text: String) -> [String] {
+        var tokens: [String] = []
+        var current = ""
+
+        for character in text {
+            current.append(character)
+            if character.isWhitespace {
+                tokens.append(current)
+                current = ""
+            }
+        }
+
+        if !current.isEmpty {
+            tokens.append(current)
+        }
+
+        return tokens
+    }
+}
+
+private struct StreamingWordToken: Identifiable {
+    let id = UUID()
+    let text: String
+}
+
+private struct StreamingWordView: View {
+    let text: String
+    @State private var isVisible = false
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 16, weight: .regular, design: .default))
+            .foregroundColor(Color(uiColor: .label))
+            .lineSpacing(2)
+            .opacity(isVisible ? 1 : 0)
+            .blur(radius: isVisible ? 0 : 3)
+            .offset(y: isVisible ? 0 : 2)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.35)) {
+                    isVisible = true
+                }
+            }
+    }
+}
+
+private struct StreamingWordFlow: Layout {
+    var spacing: CGFloat = 0
+    var lineSpacing: CGFloat = 0
+
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        let maxWidth = proposal.width ?? .greatestFiniteMagnitude
+        let rows = computeRows(maxWidth: maxWidth, subviews: subviews)
+        let width = rows.map(\.width).max() ?? 0
+        let height = rows.reduce(CGFloat.zero) { total, row in
+            total + row.height
+        } + CGFloat(max(rows.count - 1, 0)) * lineSpacing
+
+        return CGSize(width: min(width, maxWidth), height: height)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        let rows = computeRows(maxWidth: bounds.width, subviews: subviews)
+        var y = bounds.minY
+
+        for row in rows {
+            var x = bounds.minX
+            for item in row.items {
+                item.subview.place(
+                    at: CGPoint(x: x, y: y),
+                    proposal: ProposedViewSize(item.size)
+                )
+                x += item.size.width + spacing
+            }
+            y += row.height + lineSpacing
+        }
+    }
+
+    private func computeRows(maxWidth: CGFloat, subviews: Subviews) -> [FlowRow] {
+        var rows: [FlowRow] = []
+        var currentItems: [FlowItem] = []
+        var currentWidth: CGFloat = 0
+        var currentHeight: CGFloat = 0
+
+        func flushRow() {
+            guard !currentItems.isEmpty else { return }
+            rows.append(FlowRow(items: currentItems, width: currentWidth, height: currentHeight))
+            currentItems = []
+            currentWidth = 0
+            currentHeight = 0
+        }
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            let proposedWidth = currentItems.isEmpty
+                ? size.width
+                : currentWidth + spacing + size.width
+
+            if proposedWidth > maxWidth && !currentItems.isEmpty {
+                flushRow()
+            }
+
+            currentItems.append(FlowItem(subview: subview, size: size))
+            currentWidth = currentItems.count == 1
+                ? size.width
+                : currentWidth + spacing + size.width
+            currentHeight = max(currentHeight, size.height)
+        }
+
+        flushRow()
+        return rows
+    }
+
+    private struct FlowItem {
+        let subview: LayoutSubview
+        let size: CGSize
+    }
+
+    private struct FlowRow {
+        let items: [FlowItem]
+        let width: CGFloat
+        let height: CGFloat
     }
 }
 

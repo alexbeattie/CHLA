@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "CHLA-iOS",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
         .macOS(.v14)
@@ -20,8 +21,13 @@ let package = Package(
             dependencies: [],
             path: "CHLA-iOS",
             resources: [
-                .process("Resources")
+                .process(
+                    "Resources",
+                    localization: .default,
+                    excluding: ["Info.plist"]
+                )
             ]
         )
     ]
 )
+

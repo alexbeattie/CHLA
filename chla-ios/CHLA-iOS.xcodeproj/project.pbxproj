@@ -10,94 +10,94 @@
 		04BC3A23DAB7D2BC4099B14B /* FullMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8FA95361CB09C477DD471BB /* FullMapView.swift */; };
 		066B905200A44CF4DA67DA13 /* la_regional_centers.geojson in Resources */ = {isa = PBXBuildFile; fileRef = D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */; };
 		08197465A09964FEDE9838F7 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D436BC3380B8D5D10977DC8 /* APIModels.swift */; };
-		A9F2E6D4C3B1A80765F4E2D1 /* Textual in Frameworks */ = {isa = PBXBuildFile; productRef = A9F2E6D4C3B1A80765F4E2D2 /* Textual */; };
-		0A1B2C3D4E5F6A7B8C9D0E1F /* ModernSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */; };
 		100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */; };
-		11F6A4C8B2D3407E9A1C5F22 /* RegionalCentersMiniMapCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A7D5E9C1B34F608E2A6C11 /* RegionalCentersMiniMapCard.swift */; };
 		1449BCCC6174C33F7BEE7622 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6591C41B29B4E6F007C4177 /* ContentView.swift */; };
+		145D54D02BE5241957F3095B /* ModernSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C307B5218ED66C3FF88851E /* ModernSearchView.swift */; };
 		1CEC881B9CBD2A15E447E8A8 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F17384527B1FBCE7FD88F6 /* APIService.swift */; };
+		288D77660E5ADF38E60000E8 /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35633B734ABCC31192C5B4FC /* LanguageManager.swift */; };
+		2A847CD577D5C2DA4F3F8C99 /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4C8D19642337F313A150DE2 /* SpeechRecognizer.swift */; };
 		3280A258F4FD9C1DBCB63162 /* RegionalCenterStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31DBE152BC605E5607045F5 /* RegionalCenterStore.swift */; };
+		33218831D62CC8650D4747AE /* Textual in Frameworks */ = {isa = PBXBuildFile; productRef = 312E4F1E059399C827A99071 /* Textual */; };
 		400B622708BD81DA6D9E3444 /* MapContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3B6AD2B4FB09E5225CA384 /* MapContainerView.swift */; };
+		48E9FA89914AFF83D3AAD974 /* ConversationHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7768999E0A6F9B808A733F37 /* ConversationHistory.swift */; };
 		4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */; };
 		5D76754352E7C07BA12CA586 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */; };
+		6B79503BF9C794103C0702A1 /* TextToSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61E1ABB81CEE760D1CC1E73 /* TextToSpeech.swift */; };
+		72ADDE0D8CF37F1E6F453A21 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFA26FF1ADF42593DAC6F7B1 /* ChatView.swift */; };
+		74F351F827C254C0FE599402 /* UserMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402E2530748505838F7BCDCB /* UserMemory.swift */; };
 		7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306D53C14B3C1FAEC3E125CB /* Formatters.swift */; };
 		7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */; };
+		8228B2A552594EC69884FF14 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92919786FE583BD8E230766A /* HomeView.swift */; };
 		8655A013D36520C7E627B87C /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1CAAF9621905B2CA8C4526 /* FAQView.swift */; };
 		8B442B44FD870077299FF3F9 /* ProviderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */; };
 		8B50850460375933BDD8764B /* ProviderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */; };
 		90A0C507590D7CC34803E040 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */; };
 		9133652FAD1A98671B50825E /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */; };
 		9500190A582CEE8FB5DC8DC1 /* ProviderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0984D9DCC530BA0054C44679 /* ProviderListView.swift */; };
+		99B985AE5F6EC730CDE54B4D /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EA0CA82AFD1861822B95D0 /* String+Localization.swift */; };
 		AA4A526410141C30831A38A5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */; };
 		B07E247A299B557906472120 /* RegionalCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB7E59A57007FC65E7BCE03 /* RegionalCenter.swift */; };
 		B7B2689A066399CC906831F6 /* DirectionsMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */; };
 		C898C110F2BE59F7FAE60387 /* RegionalCentersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44774A304C1AEFF050E91B8E /* RegionalCentersView.swift */; };
 		D021626D7868639BF75E7DED /* RegionalCenterMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */; };
+		D6408D8F21527AA68B8B20AB /* RegionalCentersMiniMapCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEFD64F5D39FA2865A37E1C2 /* RegionalCentersMiniMapCard.swift */; };
+		D9881AB0C63EF317514F3D11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F311F08B47B757549CEE42E4 /* Localizable.strings */; };
 		E34FB2F1D1B6549488E397CD /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1E575CEBC73792782D8E0A /* AboutView.swift */; };
-		E456789012345HOMEVIEWBLD /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A123456789HOMEVIEWREF /* HomeView.swift */; };
 		E578BECE1D55AB54BFCAB764 /* CHLA_iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB8D52AF87D4A250BF8B28B3 /* CHLA_iOSApp.swift */; };
 		EBA84EB20ACAE5C15E1646E2 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814A77FB55507E652FC3F4E8 /* Provider.swift */; };
-		F1A2B3C4D5E6F708CHATBLD /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F708CHATREF /* ChatView.swift */; };
-		F2B3C4D5E6F70819LLMBLD /* LLMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B3C4D5E6F70819LLMREF /* LLMService.swift */; };
-		F3C4D5E6F7081ALOCBLD /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C4D5E6F7081ALOCREF /* String+Localization.swift */; };
-		SPEECH001RECOGNIZERBLD /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */; };
-		TTS00001SERVICEBLD /* TextToSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = TTS00001SERVICEREF /* TextToSpeech.swift */; };
-		CONVHIST01SERVICEBLD /* ConversationHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CONVHIST01SERVICEREF /* ConversationHistory.swift */; };
-		USRMEM001SERVICEBLD /* UserMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = USRMEM001SERVICEREF /* UserMemory.swift */; };
-		LANGMGR001SERVICEBLD /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LANGMGR001SERVICEREF /* LanguageManager.swift */; };
-		L10N00001LOCALSTRINGS /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = L10N00002VARIANTGRP /* Localizable.strings */; };
+		F7C5D739A4B6EDD98B6A9AA6 /* LLMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB66AF039092093484EE110A /* LLMService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0984D9DCC530BA0054C44679 /* ProviderListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderListView.swift; sourceTree = "<group>"; };
+		1553738229B3CEAC9B3F5EB8 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NDD Resource Map.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2075D8466FED15932BEE85FD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		306D53C14B3C1FAEC3E125CB /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		35633B734ABCC31192C5B4FC /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		3D436BC3380B8D5D10977DC8 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
 		3E1CAAF9621905B2CA8C4526 /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
+		402E2530748505838F7BCDCB /* UserMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMemory.swift; sourceTree = "<group>"; };
 		43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterMapView.swift; sourceTree = "<group>"; };
 		44774A304C1AEFF050E91B8E /* RegionalCentersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCentersView.swift; sourceTree = "<group>"; };
 		49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectionsMapView.swift; sourceTree = "<group>"; };
+		5C307B5218ED66C3FF88851E /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
 		5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7768999E0A6F9B808A733F37 /* ConversationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistory.swift; sourceTree = "<group>"; };
 		799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
 		7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
 		814A77FB55507E652FC3F4E8 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDetailView.swift; sourceTree = "<group>"; };
+		91EA0CA82AFD1861822B95D0 /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
+		92919786FE583BD8E230766A /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterMatcher.swift; sourceTree = "<group>"; };
-		22A7D5E9C1B34F608E2A6C11 /* RegionalCentersMiniMapCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCentersMiniMapCard.swift; sourceTree = "<group>"; };
-		A123456789HOMEVIEWREF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		A4C8D19642337F313A150DE2 /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
 		AAB7E59A57007FC65E7BCE03 /* RegionalCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenter.swift; sourceTree = "<group>"; };
 		AF1E575CEBC73792782D8E0A /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		B31DBE152BC605E5607045F5 /* RegionalCenterStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCenterStore.swift; sourceTree = "<group>"; };
+		B61E1ABB81CEE760D1CC1E73 /* TextToSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeech.swift; sourceTree = "<group>"; };
 		BD3B6AD2B4FB09E5225CA384 /* MapContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapContainerView.swift; sourceTree = "<group>"; };
 		CB8D52AF87D4A250BF8B28B3 /* CHLA_iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CHLA_iOSApp.swift; sourceTree = "<group>"; };
+		CC1B2C911101D985F5111B70 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapMarkers.swift; sourceTree = "<group>"; };
 		D8F17384527B1FBCE7FD88F6 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		D8FA95361CB09C477DD471BB /* FullMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullMapView.swift; sourceTree = "<group>"; };
 		D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */ = {isa = PBXFileReference; lastKnownFileType = text; path = la_regional_centers.geojson; sourceTree = "<group>"; };
+		DB66AF039092093484EE110A /* LLMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMService.swift; sourceTree = "<group>"; };
 		E6591C41B29B4E6F007C4177 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
-		F1A2B3C4D5E6F708CHATREF /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
-		F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
-		F2B3C4D5E6F70819LLMREF /* LLMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMService.swift; sourceTree = "<group>"; };
+		EEFD64F5D39FA2865A37E1C2 /* RegionalCentersMiniMapCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalCentersMiniMapCard.swift; sourceTree = "<group>"; };
 		F2E7BEAE5B376E4EB40BDE70 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
-		TTS00001SERVICEREF /* TextToSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeech.swift; sourceTree = "<group>"; };
-		CONVHIST01SERVICEREF /* ConversationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistory.swift; sourceTree = "<group>"; };
-		USRMEM001SERVICEREF /* UserMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMemory.swift; sourceTree = "<group>"; };
-		LANGMGR001SERVICEREF /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
-		F3C4D5E6F7081ALOCREF /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
-		L10N00003ENSTRINGS /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "CHLA-iOS/Resources/en.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
-		L10N00004ESSTRINGS /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = "CHLA-iOS/Resources/es.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
+		FFA26FF1ADF42593DAC6F7B1 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A9F2E6D4C3B1A80765F4E2D3 /* Frameworks */ = {
+		A7EABE83FF14E757A3D490D9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A9F2E6D4C3B1A80765F4E2D1 /* Textual in Frameworks */,
+				33218831D62CC8650D4747AE /* Textual in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,7 +118,7 @@
 				5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */,
 				2075D8466FED15932BEE85FD /* Info.plist */,
 				D9C87FEEC2AA757E3325CF2F /* la_regional_centers.geojson */,
-				L10N00002VARIANTGRP /* Localizable.strings */,
+				F311F08B47B757549CEE42E4 /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -127,14 +127,14 @@
 			isa = PBXGroup;
 			children = (
 				D8F17384527B1FBCE7FD88F6 /* APIService.swift */,
-				CONVHIST01SERVICEREF /* ConversationHistory.swift */,
-				LANGMGR001SERVICEREF /* LanguageManager.swift */,
-				F2B3C4D5E6F70819LLMREF /* LLMService.swift */,
+				7768999E0A6F9B808A733F37 /* ConversationHistory.swift */,
+				35633B734ABCC31192C5B4FC /* LanguageManager.swift */,
+				DB66AF039092093484EE110A /* LLMService.swift */,
 				ECE610AA5E2E87CEA6E3E8FF /* LocationService.swift */,
 				9EACBE97EE280AD1E5491B62 /* RegionalCenterMatcher.swift */,
-				SPEECH001RECOGNIZERREF /* SpeechRecognizer.swift */,
-				TTS00001SERVICEREF /* TextToSpeech.swift */,
-				USRMEM001SERVICEREF /* UserMemory.swift */,
+				A4C8D19642337F313A150DE2 /* SpeechRecognizer.swift */,
+				B61E1ABB81CEE760D1CC1E73 /* TextToSpeech.swift */,
+				402E2530748505838F7BCDCB /* UserMemory.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -151,8 +151,8 @@
 			isa = PBXGroup;
 			children = (
 				CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */,
-				F1E2D3C4B5A69788A9B0C1D2 /* ModernSearchView.swift */,
-				22A7D5E9C1B34F608E2A6C11 /* RegionalCentersMiniMapCard.swift */,
+				5C307B5218ED66C3FF88851E /* ModernSearchView.swift */,
+				EEFD64F5D39FA2865A37E1C2 /* RegionalCentersMiniMapCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -170,11 +170,11 @@
 			isa = PBXGroup;
 			children = (
 				AF1E575CEBC73792782D8E0A /* AboutView.swift */,
-				F1A2B3C4D5E6F708CHATREF /* ChatView.swift */,
+				FFA26FF1ADF42593DAC6F7B1 /* ChatView.swift */,
 				49D841CBD98D4FC4E044AEDE /* DirectionsMapView.swift */,
 				3E1CAAF9621905B2CA8C4526 /* FAQView.swift */,
 				D8FA95361CB09C477DD471BB /* FullMapView.swift */,
-				A123456789HOMEVIEWREF /* HomeView.swift */,
+				92919786FE583BD8E230766A /* HomeView.swift */,
 				BD3B6AD2B4FB09E5225CA384 /* MapContainerView.swift */,
 				799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */,
 				8A577C3FE37CCBFD486635BC /* ProviderDetailView.swift */,
@@ -233,7 +233,7 @@
 			isa = PBXGroup;
 			children = (
 				7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */,
-				F3C4D5E6F7081ALOCREF /* String+Localization.swift */,
+				91EA0CA82AFD1861822B95D0 /* String+Localization.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -246,8 +246,8 @@
 			buildConfigurationList = 117510B274FDF781EFE2E32C /* Build configuration list for PBXNativeTarget "CHLA-iOS" */;
 			buildPhases = (
 				54CDF34F01D3A3FE6D86C75F /* Sources */,
-				A9F2E6D4C3B1A80765F4E2D3 /* Frameworks */,
 				3D85C023AFA8C8967C74CB03 /* Resources */,
+				A7EABE83FF14E757A3D490D9 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -255,7 +255,7 @@
 			);
 			name = "CHLA-iOS";
 			packageProductDependencies = (
-				A9F2E6D4C3B1A80765F4E2D2 /* Textual */,
+				312E4F1E059399C827A99071 /* Textual */,
 			);
 			productName = "CHLA-iOS";
 			productReference = 1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */;
@@ -268,7 +268,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1610;
+				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					4078F61FF572E66B27C15AE7 = {
 						ProvisioningStyle = Automatic;
@@ -287,7 +287,7 @@
 			mainGroup = 10BF7A4DA57D3584A2E10381;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				A9F2E6D4C3B1A80765F4E2D4 /* XCRemoteSwiftPackageReference "textual" */,
+				0516B84C1B304122C6D7BB9F /* XCRemoteSwiftPackageReference "textual" */,
 			);
 			projectDirPath = "";
 			projectRoot = "";
@@ -303,8 +303,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA4A526410141C30831A38A5 /* Assets.xcassets in Resources */,
+				D9881AB0C63EF317514F3D11 /* Localizable.strings in Resources */,
 				066B905200A44CF4DA67DA13 /* la_regional_centers.geojson in Resources */,
-				L10N00001LOCALSTRINGS /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -319,20 +319,21 @@
 				1CEC881B9CBD2A15E447E8A8 /* APIService.swift in Sources */,
 				E34FB2F1D1B6549488E397CD /* AboutView.swift in Sources */,
 				E578BECE1D55AB54BFCAB764 /* CHLA_iOSApp.swift in Sources */,
-				F1A2B3C4D5E6F708CHATBLD /* ChatView.swift in Sources */,
-				F2B3C4D5E6F70819LLMBLD /* LLMService.swift in Sources */,
+				72ADDE0D8CF37F1E6F453A21 /* ChatView.swift in Sources */,
 				90A0C507590D7CC34803E040 /* Color+Extensions.swift in Sources */,
 				1449BCCC6174C33F7BEE7622 /* ContentView.swift in Sources */,
+				48E9FA89914AFF83D3AAD974 /* ConversationHistory.swift in Sources */,
 				B7B2689A066399CC906831F6 /* DirectionsMapView.swift in Sources */,
 				8655A013D36520C7E627B87C /* FAQView.swift in Sources */,
 				7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */,
 				04BC3A23DAB7D2BC4099B14B /* FullMapView.swift in Sources */,
-				E456789012345HOMEVIEWBLD /* HomeView.swift in Sources */,
+				8228B2A552594EC69884FF14 /* HomeView.swift in Sources */,
+				F7C5D739A4B6EDD98B6A9AA6 /* LLMService.swift in Sources */,
+				288D77660E5ADF38E60000E8 /* LanguageManager.swift in Sources */,
 				9133652FAD1A98671B50825E /* LocationService.swift in Sources */,
 				400B622708BD81DA6D9E3444 /* MapContainerView.swift in Sources */,
 				100D6B1B9F4E5F072D8A8C04 /* MapMarkers.swift in Sources */,
-				0A1B2C3D4E5F6A7B8C9D0E1F /* ModernSearchView.swift in Sources */,
-				11F6A4C8B2D3407E9A1C5F22 /* RegionalCentersMiniMapCard.swift in Sources */,
+				145D54D02BE5241957F3095B /* ModernSearchView.swift in Sources */,
 				4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */,
 				EBA84EB20ACAE5C15E1646E2 /* Provider.swift in Sources */,
 				8B442B44FD870077299FF3F9 /* ProviderDetailView.swift in Sources */,
@@ -342,49 +343,29 @@
 				7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */,
 				D021626D7868639BF75E7DED /* RegionalCenterMatcher.swift in Sources */,
 				3280A258F4FD9C1DBCB63162 /* RegionalCenterStore.swift in Sources */,
+				D6408D8F21527AA68B8B20AB /* RegionalCentersMiniMapCard.swift in Sources */,
 				C898C110F2BE59F7FAE60387 /* RegionalCentersView.swift in Sources */,
 				5D76754352E7C07BA12CA586 /* SettingsView.swift in Sources */,
-				SPEECH001RECOGNIZERBLD /* SpeechRecognizer.swift in Sources */,
-				TTS00001SERVICEBLD /* TextToSpeech.swift in Sources */,
-				CONVHIST01SERVICEBLD /* ConversationHistory.swift in Sources */,
-				USRMEM001SERVICEBLD /* UserMemory.swift in Sources */,
-				LANGMGR001SERVICEBLD /* LanguageManager.swift in Sources */,
-				F3C4D5E6F7081ALOCBLD /* String+Localization.swift in Sources */,
+				2A847CD577D5C2DA4F3F8C99 /* SpeechRecognizer.swift in Sources */,
+				99B985AE5F6EC730CDE54B4D /* String+Localization.swift in Sources */,
+				6B79503BF9C794103C0702A1 /* TextToSpeech.swift in Sources */,
+				74F351F827C254C0FE599402 /* UserMemory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		L10N00002VARIANTGRP /* Localizable.strings */ = {
+		F311F08B47B757549CEE42E4 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				L10N00003ENSTRINGS /* en */,
-				L10N00004ESSTRINGS /* es */,
+				1553738229B3CEAC9B3F5EB8 /* en */,
+				CC1B2C911101D985F5111B70 /* es */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		A9F2E6D4C3B1A80765F4E2D4 /* XCRemoteSwiftPackageReference "textual" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/gonzalezreal/textual";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.1;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		A9F2E6D4C3B1A80765F4E2D2 /* Textual */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A9F2E6D4C3B1A80765F4E2D4 /* XCRemoteSwiftPackageReference "textual" */;
-			productName = Textual;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4AE2292EB90415C35707AFBB /* Debug */ = {
@@ -394,8 +375,6 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = LR4SP9C264;
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -404,11 +383,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map;
 				PRODUCT_NAME = "NDD Resource Map";
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -417,7 +392,6 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -455,7 +429,6 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -465,7 +438,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
+				INFOPLIST_KEY_CFBundleDisplayName = "NDD Resource Map";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NDD Resource Map uses your location to find healthcare providers near you.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -474,7 +447,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -490,7 +463,6 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -528,7 +500,6 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -544,7 +515,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
+				INFOPLIST_KEY_CFBundleDisplayName = "NDD Resource Map";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NDD Resource Map uses your location to find healthcare providers near you.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -553,7 +524,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -572,8 +543,6 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = LR4SP9C264;
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -582,11 +551,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map;
 				PRODUCT_NAME = "NDD Resource Map";
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -612,6 +577,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0516B84C1B304122C6D7BB9F /* XCRemoteSwiftPackageReference "textual" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/textual";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		312E4F1E059399C827A99071 /* Textual */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0516B84C1B304122C6D7BB9F /* XCRemoteSwiftPackageReference "textual" */;
+			productName = Textual;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DEFCD0F0AF2F8007BD6358D5 /* Project object */;
 }
