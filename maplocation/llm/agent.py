@@ -28,6 +28,18 @@ def _fingerprint(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
 
 
+def _provider_regional_center(provider: ProviderV2) -> str | None:
+    legacy_value = getattr(provider, "regional_center", None)
+    if legacy_value:
+        return legacy_value
+
+    relationship = provider.regional_centers.select_related("regional_center").first()
+    if relationship:
+        return relationship.regional_center.regional_center
+
+    return None
+
+
 # ============================================================================
 # KINDD TOOLS - These give the agent access to our database
 # ============================================================================
@@ -76,7 +88,7 @@ def search_providers(
             providers = [
                 p
                 for p in providers
-                if rc.regional_center.lower() in str(p.regional_center).lower()
+                if rc.regional_center.lower() in str(_provider_regional_center(p)).lower()
             ]
 
     # Format results
@@ -91,7 +103,7 @@ def search_providers(
                 "address": p.address,
                 "phone": p.phone,
                 "website": p.website,
-                "regional_center": p.regional_center,
+                "regional_center": _provider_regional_center(p),
             }
         )
 
@@ -179,7 +191,7 @@ def get_provider_details(provider_name: str) -> str:
                 "email": p.email if hasattr(p, "email") else None,
                 "website": p.website,
                 "description": p.description,
-                "regional_center": p.regional_center,
+                "regional_center": _provider_regional_center(p),
                 "insurance_accepted": (
                     p.insurance_networks if hasattr(p, "insurance_networks") else None
                 ),
@@ -224,7 +236,7 @@ def find_provider_location(provider_name: str) -> str:
                 "phone": provider.phone,
                 "latitude": float(provider.latitude),
                 "longitude": float(provider.longitude),
-                "regional_center": provider.regional_center,
+                "regional_center": _provider_regional_center(provider),
                 "therapy_types": provider.therapy_types or [],
             }
         )
@@ -682,7 +694,7 @@ You have tools to:
 - For important safety caveats, deadlines, or limitations, use a plain bold label:
   `**Note:**`. Do not use blockquotes or a leading `>`.
 - If you use `clinical_search`, `autism_research`, or `web_search`, include a **Sources** section with the returned source titles and URLs.
-- If you mention CDC, AAP, HealthyChildren.org, NIH, MedlinePlus, CHLA, or another clinical authority, include its URL in **Sources**.
+- If you mention CDC, AAP, HealthyChildren.org, NIH, MedlinePlus, or another clinical authority, include its URL in **Sources**.
 - Do not invent citations. Use URLs returned by `clinical_search` or `web_search` whenever available.
 - In **Sources**, write each source as `Source name: URL` on its own line. Do not prefix sources with hyphens.
 - Do not add a horizontal rule before **Sources**; the mobile app styles sources separately.
@@ -759,7 +771,7 @@ Tienes herramientas para:
 - Para advertencias de seguridad, fechas límite o limitaciones importantes, usa una etiqueta simple en negritas:
   `**Nota:**`. No uses citas en bloque ni el símbolo inicial `>`.
 - Si usas `clinical_search`, `autism_research` o `web_search`, incluye una sección **Fuentes** con los títulos y URLs devueltos.
-- Si mencionas CDC, AAP, HealthyChildren.org, NIH, MedlinePlus, CHLA u otra autoridad clínica, incluye su URL en **Fuentes**.
+- Si mencionas CDC, AAP, HealthyChildren.org, NIH, MedlinePlus u otra autoridad clínica, incluye su URL en **Fuentes**.
 - No inventes citas. Usa las URLs devueltas por `clinical_search` o `web_search` siempre que estén disponibles.
 - En **Fuentes**, escribe cada fuente como `Nombre de la fuente: URL` en su propia línea. No uses guiones antes de las fuentes.
 - No agregues una línea horizontal antes de **Fuentes**; la app móvil da estilo a las fuentes por separado.

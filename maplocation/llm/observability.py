@@ -17,6 +17,15 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Any, Iterator, Optional
 
+try:
+    from langfuse import get_client, propagate_attributes
+except ImportError:
+    get_client = None
+
+    @contextmanager
+    def propagate_attributes(**kwargs):
+        yield
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_LANGFUSE_HOST = "https://us.cloud.langfuse.com"
@@ -61,11 +70,10 @@ def configure_langfuse_otel() -> bool:
         return False
 
     auth = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
-    os.environ.setdefault("LANGFUSE_BASE_URL", host)
-    os.environ.setdefault("OTEL_EXPORTER_OTLP_ENDPOINT", f"{host}/api/public/otel")
-    os.environ.setdefault(
-        "OTEL_EXPORTER_OTLP_HEADERS",
-        f"Authorization=Basic {auth},x-langfuse-ingestion-version=4",
+    os.environ["LANGFUSE_BASE_URL"] = host
+    os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"{host}/api/public/otel"
+    os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = (
+        f"Authorization=Basic {auth},x-langfuse-ingestion-version=4"
     )
     return True
 
@@ -135,30 +143,54 @@ def bedrock_call_monitor(
     """Time a Bedrock call and record it without storing raw prompt text."""
     started_at = time.perf_counter()
     state: dict[str, Any] = {"usage": {}, "output_text": ""}
-    try:
-        yield state
-    except Exception as exc:
-        record_llm_call(
-            operation=operation,
-            model_id=model_id,
-            status="error",
-            latency_ms=_elapsed_ms(started_at),
-            prompt=prompt,
-            usage=state.get("usage"),
-            output_text=state.get("output_text", ""),
-            error=exc,
-        )
-        raise
-    else:
-        record_llm_call(
-            operation=operation,
-            model_id=model_id,
-            status="ok",
-            latency_ms=_elapsed_ms(started_at),
-            prompt=prompt,
-            usage=state.get("usage"),
-            output_text=state.get("output_text", ""),
-        )
+    with _langfuse_generation_observation(
+        operation=operation,
+        model_id=model_id,
+        prompt=prompt,
+    ) as observation:
+        try:
+            yield state
+        except Exception as exc:
+            latency_ms = _elapsed_ms(started_at)
+            record_llm_call(
+                operation=operation,
+                model_id=model_id,
+                status="error",
+                latency_ms=latency_ms,
+                prompt=prompt,
+                usage=state.get("usage"),
+                output_text=state.get("output_text", ""),
+                error=exc,
+            )
+            _update_langfuse_generation(
+                observation,
+                status="error",
+                latency_ms=latency_ms,
+                prompt=prompt,
+                output_text=state.get("output_text", ""),
+                usage=state.get("usage"),
+                error=exc,
+            )
+            raise
+        else:
+            latency_ms = _elapsed_ms(started_at)
+            record_llm_call(
+                operation=operation,
+                model_id=model_id,
+                status="ok",
+                latency_ms=latency_ms,
+                prompt=prompt,
+                usage=state.get("usage"),
+                output_text=state.get("output_text", ""),
+            )
+            _update_langfuse_generation(
+                observation,
+                status="ok",
+                latency_ms=latency_ms,
+                prompt=prompt,
+                output_text=state.get("output_text", ""),
+                usage=state.get("usage"),
+            )
 
 
 def llm_monitor_snapshot() -> dict[str, Any]:
@@ -198,6 +230,96 @@ def _usage_int(usage: dict[str, Any], key: str) -> int | None:
     return value if isinstance(value, int) else None
 
 
+@contextmanager
+def _langfuse_generation_observation(
+    *,
+    operation: str,
+    model_id: str,
+    prompt: str = "",
+) -> Iterator[object | None]:
+    """Create a nested Langfuse generation observation when available."""
+    if not langfuse_is_configured() or get_client is None:
+        yield None
+        return
+
+    try:
+        langfuse = get_client()
+        context = langfuse.start_as_current_observation(
+            as_type="generation",
+            name=f"bedrock.{operation}",
+            model=model_id,
+            input=_langfuse_prompt_input(prompt),
+        )
+    except Exception:
+        logger.warning("Langfuse generation observation unavailable.", exc_info=True)
+        yield None
+        return
+
+    with context as observation:
+        yield observation
+
+
+def _update_langfuse_generation(
+    observation: object | None,
+    *,
+    status: str,
+    latency_ms: int,
+    prompt: str,
+    output_text: str = "",
+    usage: dict[str, Any] | None = None,
+    error: BaseException | None = None,
+) -> None:
+    """Attach Bedrock result metadata to an active Langfuse generation."""
+    if observation is None:
+        return
+
+    metadata = {
+        "status": status,
+        "latency_ms": latency_ms,
+        "prompt_chars": len(prompt or ""),
+        "prompt_fingerprint": prompt_fingerprint(prompt or ""),
+    }
+    if error:
+        metadata["error_type"] = type(error).__name__
+
+    update: dict[str, Any] = {
+        "metadata": metadata,
+        "output": output_text,
+    }
+    usage_details = _langfuse_usage_details(usage or {})
+    if usage_details:
+        update["usage_details"] = usage_details
+    if error:
+        update["level"] = "ERROR"
+        update["status_message"] = str(error)
+
+    try:
+        observation.update(**update)
+    except Exception:
+        logger.warning("Failed to update Langfuse generation observation.", exc_info=True)
+
+
+def _langfuse_prompt_input(prompt: str) -> dict[str, Any]:
+    """Return prompt metadata that is useful for debugging without duplicating text."""
+    return {
+        "prompt_chars": len(prompt or ""),
+        "prompt_fingerprint": prompt_fingerprint(prompt or ""),
+    }
+
+
+def _langfuse_usage_details(usage: dict[str, Any]) -> dict[str, int]:
+    input_tokens = _usage_int(usage, "input_tokens") or 0
+    output_tokens = _usage_int(usage, "output_tokens") or 0
+    total_tokens = input_tokens + output_tokens
+    if total_tokens == 0:
+        return {}
+    return {
+        "input": input_tokens,
+        "output": output_tokens,
+        "total": total_tokens,
+    }
+
+
 def _latency_summary(latencies: list[int]) -> dict[str, int | None]:
     if not latencies:
         return {"min": None, "avg": None, "max": None, "p95": None}
@@ -227,9 +349,7 @@ def agent_observation(
         yield None
         return
 
-    try:
-        from langfuse import get_client, propagate_attributes
-    except ImportError:
+    if get_client is None:
         logger.warning("Langfuse credentials are set but langfuse is not installed.")
         yield None
         return
