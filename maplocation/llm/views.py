@@ -27,6 +27,11 @@ from .bedrock import (
     chat_completion_streaming,
     get_system_prompt_for_locale,
 )
+from .langgraph_agent import (
+    chat_with_langgraph_agent,
+    chat_with_langgraph_supervisor,
+    stream_chat_with_langgraph_agent,
+)
 from .observability import llm_monitor_snapshot
 
 logger = logging.getLogger(__name__)
@@ -595,6 +600,182 @@ class AgentAskView(APIView):
             logger.exception("Agent ask error")
             return Response(
                 {"error": f"Agent error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class LangGraphAgentAskView(APIView):
+    """
+    POST /api/llm/langgraph-agent/
+
+    Parallel LangGraph agent endpoint for learning and eval comparisons.
+    It intentionally returns the same basic shape as the Strands agent endpoint
+    so callers can compare the two runtimes without changing UI code.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
+
+    def post(self, request):
+        query = request.data.get("query")
+        user_context = request.data.get("context", {})
+        locale = request.data.get("locale", "en")
+        conversation_history = request.data.get("conversation_history")
+
+        if not query:
+            return Response(
+                {"error": "Query is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(query) > 1000:
+            return Response(
+                {"error": "Query too long (max 1000 characters)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user_id, session_id = _request_trace_ids(request)
+            result = chat_with_langgraph_agent(
+                query,
+                user_context=user_context,
+                conversation_history=conversation_history,
+                locale=locale,
+                user_id=user_id,
+                session_id=session_id,
+            )
+            return Response(
+                {
+                    "query": query,
+                    "answer": result["answer"],
+                    "tools_used": result.get("tools_used", []),
+                    "regional_center": result.get("regional_center"),
+                    "runtime": result.get("runtime", "langgraph"),
+                }
+            )
+
+        except Exception as e:
+            logger.exception("LangGraph agent ask error")
+            return Response(
+                {"error": f"LangGraph agent error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class StreamingLangGraphAgentAskView(APIView):
+    """
+    POST /api/llm/langgraph-agent-stream/
+
+    Streaming-compatible LangGraph endpoint. It mirrors the existing Strands
+    streaming endpoint by emitting the completed answer as one SSE chunk.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
+
+    def post(self, request):
+        query = request.data.get("query")
+        user_context = request.data.get("context", {})
+        locale = request.data.get("locale", "en")
+        conversation_history = request.data.get("conversation_history")
+
+        if not query:
+            return Response(
+                {"error": "Query is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(query) > 1000:
+            return Response(
+                {"error": "Query too long (max 1000 characters)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        def event_stream():
+            try:
+                user_id, session_id = _request_trace_ids(request)
+                for chunk in stream_chat_with_langgraph_agent(
+                    query,
+                    user_context=user_context,
+                    conversation_history=conversation_history,
+                    locale=locale,
+                    user_id=user_id,
+                    session_id=session_id,
+                ):
+                    yield (
+                        "data: "
+                        f"{json.dumps({'type': 'chunk', 'content': chunk})}"
+                        "\n\n"
+                    )
+
+                yield (
+                    "data: "
+                    f"{json.dumps({'type': 'done', 'runtime': 'langgraph'})}"
+                    "\n\n"
+                )
+            except Exception as e:
+                logger.exception("LangGraph streaming error")
+                yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+        response = StreamingHttpResponse(
+            event_stream(), content_type="text/event-stream"
+        )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
+
+
+class LangGraphSupervisorAskView(APIView):
+    """
+    POST /api/llm/langgraph-supervisor/
+
+    First multi-agent LangGraph endpoint. A deterministic supervisor routes the
+    turn to provider, clinical, research, or current-facts specialist nodes.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [LLMBurstThrottle]
+
+    def post(self, request):
+        query = request.data.get("query")
+        user_context = request.data.get("context", {})
+        locale = request.data.get("locale", "en")
+        conversation_history = request.data.get("conversation_history")
+
+        if not query:
+            return Response(
+                {"error": "Query is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(query) > 1000:
+            return Response(
+                {"error": "Query too long (max 1000 characters)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user_id, session_id = _request_trace_ids(request)
+            result = chat_with_langgraph_supervisor(
+                query,
+                user_context=user_context,
+                conversation_history=conversation_history,
+                locale=locale,
+                user_id=user_id,
+                session_id=session_id,
+            )
+            return Response(
+                {
+                    "query": query,
+                    "answer": result["answer"],
+                    "tools_used": result.get("tools_used", []),
+                    "regional_center": result.get("regional_center"),
+                    "runtime": result.get("runtime", "langgraph-supervisor"),
+                    "specialist": result.get("specialist"),
+                }
+            )
+
+        except Exception as e:
+            logger.exception("LangGraph supervisor ask error")
+            return Response(
+                {"error": f"LangGraph supervisor error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
