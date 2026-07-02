@@ -1,0 +1,11 @@
+fastmcp>=3.0.0  # MCP server framework (Streamable HTTP transport)
+requests>=2.32.0
+python-dotenv>=1.0.1
+pytest>=8.3.0
+
+# Used only by docker-entrypoint.sh to fetch KINDD_MCP_AUTH_TOKEN from AWS
+# Secrets Manager at container startup, if it isn't already set directly.
+boto3>=1.34.0
+
+# Official MCP client, used for local smoke testing / MCP Inspector workflows
+mcp>=1.0.0

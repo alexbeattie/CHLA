@@ -13,7 +13,9 @@
       "Bash(chmod:*)",
       "Bash(dig:*)",
       "Bash(curl:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(npm --version)",
+      "Bash(gh run *)"
     ],
     "deny": []
   }

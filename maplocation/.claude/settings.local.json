@@ -10,7 +10,10 @@
       "Read(//private/tmp/**)",
       "Bash(npm run dev:*)",
       "Bash(curl:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(head -50 i18n/index.js)",
+      "Bash(wc -l i18n/*)",
+      "Bash(grep -c '$t\\(\\\\|t\\(' views/CliniciansView.vue)"
     ],
     "deny": [],
     "ask": []

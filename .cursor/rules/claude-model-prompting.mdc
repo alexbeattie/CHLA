@@ -1,0 +1,85 @@
+---
+description: Apply when writing or editing prompts for Claude models, choosing between Claude models (Fable 5, Opus 4.8, Sonnet 5, Haiku 4.5), configuring Anthropic/Bedrock API calls, or tuning agent behavior in the llm/ backend.
+globs:
+  - "maplocation/llm/**"
+alwaysApply: false
+---
+
+# Claude Model Selection and Prompting Protocol
+
+When writing prompts, agent instructions, or Anthropic/Bedrock API calls, follow the
+model-specific guide. If any detail below might be stale, fetch the live doc before
+answering — do not answer from memory:
+
+- Fable 5: <https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5>
+- Opus 4.8: <https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-4-8>
+- Sonnet 5: <https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5>
+
+## Which model to use (switch when the task changes)
+
+| Task | Model |
+|------|-------|
+| Hardest, long-horizon, ambiguous, or multi-agent work; overnight autonomous runs | `claude-fable-5` |
+| Default frontier work: coding, knowledge work, review; fallback target for Fable 5 refusals | `claude-opus-4-8` |
+| High-volume production coding/agentic workloads where cost and speed matter | `claude-sonnet-5` |
+| Simple, speed-critical tasks (classification, routing, extraction) | `claude-haiku-4-5-20251001` |
+
+Fable 5 is not the default upgrade path; Opus 4.8 is. Fable 5 runs safety classifiers
+(offensive cyber, bio, reasoning extraction) that can return `stop_reason: "refusal"`;
+configure fallback to Opus 4.8.
+
+## Fable 5 (claude-fable-5)
+
+- Adaptive thinking always on; no `thinking` budgets; summarized-only thinking output.
+- Turns run much longer; adjust client timeouts and prefer async checking over blocking.
+- Strong instruction following: steer with one brief instruction, not enumerated lists.
+  Over-prescriptive prompts written for older models degrade output; prune them.
+- Never instruct it to echo or explain its internal reasoning in the response; that
+  triggers `reasoning_extraction` refusals. Read summarized thinking blocks instead.
+- For long runs, add: "Before reporting progress, audit each claim against a tool
+  result from this session. Only report work you can point to evidence for."
+- Anti-overplanning: "When you have enough information to act, act."
+- Anti-scope-creep at high effort: "Don't add features, refactor, or introduce
+  abstractions beyond what the task requires."
+- Avoid surfacing remaining-context counts; if unavoidable, add "You have ample
+  context remaining. Do not stop, summarize, or suggest a new session."
+- Give the reason behind a request, not only the request; provide a memory file for
+  lessons across runs; use fresh-context verifier subagents over self-critique.
+- Effort: `high` default, `xhigh` for capability-sensitive, `medium`/`low` routine.
+
+## Opus 4.8 (claude-opus-4-8)
+
+- Thinking is OFF unless you pass `thinking: {type: "adaptive"}`.
+- Effort: start `xhigh` for coding/agentic; minimum `high` for intelligence-sensitive
+  work; `max` can overthink. At `xhigh`/`max`, set max_tokens around 64k or higher.
+- Follows instructions literally, especially at low effort: state scope explicitly
+  ("apply to every section, not just the first").
+- Favors reasoning over tool calls; raise effort or explicitly instruct tool use.
+- Spawns fewer subagents by default; state when delegation is desirable.
+- Verbosity calibrates to task complexity; positive style examples beat prohibitions.
+- Design default: cream background, serif display type, terracotta accent. To vary:
+  specify a concrete visual direction, or have it propose 4 directions first.
+- Code review: severity filters ("only high-severity") lower recall because they are
+  obeyed literally. Prompt for coverage first, filter in a later step.
+
+## Sonnet 5 (claude-sonnet-5)
+
+- Adaptive thinking ON by default; disable with `thinking: {type: "disabled"}`.
+  Manual `budget_tokens` returns a 400 error.
+- Non-default `temperature`, `top_p`, or `top_k` returns a 400 error. Get variety via
+  prompting (e.g. propose multiple directions), not sampling parameters.
+- New tokenizer emits roughly 30% more tokens for the same text; max_tokens values
+  tuned for Sonnet 4.6 may truncate output (`stop_reason: "max_tokens"`).
+- Effort mapping when migrating: Sonnet 5 `medium` is comparable to Sonnet 4.6 `high`;
+  Sonnet 5 `high` is comparable to Sonnet 4.6 `max`. Use `xhigh` for hardest tasks.
+- With thinking disabled it reaches for tools less; add an explicit tool-use nudge.
+- Literal instruction following, verbosity calibration, code-review coverage-first
+  prompting, and design-variety guidance same as Opus 4.8 above.
+
+## Cross-model rules
+
+- Prompts are model-specific: when switching a feature to a different Claude model,
+  re-check effort, thinking config, max_tokens, and sampling parameters against the
+  target model's guide before shipping.
+- Raise effort rather than prompting around shallow reasoning.
+- Remove scaffolding that forces interim status messages; current models self-report.
