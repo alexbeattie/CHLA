@@ -83,6 +83,7 @@ struct MapContainerView: View {
         }
         .sheet(isPresented: $showFilters) {
             filterSheet
+                .kinddSheet()
         }
         .sheet(isPresented: $showResultsSheet) {
             SearchResultsSheet(
@@ -91,6 +92,7 @@ struct MapContainerView: View {
                 selectedProvider: $selectedProvider,
                 searchText: searchState.searchText
             )
+            .kinddSheet()
             .presentationDetents([.fraction(0.25), .medium, .large])
             .presentationDragIndicator(.visible)
             .presentationBackgroundInteraction(.enabled)

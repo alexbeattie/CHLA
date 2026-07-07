@@ -378,6 +378,7 @@ struct RegionalCenterDetailSheet: View {
                 coordinate: center.coordinate,
                 address: centerData.address
             )
+            .kinddSheet()
         }
         .sheet(isPresented: $showDirections) {
             DirectionsMapView(
@@ -385,6 +386,7 @@ struct RegionalCenterDetailSheet: View {
                 destinationCoordinate: center.coordinate,
                 destinationAddress: centerData.address
             )
+            .kinddSheet()
         }
     }
 

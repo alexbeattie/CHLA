@@ -6,15 +6,43 @@
 //
 
 import SwiftUI
+import WidgetKit
+import AppIntents
 
 @main
 struct CHLA_iOSApp: App {
     @StateObject private var appState = AppState()
+    @Environment(\.openURL) private var openURL
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
+                .onOpenURL { url in
+                    handleDeepLink(url)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .openChatFromIntent)) { note in
+                    appState.openChat(prompt: note.userInfo?["prompt"] as? String)
+                }
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "kindd" else { return }
+
+        switch url.host {
+        case "call":
+            if let shared = UserDefaults(suiteName: AppState.appGroupID),
+               let phone = shared.string(forKey: "widget.centerPhone") {
+                let digits = phone.filter(\.isNumber)
+                if let telURL = URL(string: "tel://\(digits)") {
+                    openURL(telURL)
+                }
+            }
+        case "chat":
+            appState.openChat()
+        default:
+            break
         }
     }
 }
@@ -31,9 +59,41 @@ struct ProviderMapTarget: Identifiable, Equatable {
     }
 }
 
+/// Where a family is in the developmental-services process; drives the home
+/// screen's next-step guidance and onboarding
+enum JourneyStage: String, CaseIterable, Identifiable {
+    case justDiagnosed
+    case waitingIntake
+    case receivingServices
+    case exploring
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .justDiagnosed: return "We just got a diagnosis"
+        case .waitingIntake: return "Waiting for intake or evaluation"
+        case .receivingServices: return "Already receiving services"
+        case .exploring: return "Just exploring"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .justDiagnosed: return "sparkles"
+        case .waitingIntake: return "hourglass"
+        case .receivingServices: return "checkmark.seal.fill"
+        case .exploring: return "binoculars.fill"
+        }
+    }
+}
+
 /// Global application state managing user preferences and session data
 @MainActor
 class AppState: ObservableObject {
+    /// Shared container for the widget extension
+    static let appGroupID = "group.com.nddresources.map"
+
     @Published var isOnboarding: Bool
     @Published var userLocation: Location?
     @Published var selectedRegionalCenter: RegionalCenter?
@@ -47,6 +107,13 @@ class AppState: ObservableObject {
     @Published var userRegionalCenterName: String?
     @Published var userRegionalCenterShortName: String?
     @Published var pendingMapProviderTarget: ProviderMapTarget?
+    @Published var showChat = false
+    @Published var pendingChatPrompt: String?
+    @Published var userJourneyStage: String?
+
+    var journeyStage: JourneyStage? {
+        userJourneyStage.flatMap(JourneyStage.init(rawValue:))
+    }
 
     var userRegionalCenterColor: Color {
         guard let shortName = userRegionalCenterShortName else {
@@ -69,6 +136,30 @@ class AppState: ObservableObject {
         self.userAudienceType = UserDefaults.standard.string(forKey: "userAudienceType") ?? "family"
         self.userRegionalCenterName = UserDefaults.standard.string(forKey: "userRegionalCenterName")
         self.userRegionalCenterShortName = UserDefaults.standard.string(forKey: "userRegionalCenterShortName")
+        self.userJourneyStage = UserDefaults.standard.string(forKey: "userJourneyStage")
+
+        syncSharedDefaults()
+    }
+
+    /// Mirrors the widget-relevant state into the App Group container so the
+    /// home-screen widget always shows the current regional center
+    func syncSharedDefaults() {
+        guard let shared = UserDefaults(suiteName: Self.appGroupID) else { return }
+
+        shared.set(userRegionalCenterName, forKey: "widget.centerName")
+        shared.set(userRegionalCenterShortName, forKey: "widget.centerShortName")
+        shared.set(userZipCode, forKey: "widget.zipCode")
+        shared.set(userJourneyStage, forKey: "widget.journeyStage")
+
+        if let shortName = userRegionalCenterShortName,
+           let match = RegionalCenterMatcher.shared.laRegionalCenters.first(where: {
+               $0.shortName.replacingOccurrences(of: "/", with: "").uppercased()
+                   == shortName.replacingOccurrences(of: "/", with: "").uppercased()
+           }) {
+            shared.set(match.phone, forKey: "widget.centerPhone")
+        } else {
+            shared.removeObject(forKey: "widget.centerPhone")
+        }
     }
 
     func saveUserContext(
@@ -108,6 +199,17 @@ class AppState: ObservableObject {
             userRegionalCenterShortName = rcShortName
             UserDefaults.standard.set(rcShortName, forKey: "userRegionalCenterShortName")
         }
+
+        syncSharedDefaults()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    func saveJourneyStage(_ stage: JourneyStage) {
+        userJourneyStage = stage.rawValue
+        UserDefaults.standard.set(stage.rawValue, forKey: "userJourneyStage")
+
+        syncSharedDefaults()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func completeOnboarding() {
@@ -118,6 +220,12 @@ class AppState: ObservableObject {
     func resetOnboarding() {
         UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
         isOnboarding = true
+    }
+
+    /// Open the chat sheet, optionally sending a question immediately
+    func openChat(prompt: String? = nil) {
+        pendingChatPrompt = prompt
+        showChat = true
     }
 
     /// Navigate to a specific tab
@@ -158,6 +266,80 @@ class AppState: ObservableObject {
     /// Navigate to browse/list tab
     func navigateToBrowse() {
         selectedTab = 3
+    }
+}
+
+// MARK: - App Intents
+
+extension Notification.Name {
+    static let openChatFromIntent = Notification.Name("openChatFromIntent")
+}
+
+/// Siri / Spotlight / Shortcuts: dial the family's matched regional center
+struct CallRegionalCenterIntent: AppIntent {
+    static let title: LocalizedStringResource = "Call My Regional Center"
+    static let description = IntentDescription("Calls the regional center that serves your family.")
+    static let openAppWhenRun = true
+
+    @MainActor
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard let shared = UserDefaults(suiteName: AppState.appGroupID),
+              let phone = shared.string(forKey: "widget.centerPhone"),
+              !phone.isEmpty else {
+            return .result(dialog: "You haven't been matched to a regional center yet. Enter your ZIP code in KiNDD first.")
+        }
+
+        let digits = phone.filter(\.isNumber)
+        guard let telURL = URL(string: "tel://\(digits)") else {
+            return .result(dialog: "That phone number doesn't look right. Open KiNDD to see your regional center's contact details.")
+        }
+
+        await UIApplication.shared.open(telURL)
+        return .result(dialog: "Calling your regional center.")
+    }
+}
+
+/// Siri / Spotlight / Shortcuts: open the KiNDD assistant, optionally with a question
+struct AskKiNDDIntent: AppIntent {
+    static let title: LocalizedStringResource = "Ask KiNDD"
+    static let description = IntentDescription("Opens the KiNDD assistant to help with developmental services.")
+    static let openAppWhenRun = true
+
+    @Parameter(title: "Question")
+    var question: String?
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        var userInfo: [AnyHashable: Any] = [:]
+        if let question, !question.isEmpty {
+            userInfo["prompt"] = question
+        }
+        NotificationCenter.default.post(name: .openChatFromIntent, object: nil, userInfo: userInfo)
+        return .result()
+    }
+}
+
+/// Surfaces both intents in Spotlight and Siri with zero user setup
+struct KiNDDShortcuts: AppShortcutsProvider {
+    static var appShortcuts: [AppShortcut] {
+        AppShortcut(
+            intent: CallRegionalCenterIntent(),
+            phrases: [
+                "Call my regional center in \(.applicationName)",
+                "Call my regional center with \(.applicationName)"
+            ],
+            shortTitle: "Call Regional Center",
+            systemImageName: "phone.fill"
+        )
+        AppShortcut(
+            intent: AskKiNDDIntent(),
+            phrases: [
+                "Ask \(.applicationName)",
+                "Ask \(.applicationName) a question"
+            ],
+            shortTitle: "Ask KiNDD",
+            systemImageName: "sparkles"
+        )
     }
 }
 

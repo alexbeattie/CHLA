@@ -7,6 +7,57 @@
 
 import SwiftUI
 
+// MARK: - Design Tokens
+
+/// Single source of truth for the KiNDD visual system. New code styles through
+/// these; scattered hex literals migrate here as views are touched.
+enum Theme {
+    // Purple family - the brand palette
+    static let indigo = Color(hex: "6366F1")
+    static let indigoDeep = Color(hex: "4F46E5")
+    static let violet = Color(hex: "8B5CF6")
+    static let purple = Color(hex: "A855F7")
+    static let pink = Color(hex: "EC4899")
+
+    /// Reserved for the "Matched" state only
+    static let matched = Color(hex: "10B981")
+
+    /// The AI identity gradient (sparkles button, chat send, avatars)
+    static var aiGradient: LinearGradient {
+        LinearGradient(
+            colors: [violet, pink],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    /// Primary action gradient
+    static var accentGradient: LinearGradient {
+        LinearGradient(
+            colors: [indigo, violet],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    // Surfaces
+    static let canvas = Color(uiColor: .systemGroupedBackground)
+    static let cardSurface = Color(uiColor: .secondarySystemGroupedBackground)
+
+    // Geometry
+    static let cardRadius: CGFloat = 20
+    static let sheetRadius: CGFloat = 28
+
+    /// The ambient wash that warms the top of every canvas
+    static func topWash(dark: Bool) -> LinearGradient {
+        LinearGradient(
+            colors: [indigo.opacity(dark ? 0.20 : 0.09), .clear],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+}
+
 extension Color {
     // MARK: - Brand Colors
 

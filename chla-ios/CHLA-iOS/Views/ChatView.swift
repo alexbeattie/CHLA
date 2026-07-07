@@ -34,7 +34,11 @@ extension AppState {
 }
 
 struct ChatView: View {
+    /// Question to send automatically when the chat opens (e.g. from a home screen suggestion row)
+    var initialPrompt: String? = nil
+
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var llmService = LLMService.shared
     @StateObject private var locationService = LocationService()
     @StateObject private var speechRecognizer = SpeechRecognizer()
@@ -54,6 +58,7 @@ struct ChatView: View {
     @State private var showingHistory = false
     @State private var currentConversationId: UUID?
     @State private var showingRestartSetupConfirmation = false
+    @State private var didSendInitialPrompt = false
 
     // Attachment flow state (Step 1: Type, Step 2: Source)
     @State private var showingAttachmentTypeSheet = false  // Step 1: Choose analysis type
@@ -77,6 +82,20 @@ struct ChatView: View {
         let hasActiveConversation = !llmService.messages.isEmpty
         let userRC = appState.selectedRegionalCenter?.regionalCenter
         let userZip = userZipCode ?? appState.userZipCode
+
+        // Context: the family's journey stage leads
+        if let stage = appState.journeyStage, !hasActiveConversation {
+            switch stage {
+            case .justDiagnosed:
+                prompts.append(("sparkles", "First Steps", "We just got a diagnosis - what should we do first?"))
+            case .waitingIntake:
+                prompts.append(("hourglass", "Intake Prep", "How do we prepare for our regional center intake appointment?"))
+            case .receivingServices:
+                prompts.append(("checkmark.seal", "IPP Help", "How do I prepare for an IPP meeting and what can I ask for?"))
+            case .exploring:
+                break
+            }
+        }
 
         // Context: Time-based greeting prompts
         if hour < 12 && !hasActiveConversation {
@@ -143,9 +162,11 @@ struct ChatView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Quick prompts capsules
-                PromptCapsulesBar(prompts: quickPrompts) { prompt in
-                    sendMessage(prompt)
+                // Quick prompts capsules; hidden while the welcome card carries suggestions
+                if !llmService.messages.isEmpty {
+                    PromptCapsulesBar(prompts: quickPrompts) { prompt in
+                        sendMessage(prompt)
+                    }
                 }
 
                 // Messages
@@ -201,12 +222,7 @@ struct ChatView: View {
                         .padding(.horizontal, 6)
                         .padding(.bottom, 12)
                     }
-                    .onChange(of: llmService.messages.count) { _, _ in
-                        scrollToBottom(proxy: proxy)
-                    }
-                    .onChange(of: llmService.messages.last?.content) { _, _ in
-                        scrollToBottom(proxy: proxy)
-                    }
+                    .defaultScrollAnchor(llmService.messages.isEmpty ? .top : .bottom)
                 }
 
                 // Input bar
@@ -248,8 +264,23 @@ struct ChatView: View {
                     }
                 }
             }
+            .background {
+                ZStack(alignment: .top) {
+                    Color(.systemGroupedBackground)
+
+                    LinearGradient(
+                        colors: [Color(hex: "6366F1").opacity(colorScheme == .dark ? 0.18 : 0.08), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 320)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                }
+                .ignoresSafeArea()
+            }
             .navigationTitle(L10n.Chat.title)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 // History button on leading side
                 ToolbarItem(placement: .topBarLeading) {
@@ -257,20 +288,30 @@ struct ChatView: View {
                         showingHistory = true
                     } label: {
                         Image(systemName: "clock.arrow.circlepath")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Color(hex: "6366F1"))
+                    }
+                    .accessibilityLabel("Chat history")
+                }
+
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 7) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color(hex: "8B5CF6"), Color(hex: "EC4899")],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+
+                        Text(L10n.Chat.title)
+                            .font(.system(.headline, design: .rounded).weight(.semibold))
                     }
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 14) {
-                        Button {
-                            showingRestartSetupConfirmation = true
-                        } label: {
-                            Image(systemName: "person.text.rectangle")
-                                .foregroundColor(.accentBlue)
-                        }
-                        .accessibilityLabel("Restart Welcome Setup")
-
                         Menu {
                             if !llmService.messages.isEmpty {
                                 Button {
@@ -358,6 +399,7 @@ struct ChatView: View {
                         showingHistory = false
                     }
                 )
+                .kinddSheet()
             }
             .confirmationDialog(L10n.Chat.clearConfirmTitle, isPresented: $showingClearConfirmation) {
                 Button(L10n.Chat.clearChat, role: .destructive) {
@@ -388,6 +430,7 @@ struct ChatView: View {
                     pendingAnalysisType = type
                     typeWasSelected = true  // Mark that a type was selected
                 })
+                .kinddSheet()
             }
             // Step 2: Choose source (Photo Library, Camera, Files)
             .confirmationDialog("Choose Source", isPresented: $showingSourceOptions) {
@@ -437,6 +480,10 @@ struct ChatView: View {
                 // Skip location and other permission/side-effect work in previews
                 guard !PreviewEnv.isPreview else { return }
                 fetchUserZipCode()
+                if let prompt = initialPrompt, !didSendInitialPrompt {
+                    didSendInitialPrompt = true
+                    sendMessage(prompt)
+                }
             }
             .onChange(of: locationService.currentLocation) { _, location in
                 // Skip reacting to location updates in previews
@@ -480,14 +527,6 @@ struct ChatView: View {
             print("Got user ZIP from location: \(zip)")
         } catch {
             print("Failed to get ZIP from location: \(error)")
-        }
-    }
-
-    private func scrollToBottom(proxy: ScrollViewProxy) {
-        if let last = llmService.messages.last {
-            withAnimation(.easeOut(duration: 0.2)) {
-                proxy.scrollTo(last.id, anchor: .bottom)
-            }
         }
     }
 
@@ -610,7 +649,8 @@ struct ChatView: View {
             diagnosis: appState.userDiagnosis ?? appState.searchFilters.diagnosis ?? userMemory.context.diagnoses.first,
             insurance: appState.userInsurance ?? appState.searchFilters.insurance ?? userMemory.context.insuranceType,
             currentServices: nil,
-            memoryContext: userMemory.llmContextInjection  // Inject remembered context
+            memoryContext: userMemory.llmContextInjection,  // Inject remembered context
+            journeyStage: appState.userJourneyStage
         )
 
         Task {
@@ -905,8 +945,8 @@ struct WelcomeCard: View {
                         )
                         .frame(width: 70, height: 70)
 
-                    Image(systemName: "message.fill")
-                        .font(.system(size: 32))
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 30, weight: .semibold))
                         .foregroundColor(.white)
                 }
 
@@ -1076,6 +1116,7 @@ struct MessageBubble: View {
     var onAction: ((ChatAction) -> Void)?
 
     @State private var showActions = false
+    @State private var showTimestamp = false
 
     // Detect suggested actions from message content
     private var suggestedActions: [ChatAction] {
@@ -1309,8 +1350,8 @@ struct MessageBubble: View {
                         )
                         .frame(width: 22, height: 22)
 
-                    Image(systemName: message.role == .system ? "exclamationmark.triangle" : "message.fill")
-                        .font(.system(size: 10))
+                    Image(systemName: message.role == .system ? "exclamationmark.triangle" : "sparkles")
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.white)
                 }
             }
@@ -1323,18 +1364,13 @@ struct MessageBubble: View {
                     TypingIndicator()
                 } else {
                     VStack(alignment: .leading, spacing: 8) {
-                        if message.role == .assistant && message.isStreaming {
-                            StreamingPlainTextView(content: message.content)
-                                .contentTransition(.opacity)
-                        } else {
-                            // Use Markdown-aware text with clickable links
-                            MarkdownTextView(
-                                content: message.content,
-                                isUserMessage: message.role == .user,
-                                citations: message.citations
-                            )
-                            .contentTransition(.opacity)
-                        }
+                        // One renderer for streaming and final content: text grows in
+                        // place already formatted, with no view swap at finalize
+                        MarkdownTextView(
+                            content: message.content,
+                            isUserMessage: message.role == .user,
+                            citations: message.citations
+                        )
 
                         if message.role == .assistant && !message.citations.isEmpty {
                             ResearchSourcesView(citations: message.citations)
@@ -1381,17 +1417,24 @@ struct MessageBubble: View {
                         }
                     }
                     .modifier(MessageBubbleChrome(role: message.role))
-                    .animation(.easeOut(duration: 0.2), value: message.isStreaming)
                 }
 
-                Text(message.timestamp, style: .time)
-                    .font(.caption2)
-                    .foregroundColor(Color(uiColor: .tertiaryLabel))
+                if showTimestamp {
+                    Text(message.timestamp, style: .time)
+                        .font(.caption2)
+                        .foregroundColor(Color(uiColor: .tertiaryLabel))
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
             }
             .frame(
                 maxWidth: message.role == .user ? nil : .infinity,
                 alignment: message.role == .user ? .trailing : .leading
             )
+            .onTapGesture {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    showTimestamp.toggle()
+                }
+            }
 
             if message.role == .user {
                 // User Avatar
@@ -1460,10 +1503,15 @@ private struct MessageBubbleChrome: ViewModifier {
             }
             .frame(maxWidth: maxUserWidth, alignment: .trailing)
         } else {
-            padded(content, horizontalPadding: 10)
+            padded(content, horizontalPadding: 14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(uiColor: .tertiarySystemBackground))
-                .cornerRadius(18)
+                .background {
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Color(hex: "8B5CF6").opacity(0.12), lineWidth: 1)
+                }
+                .shadow(color: Color(hex: "6366F1").opacity(0.05), radius: 10, y: 4)
         }
     }
 
@@ -1920,10 +1968,6 @@ struct PromptCapsulesBar: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
         }
-        .background(
-            Color(uiColor: .secondarySystemBackground)
-                .shadow(color: Color.black.opacity(0.05), radius: 2, y: 2)
-        )
     }
 }
 
@@ -1968,210 +2012,6 @@ struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Streaming Text View
-
-private struct StreamingPlainTextView: View {
-    let content: String
-
-    @State private var renderedPrefix = ""
-    @State private var queuedTokens: [String] = []
-    @State private var visibleTokens: [StreamingWordToken] = []
-    @State private var drainTask: Task<Void, Never>?
-
-    var body: some View {
-        StreamingWordFlow(spacing: 0, lineSpacing: 3) {
-            ForEach(visibleTokens) { token in
-                StreamingWordView(text: token.text)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .textSelection(.enabled)
-        .onAppear {
-            syncQueue(with: content)
-            startDrainIfNeeded()
-        }
-        .onChange(of: content) { _, newValue in
-            syncQueue(with: newValue)
-            startDrainIfNeeded()
-        }
-        .onDisappear {
-            drainTask?.cancel()
-            drainTask = nil
-        }
-    }
-
-    private func syncQueue(with newContent: String) {
-        guard newContent != renderedPrefix else { return }
-
-        if newContent.hasPrefix(renderedPrefix) {
-            let newText = String(newContent.dropFirst(renderedPrefix.count))
-            queuedTokens.append(contentsOf: tokenize(newText))
-            renderedPrefix = newContent
-        } else {
-            renderedPrefix = newContent
-            queuedTokens = tokenize(newContent)
-            visibleTokens.removeAll()
-            drainTask?.cancel()
-            drainTask = nil
-        }
-    }
-
-    private func startDrainIfNeeded() {
-        guard drainTask == nil else { return }
-
-        drainTask = Task { @MainActor in
-            while !Task.isCancelled {
-                if queuedTokens.isEmpty {
-                    break
-                }
-
-                let next = queuedTokens.removeFirst()
-                visibleTokens.append(StreamingWordToken(text: next))
-
-                try? await Task.sleep(nanoseconds: 30_000_000)
-            }
-
-            drainTask = nil
-
-            if !queuedTokens.isEmpty {
-                startDrainIfNeeded()
-            }
-        }
-    }
-
-    private func tokenize(_ text: String) -> [String] {
-        var tokens: [String] = []
-        var current = ""
-
-        for character in text {
-            current.append(character)
-            if character.isWhitespace {
-                tokens.append(current)
-                current = ""
-            }
-        }
-
-        if !current.isEmpty {
-            tokens.append(current)
-        }
-
-        return tokens
-    }
-}
-
-private struct StreamingWordToken: Identifiable {
-    let id = UUID()
-    let text: String
-}
-
-private struct StreamingWordView: View {
-    let text: String
-    @State private var isVisible = false
-
-    var body: some View {
-        Text(text)
-            .font(.system(size: 16, weight: .regular, design: .default))
-            .foregroundColor(Color(uiColor: .label))
-            .lineSpacing(2)
-            .opacity(isVisible ? 1 : 0)
-            .blur(radius: isVisible ? 0 : 3)
-            .offset(y: isVisible ? 0 : 2)
-            .onAppear {
-                withAnimation(.easeOut(duration: 0.35)) {
-                    isVisible = true
-                }
-            }
-    }
-}
-
-private struct StreamingWordFlow: Layout {
-    var spacing: CGFloat = 0
-    var lineSpacing: CGFloat = 0
-
-    func sizeThatFits(
-        proposal: ProposedViewSize,
-        subviews: Subviews,
-        cache: inout ()
-    ) -> CGSize {
-        let maxWidth = proposal.width ?? .greatestFiniteMagnitude
-        let rows = computeRows(maxWidth: maxWidth, subviews: subviews)
-        let width = rows.map(\.width).max() ?? 0
-        let height = rows.reduce(CGFloat.zero) { total, row in
-            total + row.height
-        } + CGFloat(max(rows.count - 1, 0)) * lineSpacing
-
-        return CGSize(width: min(width, maxWidth), height: height)
-    }
-
-    func placeSubviews(
-        in bounds: CGRect,
-        proposal: ProposedViewSize,
-        subviews: Subviews,
-        cache: inout ()
-    ) {
-        let rows = computeRows(maxWidth: bounds.width, subviews: subviews)
-        var y = bounds.minY
-
-        for row in rows {
-            var x = bounds.minX
-            for item in row.items {
-                item.subview.place(
-                    at: CGPoint(x: x, y: y),
-                    proposal: ProposedViewSize(item.size)
-                )
-                x += item.size.width + spacing
-            }
-            y += row.height + lineSpacing
-        }
-    }
-
-    private func computeRows(maxWidth: CGFloat, subviews: Subviews) -> [FlowRow] {
-        var rows: [FlowRow] = []
-        var currentItems: [FlowItem] = []
-        var currentWidth: CGFloat = 0
-        var currentHeight: CGFloat = 0
-
-        func flushRow() {
-            guard !currentItems.isEmpty else { return }
-            rows.append(FlowRow(items: currentItems, width: currentWidth, height: currentHeight))
-            currentItems = []
-            currentWidth = 0
-            currentHeight = 0
-        }
-
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            let proposedWidth = currentItems.isEmpty
-                ? size.width
-                : currentWidth + spacing + size.width
-
-            if proposedWidth > maxWidth && !currentItems.isEmpty {
-                flushRow()
-            }
-
-            currentItems.append(FlowItem(subview: subview, size: size))
-            currentWidth = currentItems.count == 1
-                ? size.width
-                : currentWidth + spacing + size.width
-            currentHeight = max(currentHeight, size.height)
-        }
-
-        flushRow()
-        return rows
-    }
-
-    private struct FlowItem {
-        let subview: LayoutSubview
-        let size: CGSize
-    }
-
-    private struct FlowRow {
-        let items: [FlowItem]
-        let width: CGFloat
-        let height: CGFloat
-    }
-}
-
 // MARK: - Markdown Text View with Clickable Links
 
 struct MarkdownTextView: View {
@@ -2213,11 +2053,29 @@ struct MarkdownTextView: View {
             .font(chatBodyFont)
             .foregroundColor(Color(uiColor: .label))
             .tint(Color(hex: "6366F1"))
+            .textual.headingStyle(ChatHeadingStyle())
             .textual.inlineStyle(citationInlineStyle)
             .textual.textSelection(.enabled)
             .lineSpacing(2)
             .frame(maxWidth: .infinity, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// Conversational heading sizes; the library default scales H1 to 2.35x
+    /// body, which reads as a billboard inside a chat bubble
+    private struct ChatHeadingStyle: StructuredText.HeadingStyle {
+        private static let fontScales: [CGFloat] = [1.22, 1.13, 1.06, 1.0, 1.0, 1.0]
+
+        func makeBody(configuration: Configuration) -> some View {
+            let level = min(configuration.headingLevel, 6)
+
+            configuration.label
+                .textual.fontScale(Self.fontScales[level - 1])
+                .textual.blockSpacing(.fontScaled(top: 1.2, bottom: 0.5))
+                .fontWeight(.semibold)
+                .fontDesign(.rounded)
+                .foregroundStyle(Color(hex: "4338CA"))
+        }
     }
 
     private var chatBodyFont: Font {

@@ -82,28 +82,34 @@ struct ProviderDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text(provider.regionalCenterShortName ?? "")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                        .foregroundColor(.white)
-                }
                 ToolbarItem(placement: .primaryAction) {
-                    ShareLink(
-                        item: shareText,
-                        subject: Text(provider.name),
-                        message: Text("Check out this resource I found on NDD Resources")
-                    ) {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.white)
+                    HStack(spacing: 10) {
+                        ShareLink(
+                            item: shareText,
+                            subject: Text(provider.name),
+                            message: Text("Check out this resource I found on KiNDD")
+                        ) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.primary)
+                                .frame(width: 32, height: 32)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.primary)
+                                .frame(width: 32, height: 32)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+                        .accessibilityLabel("Close")
                     }
                 }
             }
         }
-        .tint(.white)
         .simultaneousGesture(
             DragGesture()
                 .onChanged { value in
@@ -125,6 +131,7 @@ struct ProviderDetailView: View {
                 destinationCoordinate: provider.coordinate,
                 destinationAddress: provider.formattedAddress
             )
+            .kinddSheet()
         }
     }
 
@@ -134,7 +141,7 @@ struct ProviderDetailView: View {
         ZStack(alignment: .bottomLeading) {
             // Gradient background - extends to all edges
             LinearGradient(
-                colors: [rcColor.opacity(0.9), rcColor.opacity(0.5)],
+                colors: [rcColor, rcColor.opacity(0.72)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -232,7 +239,7 @@ struct ProviderDetailView: View {
                 ActionButton(
                     icon: "phone.fill",
                     title: "Call",
-                    color: .green
+                    color: Color(hex: "6366F1")
                 ) {
                     openURL(phoneURL)
                 }
@@ -242,7 +249,7 @@ struct ProviderDetailView: View {
                 ActionButton(
                     icon: "envelope.fill",
                     title: "Email",
-                    color: .blue
+                    color: Color(hex: "8B5CF6")
                 ) {
                     openURL(emailURL)
                 }
@@ -252,7 +259,7 @@ struct ProviderDetailView: View {
                 ActionButton(
                     icon: "globe",
                     title: "Website",
-                    color: .purple
+                    color: Color(hex: "A855F7")
                 ) {
                     openURL(websiteURL)
                 }

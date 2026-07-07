@@ -81,6 +81,20 @@ struct ProviderListView: View {
                     providerList
                 }
             }
+            .background {
+                ZStack(alignment: .top) {
+                    Color(.systemGroupedBackground)
+
+                    LinearGradient(
+                        colors: [Color(hex: "6366F1").opacity(0.08), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 300)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                }
+                .ignoresSafeArea()
+            }
             .navigationTitle(L10n.Resources.title)
             .searchable(
                 text: $searchText,
@@ -156,12 +170,12 @@ struct ProviderListView: View {
                     Task { await refreshProviders() }
                 }
                 .presentationDetents([.medium, .large])
+                .kinddSheet()
             }
             .sheet(item: $selectedProvider) { provider in
                 ProviderDetailView(provider: provider)
                     .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
-                    .presentationCornerRadius(20)
+                    .kinddSheet()
             }
             .refreshable {
                 await refreshProviders()
@@ -271,8 +285,14 @@ struct ProviderListView: View {
                 .buttonStyle(.plain)
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             }
             .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .safeAreaInset(edge: .bottom) {
+                // Keeps the last card clear of the floating pill tab bar
+                Color.clear.frame(height: 66)
+            }
             .simultaneousGesture(
                 DragGesture()
                     .onChanged { value in
@@ -372,8 +392,8 @@ struct ProviderListView: View {
         switch therapy.lowercased() {
         case let t where t.contains("aba"): return Color(hex: "6366F1")
         case let t where t.contains("speech"): return Color(hex: "EC4899")
-        case let t where t.contains("occupational"): return Color(hex: "10B981")
-        case let t where t.contains("physical"): return Color(hex: "F59E0B")
+        case let t where t.contains("occupational"): return Color(hex: "8B5CF6")
+        case let t where t.contains("physical"): return Color(hex: "A855F7")
         default: return .accentBlue
         }
     }
@@ -519,7 +539,7 @@ struct ProviderCardView: View {
         .padding(16)
         .background {
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
+                .fill(Color(.secondarySystemGroupedBackground))
             // Subtle inner glow
             RoundedRectangle(cornerRadius: 16)
                 .fill(
@@ -594,11 +614,11 @@ struct ServiceTag: View {
             .padding(.vertical, 5)
             .background {
                 Capsule()
-                    .fill(secondary ? Color(.systemGray5) : Color.green.opacity(0.12))
+                    .fill(secondary ? Color(.systemGray5) : Color(hex: "6366F1").opacity(0.10))
                 Capsule()
-                    .stroke(secondary ? Color.gray.opacity(0.2) : Color.green.opacity(0.25), lineWidth: 0.5)
+                    .stroke(secondary ? Color.gray.opacity(0.2) : Color(hex: "6366F1").opacity(0.22), lineWidth: 0.5)
             }
-            .foregroundColor(secondary ? .secondary : .green)
+            .foregroundColor(secondary ? .secondary : Color(hex: "4F46E5"))
     }
 }
 

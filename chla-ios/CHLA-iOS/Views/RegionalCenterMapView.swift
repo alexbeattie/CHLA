@@ -283,6 +283,7 @@ struct RegionalCenterInfoSheet: View {
                         destinationCoordinate: coord,
                         destinationAddress: rcData?.fullAddress ?? ""
                     )
+                    .kinddSheet()
                 }
             }
         }

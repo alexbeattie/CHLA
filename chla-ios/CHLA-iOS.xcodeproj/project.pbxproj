@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -25,6 +25,9 @@
 		6B79503BF9C794103C0702A1 /* TextToSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61E1ABB81CEE760D1CC1E73 /* TextToSpeech.swift */; };
 		72ADDE0D8CF37F1E6F453A21 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFA26FF1ADF42593DAC6F7B1 /* ChatView.swift */; };
 		74F351F827C254C0FE599402 /* UserMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402E2530748505838F7BCDCB /* UserMemory.swift */; };
+		78C521CF2FFCC5F800DC8A86 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78C521CE2FFCC5F800DC8A86 /* WidgetKit.framework */; };
+		78C521D12FFCC5F800DC8A86 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78C521D02FFCC5F800DC8A86 /* SwiftUI.framework */; };
+		78C521DC2FFCC5FA00DC8A86 /* KiNDDWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C521CC2FFCC5F800DC8A86 /* KiNDDWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306D53C14B3C1FAEC3E125CB /* Formatters.swift */; };
 		7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */; };
 		8228B2A552594EC69884FF14 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92919786FE583BD8E230766A /* HomeView.swift */; };
@@ -48,6 +51,30 @@
 		F7C5D739A4B6EDD98B6A9AA6 /* LLMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB66AF039092093484EE110A /* LLMService.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		78C521DA2FFCC5FA00DC8A86 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DEFCD0F0AF2F8007BD6358D5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 78C521CB2FFCC5F800DC8A86;
+			remoteInfo = KiNDDWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		78C521DD2FFCC5FA00DC8A86 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				78C521DC2FFCC5FA00DC8A86 /* KiNDDWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		0984D9DCC530BA0054C44679 /* ProviderListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderListView.swift; sourceTree = "<group>"; };
 		1553738229B3CEAC9B3F5EB8 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -64,6 +91,11 @@
 		5C307B5218ED66C3FF88851E /* ModernSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernSearchView.swift; sourceTree = "<group>"; };
 		5DF7FEC1363DEBC3854415A1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7768999E0A6F9B808A733F37 /* ConversationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistory.swift; sourceTree = "<group>"; };
+		78C521CC2FFCC5F800DC8A86 /* KiNDDWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KiNDDWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		78C521CE2FFCC5F800DC8A86 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		78C521D02FFCC5F800DC8A86 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		78C521E22FFCC69400DC8A86 /* CHLA-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "CHLA-iOS.entitlements"; sourceTree = "<group>"; };
+		78C521E32FFCC6DD00DC8A86 /* KiNDDWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KiNDDWidgetsExtension.entitlements; sourceTree = "<group>"; };
 		799EC6588DBA54D07F98CCD1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		7B2B580D891A3952DCBAE5A4 /* ProviderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderStore.swift; sourceTree = "<group>"; };
 		7E625B0DCCEDC1A034F56FCE /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
@@ -92,7 +124,30 @@
 		FFA26FF1ADF42593DAC6F7B1 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		78C521E02FFCC5FA00DC8A86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 78C521CB2FFCC5F800DC8A86 /* KiNDDWidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		78C521D22FFCC5F800DC8A86 /* KiNDDWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (78C521E02FFCC5FA00DC8A86 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = KiNDDWidgets; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		78C521C92FFCC5F800DC8A86 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				78C521D12FFCC5F800DC8A86 /* SwiftUI.framework in Frameworks */,
+				78C521CF2FFCC5F800DC8A86 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A7EABE83FF14E757A3D490D9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -107,7 +162,10 @@
 		10BF7A4DA57D3584A2E10381 = {
 			isa = PBXGroup;
 			children = (
+				78C521E32FFCC6DD00DC8A86 /* KiNDDWidgetsExtension.entitlements */,
 				ECD3741F0C98337817686A2D /* CHLA-iOS */,
+				78C521D22FFCC5F800DC8A86 /* KiNDDWidgets */,
+				78C521CD2FFCC5F800DC8A86 /* Frameworks */,
 				EB7C22148FEF8E87E05E3493 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -187,6 +245,15 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		78C521CD2FFCC5F800DC8A86 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				78C521CE2FFCC5F800DC8A86 /* WidgetKit.framework */,
+				78C521D02FFCC5F800DC8A86 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		9410D52DF71193838612B37C /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -210,6 +277,7 @@
 			isa = PBXGroup;
 			children = (
 				1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */,
+				78C521CC2FFCC5F800DC8A86 /* KiNDDWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -217,6 +285,7 @@
 		ECD3741F0C98337817686A2D /* CHLA-iOS */ = {
 			isa = PBXGroup;
 			children = (
+				78C521E22FFCC69400DC8A86 /* CHLA-iOS.entitlements */,
 				583D240ED728538F30EE8E8E /* App */,
 				FF212992361548BD1F7382F0 /* Extensions */,
 				9410D52DF71193838612B37C /* Models */,
@@ -248,10 +317,12 @@
 				54CDF34F01D3A3FE6D86C75F /* Sources */,
 				3D85C023AFA8C8967C74CB03 /* Resources */,
 				A7EABE83FF14E757A3D490D9 /* Frameworks */,
+				78C521DD2FFCC5FA00DC8A86 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				78C521DB2FFCC5FA00DC8A86 /* PBXTargetDependency */,
 			);
 			name = "CHLA-iOS";
 			packageProductDependencies = (
@@ -261,6 +332,28 @@
 			productReference = 1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */;
 			productType = "com.apple.product-type.application";
 		};
+		78C521CB2FFCC5F800DC8A86 /* KiNDDWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 78C521E12FFCC5FA00DC8A86 /* Build configuration list for PBXNativeTarget "KiNDDWidgetsExtension" */;
+			buildPhases = (
+				78C521C82FFCC5F800DC8A86 /* Sources */,
+				78C521C92FFCC5F800DC8A86 /* Frameworks */,
+				78C521CA2FFCC5F800DC8A86 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				78C521D22FFCC5F800DC8A86 /* KiNDDWidgets */,
+			);
+			name = KiNDDWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = KiNDDWidgetsExtension;
+			productReference = 78C521CC2FFCC5F800DC8A86 /* KiNDDWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -268,10 +361,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					4078F61FF572E66B27C15AE7 = {
 						ProvisioningStyle = Automatic;
+					};
+					78C521CB2FFCC5F800DC8A86 = {
+						CreatedOnToolsVersion = 26.6;
 					};
 				};
 			};
@@ -293,6 +390,7 @@
 			projectRoot = "";
 			targets = (
 				4078F61FF572E66B27C15AE7 /* CHLA-iOS */,
+				78C521CB2FFCC5F800DC8A86 /* KiNDDWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -305,6 +403,13 @@
 				AA4A526410141C30831A38A5 /* Assets.xcassets in Resources */,
 				D9881AB0C63EF317514F3D11 /* Localizable.strings in Resources */,
 				066B905200A44CF4DA67DA13 /* la_regional_centers.geojson in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		78C521CA2FFCC5F800DC8A86 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,7 +458,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		78C521C82FFCC5F800DC8A86 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		78C521DB2FFCC5FA00DC8A86 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 78C521CB2FFCC5F800DC8A86 /* KiNDDWidgetsExtension */;
+			targetProxy = 78C521DA2FFCC5FA00DC8A86 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		F311F08B47B757549CEE42E4 /* Localizable.strings */ = {
@@ -372,6 +492,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "CHLA-iOS/CHLA-iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = LR4SP9C264;
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
@@ -438,7 +559,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "NDD Resource Map";
+				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NDD Resource Map uses your location to find healthcare providers near you.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -455,6 +576,88 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		78C521DE2FFCC5FA00DC8A86 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = KiNDDWidgetsExtension.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LR4SP9C264;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KiNDDWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = KiNDDWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map.KiNDDWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		78C521DF2FFCC5FA00DC8A86 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = KiNDDWidgetsExtension.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LR4SP9C264;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KiNDDWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = KiNDDWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map.KiNDDWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -515,7 +718,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "NDD Resource Map";
+				INFOPLIST_KEY_CFBundleDisplayName = KiNDD;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "NDD Resource Map uses your location to find healthcare providers near you.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -540,6 +743,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "CHLA-iOS/CHLA-iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = LR4SP9C264;
 				INFOPLIST_FILE = "CHLA-iOS/Resources/Info.plist";
@@ -563,6 +767,15 @@
 			buildConfigurations = (
 				4AE2292EB90415C35707AFBB /* Debug */,
 				83EAB082A2ABDF604A859052 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		78C521E12FFCC5FA00DC8A86 /* Build configuration list for PBXNativeTarget "KiNDDWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				78C521DE2FFCC5FA00DC8A86 /* Debug */,
+				78C521DF2FFCC5FA00DC8A86 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

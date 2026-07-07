@@ -2,78 +2,72 @@
 // HomeView.swift
 // NDD Resources
 //
-// Beautiful, clean homepage with clear navigation
+// Home: regional center orientation, guided chat entry, service browsing
 //
 
 import SwiftUI
-import CoreLocation
+import MapKit
 
 struct HomeView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var visibilityManager = UIVisibilityManager.shared
+    @Environment(\.openURL) private var openURL
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject private var languageManager = LanguageManager.shared
-    @StateObject private var locationService = LocationService()
     @StateObject private var regionalCentersMapModel = RegionalCenterMapViewModel()
-    @StateObject private var conversationHistory = ConversationHistory()
-    @StateObject private var userMemory = UserMemory()
 
-    @State private var showChatSheet = false
     @State private var showResetConfirmation = false
     @State private var showAboutSheet = false
     @State private var showFAQSheet = false
     @State private var userRegionalCenter: RegionalCenterMatcher.RegionalCenterInfo?
+    @State private var zipInput = ""
+    @State private var zipLookupFailed = false
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 0) {
-                // Hero Section with gradient background
-                heroSection
+            VStack(spacing: 22) {
+                compactHeader
 
-                // Main Content
-                VStack(spacing: 22) {
-                    // AI Assistant Card
-                    askKiNDDCard
+                mapHero
 
-                    // Setup shortcut
-                    restartSetupCard
+                serviceTypeRow
 
-                    // Quick Actions
-                    quickActionsSection
+                nextStepSlot
 
-                    // Regional Centers Map Preview
-                    regionalCentersPreview
+                questionRowsSection
 
-                    // Service Categories
-                    serviceCategoriesSection
-
-                    // Your Regional Center (if detected)
-                    if let center = userRegionalCenter {
-                        yourRegionalCenterSection(center)
-                    }
-
-                    // Info Footer
-                    infoFooter
-                }
-                .padding(.horizontal, 18)
-                .padding(.top, 18)
-                .padding(.bottom, 128)
+                infoFooter
             }
+            .padding(.horizontal, 18)
+            .padding(.top, 56)
+            .padding(.bottom, 24)
         }
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .background {
+            ZStack(alignment: .top) {
+                Color(.systemGroupedBackground)
+
+                LinearGradient(
+                    colors: [Color(hex: "6366F1").opacity(colorScheme == .dark ? 0.22 : 0.10), .clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 360)
+                .frame(maxHeight: .infinity, alignment: .top)
+            }
+            .ignoresSafeArea()
+        }
+        .safeAreaInset(edge: .bottom) {
+            chatCapsule
+                // The parent tab container ignores safe areas, so this measures from
+                // the screen edge: pill spans 42-92pt, capsule sits 10pt above it
+                .padding(.bottom, 102)
+        }
         .onAppear {
-            detectUserLocation()
+            resolveRegionalCenter()
             if regionalCentersMapModel.serviceAreas.isEmpty {
                 Task {
                     await regionalCentersMapModel.fetchServiceAreas()
                 }
             }
-        }
-        .overlay(alignment: .bottomTrailing) {
-            floatingChatButton
-        }
-        .sheet(isPresented: $showChatSheet) {
-            ChatView()
-                .environmentObject(appState)
         }
         .sheet(isPresented: $showAboutSheet) {
             NavigationStack {
@@ -87,6 +81,7 @@ struct HomeView: View {
                         }
                     }
             }
+            .kinddSheet()
         }
         .sheet(isPresented: $showFAQSheet) {
             NavigationStack {
@@ -100,6 +95,7 @@ struct HomeView: View {
                         }
                     }
             }
+            .kinddSheet()
         }
         .confirmationDialog(
             L10n.Home.changePreferences,
@@ -115,349 +111,224 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Hero Section
+    // MARK: - Chat Capsule
 
-    private var heroSection: some View {
-        ZStack {
-            // Gradient background
-            LinearGradient(
-                colors: [
-                    Color(hex: "6366F1").opacity(0.15),
-                    Color(hex: "8B5CF6").opacity(0.08),
-                    Color(.systemGroupedBackground)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-
-            VStack(spacing: 14) {
-                // Top bar with settings
-                HStack {
-                    Text("Los Angeles County")
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(Color(hex: "6366F1"))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.white.opacity(0.65))
-                        .clipShape(Capsule())
-
-                    Spacer()
-
-                    Menu {
-                        // Language submenu
-                        Menu {
-                            ForEach(AppLanguage.allCases) { language in
-                                Button {
-                                    languageManager.currentLanguage = language
-                                } label: {
-                                    HStack {
-                                        Text(language.displayName)
-                                        if languageManager.currentLanguage == language {
-                                            Image(systemName: "checkmark")
-                                        }
-                                    }
-                                }
-                            }
-                        } label: {
-                            Label("Language", systemImage: "globe")
-                        }
-
-                        Divider()
-
-                        Button {
-                            showResetConfirmation = true
-                        } label: {
-                            Label("Change Preferences", systemImage: "slider.horizontal.3")
-                        }
-
-                        Button {
-                            appState.selectedTab = 4
-                        } label: {
-                            Label("Settings", systemImage: "gear")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.system(size: 22))
-                            .foregroundColor(Color(hex: "6366F1"))
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 56)
-
-                // Logo and title
-                VStack(spacing: 12) {
-                    // KiNDD Logo
-                    Image("KiNDDLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 72)
-                        .shadow(color: Color(hex: "6366F1").opacity(0.2), radius: 12, y: 6)
-
-                    Text("Resource Navigator")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-
-                    Text("Find services, understand regional center coverage, and get guided help faster.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                }
-                .padding(.bottom, 8)
-            }
-        }
-        .frame(height: 228)
-    }
-
-    // MARK: - Ask KiNDD Card
-
-    private var askKiNDDCard: some View {
+    private var chatCapsule: some View {
         Button {
-            showChatSheet = true
+            appState.openChat()
         } label: {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack(spacing: 14) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(hex: "8B5CF6"), Color(hex: "EC4899")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 50, height: 50)
+            HStack(spacing: 10) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(hex: "8B5CF6"), Color(hex: "EC4899")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
 
-                        Image(systemName: "message.fill")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
+                Text("Ask KiNDD anything...")
+                    .font(.system(.subheadline, design: .rounded).weight(.medium))
+                    .foregroundColor(.secondary)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Ask KiNDD")
-                            .font(.title3.weight(.semibold))
-                            .foregroundColor(.primary)
+                Spacer()
 
-                        Text("Get personalized help finding services, understanding your next steps, and knowing which regional center to contact.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.leading)
-                    }
-
-                    Spacer()
-
-                    Image(systemName: "chevron.right.circle.fill")
-                        .font(.system(size: 26))
-                        .foregroundStyle(
+                ZStack {
+                    Circle()
+                        .fill(
                             LinearGradient(
                                 colors: [Color(hex: "8B5CF6"), Color(hex: "EC4899")],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
+                        .frame(width: 34, height: 34)
+
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.leading, 16)
+            .padding(.trailing, 7)
+            .frame(height: 48)
+            .background {
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                Capsule()
+                    .fill(Color(.secondarySystemGroupedBackground).opacity(colorScheme == .dark ? 0.6 : 0.75))
+                Capsule()
+                    .stroke(Color(hex: "8B5CF6").opacity(0.25), lineWidth: 1)
+            }
+            .shadow(color: Color(hex: "8B5CF6").opacity(0.18), radius: 12, y: 5)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 18)
+        .accessibilityLabel("Ask KiNDD anything")
+    }
+
+    // MARK: - Compact Header
+
+    private var compactHeader: some View {
+        HStack(spacing: 12) {
+            // Logo asset is dark-on-transparent; needs a light chip until a dark variant exists
+            Image("KiNDDLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: colorScheme == .dark ? 28 : 36)
+                .padding(.horizontal, colorScheme == .dark ? 10 : 0)
+                .padding(.vertical, colorScheme == .dark ? 6 : 0)
+                .background {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(.white)
+                    }
                 }
 
-                // Example prompts
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        PromptPill(text: "Find ABA near me")
-                        PromptPill(text: "Early intervention")
-                        PromptPill(text: "Which regional center serves me?")
+            Spacer()
+
+            Text("Los Angeles County")
+                .font(.caption.weight(.semibold))
+                .foregroundColor(Color(hex: colorScheme == .dark ? "A5B4FC" : "6366F1"))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color(hex: "6366F1").opacity(colorScheme == .dark ? 0.22 : 0.1))
+                .clipShape(Capsule())
+
+            Menu {
+                Menu {
+                    ForEach(AppLanguage.allCases) { language in
+                        Button {
+                            languageManager.currentLanguage = language
+                        } label: {
+                            HStack {
+                                Text(language.displayName)
+                                if languageManager.currentLanguage == language {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    Label("Language", systemImage: "globe")
+                }
+
+                Divider()
+
+                Button {
+                    showResetConfirmation = true
+                } label: {
+                    Label("Change Preferences", systemImage: "slider.horizontal.3")
+                }
+
+                Button {
+                    appState.selectedTab = 4
+                } label: {
+                    Label("Settings", systemImage: "gear")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .font(.system(size: 22))
+                    .foregroundColor(Color(hex: "6366F1"))
+            }
+        }
+    }
+
+    // MARK: - Map Hero
+
+    private var mapHero: some View {
+        ZStack(alignment: .bottom) {
+            heroMapSurface
+                .frame(height: 340)
+
+            Group {
+                if let center = userRegionalCenter {
+                    knownCenterCard(center)
+                } else {
+                    zipEntryCard
+                }
+            }
+            .padding(10)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+        }
+        .shadow(color: Color(hex: "6366F1").opacity(0.10), radius: 18, y: 8)
+    }
+
+    @ViewBuilder
+    private var heroMapSurface: some View {
+        if regionalCentersMapModel.serviceAreas.isEmpty {
+            ZStack {
+                LinearGradient(
+                    colors: [Color(hex: "6366F1").opacity(0.30), Color(hex: "EC4899").opacity(0.18)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                ProgressView()
+                    .tint(.white)
+            }
+        } else {
+            Map(initialPosition: .region(heroRegion), interactionModes: []) {
+                ForEach(regionalCentersMapModel.serviceAreas) { feature in
+                    ForEach(Array(feature.allMapPolygons.enumerated()), id: \.offset) { _, polygon in
+                        let highlighted = isHeroHighlighted(feature)
+                        MapPolygon(polygon)
+                            .foregroundStyle(feature.fillColor.opacity(highlighted ? 0.34 : 0.15))
+                            .stroke(feature.strokeColor.opacity(highlighted ? 1 : 0.7), lineWidth: highlighted ? 3 : 1.5)
                     }
                 }
             }
-            .padding(18)
-            .background {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color(.systemBackground))
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Color(hex: "8B5CF6").opacity(0.12), lineWidth: 1)
-            }
-            .shadow(color: Color(hex: "8B5CF6").opacity(0.08), radius: 20, y: 10)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var restartSetupCard: some View {
-        Button {
-            showResetConfirmation = true
-        } label: {
-            HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color(hex: "6366F1").opacity(0.12))
-                        .frame(width: 48, height: 48)
-
-                    Image(systemName: "person.text.rectangle")
-                        .font(.system(size: 21, weight: .semibold))
-                        .foregroundColor(Color(hex: "6366F1"))
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Restart Welcome Setup")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-
-                    Text("Update ZIP code, care context, and preferences.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                Image(systemName: "arrow.clockwise.circle.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(Color(hex: "6366F1"))
-            }
-            .padding(16)
-            .background {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color(.systemBackground))
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(Color(hex: "6366F1").opacity(0.14), lineWidth: 1)
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: - Quick Actions
-
-    private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Quick Actions")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-
-                Text("Jump straight into the map, your nearby providers, or regional center coverage.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.leading, 4)
-
-            HStack(spacing: 12) {
-                // Find Providers
-                QuickActionTile(
-                    icon: "location.fill",
-                    title: "Near Me",
-                    color: Color(hex: "3B82F6")
-                ) {
-                    NotificationCenter.default.post(name: .useMyLocation, object: nil)
-                    appState.selectedTab = 1
-                }
-
-                // Regional Centers
-                QuickActionTile(
-                    icon: "map.fill",
-                    title: "Regions",
-                    color: Color(hex: "F59E0B")
-                ) {
+            .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .excludingAll))
+            .allowsHitTesting(false)
+            .overlay(alignment: .topTrailing) {
+                Button {
                     appState.selectedTab = 2
-                }
-
-                // Browse All
-                QuickActionTile(
-                    icon: "list.bullet",
-                    title: "Browse",
-                    color: Color(hex: "10B981")
-                ) {
-                    appState.selectedTab = 3
-                }
-
-                // Map
-                QuickActionTile(
-                    icon: "mappin.and.ellipse",
-                    title: "Map",
-                    color: Color(hex: "6366F1")
-                ) {
-                    appState.selectedTab = 1
-                }
-            }
-        }
-    }
-
-    // MARK: - Service Categories
-
-    private var serviceCategoriesSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Find by Service Type")
-                    .font(.headline)
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "map.fill")
+                            .font(.caption2)
+                        Text("Explore")
+                            .font(.caption.weight(.semibold))
+                    }
                     .foregroundColor(.primary)
-
-                Text("Browse common care paths parents search for most often.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.leading, 4)
-
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 10),
-                GridItem(.flexible(), spacing: 10)
-            ], spacing: 10) {
-                ServiceCategoryCard(
-                    icon: "brain.head.profile",
-                    title: "ABA Therapy",
-                    subtitle: "Behavior analysis",
-                    color: Color(hex: "6366F1")
-                ) {
-                    appState.searchFilters.therapyTypes = ["ABA therapy"]
-                    appState.selectedTab = 3
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(.ultraThinMaterial, in: Capsule())
                 }
-
-                ServiceCategoryCard(
-                    icon: "waveform.and.person.filled",
-                    title: "Speech",
-                    subtitle: "Language therapy",
-                    color: Color(hex: "EC4899")
-                ) {
-                    appState.searchFilters.therapyTypes = ["Speech therapy"]
-                    appState.selectedTab = 3
-                }
-
-                ServiceCategoryCard(
-                    icon: "hand.raised.fill",
-                    title: "Occupational",
-                    subtitle: "Daily skills",
-                    color: Color(hex: "10B981")
-                ) {
-                    appState.searchFilters.therapyTypes = ["Occupational therapy"]
-                    appState.selectedTab = 3
-                }
-
-                ServiceCategoryCard(
-                    icon: "figure.walk",
-                    title: "Physical",
-                    subtitle: "Motor skills",
-                    color: Color(hex: "F59E0B")
-                ) {
-                    appState.searchFilters.therapyTypes = ["Physical therapy"]
-                    appState.selectedTab = 3
-                }
+                .buttonStyle(.plain)
+                .padding(10)
             }
         }
     }
 
-    // MARK: - Regional Centers Preview
-
-    private var regionalCentersPreview: some View {
-        RegionalCentersMiniMapCard(
-            serviceAreas: regionalCentersMapModel.serviceAreas,
-            highlightedCenterShortName: userRegionalCenter?.shortName,
-            isLoading: regionalCentersMapModel.isLoading
-        ) {
-            appState.selectedTab = 2
-        }
+    private var heroRegion: MKCoordinateRegion {
+        // Frame the urban core with the "Los Angeles" label near the top edge so
+        // the colored service areas fill the view; the user's own area is
+        // emphasized by the highlighted polygon instead
+        MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 33.87, longitude: -118.26),
+            span: MKCoordinateSpan(latitudeDelta: 0.55, longitudeDelta: 0.6)
+        )
     }
 
-    // MARK: - Your Regional Center
+    private func isHeroHighlighted(_ feature: ServiceAreaFeature) -> Bool {
+        guard let short = userRegionalCenter?.shortName else { return false }
+        let normalize = { (s: String) in s.replacingOccurrences(of: "/", with: "").uppercased() }
+        return normalize(feature.shortName) == normalize(short)
+    }
 
-    private func yourRegionalCenterSection(_ center: RegionalCenterMatcher.RegionalCenterInfo) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+    private func knownCenterCard(_ center: RegionalCenterMatcher.RegionalCenterInfo) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text("Your Regional Center")
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                    .font(.caption.weight(.semibold))
+                    .textCase(.uppercase)
+                    .kerning(0.8)
+                    .foregroundColor(.secondary)
 
                 Spacer()
 
@@ -465,58 +336,391 @@ struct HomeView: View {
                     Circle()
                         .fill(Color(hex: "10B981"))
                         .frame(width: 8, height: 8)
-                    Text("Detected")
+                    Text("Matched")
                         .font(.caption.weight(.medium))
                         .foregroundColor(Color(hex: "10B981"))
                 }
             }
+
+            Text(center.name)
+                .font(.system(.title2, design: .rounded).weight(.bold))
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.leading)
+
+            Text("Regional centers coordinate evaluations, services, and funding for your family.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
+            HStack(spacing: 10) {
+                Button {
+                    let digits = center.phone.filter(\.isNumber)
+                    if let url = URL(string: "tel://\(digits)") {
+                        openURL(url)
+                    }
+                } label: {
+                    Label(center.phone, systemImage: "phone.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(center.uiColor))
+                }
+
+                Button {
+                    appState.selectedTab = 2
+                } label: {
+                    Text("Details")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(center.uiColor)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Capsule().stroke(center.uiColor.opacity(0.4), lineWidth: 1))
+                }
+
+                Spacer()
+            }
+        }
+        .padding(18)
+        .background {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [center.uiColor.opacity(0.08), .clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottom
+                    )
+                )
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(center.uiColor.opacity(0.18), lineWidth: 1)
+        }
+        .shadow(color: center.uiColor.opacity(0.08), radius: 16, y: 8)
+    }
+
+    private var zipEntryCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Who serves your family?")
+                .font(.system(.title2, design: .rounded).weight(.bold))
+                .foregroundColor(.primary)
+
+            Text("Every family in LA County is assigned a regional center by ZIP code. Enter yours to see who to contact.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
+            HStack(spacing: 10) {
+                TextField("ZIP code", text: $zipInput)
+                    .keyboardType(.numberPad)
+                    .font(.body.monospacedDigit())
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color(.tertiarySystemFill))
+                    }
+                    .onChange(of: zipInput) { _, _ in
+                        zipLookupFailed = false
+                    }
+
+                Button {
+                    lookupZip()
+                } label: {
+                    Text("Find")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(Color(hex: "6366F1")))
+                }
+                .disabled(!isValidZip)
+                .opacity(isValidZip ? 1 : 0.5)
+            }
+
+            if zipLookupFailed {
+                Text("That ZIP code doesn't match an LA County regional center. Double-check it, or ask KiNDD for help.")
+                    .font(.caption)
+                    .foregroundColor(.red)
+            }
+        }
+        .padding(18)
+        .background {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color(hex: "6366F1").opacity(0.14), lineWidth: 1)
+        }
+        .shadow(color: Color(hex: "6366F1").opacity(0.06), radius: 16, y: 8)
+    }
+
+    // MARK: - Next Step
+
+    private struct NextStep {
+        let title: String
+        let detail: String
+        let chatLabel: String
+        let chatPrompt: String
+        let showsCall: Bool
+    }
+
+    @ViewBuilder
+    private var nextStepSlot: some View {
+        if let stage = appState.journeyStage, let step = nextStep(for: stage) {
+            nextStepCard(step)
+        }
+    }
+
+    private func nextStep(for stage: JourneyStage) -> NextStep? {
+        let centerName = userRegionalCenter?.name ?? "your regional center"
+
+        switch stage {
+        case .justDiagnosed:
+            return NextStep(
+                title: "Request an intake evaluation",
+                detail: "One call to \(centerName) starts everything - eligibility, evaluations, and services. No referral needed.",
+                chatLabel: "What do I say?",
+                chatPrompt: "We just got a diagnosis. What do I say when I call my regional center to request an intake evaluation for my child?",
+                showsCall: true
+            )
+        case .waitingIntake:
+            return NextStep(
+                title: "Get ready for the intake",
+                detail: "Gathering records now - evaluations, medical notes, your own observations - makes the appointment count.",
+                chatLabel: "Help me prepare",
+                chatPrompt: "How do we prepare for our regional center intake appointment? What documents and information should we bring?",
+                showsCall: false
+            )
+        case .receivingServices:
+            return NextStep(
+                title: "Get more from your IPP",
+                detail: "Your Individual Program Plan is renegotiable. Many families don't know what they can ask for.",
+                chatLabel: "What can I ask for?",
+                chatPrompt: "My child already receives regional center services. How do I prepare for an IPP meeting, and what services can I ask for?",
+                showsCall: false
+            )
+        case .exploring:
+            return nil
+        }
+    }
+
+    private func nextStepCard(_ step: NextStep) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.turn.down.right")
+                    .font(.caption.weight(.bold))
+                Text("Your Next Step")
+                    .font(.caption.weight(.semibold))
+                    .textCase(.uppercase)
+                    .kerning(0.8)
+            }
+            .foregroundColor(Theme.violet)
+
+            Text(step.title)
+                .font(.system(.title3, design: .rounded).weight(.bold))
+                .foregroundColor(.primary)
+
+            Text(step.detail)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 10) {
+                if step.showsCall, let center = userRegionalCenter {
+                    Button {
+                        let digits = center.phone.filter(\.isNumber)
+                        if let url = URL(string: "tel://\(digits)") {
+                            openURL(url)
+                        }
+                    } label: {
+                        Label("Call now", systemImage: "phone.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(Capsule().fill(Theme.accentGradient))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Button {
+                    appState.openChat(prompt: step.chatPrompt)
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .font(.caption.weight(.semibold))
+                        Text(step.chatLabel)
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundColor(Theme.violet)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Capsule().stroke(Theme.violet.opacity(0.4), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+            }
+            .padding(.top, 2)
+        }
+        .padding(18)
+        .background {
+            RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
+                .fill(Theme.cardSurface)
+            RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Theme.violet.opacity(0.07), .clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottom
+                    )
+                )
+            RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
+                .stroke(Theme.violet.opacity(0.18), lineWidth: 1)
+        }
+        .shadow(color: Theme.violet.opacity(0.08), radius: 14, y: 6)
+    }
+
+    // MARK: - Question Rows
+
+    private var questionRowsSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("How can we help?")
+                    .font(.system(.title3, design: .rounded).weight(.semibold))
+                    .foregroundColor(.primary)
+
+                Text("Tap a question, or ask your own anytime below.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
             .padding(.leading, 4)
 
-            Button {
-                appState.selectedTab = 2
-            } label: {
-                HStack(spacing: 14) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(center.uiColor.opacity(0.12))
-                            .frame(width: 50, height: 50)
-
-                        Text(center.shortName)
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(center.uiColor)
-                    }
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(center.name)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundColor(.primary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-
-                        Text(center.phone)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(16)
-                .background {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color(.systemBackground))
-                }
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(center.uiColor.opacity(0.12), lineWidth: 1)
+            VStack(spacing: 10) {
+                questionRow(
+                    icon: "sparkles",
+                    tint: Color(hex: "8B5CF6"),
+                    text: "We just got a diagnosis. What do we do first?"
                 )
-                .shadow(color: .black.opacity(0.03), radius: 10, y: 4)
+
+                questionRow(
+                    icon: "mappin.and.ellipse",
+                    tint: Color(hex: "EC4899"),
+                    text: "Find ABA therapy near me"
+                )
+
+                if let center = userRegionalCenter {
+                    questionRow(
+                        icon: "building.2",
+                        tint: Color(hex: "6366F1"),
+                        text: "What services can \(center.shortName) help fund?"
+                    )
+                } else {
+                    questionRow(
+                        icon: "building.2",
+                        tint: Color(hex: "6366F1"),
+                        text: "Which regional center serves my ZIP?"
+                    )
+                }
             }
-            .buttonStyle(.plain)
         }
+    }
+
+    private func questionRow(icon: String, tint: Color, text: String) -> some View {
+        Button {
+            appState.openChat(prompt: text)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(tint)
+                    .frame(width: 36, height: 36)
+                    .background {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(tint.opacity(0.12))
+                    }
+
+                Text(text)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.leading)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(14)
+            .background {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+            }
+            .shadow(color: .black.opacity(0.03), radius: 8, y: 4)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Service Types
+
+    private var serviceTypeRow: some View {
+        HStack(spacing: 10) {
+            serviceChip(
+                icon: "brain.head.profile",
+                label: "ABA Therapy",
+                color: Color(hex: "6366F1"),
+                therapy: "ABA therapy"
+            )
+            serviceChip(
+                icon: "waveform.and.person.filled",
+                label: "Speech",
+                color: Color(hex: "EC4899"),
+                therapy: "Speech therapy"
+            )
+            serviceChip(
+                icon: "hand.raised.fill",
+                label: "Occupational",
+                color: Color(hex: "8B5CF6"),
+                therapy: "Occupational therapy"
+            )
+            serviceChip(
+                icon: "figure.walk",
+                label: "Physical",
+                color: Color(hex: "A855F7"),
+                therapy: "Physical therapy"
+            )
+        }
+    }
+
+    private func serviceChip(icon: String, label: String, color: Color, therapy: String) -> some View {
+        Button {
+            appState.searchFilters.therapyTypes = [therapy]
+            appState.selectedTab = 3
+        } label: {
+            VStack(spacing: 6) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(color.opacity(0.13))
+                        .frame(width: 42, height: 42)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(color)
+                }
+
+                Text(label)
+                    .font(.caption2.weight(.medium))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+            }
+            .shadow(color: .black.opacity(0.03), radius: 6, y: 3)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Info Footer
@@ -526,7 +730,6 @@ struct HomeView: View {
             Divider()
                 .padding(.vertical, 4)
 
-            // Quick links to About & FAQ
             HStack(spacing: 16) {
                 Button {
                     showAboutSheet = true
@@ -567,165 +770,33 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Floating Chat Button
-
-    private var floatingChatButton: some View {
-        Button {
-            showChatSheet = true
-        } label: {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(hex: "8B5CF6"), Color(hex: "EC4899")],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 58, height: 58)
-                    .shadow(color: Color(hex: "8B5CF6").opacity(0.4), radius: 12, y: 6)
-
-                Image(systemName: "message.fill")
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(.white)
-            }
-        }
-        .padding(.trailing, 20)
-        .padding(.bottom, 104)
-        .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
-        .offset(y: visibilityManager.isTabBarVisible ? 0 : 100)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
-    }
-
     // MARK: - Helpers
 
-    private func detectUserLocation() {
-        if locationService.hasLocationPermission {
-            if let location = locationService.currentLocation {
-                userRegionalCenter = RegionalCenterMatcher.shared.findRegionalCenter(for: location.coordinate)
-            }
-        }
+    private var isValidZip: Bool {
+        zipInput.count == 5 && zipInput.allSatisfy(\.isNumber)
     }
-}
 
-// MARK: - Prompt Pill
-
-struct PromptPill: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.caption.weight(.medium))
-            .foregroundColor(Color(hex: "6366F1"))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background {
-                Capsule()
-                    .fill(Color(hex: "6366F1").opacity(0.1))
-            }
-    }
-}
-
-// MARK: - Quick Action Tile
-
-struct QuickActionTile: View {
-    let icon: String
-    let title: String
-    let color: Color
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.12))
-                        .frame(width: 48, height: 48)
-
-                    Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(color)
-                }
-
-                Text(title)
-                    .font(.caption.weight(.medium))
-                    .foregroundColor(.primary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(.systemBackground))
-            }
-            .shadow(color: .black.opacity(0.03), radius: 8, y: 4)
+    private func lookupZip() {
+        guard let match = RegionalCenterMatcher.shared.findRegionalCenter(forZipCode: zipInput) else {
+            zipLookupFailed = true
+            return
         }
-        .buttonStyle(.plain)
+
+        userRegionalCenter = match
+        appState.saveUserContext(
+            zipCode: zipInput,
+            regionalCenterName: match.name,
+            regionalCenterShortName: match.shortName
+        )
     }
-}
 
-// MARK: - Service Category Card
-
-struct ServiceCategoryCard: View {
-    let icon: String
-    let title: String
-    let subtitle: String
-    let color: Color
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(color.opacity(0.12))
-                        .frame(width: 48, height: 48)
-
-                    Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(color)
-                }
-
-                VStack(spacing: 2) {
-                    Text(title)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 110)
-            .background {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(.systemBackground))
-            }
-            .shadow(color: .black.opacity(0.03), radius: 8, y: 4)
+    private func resolveRegionalCenter() {
+        // Only the persisted ZIP-derived match is authoritative; coordinate
+        // proximity can assign the wrong center, so it is not used here
+        if let shortName = appState.userRegionalCenterShortName,
+           let match = RegionalCenterMatcher.shared.laRegionalCenters.first(where: { $0.shortName == shortName }) {
+            userRegionalCenter = match
         }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Info Badge
-
-struct InfoBadge: View {
-    let value: String
-    let label: String
-
-    var body: some View {
-        VStack(spacing: 4) {
-            Text(value)
-                .font(.title2.weight(.bold))
-                .foregroundColor(Color(hex: "6366F1"))
-
-            Text(label)
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
     }
 }
 

@@ -18,6 +18,17 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.2.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.nddresources.map</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kindd</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -28,6 +39,11 @@
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
+			<key>127.0.0.1</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
 			<key>192.168.1.194</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
@@ -40,23 +56,18 @@
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 			</dict>
-			<key>127.0.0.1</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>KiNDD uses your camera to scan insurance cards and documents for analysis.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>NDD Resources uses your location to find healthcare resources near you.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>NDD Resources uses your location to find healthcare resources near you.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>KiNDD uses your camera to scan insurance cards and documents for analysis.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>KiNDD needs access to your photos to analyze insurance cards and documents.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>KiNDD uses your microphone to convert speech to text for asking questions.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>KiNDD needs access to your photos to analyze insurance cards and documents.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>KiNDD uses speech recognition to transcribe your voice into text questions.</string>
 	<key>UILaunchScreen</key>

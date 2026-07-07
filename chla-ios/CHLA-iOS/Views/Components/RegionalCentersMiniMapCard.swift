@@ -26,7 +26,7 @@ struct RegionalCentersMiniMapCard: View {
             .padding(18)
             .background(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color(.systemBackground))
+                    .fill(Color(.secondarySystemGroupedBackground))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -41,7 +41,7 @@ struct RegionalCentersMiniMapCard: View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("LA County Regional Centers")
-                    .font(.headline)
+                    .font(.system(.headline, design: .rounded).weight(.semibold))
                     .foregroundColor(.primary)
 
                 Text("Explore service boundaries and find the right regional center for your family.")

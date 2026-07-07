@@ -133,6 +133,7 @@ struct UserContext: Codable {
     var insurance: String?
     var currentServices: [String]?
     var memoryContext: String?  // Injected context from UserMemory
+    var journeyStage: String?  // JourneyStage rawValue - where the family is in the process
 
     enum CodingKeys: String, CodingKey {
         case zipCode = "zip_code"
@@ -141,6 +142,7 @@ struct UserContext: Codable {
         case insurance
         case currentServices = "current_services"
         case memoryContext = "memory_context"
+        case journeyStage = "journey_stage"
     }
 }
 
@@ -548,6 +550,7 @@ class LLMService: ObservableObject {
             if let ins = context.insurance { contextDict["insurance"] = ins }
             if let services = context.currentServices { contextDict["current_services"] = services }
             if let mem = context.memoryContext { contextDict["memory_context"] = mem }
+            if let stage = context.journeyStage { contextDict["journey_stage"] = stage }
             body["context"] = contextDict
         }
 
@@ -830,6 +833,7 @@ class LLMService: ObservableObject {
             if let ins = context.insurance { contextDict["insurance"] = ins }
             if let services = context.currentServices { contextDict["current_services"] = services }
             if let mem = context.memoryContext { contextDict["memory_context"] = mem }
+            if let stage = context.journeyStage { contextDict["journey_stage"] = stage }
             body["context"] = contextDict
         }
 
@@ -878,6 +882,7 @@ class LLMService: ObservableObject {
             if let ins = context.insurance { contextDict["insurance"] = ins }
             if let services = context.currentServices { contextDict["current_services"] = services }
             if let mem = context.memoryContext { contextDict["memory_context"] = mem }
+            if let stage = context.journeyStage { contextDict["journey_stage"] = stage }
             body["context"] = contextDict
         }
 

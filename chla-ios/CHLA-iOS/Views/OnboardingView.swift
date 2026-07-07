@@ -2,174 +2,171 @@
 //  OnboardingView.swift
 //  CHLA-iOS
 //
-//  Onboarding flow for new users
+//  First-run flow: welcome, ZIP, the matched-center moment, journey stage
 //
 
 import SwiftUI
+import MapKit
 import CoreLocation
 
 struct OnboardingView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var locationService = LocationService()
+    @StateObject private var mapModel = RegionalCenterMapViewModel()
 
     @State private var currentStep = 0
     @State private var zipCode = ""
     @State private var selectedAgeGroup: String?
-    @State private var selectedDiagnosis: String?
-    @State private var selectedTherapies: Set<String> = []
-    @State private var selectedInsurance: String?
+    @State private var selectedStage: JourneyStage?
     @State private var selectedAudienceType = "family"
     @State private var userRegionalCenter: RegionalCenterMatcher.RegionalCenterInfo?
 
-    private let totalSteps = 6 // Added regional center step
+    private let totalSteps = 5
 
     var body: some View {
         VStack(spacing: 0) {
-            // Progress indicator
-            ProgressView(value: Double(currentStep + 1), total: Double(totalSteps))
-                .tint(Color.accentBlue)
-                .padding(.horizontal)
-                .padding(.top)
+            progressDots
+                .padding(.top, 18)
 
-            // Step content
             TabView(selection: $currentStep) {
                 welcomeStep.tag(0)
                 locationStep.tag(1)
-                regionalCenterStep.tag(2) // New step
-                ageGroupStep.tag(3)
-                diagnosisStep.tag(4)
-                therapyStep.tag(5)
+                matchedStep.tag(2)
+                journeyStep.tag(3)
+                ageGroupStep.tag(4)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut, value: currentStep)
 
-            // Navigation buttons (Glass Style)
-            HStack(spacing: 16) {
-                if currentStep > 0 {
-                    Button {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            currentStep -= 1
-                        }
-                    } label: {
-                        Text("Back")
-                            .font(.body.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
-                            .background {
-                                Capsule()
-                                    .fill(.ultraThinMaterial)
-                                Capsule()
-                                    .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
-                            }
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Spacer()
-
-                // Primary action button (Glass style)
-                Button {
-                    if currentStep == totalSteps - 1 {
-                        completeOnboarding()
-                    } else {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            currentStep += 1
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 8) {
-                        Text(currentStep == totalSteps - 1 ? "Get Started" : "Next")
-                            .font(.body.weight(.semibold))
-
-                        if currentStep == totalSteps - 1 {
-                            Image(systemName: "arrow.right")
-                                .font(.body.weight(.semibold))
-                        }
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, currentStep == totalSteps - 1 ? 28 : 24)
-                    .padding(.vertical, 14)
-                    .background {
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: canProceed
-                                        ? [Color.accentBlue, Color.accentBlue.opacity(0.8)]
-                                        : [.gray, .gray.opacity(0.8)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [.white.opacity(0.25), .clear],
-                                    startPoint: .top,
-                                    endPoint: .center
-                                )
-                            )
-                        Capsule()
-                            .stroke(
-                                LinearGradient(
-                                    colors: [.white.opacity(0.4), .white.opacity(0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 0.5
-                            )
-                    }
-                    .shadow(color: canProceed ? Color.accentBlue.opacity(0.4) : .clear, radius: 12, y: 6)
-                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                }
-                .buttonStyle(.plain)
-                .disabled(!canProceed)
-                .scaleEffect(canProceed ? 1 : 0.98)
-                .animation(.spring(response: 0.3), value: canProceed)
-            }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+            navigationButtons
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
         }
-        .background(Color.backgroundPrimary)
+        .background {
+            ZStack(alignment: .top) {
+                Theme.canvas
+
+                Theme.topWash(dark: colorScheme == .dark)
+                    .frame(height: 360)
+                    .frame(maxHeight: .infinity, alignment: .top)
+            }
+            .ignoresSafeArea()
+        }
+        .onAppear {
+            if mapModel.serviceAreas.isEmpty {
+                Task { await mapModel.fetchServiceAreas() }
+            }
+        }
     }
 
-    // MARK: - Step Views
+    // MARK: - Progress
 
-    private var welcomeStep: some View {
-        VStack(spacing: 24) {
+    private var progressDots: some View {
+        HStack(spacing: 8) {
+            ForEach(0..<totalSteps, id: \.self) { step in
+                Capsule()
+                    .fill(step == currentStep ? Theme.indigo : Theme.indigo.opacity(0.18))
+                    .frame(width: step == currentStep ? 22 : 7, height: 7)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.8), value: currentStep)
+            }
+        }
+    }
+
+    // MARK: - Navigation
+
+    private var navigationButtons: some View {
+        HStack(spacing: 16) {
+            if currentStep > 0 {
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        currentStep -= 1
+                    }
+                } label: {
+                    Text("Back")
+                        .font(.system(.body, design: .rounded).weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 13)
+                        .background(.ultraThinMaterial, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+
             Spacer()
 
-            Image(systemName: "heart.circle.fill")
-                .font(.system(size: 80))
-                .foregroundStyle(.linearGradient(
-                    colors: [.accentBlue, .purple],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
+            Button {
+                if currentStep == totalSteps - 1 {
+                    completeOnboarding()
+                } else {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        currentStep += 1
+                    }
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Text(currentStep == totalSteps - 1 ? "Get Started" : "Continue")
+                        .font(.system(.body, design: .rounded).weight(.semibold))
 
-            Text("Welcome to NDD Resources")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 26)
+                .padding(.vertical, 14)
+                .background {
+                    Capsule().fill(canProceed ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Color.gray.opacity(0.5)))
+                }
+                .shadow(color: canProceed ? Theme.indigo.opacity(0.35) : .clear, radius: 12, y: 6)
+            }
+            .buttonStyle(.plain)
+            .disabled(!canProceed)
+            .animation(.easeOut(duration: 0.2), value: canProceed)
+        }
+    }
+
+    // MARK: - Step 0: Welcome
+
+    private var welcomeStep: some View {
+        VStack(spacing: 22) {
+            Spacer()
+
+            Image("KiNDDLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 64)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous).fill(.white)
+                    }
+                }
+
+            Text("You found the right place.")
+                .font(.system(.largeTitle, design: .rounded).weight(.bold))
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
 
-            Text("Find developmental disability resources in Los Angeles County")
+            Text("KiNDD helps LA County families navigate developmental services - regional centers, therapy providers, and what to do next.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+                .padding(.horizontal, 36)
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("I am using this as a")
+                Text("I'm here as a")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
 
                 Picker("Audience", selection: $selectedAudienceType) {
-                    Label("Family", systemImage: "person.2.fill").tag("family")
-                    Label("Clinician", systemImage: "clipboard.fill").tag("clinician")
+                    Label("Parent or family", systemImage: "person.2.fill").tag("family")
+                    Label("Clinician", systemImage: "stethoscope").tag("clinician")
                 }
                 .pickerStyle(.segmented)
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, 36)
+            .padding(.top, 8)
 
             Spacer()
             Spacer()
@@ -177,33 +174,40 @@ struct OnboardingView: View {
         .padding()
     }
 
+    // MARK: - Step 1: ZIP
+
     private var locationStep: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 22) {
             Spacer()
 
-            Image(systemName: "location.circle.fill")
-                .font(.system(size: 60))
-                .foregroundColor(.accentBlue)
+            stepIcon("mappin.and.ellipse", tint: Theme.indigo)
 
-            Text("Where are you located?")
-                .font(.title)
-                .fontWeight(.bold)
+            Text("Where is home?")
+                .font(.system(.title, design: .rounded).weight(.bold))
 
-            Text("Enter your ZIP code to find resources and your Regional Center")
+            Text("Every LA County family is assigned a regional center by ZIP code. Yours decides who to call.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal)
+                .padding(.horizontal, 36)
 
-            TextField("ZIP Code", text: $zipCode)
+            TextField("ZIP code", text: $zipCode)
                 .keyboardType(.numberPad)
-                .textFieldStyle(.roundedBorder)
-                .frame(maxWidth: 200)
+                .font(.system(.title2, design: .rounded).weight(.semibold))
                 .multilineTextAlignment(.center)
-                .font(.title2)
+                .padding(.vertical, 14)
+                .frame(maxWidth: 220)
+                .background {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Theme.cardSurface)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Theme.indigo.opacity(zipCode.count == 5 ? 0.5 : 0.15), lineWidth: 1.5)
+                }
                 .onChange(of: zipCode) { _, newZip in
                     if newZip.count == 5 {
                         userRegionalCenter = RegionalCenterMatcher.shared.findRegionalCenter(forZipCode: newZip)
+                    } else {
+                        userRegionalCenter = nil
                     }
                 }
 
@@ -211,16 +215,13 @@ struct OnboardingView: View {
                 Button {
                     locationService.requestPermission()
                 } label: {
-                    Label("Use My Location", systemImage: "location.fill")
+                    Label("Use my location instead", systemImage: "location.fill")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(Theme.indigo)
                 }
-                .buttonStyle(.bordered)
-            } else if locationService.hasLocationPermission {
-                if locationService.isLoading {
-                    ProgressView()
-                } else if locationService.currentLocation != nil {
-                    Label("Location detected", systemImage: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                }
+                .buttonStyle(.plain)
+            } else if locationService.hasLocationPermission && locationService.isLoading {
+                ProgressView()
             }
 
             Spacer()
@@ -228,255 +229,260 @@ struct OnboardingView: View {
         }
         .padding()
         .onChange(of: locationService.currentLocation) { _, location in
-            if let location = location {
-                Task {
-                    if let zip = try? await locationService.getZipCode(for: location.coordinate) {
-                        zipCode = zip
-                        userRegionalCenter = RegionalCenterMatcher.shared.findRegionalCenter(forZipCode: zip)
-                    }
+            guard let location else { return }
+            Task {
+                if let zip = try? await locationService.getZipCode(for: location.coordinate) {
+                    zipCode = zip
+                    userRegionalCenter = RegionalCenterMatcher.shared.findRegionalCenter(forZipCode: zip)
                 }
-                // Also try coordinate-based matching
-                userRegionalCenter = RegionalCenterMatcher.shared.findRegionalCenter(for: location.coordinate)
             }
         }
     }
 
-    private var regionalCenterStep: some View {
-        VStack(spacing: 24) {
-            Spacer()
+    // MARK: - Step 2: The matched moment
 
-            if let rc = userRegionalCenter {
-                // Found regional center
-                Image(systemName: "building.2.crop.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.linearGradient(
-                        colors: [rcColor(for: rc), rcColor(for: rc).opacity(0.6)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
+    @ViewBuilder
+    private var matchedStep: some View {
+        if let rc = userRegionalCenter {
+            VStack(spacing: 0) {
+                Spacer(minLength: 12)
 
-                Text("Your Regional Center")
-                    .font(.title)
-                    .fontWeight(.bold)
+                ZStack(alignment: .bottom) {
+                    matchedMap(for: rc)
+                        .frame(height: 380)
 
-                // Regional Center Card
-                VStack(spacing: 16) {
-                    // Badge and name
-                    HStack {
-                        Text(rc.shortName)
-                            .font(.caption.bold())
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(rcColor(for: rc))
-                            .cornerRadius(8)
-
-                        Spacer()
-
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                            .font(.title3)
-                    }
-
-                    Text(rc.name)
-                        .font(.headline)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Divider()
-
-                    // Contact info
-                    HStack {
-                        Label(rc.phone, systemImage: "phone.fill")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-
-                        Spacer()
-                    }
-
-                    HStack {
-                        Label(rc.website, systemImage: "globe")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-
-                        Spacer()
-                    }
+                    matchedCard(for: rc)
+                        .padding(10)
                 }
-                .padding()
-                .background(rcColor(for: rc).opacity(0.08))
-                .cornerRadius(16)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(rcColor(for: rc).opacity(0.3), lineWidth: 1)
-                )
-                .padding(.horizontal, 24)
+                .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 26, style: .continuous)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                }
+                .shadow(color: rc.uiColor.opacity(0.18), radius: 20, y: 10)
+                .padding(.horizontal, 18)
 
-                Text("Based on ZIP code \(zipCode)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Spacer(minLength: 12)
+            }
+        } else {
+            VStack(spacing: 22) {
+                Spacer()
 
-            } else {
-                // No regional center found
-                Image(systemName: "building.2.crop.circle")
-                    .font(.system(size: 60))
-                    .foregroundColor(.secondary)
+                stepIcon("building.2", tint: .secondary)
 
-                Text("Regional Center")
-                    .font(.title)
-                    .fontWeight(.bold)
+                Text("We'll figure it out together")
+                    .font(.system(.title, design: .rounded).weight(.bold))
+                    .multilineTextAlignment(.center)
 
-                Text("We couldn't determine your Regional Center. You can still browse all resources and centers in the app.")
+                Text("We couldn't match that ZIP to a regional center. You can still browse everything, and KiNDD can help you find who serves your family.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 32)
-                    .frame(maxWidth: 400)
+                    .padding(.horizontal, 36)
+
+                Spacer()
+                Spacer()
+            }
+            .padding()
+        }
+    }
+
+    @ViewBuilder
+    private func matchedMap(for rc: RegionalCenterMatcher.RegionalCenterInfo) -> some View {
+        if mapModel.serviceAreas.isEmpty {
+            ZStack {
+                LinearGradient(
+                    colors: [rc.uiColor.opacity(0.45), Theme.violet.opacity(0.25)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                Image(systemName: "map.fill")
+                    .font(.system(size: 44))
+                    .foregroundColor(.white.opacity(0.7))
+            }
+        } else {
+            Map(
+                initialPosition: .region(MKCoordinateRegion(
+                    center: rc.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.6, longitudeDelta: 0.6)
+                )),
+                interactionModes: []
+            ) {
+                ForEach(mapModel.serviceAreas) { feature in
+                    ForEach(Array(feature.allMapPolygons.enumerated()), id: \.offset) { _, polygon in
+                        let mine = normalizedShortName(feature.shortName) == normalizedShortName(rc.shortName)
+                        MapPolygon(polygon)
+                            .foregroundStyle(feature.fillColor.opacity(mine ? 0.38 : 0.10))
+                            .stroke(feature.strokeColor.opacity(mine ? 1 : 0.45), lineWidth: mine ? 3 : 1)
+                    }
+                }
+            }
+            .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .excludingAll))
+            .allowsHitTesting(false)
+        }
+    }
+
+    private func matchedCard(for rc: RegionalCenterMatcher.RegionalCenterInfo) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Your Regional Center")
+                    .font(.caption.weight(.semibold))
+                    .textCase(.uppercase)
+                    .kerning(0.8)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                HStack(spacing: 4) {
+                    Circle().fill(Theme.matched).frame(width: 8, height: 8)
+                    Text("Matched")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(Theme.matched)
+                }
             }
 
-            Spacer()
+            Text(rc.name)
+                .font(.system(.title3, design: .rounded).weight(.bold))
+                .foregroundColor(.primary)
+
+            Text("They coordinate evaluations, services, and funding for your family - and they're expecting calls like yours.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 6) {
+                Image(systemName: "phone.fill")
+                    .font(.caption)
+                Text(rc.phone)
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundColor(rc.uiColor)
+        }
+        .padding(16)
+        .background {
+            RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
+                .fill(Theme.cardSurface)
+            RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
+                .stroke(rc.uiColor.opacity(0.25), lineWidth: 1)
+        }
+    }
+
+    // MARK: - Step 3: Journey stage
+
+    private var journeyStep: some View {
+        VStack(spacing: 22) {
+            Spacer(minLength: 8)
+
+            stepIcon("point.topleft.down.curvedto.point.bottomright.up.fill", tint: Theme.violet)
+
+            Text("Where are you in the journey?")
+                .font(.system(.title, design: .rounded).weight(.bold))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+
+            Text("KiNDD uses this to suggest your next step - nothing is locked in.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 36)
+
+            VStack(spacing: 10) {
+                ForEach(JourneyStage.allCases) { stage in
+                    SelectionButton(
+                        title: stage.label,
+                        icon: stage.icon,
+                        isSelected: selectedStage == stage
+                    ) {
+                        selectedStage = stage
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+
             Spacer()
         }
         .padding()
     }
 
-    private func rcColor(for center: RegionalCenterMatcher.RegionalCenterInfo) -> Color {
-        center.uiColor
-    }
+    // MARK: - Step 4: Age group
 
     private var ageGroupStep: some View {
-        VStack(spacing: 24) {
-            Text("Age Group")
-                .font(.title)
-                .fontWeight(.bold)
+        VStack(spacing: 22) {
+            Spacer(minLength: 8)
 
-            Text("Select the age group you're looking for services for")
+            stepIcon("figure.and.child.holdinghands", tint: Theme.pink)
+
+            Text("How old is your child?")
+                .font(.system(.title, design: .rounded).weight(.bold))
+
+            Text("Optional - it helps us show age-appropriate services first.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 24)
-                .frame(maxWidth: 400)
+                .padding(.horizontal, 36)
 
-            VStack(spacing: 12) {
+            VStack(spacing: 10) {
                 ForEach(SearchFilters.ageGroups, id: \.self) { age in
                     SelectionButton(
                         title: ageGroupDisplayName(age),
                         isSelected: selectedAgeGroup == age
                     ) {
-                        selectedAgeGroup = age
+                        selectedAgeGroup = selectedAgeGroup == age ? nil : age
                     }
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 24)
 
             Spacer()
         }
         .padding()
     }
 
-    private var diagnosisStep: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                Text("Diagnosis")
-                    .font(.title)
-                    .fontWeight(.bold)
+    // MARK: - Shared bits
 
-                Text("Select a diagnosis (optional)")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+    private func stepIcon(_ systemName: String, tint: Color) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(tint.opacity(0.13))
+                .frame(width: 64, height: 64)
 
-                VStack(spacing: 12) {
-                    ForEach(SearchFilters.diagnoses, id: \.self) { diagnosis in
-                        SelectionButton(
-                            title: diagnosis,
-                            isSelected: selectedDiagnosis == diagnosis
-                        ) {
-                            if selectedDiagnosis == diagnosis {
-                                selectedDiagnosis = nil
-                            } else {
-                                selectedDiagnosis = diagnosis
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal)
-
-                Button("Skip") {
-                    selectedDiagnosis = nil
-                    currentStep += 1
-                }
-                .foregroundColor(.secondary)
-            }
-            .padding()
+            Image(systemName: systemName)
+                .font(.system(size: 26, weight: .semibold))
+                .foregroundColor(tint)
         }
     }
 
-    private var therapyStep: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                Text("Therapy Types")
-                    .font(.title)
-                    .fontWeight(.bold)
-
-                Text("Select the types of therapy you're looking for (optional)")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-
-                VStack(spacing: 12) {
-                    ForEach(SearchFilters.therapyTypes, id: \.self) { therapy in
-                        SelectionButton(
-                            title: therapyDisplayName(therapy),
-                            isSelected: selectedTherapies.contains(therapy)
-                        ) {
-                            if selectedTherapies.contains(therapy) {
-                                selectedTherapies.remove(therapy)
-                            } else {
-                                selectedTherapies.insert(therapy)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal)
-            }
-            .padding()
-        }
+    private func normalizedShortName(_ shortName: String) -> String {
+        shortName.replacingOccurrences(of: "/", with: "").uppercased()
     }
 
-    // MARK: - Helpers
+    // MARK: - Flow logic
 
     private var canProceed: Bool {
         switch currentStep {
-        case 0:
-            return true
         case 1:
             return zipCode.count == 5 && zipCode.allSatisfy { $0.isNumber }
+        case 3:
+            return selectedStage != nil
         default:
             return true
         }
     }
 
     private func completeOnboarding() {
-        // Save filters to app state
         appState.searchFilters.ageGroup = selectedAgeGroup
-        appState.searchFilters.diagnosis = selectedDiagnosis
-        appState.searchFilters.therapyTypes = Array(selectedTherapies)
-        appState.searchFilters.insurance = selectedInsurance
         appState.saveUserContext(
             zipCode: zipCode,
-            diagnosis: selectedDiagnosis,
-            insurance: selectedInsurance,
             audienceType: selectedAudienceType,
             regionalCenterName: userRegionalCenter?.name,
             regionalCenterShortName: userRegionalCenter?.shortName
         )
+        if let stage = selectedStage {
+            appState.saveJourneyStage(stage)
+        }
 
-        // Haptic feedback
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
 
-        // Complete onboarding with slight delay for button animation
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 appState.completeOnboarding()
@@ -494,45 +500,45 @@ struct OnboardingView: View {
         default: return age
         }
     }
-
-    private func therapyDisplayName(_ therapy: String) -> String {
-        switch therapy {
-        case "ABA therapy": return "ABA Therapy"
-        case "Speech therapy": return "Speech Therapy"
-        case "Occupational therapy": return "Occupational Therapy"
-        case "Physical therapy": return "Physical Therapy"
-        case "Feeding therapy": return "Feeding Therapy"
-        default: return therapy
-        }
-    }
 }
 
 // MARK: - Selection Button
+
 struct SelectionButton: View {
     let title: String
+    var icon: String? = nil
     let isSelected: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack {
+            HStack(spacing: 12) {
+                if let icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(isSelected ? Theme.indigo : .secondary)
+                        .frame(width: 26)
+                }
+
                 Text(title)
-                    .font(.body)
+                    .font(.system(.body, design: .rounded).weight(.medium))
+                    .foregroundColor(.primary)
+
                 Spacer()
+
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.accentBlue)
+                        .foregroundColor(Theme.indigo)
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.accentBlue.opacity(0.1) : Color.backgroundSecondary)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.accentBlue : Color.clear, lineWidth: 2)
-            )
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(isSelected ? Theme.indigo.opacity(0.10) : Theme.cardSurface)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(isSelected ? Theme.indigo.opacity(0.6) : Color.clear, lineWidth: 1.5)
+            }
         }
         .buttonStyle(.plain)
     }

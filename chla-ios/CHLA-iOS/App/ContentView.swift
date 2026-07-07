@@ -178,7 +178,6 @@ struct BlurModifier: ViewModifier {
 struct MainTabView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.openURL) private var openURL
-    @Namespace private var tabAnimation
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     // Sheet states
@@ -233,15 +232,11 @@ struct MainTabView: View {
                 visibilityManager.showUI()
             }
 
-            if appState.userRegionalCenterName != nil {
-                RegionalCenterIdentityRing(color: appState.userRegionalCenterColor)
-            }
-
             // Floating Glass Tab Bar
             LiquidGlassTabBar(
                 selectedTab: $appState.selectedTab,
-                namespace: tabAnimation,
-                onMenuAction: handleMenuAction
+                onMenuAction: handleMenuAction,
+                onChatTap: { appState.openChat() }
             )
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
@@ -251,15 +246,22 @@ struct MainTabView: View {
         }
         .ignoresSafeArea(.keyboard)
         .statusBarHidden(!visibilityManager.isHeaderVisible)
+        .sheet(isPresented: $appState.showChat, onDismiss: { appState.pendingChatPrompt = nil }) {
+            ChatView(initialPrompt: appState.pendingChatPrompt)
+                .environmentObject(appState)
+                .kinddSheet()
+        }
         .sheet(isPresented: $showFAQ) {
             NavigationStack {
                 FAQView()
             }
+            .kinddSheet()
         }
         .sheet(isPresented: $showSettings) {
             NavigationStack {
                 SettingsView()
             }
+            .kinddSheet()
         }
         .sheet(isPresented: $showShareSheet) {
             ShareSheet(items: [
@@ -308,7 +310,7 @@ struct MainTabView: View {
                 openURL(url)
             }
         case .rateApp:
-            if let url = URL(string: "https://apps.apple.com/app/id123456789?action=write-review") {
+            if let url = URL(string: "https://apps.apple.com/app/id6756593861?action=write-review") {
                 openURL(url)
             }
 
@@ -328,16 +330,16 @@ struct MainTabView: View {
 }
 
 // MARK: - Regional Center Identity
-struct RegionalCenterIdentityRing: View {
-    let color: Color
+// MARK: - Sheet Presentation
 
-    var body: some View {
-        RoundedRectangle(cornerRadius: 28, style: .continuous)
-            .stroke(color.opacity(0.9), lineWidth: 5)
-            .shadow(color: color.opacity(0.35), radius: 18)
-            .padding(3)
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
+extension View {
+    /// Shared treatment for every bottom sheet: visible grabber, soft corner
+    /// radius matching the card language, and a consistent canvas color
+    func kinddSheet() -> some View {
+        self
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(28)
+            .presentationBackground(Color(.systemGroupedBackground))
     }
 }
 
@@ -385,8 +387,8 @@ enum TabMenuAction {
 // MARK: - Liquid Glass Tab Bar (iOS 26 Style)
 struct LiquidGlassTabBar: View {
     @Binding var selectedTab: Int
-    var namespace: Namespace.ID
     var onMenuAction: (TabMenuAction) -> Void
+    var onChatTap: () -> Void
 
     struct TabInfo {
         let icon: String
@@ -425,20 +427,14 @@ struct LiquidGlassTabBar: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(0..<tabs.count, id: \.self) { index in
-                GlassTabItem(
-                    icon: tabs[index].icon,
-                    label: tabs[index].label,
-                    isSelected: selectedTab == index,
-                    menuItems: tabs[index].menuItems,
-                    namespace: namespace,
-                    onMenuAction: onMenuAction,
-                    onTap: {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
-                            selectedTab = index
-                        }
-                    }
-                )
+            ForEach(0..<2, id: \.self) { index in
+                tabItem(index)
+            }
+
+            chatCenterButton
+
+            ForEach(2..<tabs.count, id: \.self) { index in
+                tabItem(index)
             }
         }
         .padding(.horizontal, 6)
@@ -467,6 +463,40 @@ struct LiquidGlassTabBar: View {
         .shadow(color: .black.opacity(0.2), radius: 24, y: 12)
         .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
     }
+
+    private func tabItem(_ index: Int) -> some View {
+        GlassTabItem(
+            icon: tabs[index].icon,
+            label: tabs[index].label,
+            isSelected: selectedTab == index,
+            menuItems: tabs[index].menuItems,
+            onMenuAction: onMenuAction,
+            onTap: {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                    selectedTab = index
+                }
+            }
+        )
+    }
+
+    private var chatCenterButton: some View {
+        Button(action: onChatTap) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color(hex: "8B5CF6"), Color(hex: "EC4899")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Ask KiNDD")
+    }
 }
 
 // MARK: - Glass Tab Item (Expandable with Context Menu)
@@ -475,47 +505,18 @@ struct GlassTabItem: View {
     let label: String
     let isSelected: Bool
     let menuItems: [(icon: String, title: String, action: TabMenuAction)]
-    var namespace: Namespace.ID
     var onMenuAction: (TabMenuAction) -> Void
     var onTap: () -> Void
 
     var body: some View {
-        // Tab button content
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 18, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? Color.accentBlue : .secondary)
-
-            if isSelected {
-                Text(label)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.accentBlue)
-                    .transition(.asymmetric(
-                        insertion: .scale(scale: 0.5).combined(with: .opacity),
-                        removal: .scale(scale: 0.8).combined(with: .opacity)
-                    ))
-            }
-        }
-        .padding(.horizontal, isSelected ? 16 : 12)
-        .padding(.vertical, 10)
-        .background {
-            if isSelected {
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.accentBlue.opacity(0.18), Color.accentBlue.opacity(0.08)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .overlay(
-                        Capsule()
-                            .stroke(Color.accentBlue.opacity(0.25), lineWidth: 0.5)
-                    )
-                    .matchedGeometryEffect(id: "selectedTab", in: namespace)
-            }
-        }
-        .contentShape(Capsule())
+        // Tab button content: tint-only selection so six items fit at 375pt
+        Image(systemName: icon)
+            .font(.system(size: 18, weight: isSelected ? .semibold : .regular))
+            .foregroundStyle(isSelected ? Color.accentBlue : .secondary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .accessibilityLabel(label)
+            .contentShape(Capsule())
         .onTapGesture {
             onTap()
         }

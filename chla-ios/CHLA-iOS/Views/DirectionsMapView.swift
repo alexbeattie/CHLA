@@ -67,6 +67,7 @@ struct DirectionsMapView: View {
             }
             .sheet(isPresented: $viewModel.showStepsList) {
                 stepsListSheet
+                    .kinddSheet()
             }
             .onAppear {
                 viewModel.startDirections()
