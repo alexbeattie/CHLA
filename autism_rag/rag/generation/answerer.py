@@ -143,9 +143,69 @@ class Answerer:
                 used_model="none",
                 retrieval=hits,
             )
+        if self.settings.anthropic_api_key or self.settings.anthropic_bedrock_enabled:
+            return self._answer_with_anthropic(question, context, citations, hits)
         if self.settings.openai_api_key:
             return self._answer_with_openai(question, context, citations, hits)
         return self._extractive_fallback(question, citations, hits)
+
+    def _build_user_prompt(self, question: str, context: str) -> str:
+        return (
+            "Question:\n"
+            f"{question}\n\n"
+            "Sources (cite by bracketed label):\n"
+            f"{context}\n\n"
+            "Write a concise answer that:\n"
+            "1. Cites every claim with [S#].\n"
+            "2. Separates 'Evidence' from 'Interpretation' sections.\n"
+            "3. Notes limitations (e.g., study type, sample size, recency).\n"
+            "4. Refuses any individual diagnostic or treatment advice.\n\n"
+            "Formatting: do not restate the question. Never use # or ## headings; "
+            "use ### at most for section labels. The answer renders in a mobile "
+            "chat bubble, so keep structure compact."
+        )
+
+    def _answer_with_anthropic(
+        self,
+        question: str,
+        context: str,
+        citations: list[Citation],
+        hits: list[VectorHit],
+    ) -> AnswerResponse:
+        try:
+            if self.settings.anthropic_api_key:
+                from anthropic import Anthropic  # noqa: WPS433
+
+                client = Anthropic(api_key=self.settings.anthropic_api_key)
+                model = self.settings.anthropic_answer_model
+            else:
+                from anthropic import AnthropicBedrock  # noqa: WPS433
+
+                client = AnthropicBedrock(aws_region=self.settings.aws_region)
+                model = self.settings.anthropic_bedrock_model
+
+            response = client.messages.create(
+                model=model,
+                max_tokens=4096,
+                system=SYSTEM_PROMPT,
+                messages=[
+                    {"role": "user", "content": self._build_user_prompt(question, context)},
+                ],
+            )
+            text = "".join(
+                block.text for block in response.content if block.type == "text"
+            )
+            return AnswerResponse(
+                answer=text.strip(),
+                citations=citations,
+                used_model=model,
+                retrieval=hits,
+            )
+        except Exception as exc:  # pragma: no cover - external service guard
+            logger.warning("Anthropic generation failed (%s); falling back.", exc)
+            if self.settings.openai_api_key:
+                return self._answer_with_openai(question, context, citations, hits)
+            return self._extractive_fallback(question, citations, hits)
 
     def _answer_with_openai(
         self,
@@ -158,17 +218,7 @@ class Answerer:
             from openai import OpenAI  # noqa: WPS433
 
             client = OpenAI(api_key=self.settings.openai_api_key)
-            user_prompt = (
-                "Question:\n"
-                f"{question}\n\n"
-                "Sources (cite by bracketed label):\n"
-                f"{context}\n\n"
-                "Write a concise answer that:\n"
-                "1. Cites every claim with [S#].\n"
-                "2. Separates 'Evidence' from 'Interpretation' sections.\n"
-                "3. Notes limitations (e.g., study type, sample size, recency).\n"
-                "4. Refuses any individual diagnostic or treatment advice."
-            )
+            user_prompt = self._build_user_prompt(question, context)
             response = client.chat.completions.create(
                 model=self.settings.answer_model,
                 messages=[
@@ -201,7 +251,7 @@ class Answerer:
                 continue
             bullets.append(f"- [{citation.label}] {snippet}")
         answer = (
-            "No generation model is configured (set OPENAI_API_KEY to enable). "
+            "No generation model responded (configure ANTHROPIC_API_KEY or OPENAI_API_KEY). "
             "Returning extractive snippets from the top retrieved passages:\n\n"
             + "\n".join(bullets)
         )

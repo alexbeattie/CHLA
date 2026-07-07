@@ -242,6 +242,16 @@ def format_user_context(
         services = ", ".join(user_context["current_services"])
         lines.append(f"- Current Services: {services}")
 
+    stage_labels = {
+        "justDiagnosed": "Recently received a diagnosis; figuring out first steps",
+        "waitingIntake": "Waiting for a regional center intake or evaluation",
+        "receivingServices": "Already receiving regional center services (has an IPP)",
+        "exploring": "Exploring options; no formal process started yet",
+    }
+    stage = user_context.get("journey_stage")
+    if stage in stage_labels:
+        lines.append(f"- Family's Stage: {stage_labels[stage]}")
+
     if user_context.get("memory_context"):
         lines.append(f"- Remembered Context: {user_context['memory_context']}")
 

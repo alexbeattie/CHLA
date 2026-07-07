@@ -38,8 +38,8 @@ npm install
 # Terminal 1: Start database
 docker-compose -f docker-compose.local.yml up
 
-# Terminal 2: Start backend
-cd maplocation && source ../venv/bin/activate && python3 manage.py runserver
+# Terminal 2: Start backend (port 8001; the autism RAG API owns 8000)
+cd maplocation && source ../venv/bin/activate && python3 manage.py runserver 8001
 
 # Terminal 3: Start frontend
 cd map-frontend && ./switch-env.sh dev && npm run dev

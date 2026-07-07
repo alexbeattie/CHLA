@@ -55,6 +55,12 @@ class Settings(BaseSettings):
 
     openai_api_key: str = Field(default="")
     answer_model: str = Field(default="gpt-4o-mini")
+    anthropic_api_key: str = Field(default="")
+    anthropic_answer_model: str = Field(default="claude-opus-4-8")
+    # Bedrock fallback matches the model the Django backend already has access to
+    anthropic_bedrock_enabled: bool = Field(default=True)
+    anthropic_bedrock_model: str = Field(default="us.anthropic.claude-sonnet-4-5-20250929-v1:0")
+    aws_region: str = Field(default="us-west-2")
 
     default_top_k: int = Field(default=8)
 
