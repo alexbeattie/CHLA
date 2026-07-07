@@ -206,16 +206,8 @@ struct MainTabView: View {
                     HomeView()
                 case 1:
                     MapContainerView()
-                        .simultaneousGesture(
-                            TapGesture()
-                                .onEnded { _ in visibilityManager.toggleUI() }
-                        )
                 case 2:
                     RegionalCentersTabView()
-                        .simultaneousGesture(
-                            TapGesture()
-                                .onEnded { _ in visibilityManager.toggleUI() }
-                        )
                 case 3: ProviderListView()
                 case 4: MoreView()
                 default: HomeView()
@@ -850,9 +842,6 @@ struct RegionalCentersListContent: View {
 // MARK: - More View
 struct MoreView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var visibilityManager = UIVisibilityManager.shared
-    @State private var lastDragValue: CGFloat = 0
-
     var body: some View {
         NavigationStack {
             List {
@@ -869,7 +858,7 @@ struct MoreView: View {
                             }
                         } icon: {
                             Image(systemName: "questionmark.circle.fill")
-                                .foregroundColor(.orange)
+                                .foregroundColor(Theme.indigo)
                         }
                     }
                 } header: {
@@ -880,14 +869,14 @@ struct MoreView: View {
                     Link(destination: URL(string: "https://kinddhelp.com")!) {
                         Label {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("NDD Resources Website")
+                                Text("KiNDD Website")
                                 Text("kinddhelp.com")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
                         } icon: {
                             Image(systemName: "globe")
-                                .foregroundColor(.green)
+                                .foregroundColor(Theme.violet)
                         }
                     }
                 } header: {
@@ -907,7 +896,7 @@ struct MoreView: View {
                             }
                         } icon: {
                             Image(systemName: "person.text.rectangle")
-                                .foregroundColor(.indigo)
+                                .foregroundColor(Theme.indigo)
                         }
                     }
                 } header: {
@@ -927,7 +916,7 @@ struct MoreView: View {
                             }
                         } icon: {
                             Image(systemName: "clipboard.fill")
-                                .foregroundColor(.teal)
+                                .foregroundColor(Theme.purple)
                         }
                     }
 
@@ -942,7 +931,7 @@ struct MoreView: View {
                     HStack {
                         Label("Version", systemImage: "app.badge")
                         Spacer()
-                        Text("1.0.0")
+                        Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")
                             .foregroundStyle(.secondary)
                     }
 
@@ -955,28 +944,27 @@ struct MoreView: View {
                 } header: {
                     Text("App Info")
                 } footer: {
-                    Text("NDD Resources\n© 2025 All rights reserved.")
+                    Text("KiNDD - NDD Resource Navigator\n© 2026 All rights reserved.")
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 8)
                 }
             }
             .navigationTitle("More")
-            .simultaneousGesture(
-                DragGesture()
-                    .onChanged { value in
-                        let delta = value.translation.height - lastDragValue
-                        if delta < -10 {
-                            visibilityManager.hideUI()
-                        } else if delta > 10 {
-                            visibilityManager.showUI()
-                        }
-                        lastDragValue = value.translation.height
-                    }
-                    .onEnded { _ in
-                        lastDragValue = 0
-                    }
-            )
+            .scrollContentBackground(.hidden)
+            .background {
+                ZStack(alignment: .top) {
+                    Theme.canvas
+                    LinearGradient(
+                        colors: [Theme.indigo.opacity(0.08), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 280)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                }
+                .ignoresSafeArea()
+            }
         }
     }
 }

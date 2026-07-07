@@ -59,6 +59,7 @@ struct ChatView: View {
     @State private var currentConversationId: UUID?
     @State private var showingRestartSetupConfirmation = false
     @State private var didSendInitialPrompt = false
+    @State private var selectedChatProvider: Provider?
 
     // Attachment flow state (Step 1: Type, Step 2: Source)
     @State private var showingAttachmentTypeSheet = false  // Step 1: Choose analysis type
@@ -214,6 +215,9 @@ struct ChatView: View {
                                     isSpeaking: textToSpeech.isSpeaking,
                                     onAction: { action in
                                         handleAction(action)
+                                    },
+                                    onProviderTap: { provider in
+                                        selectedChatProvider = provider
                                     }
                                 )
                                 .id(message.id)
@@ -417,6 +421,10 @@ struct ChatView: View {
             }
             .sheet(isPresented: $showingExportSheet) {
                 ShareSheet(items: [exportText])
+            }
+            .sheet(item: $selectedChatProvider) { provider in
+                ProviderDetailView(provider: provider)
+                    .kinddSheet()
             }
             // Step 1: Choose what type of document to analyze
             .sheet(isPresented: $showingAttachmentTypeSheet, onDismiss: {
@@ -981,6 +989,69 @@ struct WelcomeCard: View {
     }
 }
 
+// MARK: - Chat Provider Card
+
+/// Compact provider card rendered inside assistant messages
+struct ChatProviderCard: View {
+    let provider: Provider
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 7) {
+                Text(provider.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                HStack(spacing: 8) {
+                    if let short = provider.regionalCenterShortName {
+                        Text(short)
+                            .font(.caption2.weight(.bold))
+                            .foregroundColor(.regionalCenterColor(for: short))
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(Color.regionalCenterColor(for: short).opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+
+                    if let phone = provider.phone, !phone.isEmpty {
+                        HStack(spacing: 3) {
+                            Image(systemName: "phone.fill")
+                                .font(.system(size: 9))
+                            Text(phone)
+                                .font(.caption)
+                        }
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                    }
+                }
+
+                HStack(spacing: 4) {
+                    Text("View details")
+                        .font(.caption.weight(.semibold))
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 9, weight: .semibold))
+                }
+                .foregroundColor(Theme.indigo)
+            }
+            .padding(12)
+            .frame(width: 232, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Theme.canvas)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Theme.indigo.opacity(0.15), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("Opens provider details")
+    }
+}
+
 // MARK: - Suggestion Chip
 
 struct SuggestionChip: View {
@@ -1114,6 +1185,7 @@ struct MessageBubble: View {
     var onSpeak: (() -> Void)?
     var isSpeaking: Bool = false
     var onAction: ((ChatAction) -> Void)?
+    var onProviderTap: ((Provider) -> Void)?
 
     @State private var showActions = false
     @State private var showTimestamp = false
@@ -1376,6 +1448,20 @@ struct MessageBubble: View {
                             ResearchSourcesView(citations: message.citations)
                         }
 
+                        // Providers mentioned in the answer become tappable cards
+                        if message.role == .assistant, !message.isStreaming, !message.referencedProviders.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 10) {
+                                    ForEach(message.referencedProviders) { provider in
+                                        ChatProviderCard(provider: provider) {
+                                            onProviderTap?(provider)
+                                        }
+                                    }
+                                }
+                                .padding(.vertical, 2)
+                            }
+                        }
+
                         // Streaming indicator
                         if message.isStreaming {
                             HStack(spacing: 4) {
@@ -1549,6 +1635,7 @@ struct MessageActionsBar: View {
                     .font(.system(size: 14))
                     .foregroundColor(feedback == .liked ? Color(hex: "22C55E") : Color(uiColor: .secondaryLabel))
             }
+            .accessibilityLabel("Helpful")
 
             // Dislike
             Button {
@@ -1558,6 +1645,7 @@ struct MessageActionsBar: View {
                     .font(.system(size: 14))
                     .foregroundColor(feedback == .disliked ? Color(hex: "EF4444") : Color(uiColor: .secondaryLabel))
             }
+            .accessibilityLabel("Not helpful")
 
             Divider()
                 .frame(height: 16)
@@ -1570,6 +1658,7 @@ struct MessageActionsBar: View {
                     .font(.system(size: 14))
                     .foregroundColor(isSpeaking ? Color(hex: "6366F1") : Color(uiColor: .secondaryLabel))
             }
+            .accessibilityLabel(isSpeaking ? "Stop reading aloud" : "Read aloud")
 
             // Copy
             Button {
@@ -1579,6 +1668,7 @@ struct MessageActionsBar: View {
                     .font(.system(size: 14))
                     .foregroundColor(Color(uiColor: .secondaryLabel))
             }
+            .accessibilityLabel("Copy answer")
 
             // Share
             Button {
@@ -1588,6 +1678,7 @@ struct MessageActionsBar: View {
                     .font(.system(size: 14))
                     .foregroundColor(Color(uiColor: .secondaryLabel))
             }
+            .accessibilityLabel("Share answer")
 
             Spacer()
         }
@@ -2079,7 +2170,8 @@ struct MarkdownTextView: View {
     }
 
     private var chatBodyFont: Font {
-        .system(size: 16, weight: .regular, design: .default)
+        // Text style (not a fixed size) so chat answers honor Dynamic Type
+        .callout
     }
 
     private var citationInlineStyle: InlineStyle {

@@ -619,7 +619,7 @@ class LLMService: ObservableObject {
 
         } catch {
             if !Task.isCancelled {
-                updateStreamingMessage(id: streamingMessageId, content: "Connection error: \(error.localizedDescription)", isComplete: true)
+                updateStreamingMessage(id: streamingMessageId, content: "I couldn't reach KiNDD just now - your connection may have dropped, or the service is briefly unavailable. Your question wasn't lost; tap it above to try again.", isComplete: true)
             }
         }
     }
@@ -801,7 +801,7 @@ class LLMService: ObservableObject {
 
         let errorMessage = ChatMessage(
             role: .system,
-            content: "Error: \(text)"
+            content: "Something went wrong on our end - not yours. Please try again in a moment. (\(text))"
         )
         messages.append(errorMessage)
     }

@@ -257,6 +257,11 @@ struct HomeView: View {
                 .stroke(Color.primary.opacity(0.06), lineWidth: 1)
         }
         .shadow(color: Color(hex: "6366F1").opacity(0.10), radius: 18, y: 8)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(
+            userRegionalCenter.map { "Map of LA County regional center areas. Yours is \($0.name)." }
+                ?? "Map of LA County regional center service areas."
+        )
     }
 
     @ViewBuilder

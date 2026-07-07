@@ -19,7 +19,6 @@ struct ProviderListView: View {
     @State private var sortOption: SortOption = .distance
     @State private var searchScope: SearchScope = .all
     @State private var searchSuggestions: [String] = []
-    @State private var lastDragValue: CGFloat = 0
     @State private var selectedProvider: Provider?
 
     enum SortOption: String, CaseIterable {
@@ -293,23 +292,6 @@ struct ProviderListView: View {
                 // Keeps the last card clear of the floating pill tab bar
                 Color.clear.frame(height: 66)
             }
-            .simultaneousGesture(
-                DragGesture()
-                    .onChanged { value in
-                        let delta = value.translation.height - lastDragValue
-                        if delta < -10 {
-                            // Scrolling down (finger moving up)
-                            visibilityManager.hideUI()
-                        } else if delta > 10 {
-                            // Scrolling up (finger moving down)
-                            visibilityManager.showUI()
-                        }
-                        lastDragValue = value.translation.height
-                    }
-                    .onEnded { _ in
-                        lastDragValue = 0
-                    }
-            )
         }
     }
 
@@ -537,6 +519,7 @@ struct ProviderCardView: View {
             }
         }
         .padding(16)
+        .accessibilityElement(children: .combine)
         .background {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.secondarySystemGroupedBackground))
