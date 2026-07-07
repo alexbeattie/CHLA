@@ -40,7 +40,7 @@ cat > "$EXPORT_PLIST" <<PLIST
 	<key>method</key>
 	<string>app-store-connect</string>
 	<key>destination</key>
-	<string>upload</string>
+	<string>export</string>
 	<key>teamID</key>
 	<string>LR4SP9C264</string>
 	<key>uploadSymbols</key>
@@ -56,12 +56,23 @@ xcodebuild -project CHLA-iOS.xcodeproj -scheme CHLA-iOS \
     -destination 'generic/platform=iOS' \
     -archivePath "$ARCHIVE" archive -allowProvisioningUpdates
 
-echo "== Uploading to App Store Connect"
-xcodebuild -exportArchive \
+# Export to disk, then upload with altool. Direct exportArchive upload is
+# broken on this machine two ways: the team-key actor lacks providerId
+# (Xcode bug), and Homebrew rsync shadows the system rsync during IPA
+# packaging - hence the clean PATH.
+EXPORT_DIR=$(mktemp -d -t kindd-export)
+
+echo "== Exporting IPA"
+env PATH="/usr/bin:/bin:/usr/sbin:/sbin" xcodebuild -exportArchive \
     -archivePath "$ARCHIVE" \
     -exportOptionsPlist "$EXPORT_PLIST" \
+    -exportPath "$EXPORT_DIR" \
     -allowProvisioningUpdates \
     -authenticationKeyID "$KEY_ID" \
     -authenticationKeyIssuerID "$ISSUER_ID"
+
+echo "== Uploading to App Store Connect"
+xcrun altool --upload-app -f "$EXPORT_DIR"/*.ipa -t ios \
+    --apiKey "$KEY_ID" --apiIssuer "$ISSUER_ID"
 
 echo "== Uploaded KiNDD $VERSION ($BUILD). Processing takes 5-15 min in App Store Connect."

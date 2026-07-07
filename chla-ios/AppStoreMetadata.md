@@ -16,38 +16,60 @@
 | Copyright | © 2025 NDD Resources |
 
 
+## Subtitle (30 characters max)
+
+```
+Find help. Know your next step
+```
+
+(Previous: "Find Regional Center Resources" - also fits if preferred.)
+
+## Promotional Text (170 characters max, editable without review)
+
+```
+From diagnosis to services in place - KiNDD matches your family to your regional center, suggests your next step, and answers your questions.
+```
+
 ## App Description
 
 ```
-Find healthcare resources and service providers for individuals with neurodevelopmental disabilities across Los Angeles County Regional Centers.
+KiNDD helps Los Angeles County families navigate developmental disability services - from the day of diagnosis to services in place.
 
-FEATURES:
-• Interactive map of 600+ verified resources
-• Filter by Regional Center service area
-• Turn-by-turn directions to providers
-• Detailed provider information including services and contact details
+Enter your ZIP code and KiNDD matches you to your regional center, shows its service area on the map, and suggests your next step - whether that is requesting an intake evaluation, preparing for an appointment, or getting more from an IPP.
+
+ASK KiNDD
+• A caring assistant that answers questions about ABA, speech, occupational, and physical therapy, regional centers, eligibility, and funding
+• Understands where your family is in the journey and tailors guidance to match
+• Recommends real providers near you - tap a card to call or get directions
+
+FIND SERVICES
+• Interactive map of 600+ verified resources across LA County
+• Filter by regional center area, therapy type, ages served, and insurance
+• Detailed provider profiles with services, contact info, and directions
 • Search by ZIP code, city, or provider name
-• Regional Center boundary visualization
-• Works offline with saved favorites
 
-REGIONAL CENTERS COVERED:
-• North Los Angeles County Regional Center (NLACRC)
-• Eastern Los Angeles Regional Center (ELARC)
-• South Central Los Angeles Regional Center (SCLARC)
-• Westside Regional Center (WRC)
-• Frank D. Lanterman Regional Center (FDLRC)
-• Harbor Regional Center (HRC)
-• San Gabriel/Pomona Regional Center (SGPRC)
+ALWAYS ONE TAP AWAY
+• Home screen widget with your regional center's phone number
+• Siri and Spotlight shortcuts: "Call my regional center" and "Ask KiNDD"
 
-Designed for families, caregivers, and professionals seeking developmental disability resources in Southern California. This app is a community resource and is not affiliated with the California Department of Developmental Services.
+REGIONAL CENTERS COVERED
+• North Los Angeles County (NLACRC)
+• Eastern Los Angeles (ELARC)
+• South Central Los Angeles (SCLARC)
+• Westside (WRC)
+• Frank D. Lanterman (FDLRC)
+• Harbor (HRC)
+• San Gabriel/Pomona (SGPRC)
 
-For questions or feedback, contact us at support@kinddhelp.com
+Designed for families, caregivers, and clinicians. KiNDD is a community resource and is not affiliated with the California Department of Developmental Services or any regional center. KiNDD provides navigation help, not medical advice.
+
+Questions or feedback: support@kinddhelp.com
 ```
 
 ## Keywords (100 characters max)
 
 ```
-regional center,disability,healthcare,resources,NLACRC,ELARC,autism,developmental,services,LA county
+regional center,autism,ABA,speech therapy,developmental,disability,early intervention,IPP,IEP,LA
 ```
 
 ## URLs
@@ -66,11 +88,11 @@ regional center,disability,healthcare,resources,NLACRC,ELARC,autism,developmenta
 ### Notes for Reviewer
 
 ```
-This app helps users find healthcare resources for individuals with neurodevelopmental disabilities in Los Angeles County. It connects to our API at api.kinddhelp.com to display verified provider data.
+This app helps families find developmental disability services in Los Angeles County. It connects to our API at api.kinddhelp.com for verified provider data.
 
-The app requires location permission to show nearby resources, but all features work without granting location access. Users can search by ZIP code, city, or address as an alternative.
+The Ask KiNDD feature is an AI assistant (Anthropic Claude, served through AWS Bedrock) that answers questions about navigating regional center services. Answers are grounded in our curated provider database and public regional center information. The app presents itself as navigation help, not medical advice, and includes appropriate disclaimers.
 
-No login is required to use the app.
+Location permission is optional; every feature works by entering a ZIP code instead. No login is required to use the app.
 ```
 
 ### Contact Information
