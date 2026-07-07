@@ -20,13 +20,10 @@
 
 set -euo pipefail
 
-KEY_ID="${1:-${ASC_KEY_ID:-}}"
-ISSUER_ID="${2:-${ASC_ISSUER_ID:-}}"
-
-if [[ -z "$KEY_ID" || -z "$ISSUER_ID" ]]; then
-    echo "Usage: $0 <ASC_KEY_ID> <ASC_ISSUER_ID>  (or set env vars)" >&2
-    exit 1
-fi
+# Defaults for this team; the .p8 private key at
+# ~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8 is the actual secret
+KEY_ID="${1:-${ASC_KEY_ID:-9W6UWB24DM}}"
+ISSUER_ID="${2:-${ASC_ISSUER_ID:-69a6de72-3b58-47e3-e053-5b8c7c11a4d1}}"
 
 cd "$(dirname "$0")/.."
 
