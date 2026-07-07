@@ -58,12 +58,30 @@ def ask_autism_research(
         return response.json()
     except requests.RequestException as exc:
         logger.warning(
-            "Autism Research RAG request failed",
+            "Autism Research RAG request failed; falling back to classic pipeline",
             extra={"url": url, "error_type": type(exc).__name__},
         )
-        raise AutismResearchError(str(exc)) from exc
+        return _classic_fallback(question)
     except ValueError as exc:
         raise AutismResearchError("Autism Research RAG returned invalid JSON") from exc
+
+
+def _classic_fallback(question: str) -> dict[str, Any]:
+    """Answer via the main chat pipeline when the RAG service is unavailable.
+
+    Environments without a deployed RAG service (production does not run one
+    yet) degrade to a citation-free answer instead of surfacing an error.
+    """
+    from .query import answer_query  # local import to avoid module cycles
+
+    result = answer_query(question)
+    return {
+        "answer": result.get("answer", ""),
+        "citations": [],
+        "runtime": "classic-fallback",
+        "providers_referenced": result.get("providers_referenced", []),
+        "regional_center": result.get("regional_center"),
+    }
 
 
 def check_autism_research_health() -> dict[str, Any]:
