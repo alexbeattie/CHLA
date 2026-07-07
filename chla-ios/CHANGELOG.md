@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-07-07
+
+### Complete redesign: the companion release
+
+#### Journey-stage guidance
+- Onboarding asks where the family is in the process (just diagnosed, waiting for intake, receiving services, exploring)
+- Home screen "Your Next Step" card suggests the single most useful action per stage, with call and chat actions
+- Ask KiNDD receives the journey stage as context and tailors answers to it
+- Stage-specific quick prompts lead the chat suggestions
+
+#### New surfaces
+- Home screen widget (small, medium, lock screen): regional center name and phone, tap to call; Ask KiNDD shortcut on the medium size
+- App Intents: "Call My Regional Center" and "Ask KiNDD" in Siri, Spotlight, and Shortcuts
+- kindd:// deep links (call, chat)
+
+#### Design system
+- Calm purple palette with design tokens, SF Rounded display type, lavender ambient washes
+- Map-led home screen with live regional center service-area overlays
+- Rebuilt onboarding with the matched-center map moment
+- Unified bottom-sheet presentation across the app
+- Official KiNDD logo as the app icon, with dark and tinted variants
+- Full dark mode pass
+
+#### Chat improvements
+- Referenced providers render as tappable cards inside answers
+- Single markdown renderer during and after streaming (no more mid-answer reflow)
+- Heading sizes capped for mobile reading
+- Parent-facing error messages with recovery guidance
+
+#### Accessibility
+- Dynamic Type support in chat body text
+- VoiceOver labels on message actions, map hero, and provider cards
+- Removed hide-on-scroll navigation
+
 ## [1.2.0] - 2026-01-06
 
 ### ✨ Major New Feature: AI-Powered Chat (Ask KiNDD)

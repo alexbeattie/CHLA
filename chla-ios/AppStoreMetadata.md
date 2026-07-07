@@ -85,9 +85,41 @@ No login is required to use the app.
 
 | Field | Value |
 | ---------- | --------------- |
-| Version | 1.0.0 |
+| Version | 1.4.0 |
 | Build | 1 |
-| What's New | Initial release |
+
+
+## What's New - 1.4.0 (paste into App Store Connect)
+
+```
+KiNDD 1.4.0 is a complete redesign built around one idea: meeting your family where you are.
+
+NEW
+- Ask KiNDD now understands where you are in the journey - just diagnosed, waiting for intake, or already receiving services - and tailors its guidance to match
+- Your Next Step: the home screen suggests the one action that matters most right now, with a call button and coaching for the conversation
+- Home screen widget: your regional center's phone number, one tap away
+- Siri and Spotlight shortcuts: "Call my regional center" and "Ask KiNDD"
+- Providers mentioned in chat answers appear as cards you can tap for details, directions, and contact info
+
+IMPROVED
+- A calmer, warmer design across every screen, in light and dark mode
+- The map now leads the home screen, showing your regional center's service area at a glance
+- Smoother chat with clearer, better-formatted answers
+- Faster onboarding: enter your ZIP, see your regional center matched on the map, and you're in
+- Better support for VoiceOver and Dynamic Type
+```
+
+## What to Test - 1.4.0 (paste into TestFlight)
+
+```
+This build is a full redesign. Please try:
+1. Fresh onboarding (More tab -> Restart Welcome Setup): ZIP entry, the regional center match screen, and the journey question
+2. The home screen: map overlays, service chips, the Your Next Step card, and the Ask KiNDD bar
+3. Chat: ask about services near you, then tap the provider cards in the answer
+4. Add the KiNDD widget to your home screen and tap it
+5. Search "regional center" in Spotlight and try the shortcuts
+6. Dark mode on every screen
+```
 
 
 ## Screenshots Location
