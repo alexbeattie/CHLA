@@ -61,24 +61,23 @@ which handle you secured on each platform in the tracking table at the end.
 
 ## Generated image assets
 
-All files are in `docs/social-media/assets/`. They are built from the real
-logo and brand blue, sized to each platform's current specs.
+All files are in `docs/social-media/assets/`. Every asset is the full KiNDD
+logo lockup (heart mark plus wordmark) centered on a solid white background,
+sized to each platform's current specs. No headline text or colored panels.
 
 | File | Size | Use for |
 | --- | --- | --- |
-| `avatar-heart-white.png` | 1000x1000 | Profile photo where display is circular (Instagram, TikTok, Facebook, X). Heart mark on white reads cleanly when cropped to a circle. |
-| `avatar-heart-blue.png` | 1000x1000 | Alternate profile photo on brand blue if a colored avatar is preferred. |
-| `avatar-lockup-white.png` | 1000x1000 | Square logo lockup for LinkedIn Page logo and anywhere a square (non-circular) logo is shown. |
+| `avatar-heart-white.png` | 1000x1000 | Profile photo (Instagram, TikTok, Facebook, X). Logo on white. |
+| `avatar-lockup-white.png` | 1000x1000 | LinkedIn Page logo and anywhere a square logo is shown. |
 | `facebook-cover.png` | 1640x664 | Facebook Page cover photo. |
 | `twitter-header.png` | 1500x500 | X / Twitter header. |
 | `linkedin-company-cover.png` | 1128x376 | LinkedIn Page cover banner. |
-| `youtube-banner.png` | 2560x1440 | YouTube channel art (text kept inside the 1546x423 center safe zone). |
+| `youtube-banner.png` | 2560x1440 | YouTube channel art (logo kept inside the 1546x423 center safe zone). |
 
-Profile photos display as a circle on most platforms, so the heart-only avatar
-is the safe default. Use the full wordmark lockup only where the frame is
-square. If you want a photographic cover instead of the blue banner, the
-existing `map-frontend/public/og-image.jpg` also works as a Facebook or
-LinkedIn cover.
+Note: profile photos are cropped to a circle on most platforms. Because the
+lockup is horizontal, it sits within a wide clear margin so nothing important
+is clipped by the circle. If you later want a mark-only avatar that fills a
+circle more fully, ask and it can be regenerated from the heart mark alone.
 
 ## Profile copy (paste-ready, within each platform's limits)
 
