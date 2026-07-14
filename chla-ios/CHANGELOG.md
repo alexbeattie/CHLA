@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.4.0] - 2026-07-07
+## [1.4.1] - 2026-07-13
+
+TestFlight-only polish release for the external beta group. Not submitted for App Store release.
+
+### Interaction polish
+- Centralized haptic feedback (`Haptics`) so every tap, action, and completion shares one intensity vocabulary; replaced all inline `UIImpactFeedbackGenerator` call sites
+- New `PressableButtonStyle` press feedback (subtle scale, or opacity dip under Reduce Motion) applied to buttons, chips, cards, and rows across Home, Chat, Onboarding, Maps, FAQ, provider, and navigation surfaces
+- Chat attachment source menu is anchored to the + button instead of floating over the chat header
+
+### Accessibility
+- Reduce Motion respected across the touched screens: onboarding reveal and step transitions, tab bar show/hide and selection, FAQ expansion, map header/controls transitions, map camera moves, search bar activation, typing indicator, and mic recording pulse fall back to short fades or no motion
+- Large Content Viewer support on the custom tab bar, Ask KiNDD button, and floating search button so fixed-size controls stay usable at accessibility Dynamic Type sizes
+- Home "Ask KiNDD" capsule grows with Dynamic Type instead of clipping; service-type labels wrap to two lines instead of shrinking
+
+## [1.4.0] - 2026-07-10
+
+Released on the App Store 2026-07-10 (build 2, iPhone-only). Timeline: build 1 (2026-07-07) was superseded because its device family included iPad and review submission was blocked on missing iPad screenshots; build 2 was submitted 2026-07-08, rejected 2026-07-09 under Guideline 2.3.6 (Age Rating needed Medical Treatment Information: Frequent), fixed and resubmitted the same morning, and approved 2026-07-10.
 
 ### Complete redesign: the companion release
 
@@ -40,6 +56,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic Type support in chat body text
 - VoiceOver labels on message actions, map hero, and provider cards
 - Removed hide-on-scroll navigation
+
+#### Platform
+- App is now iPhone-only (iPad removed from the device family; the redesign is phone-first)
+
+## [1.3.1] - 2026-04-27
+
+Released on the App Store 2026-04-27.
+
+### Clinician Referral Workspace
+- Clinicians can look up a family's Regional Center by ZIP code, start filtered searches, and share a referral handoff summary
+
+### Carried forward from 1.3.0
+- Spanish language support, Map/List toggle for Regional Centers, home screen About/FAQ access, localization improvements
+
+## [1.3.0] - 2026-01-28
+
+Uploaded to App Store Connect 2026-01-28; superseded on the store by 1.3.1.
+
+### Spanish Language Support & Enhanced Navigation
+- Full Spanish language support with a language switch in Settings and on the home screen
+- AI assistant responds in the preferred language
+- Improved Regional Centers navigation with Map/List toggle (map default)
+- Quick access to About & FAQ from the home screen
+- Redesigned home page with cleaner layout
+
+---
 
 ## [1.2.0] - 2026-01-06
 

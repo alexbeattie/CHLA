@@ -55,7 +55,11 @@ class UIVisibilityManager: ObservableObject {
         // Cancel any pending auto-show
         cancelAutoShowTimer()
 
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+        // Class context, so read the UIKit flag instead of the SwiftUI environment
+        let show: Animation = UIAccessibility.isReduceMotionEnabled
+            ? .easeOut(duration: 0.2)
+            : .spring(response: 0.35, dampingFraction: 0.8)
+        withAnimation(show) {
             isTabBarVisible = true
             isHeaderVisible = true
         }
@@ -123,19 +127,21 @@ struct ScrollTrackingView<Content: View>: View {
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
     @State private var showMainView = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
-            // Main app view (always rendered but hidden during onboarding)
+            // Main app view (always rendered but hidden during onboarding).
+            // Reduce Motion swaps the zoom-and-blur reveal for a plain cross-fade.
             MainTabView()
                 .opacity(showMainView ? 1 : 0)
-                .scaleEffect(showMainView ? 1 : 0.92)
-                .blur(radius: showMainView ? 0 : 10)
+                .scaleEffect(reduceMotion ? 1 : (showMainView ? 1 : 0.92))
+                .blur(radius: reduceMotion ? 0 : (showMainView ? 0 : 10))
 
             // Onboarding overlay
             if appState.isOnboarding {
                 OnboardingView()
-                    .transition(.asymmetric(
+                    .transition(reduceMotion ? .opacity : .asymmetric(
                         insertion: .opacity,
                         removal: .opacity.combined(with: .scale(scale: 1.05)).combined(with: .blur)
                     ))
@@ -145,7 +151,10 @@ struct ContentView: View {
         .onChange(of: appState.isOnboarding) { _, isOnboarding in
             if !isOnboarding {
                 // Elegant reveal animation
-                withAnimation(.spring(response: 0.7, dampingFraction: 0.8)) {
+                let reveal: Animation = reduceMotion
+                    ? .easeOut(duration: 0.3)
+                    : .spring(response: 0.7, dampingFraction: 0.8)
+                withAnimation(reveal) {
                     showMainView = true
                 }
             }
@@ -178,6 +187,7 @@ struct BlurModifier: ViewModifier {
 struct MainTabView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.openURL) private var openURL
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     // Sheet states
@@ -234,7 +244,7 @@ struct MainTabView: View {
             .padding(.bottom, 8)
             .offset(y: visibilityManager.isTabBarVisible ? 0 : 120)
             .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
+            .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
         }
         .ignoresSafeArea(.keyboard)
         .statusBarHidden(!visibilityManager.isHeaderVisible)
@@ -264,9 +274,7 @@ struct MainTabView: View {
     }
 
     private func handleMenuAction(_ action: TabMenuAction) {
-        // Haptic feedback
-        let impact = UIImpactFeedbackGenerator(style: .light)
-        impact.impactOccurred()
+        Haptics.tap()
 
         switch action {
         // Map actions
@@ -381,6 +389,7 @@ struct LiquidGlassTabBar: View {
     @Binding var selectedTab: Int
     var onMenuAction: (TabMenuAction) -> Void
     var onChatTap: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     struct TabInfo {
         let icon: String
@@ -464,7 +473,7 @@ struct LiquidGlassTabBar: View {
             menuItems: tabs[index].menuItems,
             onMenuAction: onMenuAction,
             onTap: {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.75)) {
                     selectedTab = index
                 }
             }
@@ -486,8 +495,11 @@ struct LiquidGlassTabBar: View {
                 .padding(.vertical, 10)
                 .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .accessibilityLabel("Ask KiNDD")
+        .accessibilityShowsLargeContentViewer {
+            Label("Ask KiNDD", systemImage: "sparkles")
+        }
     }
 }
 
@@ -499,18 +511,22 @@ struct GlassTabItem: View {
     let menuItems: [(icon: String, title: String, action: TabMenuAction)]
     var onMenuAction: (TabMenuAction) -> Void
     var onTap: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         // Tab button content: tint-only selection so six items fit at 375pt
-        Image(systemName: icon)
-            .font(.system(size: 18, weight: isSelected ? .semibold : .regular))
-            .foregroundStyle(isSelected ? Color.accentBlue : .secondary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .accessibilityLabel(label)
-            .contentShape(Capsule())
-        .onTapGesture {
-            onTap()
+        Button(action: onTap) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: isSelected ? .semibold : .regular))
+                .foregroundStyle(isSelected ? Color.accentBlue : .secondary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .accessibilityLabel(label)
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.pressable)
+        .accessibilityShowsLargeContentViewer {
+            Label(label, systemImage: icon)
         }
         .contextMenu {
             // Long-press context menu
@@ -522,7 +538,7 @@ struct GlassTabItem: View {
                 }
             }
         }
-        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isSelected)
+        .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.35, dampingFraction: 0.7), value: isSelected)
     }
 }
 
@@ -558,6 +574,11 @@ struct FloatingSearchButton: View {
                         )
                 }
                 .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel("Search")
+        .accessibilityShowsLargeContentViewer {
+            Label("Search", systemImage: "magnifyingglass")
         }
     }
 }
@@ -783,7 +804,7 @@ struct RegionalCentersListContent: View {
                     UserRCRow(center: userCenter)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            Haptics.tap()
                             selectedCenter = userCenter
                         }
                 } header: {
@@ -803,7 +824,7 @@ struct RegionalCentersListContent: View {
                     RCListRow(center: center)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            Haptics.tap()
                             selectedCenter = center
                         }
                 }
@@ -1251,7 +1272,7 @@ struct ClinicianResourcesView: View {
     private func copyHandoffSummary() {
         #if canImport(UIKit)
         UIPasteboard.general.string = handoffSummary
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        Haptics.tap()
         #elseif canImport(AppKit)
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(handoffSummary, forType: .string)

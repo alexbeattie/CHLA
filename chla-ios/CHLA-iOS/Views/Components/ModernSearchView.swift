@@ -113,6 +113,12 @@ struct ModernSearchBar: View {
     @FocusState private var isTextFieldFocused: Bool
     let onFilterTap: () -> Void
     let activeFilterCount: Int
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// Search-bar state animation; settles to a short ease-out under Reduce Motion
+    private var searchAnimation: Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.3)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -128,7 +134,7 @@ struct ModernSearchBar: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: searchState.isSearchActive)
+        .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.35, dampingFraction: 0.8), value: searchState.isSearchActive)
     }
 
     @ViewBuilder
@@ -149,7 +155,7 @@ struct ModernSearchBar: View {
                     searchState.onSearch?(searchState.searchText, searchState.selectedScope)
                 }
                 .onChange(of: isTextFieldFocused) { _, focused in
-                    withAnimation(.spring(response: 0.3)) {
+                    withAnimation(searchAnimation) {
                         searchState.isSearchActive = focused
                         // Show suggestions when search is active
                         searchState.showSuggestions = focused
@@ -158,7 +164,7 @@ struct ModernSearchBar: View {
 
             if !searchState.searchText.isEmpty {
                 Button {
-                    withAnimation(.spring(response: 0.25)) {
+                    withAnimation(searchAnimation) {
                         searchState.searchText = ""
                         searchState.showSuggestions = true
                     }
@@ -173,7 +179,7 @@ struct ModernSearchBar: View {
             // Cancel button when active
             if searchState.isSearchActive {
                 Button("Cancel") {
-                    withAnimation(.spring(response: 0.3)) {
+                    withAnimation(searchAnimation) {
                         searchState.searchText = ""
                         searchState.isSearchActive = false
                         searchState.showSuggestions = false
@@ -202,7 +208,7 @@ struct ModernSearchBar: View {
                         scope: scope,
                         isSelected: searchState.selectedScope == scope
                     ) {
-                        withAnimation(.spring(response: 0.3)) {
+                        withAnimation(searchAnimation) {
                             searchState.selectedScope = scope
                         }
                         // Trigger search with new scope
@@ -325,7 +331,7 @@ struct ScopeButton: View {
                 }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }
 
@@ -422,7 +428,7 @@ struct SuggestionRow: View {
                     .fill(Color.primary.opacity(0.03))
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressableCard)
     }
 }
 
