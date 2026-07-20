@@ -123,6 +123,48 @@
     <string name="next">Next</string>
     <string name="get_started">Get Started</string>
 
+    <!-- Profile-aware onboarding -->
+    <string name="onboarding_progress">Step %1$d of %2$d</string>
+    <string name="onboarding_welcome_title">You found the right place.</string>
+    <string name="onboarding_welcome_body">KiNDD helps LA County families navigate developmental services - regional centers, therapy providers, and what to do next.</string>
+    <string name="onboarding_audience_prompt">I\'m here as a</string>
+    <string name="onboarding_audience_family">Parent or family</string>
+    <string name="onboarding_audience_clinician">Clinician</string>
+    <string name="onboarding_zip_title">Where is home?</string>
+    <string name="onboarding_zip_body">Every LA County family is assigned a regional center by ZIP code. Yours decides who to call.</string>
+    <string name="onboarding_zip_label">ZIP code</string>
+    <string name="onboarding_use_location">Use my location instead</string>
+    <string name="onboarding_location_locating">Finding your ZIP code…</string>
+    <string name="onboarding_location_denied">Location access wasn\'t allowed. Enter your ZIP code or try again.</string>
+    <string name="onboarding_location_failed">We couldn\'t find a ZIP code from your location. Enter it below or try again.</string>
+    <string name="onboarding_center_title">Your Regional Center</string>
+    <string name="onboarding_center_matched">Matched</string>
+    <string name="onboarding_center_body">They coordinate evaluations, services, and funding for your family - and they\'re expecting calls like yours.</string>
+    <string name="onboarding_center_unmatched_title">We\'ll figure it out together</string>
+    <string name="onboarding_center_unmatched_body">We couldn\'t match that ZIP to a regional center. You can still browse everything, and KiNDD can help you find who serves your family.</string>
+    <string name="onboarding_center_unavailable_title">We can\'t check right now</string>
+    <string name="onboarding_center_unavailable_body">Try again when you\'re connected. You can still browse KiNDD without a matched regional center.</string>
+    <string name="onboarding_journey_title">Where are you in the journey?</string>
+    <string name="onboarding_journey_body">KiNDD uses this to suggest your next step - nothing is locked in.</string>
+    <string name="onboarding_journey_just_diagnosed">Just diagnosed</string>
+    <string name="onboarding_journey_waiting_intake">Waiting for intake</string>
+    <string name="onboarding_journey_receiving_services">Receiving services</string>
+    <string name="onboarding_journey_exploring">Exploring options</string>
+    <string name="onboarding_age_title">How old is your child?</string>
+    <string name="onboarding_age_body">Optional - it helps us show age-appropriate services first.</string>
+    <string name="onboarding_age_early_intervention">0-5 years (Early Intervention)</string>
+    <string name="onboarding_age_school_age">6-12 years (School Age)</string>
+    <string name="onboarding_age_adolescent">13-18 years (Adolescent)</string>
+    <string name="onboarding_age_adult">19+ years (Adult)</string>
+    <string name="onboarding_age_all_ages">All Ages</string>
+    <string name="onboarding_save_failed">We couldn\'t save your changes. Try again.</string>
+    <string name="action_back">Back</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_get_started">Get Started</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+
     <!-- Common -->
     <string name="cancel">Cancel</string>
     <string name="close">Close</string>

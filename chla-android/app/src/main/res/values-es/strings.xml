@@ -123,6 +123,48 @@
     <string name="next">Siguiente</string>
     <string name="get_started">Comenzar</string>
 
+    <!-- Incorporación con perfil -->
+    <string name="onboarding_progress">Paso %1$d de %2$d</string>
+    <string name="onboarding_welcome_title">Encontraste el lugar indicado.</string>
+    <string name="onboarding_welcome_body">KiNDD ayuda a las familias del condado de Los Ángeles a orientarse entre los servicios para el desarrollo: centros regionales, proveedores de terapia y los próximos pasos.</string>
+    <string name="onboarding_audience_prompt">Estoy aquí como</string>
+    <string name="onboarding_audience_family">Madre, padre o familiar</string>
+    <string name="onboarding_audience_clinician">Profesional clínico</string>
+    <string name="onboarding_zip_title">¿Dónde está tu hogar?</string>
+    <string name="onboarding_zip_body">A cada familia del condado de Los Ángeles se le asigna un centro regional según su código postal. El tuyo determina a quién llamar.</string>
+    <string name="onboarding_zip_label">Código postal</string>
+    <string name="onboarding_use_location">Usar mi ubicación</string>
+    <string name="onboarding_location_locating">Buscando tu código postal…</string>
+    <string name="onboarding_location_denied">No se permitió el acceso a la ubicación. Ingresa tu código postal o inténtalo de nuevo.</string>
+    <string name="onboarding_location_failed">No pudimos encontrar un código postal a partir de tu ubicación. Ingrésalo abajo o inténtalo de nuevo.</string>
+    <string name="onboarding_center_title">Tu Centro Regional</string>
+    <string name="onboarding_center_matched">Coincidencia encontrada</string>
+    <string name="onboarding_center_body">Coordina evaluaciones, servicios y financiamiento para tu familia, y está preparado para recibir llamadas como la tuya.</string>
+    <string name="onboarding_center_unmatched_title">Lo resolveremos juntos</string>
+    <string name="onboarding_center_unmatched_body">No pudimos asociar ese código postal con un centro regional. Aun así, puedes explorar todos los recursos, y KiNDD puede ayudarte a encontrar quién atiende a tu familia.</string>
+    <string name="onboarding_center_unavailable_title">No podemos verificarlo ahora</string>
+    <string name="onboarding_center_unavailable_body">Inténtalo de nuevo cuando tengas conexión. Aun así, puedes explorar KiNDD sin un centro regional asignado.</string>
+    <string name="onboarding_journey_title">¿En qué etapa del camino estás?</string>
+    <string name="onboarding_journey_body">KiNDD usa esta información para sugerir tu próximo paso; nada es definitivo.</string>
+    <string name="onboarding_journey_just_diagnosed">Diagnóstico reciente</string>
+    <string name="onboarding_journey_waiting_intake">Esperando la evaluación inicial</string>
+    <string name="onboarding_journey_receiving_services">Recibiendo servicios</string>
+    <string name="onboarding_journey_exploring">Explorando opciones</string>
+    <string name="onboarding_age_title">¿Qué edad tiene tu hijo?</string>
+    <string name="onboarding_age_body">Opcional: nos ayuda a mostrar primero los servicios adecuados para su edad.</string>
+    <string name="onboarding_age_early_intervention">0-5 años (Intervención temprana)</string>
+    <string name="onboarding_age_school_age">6-12 años (Edad escolar)</string>
+    <string name="onboarding_age_adolescent">13-18 años (Adolescencia)</string>
+    <string name="onboarding_age_adult">19+ años (Adultez)</string>
+    <string name="onboarding_age_all_ages">Todas las edades</string>
+    <string name="onboarding_save_failed">No pudimos guardar tus cambios. Inténtalo de nuevo.</string>
+    <string name="action_back">Atrás</string>
+    <string name="action_continue">Continuar</string>
+    <string name="action_get_started">Comenzar</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_save">Guardar</string>
+
     <!-- Common -->
     <string name="cancel">Cancelar</string>
     <string name="close">Cerrar</string>

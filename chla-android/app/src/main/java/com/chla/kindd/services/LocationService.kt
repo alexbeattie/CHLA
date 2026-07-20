@@ -8,6 +8,8 @@ import android.location.Geocoder
 import android.location.Location
 import android.os.Looper
 import androidx.core.content.ContextCompat
+import com.chla.kindd.data.source.UserCoordinates
+import com.chla.kindd.data.source.UserLocationSource
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -24,8 +26,8 @@ import kotlin.coroutines.resumeWithException
 class LocationService(
     private val context: Context,
     private val fusedLocationClient: FusedLocationProviderClient
-) {
-    fun hasLocationPermission(): Boolean {
+) : UserLocationSource {
+    override fun hasLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -50,6 +52,14 @@ class LocationService(
                 }
         }
     }
+
+    override suspend fun currentCoordinates(): UserCoordinates? =
+        getCurrentLocation()?.let { location ->
+            UserCoordinates(location.latitude, location.longitude)
+        }
+
+    override suspend fun zipCodeFor(coordinates: UserCoordinates): String? =
+        getZipCode(coordinates.latitude, coordinates.longitude)
 
     @SuppressLint("MissingPermission")
     fun getLocationUpdates(intervalMs: Long = 10000): Flow<Location> = callbackFlow {

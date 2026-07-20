@@ -8,6 +8,7 @@ import com.chla.kindd.data.repository.ProviderRepository
 import com.chla.kindd.data.repository.RegionalCenterRepository
 import com.chla.kindd.data.source.ProviderDiscoveryDataSource
 import com.chla.kindd.data.source.RegionalCenterDataSource
+import com.chla.kindd.data.source.UserLocationSource
 import com.chla.kindd.services.LocationService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -40,6 +41,12 @@ object RepositoryModule {
     ): LocationService {
         return LocationService(context, fusedLocationProviderClient)
     }
+
+    @Provides
+    @Singleton
+    fun provideUserLocationSource(
+        locationService: LocationService
+    ): UserLocationSource = locationService
 
     @Provides
     @Singleton
