@@ -2,6 +2,8 @@ package com.chla.kindd.di
 
 import android.content.Context
 import com.chla.kindd.data.api.KINDDApi
+import com.chla.kindd.data.discovery.DiscoveryController
+import com.chla.kindd.data.discovery.DiscoveryStore
 import com.chla.kindd.data.repository.ProviderRepository
 import com.chla.kindd.data.repository.RegionalCenterRepository
 import com.chla.kindd.data.source.ProviderDiscoveryDataSource
@@ -53,6 +55,12 @@ object RepositoryModule {
     fun provideProviderDiscoveryDataSource(
         repository: ProviderRepository
     ): ProviderDiscoveryDataSource = repository
+
+    @Provides
+    @Singleton
+    fun provideDiscoveryController(
+        store: DiscoveryStore
+    ): DiscoveryController = store
 
     @Provides
     @Singleton
