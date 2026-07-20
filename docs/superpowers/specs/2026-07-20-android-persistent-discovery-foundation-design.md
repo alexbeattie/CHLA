@@ -14,7 +14,7 @@ The existing Android production-API repair remains the baseline. This design mus
 - Every existing Android installation enters this onboarding once after receiving the new build because no compatible completion record exists today.
 - Subsequent launches go directly to Home unless the user explicitly chooses to edit or clear their profile.
 - Profile data persists across process death; text queries, temporary discovery filters, results, and errors persist only for the current application session.
-- Android matches iPhone behavior while retaining native Material interaction patterns. A literal clone of the iPhone glass navigation is outside this slice.
+- Android matches iPhone behavior while retaining native Material interaction patterns. Prefilled profile editing, atomic stale-center clearing, shared Map/List state, and Home-triggered discovery refresh are intentional Android correctness improvements rather than claims about current iPhone behavior. A literal clone of the iPhone glass navigation is outside this slice.
 
 ## Goals
 
@@ -73,6 +73,23 @@ enum class JourneyStage {
     EXPLORING
 }
 
+enum class AgeGroup(val apiValue: String) {
+    EARLY_INTERVENTION("0-5"),
+    SCHOOL_AGE("6-12"),
+    ADOLESCENT("13-18"),
+    ADULT("19+"),
+    ALL_AGES("All Ages")
+}
+
+enum class TherapyType(val apiValue: String) {
+    ABA("ABA therapy"),
+    SPEECH("Speech therapy"),
+    OCCUPATIONAL("Occupational therapy"),
+    PHYSICAL("Physical therapy"),
+    FEEDING("Feeding therapy"),
+    PARENT_TRAINING("Parent child interaction therapy/parent training behavior management")
+}
+
 data class RegionalCenterIdentity(
     val id: Int,
     val name: String,
@@ -85,9 +102,13 @@ data class UserProfile(
     val zipCode: String? = null,
     val regionalCenter: RegionalCenterIdentity? = null,
     val journeyStage: JourneyStage? = null,
-    val ageGroup: String? = null
+    val ageGroup: AgeGroup? = null
 )
 ```
+
+Audience and journey values persist with explicit stable keys matching the iPhone context: `family`, `clinician`, `justDiagnosed`, `waitingIntake`, `receivingServices`, and `exploring`. Enum names and ordinals are never persisted. Age uses the exact API values shown above; no selection remains distinct from the real `All Ages` value.
+
+Regional-center short names are derived canonically from API names as `NLACRC`, `WRC`, `SCLARC`, `ELARC`, `HRC`, `FDLRC`, or `SGPRC`; source value `SG/PRC` normalizes to `SGPRC`. The deployed API ID is persisted, but cross-platform parity compares name and short name because the iPhone's local IDs are not the deployed IDs.
 
 `UserProfileRepository` owns the single application-scoped Preferences DataStore instance and exposes:
 
@@ -128,8 +149,8 @@ sealed interface DiscoveryOrigin {
 
 data class DiscoveryCriteria(
     val query: String = "",
-    val therapyTypes: Set<String> = emptySet(),
-    val ageGroup: String? = null,
+    val therapyTypes: Set<TherapyType> = emptySet(),
+    val ageGroup: AgeGroup? = null,
     val diagnosis: String? = null,
     val insurance: String? = null,
     val radiusMiles: Int = 15,
@@ -157,12 +178,12 @@ The store chooses one request path per criteria snapshot:
 
 | Origin and criteria | Request behavior |
 | --- | --- |
-| Profile ZIP | Call providers-by-regional-center with ZIP, therapies, age, diagnosis, and insurance; apply a case-insensitive text query across provider name, address, city, description, therapy types, and insurance locally so regional-center coverage remains authoritative. |
+| Profile ZIP | Call providers-by-regional-center with ZIP, age, diagnosis, and insurance. Because the deployed endpoint accepts only one `therapy` value, omit therapy from that request and apply every selected canonical therapy locally, along with a case-insensitive text query across provider name, address, city, description, therapy types, and insurance, so regional-center coverage remains authoritative without silently dropping selected filters. |
 | Device location | Call comprehensive search with query, coordinates, radius, therapies, age, diagnosis, and insurance; compute distance, sort nearest-first, and enforce the result cap client-side. |
 | LA fallback with query or filters | Call comprehensive search without coordinates using the active query and filters. |
 | LA fallback without query or filters | Load the catalog endpoint. |
 
-Therapy values are stable backend values such as `ABA therapy`; localized display labels never become API identifiers. Repeated therapy query parameters preserve all selected values.
+Therapy values are stable backend values: `ABA therapy`, `Speech therapy`, `Occupational therapy`, `Physical therapy`, `Feeding therapy`, and `Parent child interaction therapy/parent training behavior management`. Localized display labels never become API identifiers. Comprehensive search sends repeated `therapy` query parameters; ZIP-based search applies the full selected set locally because its deployed backend contract is singular.
 
 Map and List consume the same `providers` list. List retains every returned provider. Map derives only providers with valid coordinates and never manufactures `(0, 0)` markers.
 
@@ -184,13 +205,13 @@ A valid unmatched ZIP may continue with `regionalCenter = null`. A network failu
 
 ### Home
 
-Home reads profile and discovery state rather than owning ZIP locally. It shows either a matched-center card or a ZIP entry card. A successful ZIP submission replaces profile ZIP and center together, switches discovery origin to that ZIP, refreshes once, and stays on Home so the matched-center card is visible. Separate Map and List actions open those discovery surfaces.
+Home reads profile and discovery state rather than owning ZIP locally. It shows either a matched-center card or a ZIP entry card. A successfully matched ZIP replaces profile ZIP and center together, switches discovery origin to that ZIP, refreshes once, and stays on Home so the matched-center card is visible. An unmatched or failed Home lookup leaves the saved profile unchanged and shows an inline error, matching current iPhone behavior. Separate Map and List actions open those discovery surfaces.
 
 Therapy shortcuts set one canonical therapy filter before opening List. Journey stage supplies the same family-oriented next-step categories as the iPhone app. New user-facing copy uses `KiNDD` capitalization.
 
 ### Map and List
 
-Map and List expose the same search field and active-filter model. Changing query or filters on one is visible on the other after a tab switch. Both can open a shared filter sheet for therapy, age, diagnosis, insurance, and radius. Active filters appear as removable chips with Clear All.
+Map and List expose the same search field and active-filter model. `List` is the single touched-surface label; this slice removes the competing `Resources` label from navigation and headers. Changing query or filters on one is visible on the other after a tab switch. Both can open a shared filter sheet for therapy, age, diagnosis, insurance, and radius. Active filters appear as removable chips with Clear All.
 
 Map shows the coordinate-bearing subset of the shared result set. List shows all results and owns presentation-only sorting without mutating shared result identity. Provider-detail navigation remains unchanged.
 
@@ -243,7 +264,7 @@ Android retains Material components, system navigation behavior, dark-theme adap
 ### Discovery tests
 
 - Request decision table selects ZIP, location, comprehensive, or catalog behavior correctly.
-- Repeated therapy parameters and all deployed query names are exact.
+- Comprehensive search repeats therapy parameters and uses every deployed query name exactly; ZIP search omits therapy and applies all selected therapy values locally.
 - Home therapy action changes criteria before navigation is emitted.
 - Rapid query changes cancel or ignore stale results.
 - Failed refresh preserves prior results and exposes Retry.
