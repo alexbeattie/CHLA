@@ -302,11 +302,17 @@ class HomeViewModelTest {
             initialGate.complete(Result.success(listOf(initialDetails)))
             runCurrent()
             assertEquals(initialDetails, fixture.viewModel.uiState.value.hydratedCenter)
+            val capturedInitialDigits = fixture.viewModel.uiState.value.dialDigits
+            requireNotNull(capturedInitialDigits)
+            fixture.viewModel.callCenter(capturedInitialDigits)
+            runCurrent()
+            assertEquals(HomeEvent.Dial("1111111111"), events.single())
+            events.clear()
 
             fixture.repository.emit(profile(identity = staleIdentity))
             runCurrent()
             assertNull(fixture.viewModel.uiState.value.hydratedCenter)
-            fixture.viewModel.uiState.value.dialDigits?.let(fixture.viewModel::callCenter)
+            fixture.viewModel.callCenter(capturedInitialDigits)
             runCurrent()
             assertTrue(events.isEmpty())
 
@@ -316,6 +322,9 @@ class HomeViewModelTest {
             latestGate.complete(Result.success(listOf(latestDetails)))
             runCurrent()
             assertEquals(latestDetails, fixture.viewModel.uiState.value.hydratedCenter)
+            fixture.viewModel.callCenter(capturedInitialDigits)
+            runCurrent()
+            assertTrue(events.isEmpty())
 
             staleGate.complete(
                 Result.success(listOf(center(id = 2, name = "Stale", phone = "222-222-2222")))
@@ -323,6 +332,9 @@ class HomeViewModelTest {
             runCurrent()
 
             assertEquals(latestDetails, fixture.viewModel.uiState.value.hydratedCenter)
+            fixture.viewModel.callCenter(capturedInitialDigits)
+            runCurrent()
+            assertTrue(events.isEmpty())
             val dialDigits = fixture.viewModel.uiState.value.dialDigits
             requireNotNull(dialDigits)
             fixture.viewModel.callCenter(dialDigits)

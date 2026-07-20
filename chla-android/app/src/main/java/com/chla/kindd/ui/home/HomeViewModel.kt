@@ -141,7 +141,11 @@ class HomeViewModel @Inject constructor(
         eventChannel.trySend(HomeEvent.NavigateToChat(prompt))
     }
     fun callCenter(digits: String) {
-        if (digits.isNotEmpty() && digits.all { character -> character in '0'..'9' }) {
+        if (
+            digits.isNotEmpty() &&
+            digits.all { character -> character in '0'..'9' } &&
+            digits == uiState.value.dialDigits
+        ) {
             eventChannel.trySend(HomeEvent.Dial(digits))
         }
     }
