@@ -40,6 +40,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -124,6 +129,9 @@ fun HomeContent(
             ) {
                 Text(
                     text = stringResource(R.string.home_brand),
+                    modifier = Modifier
+                        .testTag("home_title")
+                        .semantics { heading() },
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -144,7 +152,10 @@ fun HomeContent(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(
                     onClick = onNavigateToMap,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 48.dp)
+                        .testTag("home_map_action")
                 ) {
                     Icon(Icons.Default.Map, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
@@ -152,7 +163,10 @@ fun HomeContent(
                 }
                 OutlinedButton(
                     onClick = onNavigateToList,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 48.dp)
+                        .testTag("home_list_action")
                 ) {
                     Icon(Icons.Default.List, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
@@ -209,6 +223,7 @@ private fun ZipLookupCard(
         ) {
             Text(
                 stringResource(R.string.home_who_serves),
+                modifier = Modifier.semantics { heading() },
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
@@ -236,7 +251,16 @@ private fun ZipLookupCard(
                     modifier = Modifier.heightIn(min = 48.dp)
                 ) {
                     if (uiState.lookupState == HomeLookupState.LOADING) {
-                        CircularProgressIndicator(modifier = Modifier.height(20.dp))
+                        val loadingDescription = stringResource(R.string.loading)
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .height(20.dp)
+                                .testTag("home_zip_lookup_loading")
+                                .semantics {
+                                    contentDescription = loadingDescription
+                                    liveRegion = LiveRegionMode.Polite
+                                }
+                        )
                     } else {
                         Text(stringResource(R.string.home_find))
                     }
@@ -251,7 +275,10 @@ private fun ZipLookupCard(
                             HomeMessage.LOOKUP_UNAVAILABLE -> R.string.home_lookup_unavailable
                         }
                     ),
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .testTag("home_zip_lookup_message")
+                        .semantics { liveRegion = LiveRegionMode.Polite }
                 )
             }
         }
@@ -270,7 +297,11 @@ private fun RegionalCenterCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(stringResource(R.string.home_your_regional_center), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.home_your_regional_center),
+                modifier = Modifier.semantics { heading() },
+                style = MaterialTheme.typography.titleMedium
+            )
             Text(stringResource(R.string.home_matched), color = MaterialTheme.colorScheme.primary)
             Text(identity.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text(identity.shortName, style = MaterialTheme.typography.labelLarge)
@@ -300,7 +331,12 @@ private fun HomeSection(title: String, content: @Composable () -> Unit) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(
+            title,
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
         content()
     }
 }
@@ -338,7 +374,12 @@ private fun HomeActionCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 icon()
                 Spacer(Modifier.width(8.dp))
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    title,
+                    modifier = Modifier.semantics { heading() },
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
             Text(body)
             OutlinedButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp)) {
@@ -370,7 +411,12 @@ private fun JourneyCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(stringResource(R.string.home_your_next_step), style = MaterialTheme.typography.labelLarge)
-            Text(stringResource(titleRes), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(
+                stringResource(titleRes),
+                modifier = Modifier.semantics { heading() },
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { onChat(prompt) }, modifier = Modifier.heightIn(min = 48.dp)) {
                     Text(stringResource(actionRes))

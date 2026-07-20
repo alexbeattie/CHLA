@@ -13,6 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.RegionalCenterIdentity
@@ -24,7 +27,11 @@ internal fun RegionalCenterStep(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OnboardingStepColumn(modifier = modifier) {
+    OnboardingStepColumn(
+        modifier = modifier
+            .testTag("onboarding_center_status")
+            .semantics { liveRegion = LiveRegionMode.Polite }
+    ) {
         OnboardingHeading(stringResource(R.string.onboarding_center_title))
         when (lookupState) {
             CenterLookupState.MATCHED -> MatchedCenter(center)

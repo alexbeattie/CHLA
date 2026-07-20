@@ -35,7 +35,6 @@ import androidx.navigation.navArgument
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
-import com.chla.kindd.ui.screens.SettingsScreen
 
 sealed class Screen(
     val route: String,
@@ -170,15 +169,7 @@ fun KINDDMainNavHost(
                 destinationContent.chat(prompt, actions)
             }
             composable(Screen.Settings.route) {
-                if (destinationContent === ProductionMainDestinationContent) {
-                    SettingsScreen(
-                        onNavigateToFAQ = actions.navigateToFaq,
-                        onNavigateToAbout = actions.navigateToAbout,
-                        onNavigateToEditProfile = actions.navigateToEditProfile
-                    )
-                } else {
-                    destinationContent.settings(actions)
-                }
+                destinationContent.settings(actions)
             }
             composable(
                 route = Screen.ProviderDetail.route,

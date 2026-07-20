@@ -25,7 +25,7 @@ private val LightColorScheme = lightColorScheme(
     primaryContainer = Color(0xFFE2E1FF),
     onPrimaryContainer = Color(0xFF170065),
     secondary = KiNDDViolet,
-    onSecondary = KiNDDCanvasDark,
+    onSecondary = Color.Black,
     secondaryContainer = Color(0xFFEDE5FF),
     onSecondaryContainer = Color(0xFF251047),
     tertiary = KiNDDMatchedGreen,
@@ -47,7 +47,7 @@ private val LightColorScheme = lightColorScheme(
 
 private val DarkColorScheme = darkColorScheme(
     primary = KiNDDViolet,
-    onPrimary = KiNDDCanvasDark,
+    onPrimary = Color.Black,
     primaryContainer = KiNDDDeepIndigo,
     onPrimaryContainer = Color(0xFFE2E1FF),
     secondary = KiNDDPurple,

@@ -21,6 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.discovery.DiscoveryError
@@ -36,8 +40,17 @@ fun DiscoveryStateContent(
 ) {
     when {
         state.isLoading && !state.hasLoadedOnce && state.providers.isEmpty() -> {
-            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(Modifier.testTag("discovery_initial_loading"))
+            Box(
+                modifier
+                    .fillMaxSize()
+                    .testTag("discovery_initial_loading")
+                    .semantics { liveRegion = LiveRegionMode.Polite },
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Text(stringResource(R.string.loading))
+                }
             }
         }
         state.error != null && state.providers.isEmpty() -> {
@@ -74,13 +87,15 @@ fun DiscoveryStateContent(
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 6.dp)
                             .testTag("discovery_result_count")
+                            .semantics { liveRegion = LiveRegionMode.Polite }
                     )
                     Box(Modifier.weight(1f)) { content(state.providers) }
                 } else if (state.hasLoadedOnce) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .testTag("discovery_empty"),
+                            .testTag("discovery_empty")
+                            .semantics { liveRegion = LiveRegionMode.Polite },
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -90,6 +105,7 @@ fun DiscoveryStateContent(
                             )
                             Text(
                                 text = stringResource(R.string.no_resources_found),
+                                modifier = Modifier.semantics { heading() },
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Text(stringResource(R.string.try_adjusting_filters))
@@ -107,7 +123,12 @@ private fun FullError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(
+        modifier
+            .fillMaxSize()
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        contentAlignment = Alignment.Center
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = discoveryErrorText(error),
@@ -122,7 +143,10 @@ private fun FullError(
 private fun RefreshErrorBanner(error: DiscoveryError, onRetry: () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.errorContainer,
-        modifier = Modifier.fillMaxWidth().testTag("discovery_error_banner")
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("discovery_error_banner")
+            .semantics { liveRegion = LiveRegionMode.Polite }
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

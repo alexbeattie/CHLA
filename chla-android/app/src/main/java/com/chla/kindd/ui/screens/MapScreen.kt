@@ -21,7 +21,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,7 +38,6 @@ import com.chla.kindd.ui.discovery.DiscoveryFilterSheet
 import com.chla.kindd.ui.discovery.DiscoverySearchField
 import com.chla.kindd.ui.discovery.DiscoveryStateContent
 import com.chla.kindd.ui.discovery.DiscoveryUiActions
-import com.chla.kindd.ui.theme.CHLABlue
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -123,10 +127,15 @@ fun MapContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.map_title)) },
+                title = {
+                    Text(
+                        stringResource(R.string.map_title),
+                        Modifier.testTag("map_title").semantics { heading() }
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CHLABlue,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }
@@ -161,16 +170,25 @@ fun MapContent(
             when (locationState.status) {
                 MapLocationStatus.LOCATING -> Text(
                     stringResource(R.string.discovery_location_locating),
-                    Modifier.padding(horizontal = 16.dp)
+                    Modifier
+                        .padding(horizontal = 16.dp)
+                        .testTag("map_location_status")
+                        .semantics { liveRegion = LiveRegionMode.Polite }
                 )
                 MapLocationStatus.PERMISSION_DENIED -> Text(
                     stringResource(R.string.discovery_location_denied),
-                    Modifier.padding(horizontal = 16.dp),
+                    Modifier
+                        .padding(horizontal = 16.dp)
+                        .testTag("map_location_status")
+                        .semantics { liveRegion = LiveRegionMode.Polite },
                     color = MaterialTheme.colorScheme.error
                 )
                 MapLocationStatus.FAILED -> Text(
                     stringResource(R.string.discovery_location_failed),
-                    Modifier.padding(horizontal = 16.dp),
+                    Modifier
+                        .padding(horizontal = 16.dp)
+                        .testTag("map_location_status")
+                        .semantics { liveRegion = LiveRegionMode.Polite },
                     color = MaterialTheme.colorScheme.error
                 )
                 MapLocationStatus.IDLE -> Unit

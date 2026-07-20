@@ -2,6 +2,8 @@ package com.chla.kindd.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -38,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -45,14 +49,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.R
 import com.chla.kindd.data.discovery.DiscoveryState
+import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.models.Provider
 import com.chla.kindd.ui.discovery.ActiveFilterChips
 import com.chla.kindd.ui.discovery.DiscoveryFilterSheet
 import com.chla.kindd.ui.discovery.DiscoverySearchField
 import com.chla.kindd.ui.discovery.DiscoveryStateContent
 import com.chla.kindd.ui.discovery.DiscoveryUiActions
-import com.chla.kindd.ui.theme.CHLABlue
-import com.chla.kindd.ui.theme.CHLABlueLight
 
 @Composable
 fun ProviderListScreen(
@@ -105,10 +108,15 @@ fun ProviderListContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.list_title)) },
+                title = {
+                    Text(
+                        stringResource(R.string.list_title),
+                        Modifier.testTag("list_title").semantics { heading() }
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CHLABlue,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }
@@ -192,6 +200,7 @@ private fun ProviderCards(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProviderCard(provider: Provider, onClick: () -> Unit) {
     Card(
@@ -220,14 +229,17 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit) {
                     Text(
                         text = provider.formattedDistance,
                         style = MaterialTheme.typography.bodySmall,
-                        color = CHLABlueLight
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
             if (!provider.therapyTypes.isNullOrEmpty()) {
                 Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    provider.therapyTypes.take(3).forEachIndexed { index, therapy ->
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    provider.therapyTypes.forEachIndexed { index, therapy ->
                         Surface(
                             modifier = Modifier.testTag(
                                 "provider_therapy_${provider.id}_$index"
@@ -237,7 +249,7 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit) {
                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                         ) {
                             Text(
-                                text = therapy,
+                                text = localizedTherapyLabel(therapy),
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                             )
@@ -264,4 +276,12 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun localizedTherapyLabel(apiValue: String): String {
+    val therapy = TherapyType.entries.firstOrNull {
+        it.apiValue.equals(apiValue.trim(), ignoreCase = true)
+    }
+    return therapy?.let { stringResource(it.displayResId) } ?: apiValue
 }

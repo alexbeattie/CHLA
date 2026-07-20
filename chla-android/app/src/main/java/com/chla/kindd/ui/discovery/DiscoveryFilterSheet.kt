@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.discovery.DiscoveryCatalog
@@ -56,14 +59,29 @@ fun DiscoveryFilterSheet(
     onDismissRequest: () -> Unit,
     onApply: (DiscoveryFilterSelection) -> Unit
 ) {
+    ModalBottomSheet(onDismissRequest = onDismissRequest) {
+        DiscoveryFilterContent(
+            criteria = criteria,
+            onDismissRequest = onDismissRequest,
+            onApply = onApply
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun DiscoveryFilterContent(
+    criteria: DiscoveryCriteria,
+    onDismissRequest: () -> Unit,
+    onApply: (DiscoveryFilterSelection) -> Unit
+) {
     var therapies by remember(criteria) { mutableStateOf(criteria.therapyTypes) }
     var age by remember(criteria) { mutableStateOf(criteria.ageGroup) }
     var diagnosis by remember(criteria) { mutableStateOf(criteria.diagnosis) }
     var insurance by remember(criteria) { mutableStateOf(criteria.insurance) }
     var radius by remember(criteria) { mutableIntStateOf(criteria.radiusMiles) }
 
-    ModalBottomSheet(onDismissRequest = onDismissRequest) {
-        Column(
+    Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
@@ -76,6 +94,9 @@ fun DiscoveryFilterSheet(
             ) {
                 Text(
                     text = stringResource(R.string.filters),
+                    modifier = Modifier
+                        .testTag("discovery_filter_title")
+                        .semantics { heading() },
                     style = MaterialTheme.typography.headlineSmall
                 )
                 IconButton(
@@ -176,7 +197,10 @@ fun DiscoveryFilterSheet(
                         insurance = null
                         radius = 15
                     },
-                    modifier = Modifier.weight(1f).testTag("discovery_filter_reset")
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 48.dp)
+                        .testTag("discovery_filter_reset")
                 ) {
                     Text(stringResource(R.string.discovery_reset))
                 }
@@ -192,12 +216,14 @@ fun DiscoveryFilterSheet(
                             )
                         )
                     },
-                    modifier = Modifier.weight(1f).testTag("discovery_filter_apply")
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 48.dp)
+                        .testTag("discovery_filter_apply")
                 ) {
                     Text(stringResource(R.string.discovery_apply))
                 }
             }
-        }
     }
 }
 
@@ -210,7 +236,9 @@ private fun FilterSection(
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)
+        modifier = Modifier
+            .padding(top = 12.dp, bottom = 4.dp)
+            .semantics { heading() }
     )
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),

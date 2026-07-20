@@ -44,10 +44,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.chla.kindd.BuildConfig
@@ -113,8 +111,7 @@ fun SettingsContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .semantics { isTraversalGroup = true },
+                .padding(paddingValues),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -130,9 +127,7 @@ fun SettingsContent(
                     title = stringResource(R.string.settings_edit_profile),
                     subtitle = stringResource(R.string.settings_edit_profile_description),
                     onClick = onEditProfile,
-                    modifier = Modifier
-                        .testTag("settings_edit_profile")
-                        .semantics { traversalIndex = 0f }
+                    modifier = Modifier.testTag("settings_edit_profile")
                 )
             }
             item {
@@ -141,9 +136,7 @@ fun SettingsContent(
                     title = stringResource(R.string.settings_clear_profile),
                     subtitle = stringResource(R.string.settings_clear_profile_description),
                     onClick = { showClearConfirmation = true },
-                    modifier = Modifier
-                        .testTag("settings_clear_profile")
-                        .semantics { traversalIndex = 1f },
+                    modifier = Modifier.testTag("settings_clear_profile"),
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 )

@@ -5,12 +5,21 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
@@ -28,12 +37,40 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
+import com.chla.kindd.R
 import com.chla.kindd.data.profile.AudienceType
+import com.chla.kindd.data.discovery.DiscoveryCriteria
+import com.chla.kindd.data.discovery.DiscoveryError
+import com.chla.kindd.data.discovery.DiscoveryState
+import com.chla.kindd.data.discovery.TherapyType
+import com.chla.kindd.data.models.Provider
+import com.chla.kindd.data.profile.AgeGroup
+import com.chla.kindd.data.profile.JourneyStage
+import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.ui.discovery.DiscoveryFilterContent
+import com.chla.kindd.ui.discovery.DiscoveryStateContent
+import com.chla.kindd.ui.discovery.DiscoveryUiActions
+import com.chla.kindd.ui.home.HomeLookupState
+import com.chla.kindd.ui.home.HomeMessage
+import com.chla.kindd.ui.home.HomeUiState
+import com.chla.kindd.ui.onboarding.CenterLookupState
+import com.chla.kindd.ui.onboarding.LocationState
+import com.chla.kindd.ui.onboarding.OnboardingContent
+import com.chla.kindd.ui.onboarding.OnboardingMode
+import com.chla.kindd.ui.onboarding.OnboardingStep
+import com.chla.kindd.ui.onboarding.OnboardingUiState
 import com.chla.kindd.ui.discovery.DiscoverySearchField
 import com.chla.kindd.ui.onboarding.AudienceStep
+import com.chla.kindd.ui.screens.HomeContent
+import com.chla.kindd.ui.screens.MapContent
+import com.chla.kindd.ui.screens.MapLocationState
+import com.chla.kindd.ui.screens.MapLocationStatus
+import com.chla.kindd.ui.screens.ProviderListContent
+import com.chla.kindd.ui.screens.ProviderListSort
 import com.chla.kindd.ui.screens.SettingsContent
 import com.chla.kindd.ui.theme.KINDDTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -77,11 +114,20 @@ class TouchedSurfaceAccessibilityTest {
 
         composeRule.onNodeWithTag("settings_title").assert(hasHeading())
         composeRule.onNodeWithTag("settings_profile_heading").assert(hasHeading())
-        val editTop = composeRule.onNodeWithTag("settings_edit_profile")
-            .fetchSemanticsNode().boundsInRoot.top
-        val clearTop = composeRule.onNodeWithTag("settings_clear_profile")
-            .fetchSemanticsNode().boundsInRoot.top
-        assertTrue("Edit must precede Clear in traversal order", editTop < clearTop)
+        val clickableTags = composeRule.onAllNodes(hasClickAction())
+            .fetchSemanticsNodes()
+            .mapNotNull { it.config.getOrNull(SemanticsProperties.TestTag) }
+        assertTrue(
+            "Edit must precede Clear in the semantics tree",
+            clickableTags.indexOf("settings_edit_profile") <
+                clickableTags.indexOf("settings_clear_profile")
+        )
+        composeRule.onAllNodes(hasClickAction()).fetchSemanticsNodes().forEach { node ->
+            assertFalse(
+                "Settings should rely on complete natural order, not partial traversal indices",
+                node.config.contains(SemanticsProperties.TraversalIndex)
+            )
+        }
 
         composeRule.onNodeWithTag("settings_clear_profile").performClick()
         composeRule.onNodeWithTag("settings_clear_confirmation")
@@ -115,6 +161,256 @@ class TouchedSurfaceAccessibilityTest {
         assertEveryIconOnlyControlHasDescription()
     }
 
+    @Test
+    fun filter_content_isDirectlyTestableAtNarrowLargeTextWidth() {
+        setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = true, fontScale = 1.5f) {
+            DiscoveryFilterContent(
+                criteria = DiscoveryCriteria(),
+                onDismissRequest = {},
+                onApply = {}
+            )
+        }
+
+        composeRule.onNodeWithText("Filtros").assert(hasHeading())
+        composeRule.onNodeWithText("Tipos de Terapia").assert(hasHeading())
+        assertTargetAtLeast48Dp("discovery_filter_reset", "Restablecer")
+        assertTargetAtLeast48Dp("discovery_filter_apply", "Aplicar")
+    }
+
+    @Test
+    fun materialRolePairsMeetNormalTextContrastInLightTheme() {
+        assertThemeContrast(darkTheme = false)
+    }
+
+    @Test
+    fun materialRolePairsMeetNormalTextContrastInDarkTheme() {
+        assertThemeContrast(darkTheme = true)
+    }
+
+    @Test
+    fun launchThemeResolvesAsDarkBeforeComposeInNightMode() {
+        val baseContext = InstrumentationRegistry.getInstrumentation().targetContext
+        val configuration = Configuration(baseContext.resources.configuration).apply {
+            uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
+                Configuration.UI_MODE_NIGHT_YES
+        }
+        val context = baseContext.createConfigurationContext(configuration).apply {
+            setTheme(R.style.Theme_KINDD)
+        }
+        val attributes = context.obtainStyledAttributes(intArrayOf(android.R.attr.isLightTheme))
+        val isLightTheme = attributes.getBoolean(0, true)
+        attributes.recycle()
+        assertFalse("Launch theme should follow night mode before Compose starts", isLightTheme)
+    }
+
+    @Test
+    fun home_spanishLargeTextExposesHeadingsAndPoliteLookupStatus() {
+        setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = false, fontScale = 1.5f) {
+            HomeContent(
+                uiState = HomeUiState(
+                    zipDraft = "9000",
+                    lookupState = HomeLookupState.UNAVAILABLE,
+                    message = HomeMessage.LOOKUP_UNAVAILABLE
+                ),
+                onZipChanged = {}, onSubmitZip = {}, onNavigateToMap = {},
+                onNavigateToList = {}, onNavigateToRegionalCenters = {},
+                onNavigateToChat = {}, onOpenChat = {}, onTherapySelected = {}, onCall = {}
+            )
+        }
+
+        composeRule.onNodeWithTag("home_title").assert(hasHeading())
+        composeRule.onNodeWithText("¿Quién atiende a tu familia?").assert(hasHeading())
+        composeRule.onNodeWithText("Descubre servicios").assert(hasHeading())
+        composeRule.onNodeWithTag("home_zip_lookup_message")
+            .assert(hasLiveRegion(LiveRegionMode.Polite))
+        assertTargetAtLeast48Dp("home_map_action", "Mapa")
+        assertTargetAtLeast48Dp("home_list_action", "Lista")
+    }
+
+    @Test
+    fun allFiveOnboardingStates_spanishLargeTextExposeSemanticState() {
+        lateinit var state: MutableState<OnboardingUiState>
+        val profile = UserProfile(
+            audienceType = AudienceType.FAMILY,
+            zipCode = "90001",
+            journeyStage = JourneyStage.EXPLORING,
+            ageGroup = AgeGroup.SCHOOL_AGE
+        )
+        setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = true, fontScale = 1.5f) {
+            state = remember {
+                mutableStateOf(OnboardingUiState(mode = OnboardingMode.EDIT, draft = profile))
+            }
+            OnboardingContent(
+                state = state.value,
+                onAudienceSelected = {}, onZipChanged = {}, onUseLocation = {},
+                onRetryCenterLookup = {}, onJourneySelected = {}, onAgeSelected = {},
+                onBack = {}, onContinue = {}, onFinish = {}, onCancel = {}
+            )
+        }
+
+        composeRule.onNodeWithText("Encontraste el lugar indicado.").assert(hasHeading())
+        composeRule.onNodeWithTag("onboarding_audience_family").assertIsSelected()
+
+        composeRule.runOnIdle {
+            state.value = state.value.copy(
+                step = OnboardingStep.ZIP,
+                locationState = LocationState.DENIED
+            )
+        }
+        composeRule.onNodeWithText("¿Dónde está tu hogar?").assert(hasHeading())
+        composeRule.onNodeWithTag("onboarding_location_status")
+            .assert(hasLiveRegion(LiveRegionMode.Polite))
+
+        composeRule.runOnIdle {
+            state.value = state.value.copy(
+                step = OnboardingStep.REGIONAL_CENTER,
+                centerLookupState = CenterLookupState.UNAVAILABLE
+            )
+        }
+        composeRule.onNodeWithText("Tu Centro Regional").assert(hasHeading())
+        composeRule.onNodeWithTag("onboarding_center_status")
+            .assert(hasLiveRegion(LiveRegionMode.Polite))
+
+        composeRule.runOnIdle { state.value = state.value.copy(step = OnboardingStep.JOURNEY) }
+        composeRule.onNodeWithText("¿En qué etapa del camino estás?").assert(hasHeading())
+        composeRule.onNodeWithTag("onboarding_journey_exploring").assertIsSelected()
+
+        composeRule.runOnIdle { state.value = state.value.copy(step = OnboardingStep.AGE) }
+        composeRule.onNodeWithText("¿Qué edad tiene tu hijo?").assert(hasHeading())
+        composeRule.onNodeWithTag("onboarding_age_school_age").assertIsSelected()
+        assertTargetAtLeast48Dp("onboarding_age_school_age", "6-12 años")
+        assertFixedTargetAtLeast48Dp("onboarding_primary_action", "Guardar")
+    }
+
+    @Test
+    fun map_spanishNarrowWidthExposesHeadingLocationAndClearFilterTargets() {
+        setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = false, fontScale = 1f) {
+            MapContent(
+                state = DiscoveryState(
+                    criteria = DiscoveryCriteria(query = "habla"),
+                    hasLoadedOnce = true
+                ),
+                locationState = MapLocationState(status = MapLocationStatus.PERMISSION_DENIED),
+                actions = noOpDiscoveryActions(),
+                onUseMyLocation = {}, onProviderClick = {}, markerContent = { _, _ -> }
+            )
+        }
+
+        composeRule.onNodeWithTag("map_title").assert(hasHeading())
+        composeRule.onNodeWithTag("map_location_status")
+            .assert(hasLiveRegion(LiveRegionMode.Polite))
+        composeRule.onNodeWithContentDescription("Borrar búsqueda").assertIsDisplayed()
+        assertFixedTargetAtLeast48Dp("discovery_clear_query", "Borrar búsqueda")
+        assertFixedTargetAtLeast48Dp("discovery_filter_button", "Filtros")
+    }
+
+    @Test
+    fun providerList_spanishLargeTextWrapsAndLocalizesEveryCanonicalTherapy() {
+        val provider = Provider(
+            id = "matrix",
+            name = "Centro de desarrollo",
+            therapyTypes = TherapyType.entries.map(TherapyType::apiValue),
+            distance = 1.2
+        )
+        setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = true, fontScale = 1.5f) {
+            ProviderListContent(
+                state = DiscoveryState(providers = listOf(provider), hasLoadedOnce = true),
+                providers = listOf(provider),
+                sort = ProviderListSort.NAME,
+                onSortChange = {}, actions = noOpDiscoveryActions(), onProviderClick = {}
+            )
+        }
+
+        composeRule.onNodeWithTag("list_title").assert(hasHeading())
+        listOf(
+            "Terapia ABA", "Terapia del Habla", "Terapia Ocupacional", "Fisioterapia",
+            "Terapia de alimentación", "Interacción padre-hijo y capacitación parental"
+        ).forEach { composeRule.onNodeWithText(it, useUnmergedTree = true).assertIsDisplayed() }
+        TherapyType.entries.forEach { therapy ->
+            composeRule.onNodeWithText(therapy.apiValue, useUnmergedTree = true).assertDoesNotExist()
+        }
+        assertNodeInsideRoot("provider_therapy_matrix_5", useUnmergedTree = true)
+    }
+
+    @Test
+    fun discoveryLoadingErrorEmptyAndRetainedErrorUsePoliteLiveRegions() {
+        lateinit var state: MutableState<DiscoveryState>
+        setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = true, fontScale = 1f) {
+            state = remember { mutableStateOf(DiscoveryState(isLoading = true)) }
+            DiscoveryStateContent(state = state.value, onRetry = {}) { }
+        }
+
+        composeRule.onNodeWithTag("discovery_initial_loading")
+            .assert(hasLiveRegion(LiveRegionMode.Polite))
+        composeRule.onNodeWithText("Cargando…").assertIsDisplayed()
+        composeRule.runOnIdle {
+            state.value = DiscoveryState(error = DiscoveryError.NETWORK)
+        }
+        composeRule.onNodeWithTag("discovery_initial_error")
+            .assert(hasLiveRegion(LiveRegionMode.Polite))
+        composeRule.runOnIdle {
+            state.value = DiscoveryState(hasLoadedOnce = true)
+        }
+        composeRule.onNodeWithTag("discovery_empty")
+            .assert(hasLiveRegion(LiveRegionMode.Polite))
+        composeRule.onNodeWithText("No se encontraron recursos").assert(hasHeading())
+        composeRule.runOnIdle {
+            state.value = DiscoveryState(
+                providers = listOf(Provider(id = "one", name = "Uno")),
+                error = DiscoveryError.TIMEOUT,
+                hasLoadedOnce = true
+            )
+        }
+        composeRule.onNodeWithTag("discovery_error_banner")
+            .assert(hasLiveRegion(LiveRegionMode.Polite))
+    }
+
+    private fun assertThemeContrast(darkTheme: Boolean) {
+        lateinit var scheme: ColorScheme
+        setLocalizedContent(Locale.US, darkTheme = darkTheme, fontScale = 1f) {
+            val currentScheme = MaterialTheme.colorScheme
+            SideEffect { scheme = currentScheme }
+        }
+        composeRule.waitForIdle()
+        listOf(
+            "primary" to (scheme.primary to scheme.onPrimary),
+            "primaryContainer" to (scheme.primaryContainer to scheme.onPrimaryContainer),
+            "secondary" to (scheme.secondary to scheme.onSecondary),
+            "tertiary" to (scheme.tertiary to scheme.onTertiary),
+            "surface" to (scheme.surface to scheme.onSurface),
+            "surfaceVariant" to (scheme.surfaceVariant to scheme.onSurfaceVariant),
+            "error" to (scheme.error to scheme.onError),
+            "errorContainer" to (scheme.errorContainer to scheme.onErrorContainer)
+        ).forEach { (name, colors) ->
+            val contrast = contrastRatio(colors.first, colors.second)
+            assertTrue("$name contrast was $contrast", contrast >= 4.5)
+        }
+    }
+
+    private fun contrastRatio(first: Color, second: Color): Double {
+        val firstLuminance = first.luminance().toDouble()
+        val secondLuminance = second.luminance().toDouble()
+        return (maxOf(firstLuminance, secondLuminance) + 0.05) /
+            (minOf(firstLuminance, secondLuminance) + 0.05)
+    }
+
+    private fun noOpDiscoveryActions() = DiscoveryUiActions(
+        onQueryChange = {}, onApplyFilters = {}, onRemoveTherapy = {}, onRemoveAge = {},
+        onRemoveDiagnosis = {}, onRemoveInsurance = {}, onRemoveRadius = {},
+        onClearAll = {}, onRetry = {}
+    )
+
+    private fun assertNodeInsideRoot(tag: String, useUnmergedTree: Boolean = false) {
+        val node = composeRule.onNodeWithTag(tag, useUnmergedTree = useUnmergedTree)
+            .performScrollTo()
+            .assertIsDisplayed()
+            .fetchSemanticsNode().boundsInRoot
+        val root = composeRule.onNodeWithTag("narrow_test_root")
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue("$tag starts outside the narrow root", node.left >= root.left)
+        assertTrue("$tag ends outside the narrow root", node.right <= root.right)
+    }
+
     private fun assertNarrowLargeTextSettings(locale: Locale, darkTheme: Boolean) {
         setLocalizedContent(
             locale = locale,
@@ -145,8 +441,19 @@ class TouchedSurfaceAccessibilityTest {
 
     private fun assertTargetAtLeast48Dp(tag: String, label: String) {
         val node = composeRule.onNodeWithTag(tag).performScrollTo().assertIsDisplayed()
+        assertNodeAtLeast48Dp(node.fetchSemanticsNode().boundsInRoot, label)
+    }
+
+    private fun assertFixedTargetAtLeast48Dp(tag: String, label: String) {
+        val node = composeRule.onNodeWithTag(tag).assertIsDisplayed()
+        assertNodeAtLeast48Dp(node.fetchSemanticsNode().boundsInRoot, label)
+    }
+
+    private fun assertNodeAtLeast48Dp(
+        bounds: androidx.compose.ui.geometry.Rect,
+        label: String
+    ) {
         val minimumPixels = 48f * composeRule.density.density
-        val bounds = node.fetchSemanticsNode().boundsInRoot
         assertTrue("$label is narrower than 48dp", bounds.width >= minimumPixels)
         assertTrue("$label is shorter than 48dp", bounds.height >= minimumPixels)
     }
@@ -213,7 +520,12 @@ class TouchedSurfaceAccessibilityTest {
             LocalDensity provides Density(density.density, fontScale)
         ) {
             KINDDTheme(darkTheme = darkTheme) {
-                Box(Modifier.width(320.dp).height(640.dp)) {
+                Box(
+                    Modifier
+                        .width(320.dp)
+                        .height(720.dp)
+                        .testTag("narrow_test_root")
+                ) {
                     content()
                 }
             }

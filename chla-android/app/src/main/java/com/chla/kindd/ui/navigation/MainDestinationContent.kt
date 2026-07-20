@@ -89,7 +89,8 @@ object ProductionMainDestinationContent : MainDestinationContent {
     override fun settings(actions: MainNavActions) {
         SettingsScreen(
             onNavigateToFAQ = actions.navigateToFaq,
-            onNavigateToAbout = actions.navigateToAbout
+            onNavigateToAbout = actions.navigateToAbout,
+            onNavigateToEditProfile = actions.navigateToEditProfile
         )
     }
 
