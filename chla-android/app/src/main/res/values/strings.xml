@@ -5,7 +5,8 @@
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_map">Map</string>
-    <string name="nav_resources">Resources</string>
+    <string name="nav_resources">List</string>
+    <string name="nav_list">List</string>
     <string name="nav_chat">Chat</string>
     <string name="nav_settings">Settings</string>
 
@@ -44,7 +45,8 @@
     <string name="my_location">My Location</string>
 
     <!-- Provider List -->
-    <string name="resources_title">Resources</string>
+    <string name="resources_title">List</string>
+    <string name="list_title">List</string>
     <string name="resources_found">%d resources found</string>
     <string name="resource_found">%d resource found</string>
     <string name="search_placeholder">Search by name, service, or location</string>
@@ -211,6 +213,57 @@
     <string name="regions_no_match">We couldn\'t match that ZIP code to a regional center.</string>
     <string name="regions_unavailable">We can\'t check right now. Try again when you\'re connected.</string>
     <string name="regions_invalid_zip">Enter a five-digit ZIP code.</string>
+
+    <!-- Shared Map and List discovery -->
+    <string name="discovery_search_label">Search providers</string>
+    <string name="discovery_clear_search">Clear search</string>
+    <string name="discovery_clear_all">Clear All</string>
+    <string name="discovery_remove_filter">Remove %1$s</string>
+    <string name="discovery_age_chip">Age: %1$s</string>
+    <string name="discovery_diagnosis_chip">Diagnosis: %1$s</string>
+    <string name="discovery_insurance_chip">Insurance: %1$s</string>
+    <string name="discovery_radius_chip">Radius: %1$d miles</string>
+    <string name="discovery_age">Age</string>
+    <string name="discovery_any_age">Any Age</string>
+    <string name="discovery_diagnosis">Diagnosis</string>
+    <string name="discovery_any_diagnosis">Any Diagnosis</string>
+    <string name="discovery_insurance">Insurance</string>
+    <string name="discovery_any_insurance">Any Insurance</string>
+    <string name="discovery_radius">Radius</string>
+    <string name="discovery_radius_option">%1$d miles</string>
+    <string name="discovery_reset">Reset</string>
+    <string name="discovery_apply">Apply</string>
+    <string name="discovery_sort_name">Name</string>
+    <string name="discovery_sort_distance">Distance</string>
+    <string name="discovery_use_my_location">Use my location</string>
+    <string name="discovery_location_locating">Finding your location…</string>
+    <string name="discovery_location_denied">Location access wasn\'t allowed. Your current results are still available.</string>
+    <string name="discovery_location_failed">We couldn\'t find your location. Your current results are still available.</string>
+    <string name="discovery_error_network">We can\'t connect right now. Check your connection and try again.</string>
+    <string name="discovery_error_timeout">The request took too long. Try again.</string>
+    <string name="discovery_error_server">The service is unavailable right now. Try again.</string>
+    <string name="discovery_error_unknown">We couldn\'t load providers. Try again.</string>
+    <string name="discovery_diagnosis_autism">Autism Spectrum Disorder</string>
+    <string name="discovery_diagnosis_global_delay">Global Development Delay</string>
+    <string name="discovery_diagnosis_intellectual">Intellectual Disability</string>
+    <string name="discovery_diagnosis_speech_language">Speech and Language Disorder</string>
+    <string name="discovery_other">Other</string>
+    <string name="discovery_insurance_regional_center">Regional Center</string>
+    <string name="discovery_insurance_private_pay">Private Pay</string>
+    <string name="discovery_insurance_medi_cal">Medi-Cal</string>
+    <string name="discovery_insurance_medicare">Medicare</string>
+    <string name="discovery_insurance_blue_cross">Blue Cross</string>
+    <string name="discovery_insurance_blue_shield">Blue Shield</string>
+    <string name="discovery_insurance_anthem">Anthem</string>
+    <string name="discovery_insurance_aetna">Aetna</string>
+    <string name="discovery_insurance_cigna">Cigna</string>
+    <string name="discovery_insurance_kaiser">Kaiser Permanente</string>
+    <string name="discovery_insurance_united">United Healthcare</string>
+    <string name="discovery_insurance_health_net">Health Net</string>
+    <string name="discovery_insurance_molina">Molina</string>
+    <string name="discovery_insurance_la_care">L.A. Care</string>
+    <string name="discovery_insurance_covered_california">Covered California</string>
+    <string name="discovery_unknown_filter">Selected filter</string>
 
     <!-- Common -->
     <string name="cancel">Cancel</string>

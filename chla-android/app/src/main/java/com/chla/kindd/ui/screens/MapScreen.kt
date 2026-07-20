@@ -1,49 +1,125 @@
 package com.chla.kindd.ui.screens
 
-import android.util.Log
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.R
+import com.chla.kindd.data.discovery.DiscoveryState
+import com.chla.kindd.data.models.Provider
+import com.chla.kindd.ui.discovery.ActiveFilterChips
+import com.chla.kindd.ui.discovery.DiscoveryFilterSheet
+import com.chla.kindd.ui.discovery.DiscoverySearchField
+import com.chla.kindd.ui.discovery.DiscoveryStateContent
+import com.chla.kindd.ui.discovery.DiscoveryUiActions
 import com.chla.kindd.ui.theme.CHLABlue
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.*
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
-private const val TAG = "MapScreen"
+data class MapMarkerModel(
+    val providerId: String,
+    val title: String,
+    val latitude: Double,
+    val longitude: Double,
+    val snippet: String
+)
 
-@OptIn(ExperimentalMaterial3Api::class)
+fun providerMarkerModels(providers: List<Provider>): List<MapMarkerModel> = providers.mapNotNull {
+    val latitude = it.latitude ?: return@mapNotNull null
+    val longitude = it.longitude ?: return@mapNotNull null
+    MapMarkerModel(
+        providerId = it.id,
+        title = it.name,
+        latitude = latitude,
+        longitude = longitude,
+        snippet = it.therapyTypes?.firstOrNull().orEmpty()
+    )
+}
+
 @Composable
 fun MapScreen(
     onProviderClick: (String) -> Unit,
     viewModel: MapViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val locationState by viewModel.locationState.collectAsStateWithLifecycle()
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+        viewModel::onLocationPermissionResult
+    )
+    LaunchedEffect(Unit) { viewModel.onFirstAppearance() }
 
-    // Debug: Log when providers change
-    LaunchedEffect(uiState.providers) {
-        val withCoords = uiState.providers.filter { it.hasCoordinates }
-        Log.d(TAG, "MapScreen: ${uiState.providers.size} providers, ${withCoords.size} with coordinates")
-        withCoords.take(3).forEach { p ->
-            Log.d(TAG, "MapScreen marker: ${p.name} at (${p.latitude}, ${p.longitude})")
-        }
-    }
+    MapContent(
+        state = state,
+        locationState = locationState,
+        actions = DiscoveryUiActions(
+            onQueryChange = viewModel::setQuery,
+            onApplyFilters = { selection ->
+                viewModel.applyFilters(
+                    selection.therapyTypes,
+                    selection.ageGroup,
+                    selection.diagnosis,
+                    selection.insurance,
+                    selection.radiusMiles
+                )
+            },
+            onRemoveTherapy = viewModel::removeTherapy,
+            onRemoveAge = viewModel::removeAge,
+            onRemoveDiagnosis = viewModel::removeDiagnosis,
+            onRemoveInsurance = viewModel::removeInsurance,
+            onRemoveRadius = viewModel::removeRadius,
+            onClearAll = viewModel::clearAllFilters,
+            onRetry = viewModel::retry
+        ),
+        onUseMyLocation = {
+            if (locationState.hasPermission) {
+                viewModel.onLocationPermissionResult(granted = true)
+            } else {
+                permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+            }
+        },
+        onProviderClick = onProviderClick
+    )
+}
 
-    // Default to LA area
-    val defaultPosition = LatLng(34.0522, -118.2437)
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(defaultPosition, 10f)
-    }
-
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MapContent(
+    state: DiscoveryState,
+    locationState: MapLocationState,
+    actions: DiscoveryUiActions,
+    onUseMyLocation: () -> Unit,
+    onProviderClick: (String) -> Unit,
+    markerContent: (@Composable (List<MapMarkerModel>, (String) -> Unit) -> Unit)? = null
+) {
+    var showFilters by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -55,118 +131,109 @@ fun MapScreen(
             )
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Google Map
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                properties = MapProperties(
-                    isMyLocationEnabled = uiState.hasLocationPermission
-                ),
-                uiSettings = MapUiSettings(
-                    zoomControlsEnabled = true,
-                    myLocationButtonEnabled = true
-                )
+            DiscoverySearchField(
+                query = state.criteria.query,
+                onQueryChange = actions.onQueryChange,
+                onFilterClick = { showFilters = true },
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            )
+            ActiveFilterChips(
+                criteria = state.criteria,
+                onRemoveTherapy = actions.onRemoveTherapy,
+                onRemoveAge = actions.onRemoveAge,
+                onRemoveDiagnosis = actions.onRemoveDiagnosis,
+                onRemoveInsurance = actions.onRemoveInsurance,
+                onRemoveRadius = actions.onRemoveRadius,
+                onClearAll = actions.onClearAll,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Button(
+                onClick = onUseMyLocation,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             ) {
-                // Provider markers - compute count without mutating state during composition
-                val providersWithCoordinates = uiState.providers.filter { it.hasCoordinates }
-                
-                providersWithCoordinates.forEach { provider ->
-                    Marker(
-                        state = MarkerState(
-                            position = LatLng(provider.latitude!!, provider.longitude!!)
-                        ),
-                        title = provider.name,
-                        snippet = provider.therapyTypes?.firstOrNull() ?: "",
-                        onClick = {
-                            onProviderClick(provider.id)
-                            true
-                        }
-                    )
-                }
-                
-                // Log marker count - LaunchedEffect with stable key
-                LaunchedEffect(providersWithCoordinates.size) {
-                    if (providersWithCoordinates.isNotEmpty()) {
-                        Log.d(TAG, "Rendered ${providersWithCoordinates.size} markers on map")
-                    }
-                }
+                Text(stringResource(R.string.discovery_use_my_location))
             }
-
-            // Search bar overlay
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .align(Alignment.TopCenter),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            when (locationState.status) {
+                MapLocationStatus.LOCATING -> Text(
+                    stringResource(R.string.discovery_location_locating),
+                    Modifier.padding(horizontal = 16.dp)
+                )
+                MapLocationStatus.PERMISSION_DENIED -> Text(
+                    stringResource(R.string.discovery_location_denied),
+                    Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.error
+                )
+                MapLocationStatus.FAILED -> Text(
+                    stringResource(R.string.discovery_location_failed),
+                    Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.error
+                )
+                MapLocationStatus.IDLE -> Unit
+            }
+            DiscoveryStateContent(
+                state = state,
+                onRetry = actions.onRetry,
+                modifier = Modifier.weight(1f)
             ) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { 
-                        searchQuery = it
-                        viewModel.search(it)
-                    },
-                    placeholder = { Text(stringResource(R.string.search_resources)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { 
-                                searchQuery = ""
-                                viewModel.clearSearch()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.close)
-                                )
-                            }
-                        }
-                    },
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                val markers = providerMarkerModels(state.mapProviders)
+                if (markerContent == null) {
+                    ProviderGoogleMap(
+                        markers = markers,
+                        hasLocationPermission = locationState.hasPermission,
+                        onProviderClick = onProviderClick
                     )
-                )
-            }
-
-            // Loading indicator
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-
-            // Provider count
-            if (uiState.providers.isNotEmpty()) {
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(16.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = if (uiState.providers.size == 1) {
-                            stringResource(R.string.resource_found, uiState.providers.size)
-                        } else {
-                            stringResource(R.string.resources_found, uiState.providers.size)
-                        },
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                } else {
+                    markerContent(markers, onProviderClick)
                 }
             }
+        }
+    }
+
+    if (showFilters) {
+        DiscoveryFilterSheet(
+            criteria = state.criteria,
+            onDismissRequest = { showFilters = false },
+            onApply = {
+                actions.onApplyFilters(it)
+                showFilters = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun ProviderGoogleMap(
+    markers: List<MapMarkerModel>,
+    hasLocationPermission: Boolean,
+    onProviderClick: (String) -> Unit
+) {
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(34.0522, -118.2437), 10f)
+    }
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState,
+        properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
+        uiSettings = MapUiSettings(
+            zoomControlsEnabled = true,
+            myLocationButtonEnabled = hasLocationPermission
+        )
+    ) {
+        markers.forEach { marker ->
+            Marker(
+                state = MarkerState(LatLng(marker.latitude, marker.longitude)),
+                title = marker.title,
+                snippet = marker.snippet,
+                onClick = {
+                    onProviderClick(marker.providerId)
+                    true
+                }
+            )
         }
     }
 }

@@ -45,7 +45,12 @@ sealed class Screen(
 ) {
     data object Home : Screen("home", R.string.nav_home, Icons.Filled.Home, Icons.Outlined.Home)
     data object Map : Screen("map", R.string.nav_map, Icons.Filled.Map, Icons.Outlined.Map)
-    data object Providers : Screen("providers", R.string.nav_resources, Icons.AutoMirrored.Filled.List, Icons.AutoMirrored.Outlined.List)
+    data object Providers : Screen(
+        "providers",
+        R.string.nav_list,
+        Icons.AutoMirrored.Filled.List,
+        Icons.AutoMirrored.Outlined.List
+    )
     data object Chat : Screen(
         "chat",
         R.string.nav_chat,

@@ -1,75 +1,95 @@
 package com.chla.kindd.ui.screens
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.chla.kindd.data.discovery.DiscoveryController
+import com.chla.kindd.data.discovery.DiscoveryCriteria
+import com.chla.kindd.data.discovery.DiscoveryState
+import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.models.Provider
-import com.chla.kindd.data.repository.ProviderRepository
+import com.chla.kindd.data.profile.AgeGroup
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-data class ProviderListUiState(
-    val providers: List<Provider> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val searchQuery: String = ""
-)
+enum class ProviderListSort {
+    NAME,
+    DISTANCE
+}
 
 @HiltViewModel
 class ProviderListViewModel @Inject constructor(
-    private val providerRepository: ProviderRepository
+    private val discoveryController: DiscoveryController
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ProviderListUiState())
-    val uiState: StateFlow<ProviderListUiState> = _uiState.asStateFlow()
+    val state: StateFlow<DiscoveryState> = discoveryController.state
 
-    init {
-        loadProviders()
+    private val mutableSort = MutableStateFlow(ProviderListSort.NAME)
+    val sort: StateFlow<ProviderListSort> = mutableSort.asStateFlow()
+
+    val providers: List<Provider>
+        get() = sortedProviders(state.value.providers)
+
+    fun onFirstAppearance() = discoveryController.ensureLoaded()
+
+    fun setQuery(query: String) = discoveryController.setQuery(query)
+
+    fun setSort(sort: ProviderListSort) {
+        mutableSort.value = sort
     }
 
-    fun loadProviders() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
-            providerRepository.getProviders().fold(
-                onSuccess = { providers ->
-                    _uiState.update { it.copy(providers = providers, isLoading = false) }
-                },
-                onFailure = { error ->
-                    _uiState.update { it.copy(error = error.message, isLoading = false) }
-                }
-            )
-        }
+    fun sortedProviders(providers: List<Provider>): List<Provider> = when (sort.value) {
+        ProviderListSort.NAME -> providers.sortedWith(
+            compareBy(String.CASE_INSENSITIVE_ORDER, Provider::name)
+        )
+        ProviderListSort.DISTANCE -> providers.sortedWith(
+            compareBy<Provider> { it.distance == null }
+                .thenBy { it.distance }
+                .thenBy(String.CASE_INSENSITIVE_ORDER, Provider::name)
+        )
     }
 
-    fun search(query: String) {
-        if (query.length < 2) {
-            if (query.isEmpty()) {
-                loadProviders()
-            }
-            return
-        }
+    fun applyFilters(
+        therapyTypes: Set<TherapyType>,
+        ageGroup: AgeGroup?,
+        diagnosis: String?,
+        insurance: String?,
+        radiusMiles: Int
+    ) = discoveryController.applyFilters(
+        therapyTypes = therapyTypes,
+        ageGroup = ageGroup,
+        diagnosis = diagnosis,
+        insurance = insurance,
+        radiusMiles = radiusMiles
+    )
 
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, searchQuery = query) }
-
-            providerRepository.searchProviders(query).fold(
-                onSuccess = { providers ->
-                    _uiState.update { it.copy(providers = providers, isLoading = false) }
-                },
-                onFailure = { error ->
-                    _uiState.update { it.copy(error = error.message, isLoading = false) }
-                }
-            )
-        }
+    fun removeTherapy(therapyType: TherapyType) = updateFilters {
+        copy(therapyTypes = therapyTypes - therapyType)
     }
 
-    fun clearSearch() {
-        _uiState.update { it.copy(searchQuery = "") }
-        loadProviders()
+    fun removeAge() = updateFilters { copy(ageGroup = null) }
+
+    fun removeDiagnosis() = updateFilters { copy(diagnosis = null) }
+
+    fun removeInsurance() = updateFilters { copy(insurance = null) }
+
+    fun removeRadius() = discoveryController.useLosAngelesCatalog()
+
+    fun clearAllFilters() = discoveryController.clearAllFilters()
+
+    fun retry() = discoveryController.retry()
+
+    private inline fun updateFilters(
+        transform: DiscoveryCriteria.() -> DiscoveryCriteria
+    ) {
+        val criteria = state.value.criteria.transform()
+        applyFilters(
+            therapyTypes = criteria.therapyTypes,
+            ageGroup = criteria.ageGroup,
+            diagnosis = criteria.diagnosis,
+            insurance = criteria.insurance,
+            radiusMiles = criteria.radiusMiles
+        )
     }
 }

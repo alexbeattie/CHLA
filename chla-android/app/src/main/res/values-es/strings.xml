@@ -5,7 +5,8 @@
     <!-- Navigation -->
     <string name="nav_home">Inicio</string>
     <string name="nav_map">Mapa</string>
-    <string name="nav_resources">Recursos</string>
+    <string name="nav_resources">Lista</string>
+    <string name="nav_list">Lista</string>
     <string name="nav_chat">Chat</string>
     <string name="nav_settings">Ajustes</string>
 
@@ -44,7 +45,8 @@
     <string name="my_location">Mi Ubicación</string>
 
     <!-- Provider List -->
-    <string name="resources_title">Recursos</string>
+    <string name="resources_title">Lista</string>
+    <string name="list_title">Lista</string>
     <string name="resources_found">%d recursos encontrados</string>
     <string name="resource_found">%d recurso encontrado</string>
     <string name="search_placeholder">Buscar por nombre, servicio o ubicación</string>
@@ -211,6 +213,57 @@
     <string name="regions_no_match">No pudimos asociar ese código postal con un centro regional.</string>
     <string name="regions_unavailable">No podemos verificarlo ahora. Inténtalo de nuevo cuando tengas conexión.</string>
     <string name="regions_invalid_zip">Ingresa un código postal de cinco dígitos.</string>
+
+    <!-- Descubrimiento compartido en Mapa y Lista -->
+    <string name="discovery_search_label">Buscar proveedores</string>
+    <string name="discovery_clear_search">Borrar búsqueda</string>
+    <string name="discovery_clear_all">Borrar todo</string>
+    <string name="discovery_remove_filter">Quitar %1$s</string>
+    <string name="discovery_age_chip">Edad: %1$s</string>
+    <string name="discovery_diagnosis_chip">Diagnóstico: %1$s</string>
+    <string name="discovery_insurance_chip">Seguro: %1$s</string>
+    <string name="discovery_radius_chip">Radio: %1$d millas</string>
+    <string name="discovery_age">Edad</string>
+    <string name="discovery_any_age">Cualquier edad</string>
+    <string name="discovery_diagnosis">Diagnóstico</string>
+    <string name="discovery_any_diagnosis">Cualquier diagnóstico</string>
+    <string name="discovery_insurance">Seguro</string>
+    <string name="discovery_any_insurance">Cualquier seguro</string>
+    <string name="discovery_radius">Radio</string>
+    <string name="discovery_radius_option">%1$d millas</string>
+    <string name="discovery_reset">Restablecer</string>
+    <string name="discovery_apply">Aplicar</string>
+    <string name="discovery_sort_name">Nombre</string>
+    <string name="discovery_sort_distance">Distancia</string>
+    <string name="discovery_use_my_location">Usar mi ubicación</string>
+    <string name="discovery_location_locating">Buscando tu ubicación…</string>
+    <string name="discovery_location_denied">No se permitió el acceso a la ubicación. Tus resultados actuales siguen disponibles.</string>
+    <string name="discovery_location_failed">No pudimos encontrar tu ubicación. Tus resultados actuales siguen disponibles.</string>
+    <string name="discovery_error_network">No podemos conectarnos ahora. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="discovery_error_timeout">La solicitud tardó demasiado. Inténtalo de nuevo.</string>
+    <string name="discovery_error_server">El servicio no está disponible ahora. Inténtalo de nuevo.</string>
+    <string name="discovery_error_unknown">No pudimos cargar los proveedores. Inténtalo de nuevo.</string>
+    <string name="discovery_diagnosis_autism">Trastorno del espectro autista</string>
+    <string name="discovery_diagnosis_global_delay">Retraso global del desarrollo</string>
+    <string name="discovery_diagnosis_intellectual">Discapacidad intelectual</string>
+    <string name="discovery_diagnosis_speech_language">Trastorno del habla y del lenguaje</string>
+    <string name="discovery_other">Otro</string>
+    <string name="discovery_insurance_regional_center">Centro regional</string>
+    <string name="discovery_insurance_private_pay">Pago particular</string>
+    <string name="discovery_insurance_medi_cal">Medi-Cal</string>
+    <string name="discovery_insurance_medicare">Medicare</string>
+    <string name="discovery_insurance_blue_cross">Blue Cross</string>
+    <string name="discovery_insurance_blue_shield">Blue Shield</string>
+    <string name="discovery_insurance_anthem">Anthem</string>
+    <string name="discovery_insurance_aetna">Aetna</string>
+    <string name="discovery_insurance_cigna">Cigna</string>
+    <string name="discovery_insurance_kaiser">Kaiser Permanente</string>
+    <string name="discovery_insurance_united">United Healthcare</string>
+    <string name="discovery_insurance_health_net">Health Net</string>
+    <string name="discovery_insurance_molina">Molina</string>
+    <string name="discovery_insurance_la_care">L.A. Care</string>
+    <string name="discovery_insurance_covered_california">Covered California</string>
+    <string name="discovery_unknown_filter">Filtro seleccionado</string>
 
     <!-- Common -->
     <string name="cancel">Cancelar</string>
