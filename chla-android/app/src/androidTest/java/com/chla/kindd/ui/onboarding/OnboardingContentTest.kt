@@ -1,6 +1,7 @@
 package com.chla.kindd.ui.onboarding
 
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
@@ -18,6 +19,7 @@ import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.ui.theme.KINDDTheme
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -75,6 +77,20 @@ class OnboardingContentTest {
     fun shortZip_disablesContinue() {
         compose(state(step = OnboardingStep.ZIP, draft = draft(zipCode = "900")))
 
+        composeRule.onNodeWithTag("onboarding_primary_action").assertIsNotEnabled()
+    }
+
+    @Test
+    fun zipLookupLoading_showsProgressBeforeCenterNavigation() {
+        compose(
+            state(
+                step = OnboardingStep.ZIP,
+                draft = draft(zipCode = "90001"),
+                centerLookupState = CenterLookupState.LOADING
+            )
+        )
+
+        composeRule.onNodeWithTag("onboarding_zip_lookup_loading").assertExists()
         composeRule.onNodeWithTag("onboarding_primary_action").assertIsNotEnabled()
     }
 
@@ -159,6 +175,40 @@ class OnboardingContentTest {
         composeRule.onNodeWithText("6-12 years (School Age)").assertExists()
         composeRule.onNodeWithTag("onboarding_age_school_age").assertIsSelected()
         composeRule.onNodeWithText("Save").assertExists()
+    }
+
+    @Test
+    fun ageSelection_usesTheSameRadioRoleAsItsVisualIndicator() {
+        compose(
+            state(
+                step = OnboardingStep.AGE,
+                draft = draft(
+                    zipCode = "90001",
+                    journey = JourneyStage.EXPLORING,
+                    age = AgeGroup.SCHOOL_AGE
+                )
+            )
+        )
+
+        val role = composeRule.onNodeWithTag("onboarding_age_school_age")
+            .fetchSemanticsNode().config.getOrNull(SemanticsProperties.Role)
+        assertEquals(Role.RadioButton, role)
+    }
+
+    @Test
+    fun savingEdit_disablesCancelBackAndPrimaryNavigation() {
+        compose(
+            state(
+                mode = OnboardingMode.EDIT,
+                step = OnboardingStep.AGE,
+                draft = draft(zipCode = "90001", journey = JourneyStage.EXPLORING),
+                isSaving = true
+            )
+        )
+
+        composeRule.onNodeWithTag("onboarding_cancel_action").assertIsNotEnabled()
+        composeRule.onNodeWithTag("onboarding_back_action").assertIsNotEnabled()
+        composeRule.onNodeWithTag("onboarding_primary_action").assertIsNotEnabled()
     }
 
     @Test
@@ -276,13 +326,15 @@ class OnboardingContentTest {
         step: OnboardingStep,
         draft: UserProfile = draft(),
         centerLookupState: CenterLookupState = CenterLookupState.IDLE,
-        locationState: LocationState = LocationState.IDLE
+        locationState: LocationState = LocationState.IDLE,
+        isSaving: Boolean = false
     ) = OnboardingUiState(
         mode = mode,
         step = step,
         draft = draft,
         centerLookupState = centerLookupState,
-        locationState = locationState
+        locationState = locationState,
+        isSaving = isSaving
     )
 
     private fun draft(

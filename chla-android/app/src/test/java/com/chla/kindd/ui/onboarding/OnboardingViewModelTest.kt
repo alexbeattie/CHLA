@@ -13,6 +13,7 @@ import com.chla.kindd.data.source.LookupFailure
 import com.chla.kindd.data.source.RegionalCenterLookup
 import com.chla.kindd.data.source.UserCoordinates
 import com.chla.kindd.testing.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,6 +67,34 @@ class OnboardingViewModelTest {
     }
 
     @Test
+    fun completedFirstRunSession_teardownAllowsFreshClearedProfileInitialization() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val fixture = fixture()
+            advanceToAge(fixture)
+            fixture.viewModel.selectAudience(AudienceType.CLINICIAN)
+            fixture.viewModel.finish()
+            runCurrent()
+
+            fixture.viewModel.endSession()
+            val laterEvents = mutableListOf<OnboardingEvent>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                fixture.viewModel.events.collect(laterEvents::add)
+            }
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            runCurrent()
+
+            assertEquals(
+                OnboardingUiState(
+                    mode = OnboardingMode.FIRST_RUN,
+                    step = OnboardingStep.AUDIENCE,
+                    draft = UserProfile(audienceType = AudienceType.FAMILY)
+                ),
+                fixture.viewModel.uiState.value
+            )
+            assertTrue(laterEvents.isEmpty())
+        }
+
+    @Test
     fun zipInput_keepsOnlyAsciiDigitsAndClampsToFive() =
         runTest(mainDispatcherRule.testDispatcher) {
             val fixture = fixture()
@@ -114,6 +143,90 @@ class OnboardingViewModelTest {
         )
         assertTrue(fixture.viewModel.uiState.value.canContinue)
     }
+
+    @Test
+    fun backDuringCancellationIgnoringLookup_preventsLateNavigationAndMutation() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val gate = CompletableDeferred<Unit>()
+            val centers = FakeRegionalCenterDataSource(
+                RegionalCenterLookup.Matched(regionalCenter())
+            ).apply {
+                lookupGate = gate
+                ignoreLookupCancellation = true
+            }
+            val fixture = fixture(regionalCenters = centers)
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.onZipChanged("90001")
+            fixture.viewModel.continueFromCurrentStep()
+            runCurrent()
+            assertEquals(CenterLookupState.LOADING, fixture.viewModel.uiState.value.centerLookupState)
+
+            fixture.viewModel.goBack()
+            gate.complete(Unit)
+            runCurrent()
+
+            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertNull(fixture.viewModel.uiState.value.draft.regionalCenter)
+            assertEquals(CenterLookupState.IDLE, fixture.viewModel.uiState.value.centerLookupState)
+        }
+
+    @Test
+    fun zipChangeDuringCancellationIgnoringLookup_preventsLateResultFromReplacingNewDraft() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val gate = CompletableDeferred<Unit>()
+            val centers = FakeRegionalCenterDataSource(
+                RegionalCenterLookup.Matched(regionalCenter())
+            ).apply {
+                lookupGate = gate
+                ignoreLookupCancellation = true
+            }
+            val fixture = fixture(regionalCenters = centers)
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.onZipChanged("90001")
+            fixture.viewModel.continueFromCurrentStep()
+            runCurrent()
+
+            fixture.viewModel.onZipChanged("90002")
+            gate.complete(Unit)
+            runCurrent()
+
+            assertEquals(OnboardingStep.ZIP, fixture.viewModel.uiState.value.step)
+            assertEquals("90002", fixture.viewModel.uiState.value.draft.zipCode)
+            assertNull(fixture.viewModel.uiState.value.draft.regionalCenter)
+            assertEquals(CenterLookupState.IDLE, fixture.viewModel.uiState.value.centerLookupState)
+        }
+
+    @Test
+    fun sessionTeardownDuringCancellationIgnoringLookup_protectsTheNextSession() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val gate = CompletableDeferred<Unit>()
+            val centers = FakeRegionalCenterDataSource(
+                RegionalCenterLookup.Matched(regionalCenter())
+            ).apply {
+                lookupGate = gate
+                ignoreLookupCancellation = true
+            }
+            val fixture = fixture(regionalCenters = centers)
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.onZipChanged("90001")
+            fixture.viewModel.continueFromCurrentStep()
+            runCurrent()
+
+            fixture.viewModel.endSession()
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            gate.complete(Unit)
+            runCurrent()
+
+            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertEquals(
+                UserProfile(audienceType = AudienceType.FAMILY),
+                fixture.viewModel.uiState.value.draft
+            )
+            assertEquals(CenterLookupState.IDLE, fixture.viewModel.uiState.value.centerLookupState)
+        }
 
     @Test
     fun noMatch_advancesToUnmatchedAndAllowsContinue() =
@@ -172,6 +285,36 @@ class OnboardingViewModelTest {
             assertEquals(listOf("90001"), regionalCenters.lookedUpZipCodes)
             assertEquals(CenterLookupState.MATCHED, fixture.viewModel.uiState.value.centerLookupState)
             assertEquals(OnboardingStep.REGIONAL_CENTER, fixture.viewModel.uiState.value.step)
+        }
+
+    @Test
+    fun backDuringCancellationIgnoringLocation_preventsLateZipAndLookupMutation() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val gate = CompletableDeferred<Unit>()
+            val location = FakeUserLocationSource(
+                permissionGranted = true,
+                coordinates = UserCoordinates(34.0522, -118.2437),
+                zipCode = "90001"
+            ).apply {
+                coordinatesGate = gate
+                ignoreCancellation = true
+            }
+            val fixture = fixture(location = location)
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.useCurrentLocation()
+            runCurrent()
+            assertEquals(LocationState.LOCATING, fixture.viewModel.uiState.value.locationState)
+
+            fixture.viewModel.goBack()
+            gate.complete(Unit)
+            runCurrent()
+
+            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertNull(fixture.viewModel.uiState.value.draft.zipCode)
+            assertNull(fixture.viewModel.uiState.value.draft.regionalCenter)
+            assertTrue(fixture.regionalCenters.lookedUpZipCodes.isEmpty())
+            assertEquals(LocationState.IDLE, fixture.viewModel.uiState.value.locationState)
         }
 
     @Test
@@ -328,6 +471,43 @@ class OnboardingViewModelTest {
             assertNull(fixture.viewModel.uiState.value.saveError)
         }
 
+    @Test
+    fun suspendedSave_isSingleFlightAndCancelOrBackCannotRaceSaved() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val saveGate = CompletableDeferred<Unit>()
+            val repository = RecordingProfileRepository().apply {
+                replaceGate = saveGate
+            }
+            val fixture = fixture(repository = repository)
+            val events = mutableListOf<OnboardingEvent>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                fixture.viewModel.events.collect(events::add)
+            }
+            advanceToAge(fixture)
+
+            fixture.viewModel.finish()
+            fixture.viewModel.finish()
+            runCurrent()
+            assertTrue(fixture.viewModel.uiState.value.isSaving)
+            assertEquals(1, repository.replaceAttempts.size)
+
+            fixture.viewModel.cancel()
+            fixture.viewModel.goBack()
+            fixture.viewModel.selectAgeGroup(AgeGroup.ADULT)
+            runCurrent()
+
+            assertTrue(events.isEmpty())
+            assertEquals(OnboardingStep.AGE, fixture.viewModel.uiState.value.step)
+            assertNull(fixture.viewModel.uiState.value.draft.ageGroup)
+
+            saveGate.complete(Unit)
+            runCurrent()
+
+            assertEquals(1, repository.replacedProfiles.size)
+            assertEquals(listOf(OnboardingEvent.Saved), events)
+            assertFalse(fixture.viewModel.uiState.value.isSaving)
+        }
+
     private suspend fun kotlinx.coroutines.test.TestScope.advanceToCenter(fixture: Fixture) {
         fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
         fixture.viewModel.continueFromCurrentStep()
@@ -397,7 +577,9 @@ class OnboardingViewModelTest {
     ) : UserProfileRepository {
         private val profiles = MutableStateFlow(initialProfile)
         val replacedProfiles = mutableListOf<UserProfile>()
+        val replaceAttempts = mutableListOf<UserProfile>()
         var replaceFailure: Throwable? = null
+        var replaceGate: CompletableDeferred<Unit>? = null
 
         val currentProfile: UserProfile
             get() = profiles.value
@@ -405,6 +587,8 @@ class OnboardingViewModelTest {
         override val profile: Flow<UserProfile> = profiles
 
         override suspend fun replaceProfile(profile: UserProfile) {
+            replaceAttempts += profile
+            replaceGate?.await()
             replaceFailure?.let { throw it }
             replacedProfiles += profile
             profiles.value = profile

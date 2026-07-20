@@ -8,12 +8,14 @@ import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.data.profile.UserProfileRepository
+import com.chla.kindd.data.source.LookupFailure
 import com.chla.kindd.data.source.RegionalCenterDataSource
 import com.chla.kindd.data.source.RegionalCenterLookup
 import com.chla.kindd.data.source.UserLocationSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +38,11 @@ class OnboardingViewModel @Inject constructor(
     val events: Flow<OnboardingEvent> = eventChannel.receiveAsFlow()
 
     private var initialized = false
+    private var operationGeneration = 0L
+    private var lookupJob: Job? = null
+    private var locationJob: Job? = null
+    private var saveJob: Job? = null
+    private var saveCompleted = false
 
     fun initialize(mode: OnboardingMode, initialProfile: UserProfile) {
         if (initialized) return
@@ -49,7 +56,20 @@ class OnboardingViewModel @Inject constructor(
         mutableUiState.value = OnboardingUiState(mode = mode, draft = draft)
     }
 
+    fun endSession() {
+        invalidateAsyncWork()
+        saveJob?.cancel()
+        saveJob = null
+        saveCompleted = false
+        initialized = false
+        mutableUiState.value = OnboardingUiState()
+        while (eventChannel.tryReceive().isSuccess) {
+            // Events belong to the session that just ended.
+        }
+    }
+
     fun selectAudience(audienceType: AudienceType) {
+        if (interactionsLocked()) return
         mutableUiState.update { state ->
             state.copy(draft = state.draft.copy(audienceType = audienceType))
         }
@@ -57,22 +77,22 @@ class OnboardingViewModel @Inject constructor(
 
     fun onZipChanged(input: String) {
         val zipCode = input.filter { it in '0'..'9' }.take(ZIP_LENGTH)
+        val currentState = mutableUiState.value
+        if (interactionsLocked() || zipCode == currentState.draft.zipCode) return
+        invalidateAsyncWork()
         mutableUiState.update { state ->
-            if (zipCode == state.draft.zipCode) {
-                state
-            } else {
-                state.copy(
-                    draft = state.draft.copy(zipCode = zipCode, regionalCenter = null),
-                    centerLookupState = CenterLookupState.IDLE,
-                    locationState = LocationState.IDLE,
-                    saveError = null
-                )
-            }
+            state.copy(
+                draft = state.draft.copy(zipCode = zipCode, regionalCenter = null),
+                centerLookupState = CenterLookupState.IDLE,
+                locationState = LocationState.IDLE,
+                saveError = null
+            )
         }
     }
 
     fun continueFromCurrentStep() {
         val state = mutableUiState.value
+        if (interactionsLocked()) return
         when (state.step) {
             OnboardingStep.AUDIENCE -> if (state.canContinue) {
                 mutableUiState.update { it.copy(step = OnboardingStep.ZIP) }
@@ -91,7 +111,11 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun goBack() {
+        if (interactionsLocked()) return
+        invalidateAsyncWork()
         mutableUiState.update { state ->
+            val leavingAsyncStep = state.step == OnboardingStep.ZIP ||
+                state.step == OnboardingStep.REGIONAL_CENTER
             state.copy(
                 step = when (state.step) {
                     OnboardingStep.AUDIENCE -> OnboardingStep.AUDIENCE
@@ -100,21 +124,35 @@ class OnboardingViewModel @Inject constructor(
                     OnboardingStep.JOURNEY -> OnboardingStep.REGIONAL_CENTER
                     OnboardingStep.AGE -> OnboardingStep.JOURNEY
                 },
+                centerLookupState = if (leavingAsyncStep) {
+                    CenterLookupState.IDLE
+                } else {
+                    state.centerLookupState
+                },
+                locationState = if (leavingAsyncStep) {
+                    LocationState.IDLE
+                } else {
+                    state.locationState
+                },
                 saveError = null
             )
         }
     }
 
     fun retryCenterLookup() {
-        if (mutableUiState.value.canRetryCenterLookup) lookupCurrentZip()
+        if (!interactionsLocked() && mutableUiState.value.canRetryCenterLookup) {
+            lookupCurrentZip()
+        }
     }
 
     fun hasLocationPermission(): Boolean = userLocationSource.hasLocationPermission()
 
     fun onLocationPermissionResult(granted: Boolean) {
+        if (interactionsLocked()) return
         if (granted) {
             useCurrentLocation()
         } else {
+            invalidateAsyncWork()
             mutableUiState.update {
                 it.copy(step = OnboardingStep.ZIP, locationState = LocationState.DENIED)
             }
@@ -122,44 +160,51 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun useCurrentLocation() {
-        viewModelScope.launch {
-            mutableUiState.update {
-                it.copy(
-                    step = OnboardingStep.ZIP,
-                    locationState = LocationState.LOCATING,
-                    centerLookupState = CenterLookupState.IDLE
-                )
-            }
+        if (interactionsLocked()) return
+        val generation = beginAsyncWork()
+        mutableUiState.update {
+            it.copy(
+                step = OnboardingStep.ZIP,
+                locationState = LocationState.LOCATING,
+                centerLookupState = CenterLookupState.IDLE
+            )
+        }
+        locationJob = viewModelScope.launch {
             try {
                 val coordinates = userLocationSource.currentCoordinates()
-                    ?: return@launch locationFailed()
+                    ?: return@launch locationFailed(generation)
+                if (!isCurrent(generation)) return@launch
                 val zipCode = userLocationSource.zipCodeFor(coordinates)
                     ?.filter { it in '0'..'9' }
                     ?.take(ZIP_LENGTH)
                     ?.takeIf { it.length == ZIP_LENGTH }
-                    ?: return@launch locationFailed()
+                    ?: return@launch locationFailed(generation)
+                if (!isCurrent(generation)) return@launch
                 mutableUiState.update { state ->
                     state.copy(
                         draft = state.draft.copy(zipCode = zipCode, regionalCenter = null),
-                        locationState = LocationState.IDLE
+                        locationState = LocationState.IDLE,
+                        centerLookupState = CenterLookupState.LOADING
                     )
                 }
-                lookupZip(zipCode)
+                performLookup(zipCode, generation)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
-                locationFailed()
+                locationFailed(generation)
             }
         }
     }
 
     fun selectJourney(journeyStage: JourneyStage) {
+        if (interactionsLocked()) return
         mutableUiState.update { state ->
             state.copy(draft = state.draft.copy(journeyStage = journeyStage))
         }
     }
 
     fun selectAgeGroup(ageGroup: AgeGroup) {
+        if (interactionsLocked()) return
         mutableUiState.update { state ->
             state.copy(
                 draft = state.draft.copy(
@@ -171,18 +216,22 @@ class OnboardingViewModel @Inject constructor(
 
     fun finish() {
         val state = mutableUiState.value
-        if (state.isSaving || !state.canContinue || state.step != OnboardingStep.AGE) return
-        viewModelScope.launch {
-            mutableUiState.update { it.copy(isSaving = true, saveError = null) }
+        if (interactionsLocked() || !state.canContinue || state.step != OnboardingStep.AGE) return
+        val generation = beginAsyncWork()
+        val completedProfile = state.draft.copy(onboardingCompleted = true)
+        mutableUiState.update { it.copy(isSaving = true, saveError = null) }
+        saveJob = viewModelScope.launch {
             try {
-                profileRepository.replaceProfile(
-                    mutableUiState.value.draft.copy(onboardingCompleted = true)
-                )
+                profileRepository.replaceProfile(completedProfile)
+                if (!isCurrent(generation)) return@launch
+                saveCompleted = true
                 mutableUiState.update { it.copy(isSaving = false) }
                 eventChannel.send(OnboardingEvent.Saved)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
+                if (!isCurrent(generation)) return@launch
+                saveCompleted = false
                 mutableUiState.update {
                     it.copy(isSaving = false, saveError = SaveError.RETRY)
                 }
@@ -191,26 +240,28 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun cancel() {
+        if (interactionsLocked()) return
         eventChannel.trySend(OnboardingEvent.Close)
     }
 
     private fun lookupCurrentZip() {
         val zipCode = mutableUiState.value.draft.zipCode ?: return
-        viewModelScope.launch { lookupZip(zipCode) }
-    }
-
-    private suspend fun lookupZip(zipCode: String) {
+        val generation = beginAsyncWork()
         mutableUiState.update {
             it.copy(centerLookupState = CenterLookupState.LOADING, locationState = LocationState.IDLE)
         }
+        lookupJob = viewModelScope.launch { performLookup(zipCode, generation) }
+    }
+
+    private suspend fun performLookup(zipCode: String, generation: Long) {
         val lookup = try {
             regionalCenterDataSource.lookupRegionalCenter(zipCode)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (_: Exception) {
-            RegionalCenterLookup.Unavailable(com.chla.kindd.data.source.LookupFailure.UNKNOWN)
+            RegionalCenterLookup.Unavailable(LookupFailure.UNKNOWN)
         }
-        if (mutableUiState.value.draft.zipCode != zipCode) return
+        if (!isCurrent(generation) || mutableUiState.value.draft.zipCode != zipCode) return
         mutableUiState.update { state ->
             when (lookup) {
                 is RegionalCenterLookup.Matched -> state.copy(
@@ -234,11 +285,31 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
-    private fun locationFailed() {
+    private fun locationFailed(generation: Long) {
+        if (!isCurrent(generation)) return
         mutableUiState.update {
             it.copy(step = OnboardingStep.ZIP, locationState = LocationState.FAILED)
         }
     }
+
+    private fun beginAsyncWork(): Long {
+        invalidateAsyncWork()
+        return operationGeneration
+    }
+
+    private fun invalidateAsyncWork() {
+        operationGeneration += 1
+        lookupJob?.cancel()
+        lookupJob = null
+        locationJob?.cancel()
+        locationJob = null
+    }
+
+    private fun isCurrent(generation: Long): Boolean =
+        initialized && generation == operationGeneration
+
+    private fun interactionsLocked(): Boolean =
+        mutableUiState.value.isSaving || saveCompleted
 
     private companion object {
         const val ZIP_LENGTH = 5

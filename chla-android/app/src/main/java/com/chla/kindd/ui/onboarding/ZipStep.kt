@@ -25,6 +25,7 @@ import com.chla.kindd.R
 internal fun ZipStep(
     zipCode: String,
     locationState: LocationState,
+    isLookingUpCenter: Boolean,
     canContinue: Boolean,
     onZipChanged: (String) -> Unit,
     onUseLocation: () -> Unit,
@@ -63,6 +64,16 @@ internal fun ZipStep(
             LocationState.DENIED -> LocationMessage(R.string.onboarding_location_denied)
             LocationState.FAILED -> LocationMessage(R.string.onboarding_location_failed)
             LocationState.IDLE -> Unit
+        }
+        if (isLookingUpCenter) {
+            Row(
+                modifier = Modifier.testTag("onboarding_zip_lookup_loading"),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircularProgressIndicator()
+                Text(stringResource(R.string.loading))
+            }
         }
         TextButton(
             onClick = onUseLocation,

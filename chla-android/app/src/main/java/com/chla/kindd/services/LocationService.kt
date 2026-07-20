@@ -10,22 +10,26 @@ import android.os.Looper
 import androidx.core.content.ContextCompat
 import com.chla.kindd.data.source.UserCoordinates
 import com.chla.kindd.data.source.UserLocationSource
+import com.chla.kindd.di.IoDispatcher
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
+import java.util.Locale
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.util.Locale
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.withContext
 
 class LocationService(
     private val context: Context,
-    private val fusedLocationClient: FusedLocationProviderClient
+    private val fusedLocationClient: FusedLocationProviderClient,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UserLocationSource {
     override fun hasLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -109,38 +113,40 @@ class LocationService(
     }
 
     @Suppress("DEPRECATION")
-    suspend fun reverseGeocode(latitude: Double, longitude: Double): String? {
-        return try {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
-            addresses?.firstOrNull()?.let { addr ->
-                buildString {
-                    addr.locality?.let { append(it) }
-                    addr.adminArea?.let {
-                        if (isNotEmpty()) append(", ")
-                        append(it)
-                    }
-                    addr.postalCode?.let {
-                        if (isNotEmpty()) append(" ")
-                        append(it)
+    suspend fun reverseGeocode(latitude: Double, longitude: Double): String? =
+        withContext(ioDispatcher) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                addresses?.firstOrNull()?.let { addr ->
+                    buildString {
+                        addr.locality?.let { append(it) }
+                        addr.adminArea?.let {
+                            if (isNotEmpty()) append(", ")
+                            append(it)
+                        }
+                        addr.postalCode?.let {
+                            if (isNotEmpty()) append(" ")
+                            append(it)
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                null
             }
-        } catch (e: Exception) {
-            null
         }
-    }
 
     @Suppress("DEPRECATION")
-    suspend fun getZipCode(latitude: Double, longitude: Double): String? {
-        return try {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
-            addresses?.firstOrNull()?.postalCode
-        } catch (e: Exception) {
-            null
+    suspend fun getZipCode(latitude: Double, longitude: Double): String? =
+        withContext(ioDispatcher) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                addresses?.firstOrNull()?.postalCode
+            } catch (e: Exception) {
+                null
+            }
         }
-    }
 
     fun calculateDistance(
         lat1: Double,

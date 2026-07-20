@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -50,6 +51,9 @@ fun OnboardingRoute(
 
     LaunchedEffect(viewModel, mode, initialProfile) {
         viewModel.initialize(mode, initialProfile)
+    }
+    DisposableEffect(viewModel) {
+        onDispose { viewModel.endSession() }
     }
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -110,6 +114,8 @@ fun OnboardingContent(
                 OnboardingStep.ZIP -> ZipStep(
                     zipCode = state.draft.zipCode.orEmpty(),
                     locationState = state.locationState,
+                    isLookingUpCenter =
+                        state.centerLookupState == CenterLookupState.LOADING,
                     canContinue = state.canContinue,
                     onZipChanged = onZipChanged,
                     onUseLocation = onUseLocation,
@@ -172,6 +178,7 @@ private fun OnboardingProgress(
             if (state.mode == OnboardingMode.EDIT) {
                 TextButton(
                     onClick = onCancel,
+                    enabled = !state.isSaving,
                     modifier = Modifier
                         .heightIn(min = 48.dp)
                         .testTag("onboarding_cancel_action")
@@ -204,7 +211,10 @@ private fun OnboardingActions(
         if (state.step != OnboardingStep.AUDIENCE) {
             TextButton(
                 onClick = onBack,
-                modifier = Modifier.heightIn(min = 48.dp)
+                enabled = !state.isSaving,
+                modifier = Modifier
+                    .heightIn(min = 48.dp)
+                    .testTag("onboarding_back_action")
             ) {
                 Text(stringResource(R.string.action_back))
             }

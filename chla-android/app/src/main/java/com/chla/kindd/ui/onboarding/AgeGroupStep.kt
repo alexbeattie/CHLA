@@ -34,7 +34,7 @@ internal fun AgeGroupStep(
                     AgeGroup.ADULT -> "onboarding_age_adult"
                     AgeGroup.ALL_AGES -> "onboarding_age_all_ages"
                 },
-                role = Role.Checkbox
+                role = Role.RadioButton
             )
         }
     }

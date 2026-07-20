@@ -37,9 +37,10 @@ object RepositoryModule {
     @Singleton
     fun provideLocationService(
         @ApplicationContext context: Context,
-        fusedLocationProviderClient: FusedLocationProviderClient
+        fusedLocationProviderClient: FusedLocationProviderClient,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
     ): LocationService {
-        return LocationService(context, fusedLocationProviderClient)
+        return LocationService(context, fusedLocationProviderClient, ioDispatcher)
     }
 
     @Provides
