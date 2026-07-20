@@ -2,4 +2,5 @@
 <full-backup-content>
     <include domain="sharedpref" path="."/>
     <exclude domain="sharedpref" path="device.xml"/>
+    <exclude domain="file" path="datastore/user_profile.preferences_pb" />
 </full-backup-content>
