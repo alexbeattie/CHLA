@@ -5,7 +5,6 @@
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_map">Map</string>
-    <string name="nav_resources">List</string>
     <string name="nav_list">List</string>
     <string name="nav_chat">Chat</string>
     <string name="nav_settings">Settings</string>
@@ -45,7 +44,6 @@
     <string name="my_location">My Location</string>
 
     <!-- Provider List -->
-    <string name="resources_title">List</string>
     <string name="list_title">List</string>
     <string name="resources_found">%d resources found</string>
     <string name="resource_found">%d resource found</string>
@@ -222,7 +220,10 @@
     <string name="discovery_age_chip">Age: %1$s</string>
     <string name="discovery_diagnosis_chip">Diagnosis: %1$s</string>
     <string name="discovery_insurance_chip">Insurance: %1$s</string>
-    <string name="discovery_radius_chip">Radius: %1$d miles</string>
+    <plurals name="discovery_radius_chip">
+        <item quantity="one">Radius: %1$d mile</item>
+        <item quantity="other">Radius: %1$d miles</item>
+    </plurals>
     <string name="discovery_age">Age</string>
     <string name="discovery_any_age">Any Age</string>
     <string name="discovery_diagnosis">Diagnosis</string>
@@ -230,7 +231,10 @@
     <string name="discovery_insurance">Insurance</string>
     <string name="discovery_any_insurance">Any Insurance</string>
     <string name="discovery_radius">Radius</string>
-    <string name="discovery_radius_option">%1$d miles</string>
+    <plurals name="discovery_radius_option">
+        <item quantity="one">%1$d mile</item>
+        <item quantity="other">%1$d miles</item>
+    </plurals>
     <string name="discovery_reset">Reset</string>
     <string name="discovery_apply">Apply</string>
     <string name="discovery_sort_name">Name</string>

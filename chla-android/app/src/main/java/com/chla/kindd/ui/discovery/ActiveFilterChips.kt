@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
@@ -81,8 +82,9 @@ fun ActiveFilterChips(
         }
         if (hasRadius) {
             RemovableFilterChip(
-                label = stringResource(
-                    R.string.discovery_radius_chip,
+                label = pluralStringResource(
+                    R.plurals.discovery_radius_chip,
+                    criteria.radiusMiles,
                     criteria.radiusMiles
                 ),
                 tag = "filter_chip_radius",

@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -58,7 +59,7 @@ class MapListParityTest {
                     origin = DiscoveryOrigin.ProfileZip("90001")
                 ),
                 providers = listOf(
-                    provider("one", 34.0, -118.0),
+                    provider("one", 34.0, -118.0, listOf("ABA therapy")),
                     provider("two", 34.1, -118.1),
                     provider("three", null, null)
                 ),
@@ -86,8 +87,14 @@ class MapListParityTest {
         listOf("one", "two", "three").forEach { id ->
             composeRule.onNodeWithTag("provider_$id").assertExists()
         }
+        composeRule.onNodeWithTag(
+            "provider_therapy_one_0",
+            useUnmergedTree = true
+        ).assertHasNoClickAction()
+        composeRule.onNodeWithTag("provider_two").performClick()
         composeRule.runOnIdle {
             assertEquals(Screen.Providers.route, navController.currentDestination?.route)
+            assertEquals("two", destinations.lastClickedProviderId)
             assertEquals(
                 listOf("one", "two", "three"),
                 controller.state.value.providers.map(Provider::id)
@@ -101,8 +108,10 @@ class MapListParityTest {
         composeRule.onNodeWithTag("map_marker_one").assertExists()
         composeRule.onNodeWithTag("map_marker_two").assertExists()
         composeRule.onNodeWithTag("map_marker_three").assertDoesNotExist()
+        composeRule.onNodeWithTag("map_marker_one").performClick()
         composeRule.runOnIdle {
             assertEquals(Screen.Map.route, navController.currentDestination?.route)
+            assertEquals("one", destinations.lastClickedProviderId)
             assertEquals(
                 listOf("one", "two"),
                 destinations.lastMarkerIds
@@ -136,6 +145,7 @@ class MapListParityTest {
         private val controller: FakeDiscoveryController
     ) : MainDestinationContent {
         var lastMarkerIds: List<String> = emptyList()
+        var lastClickedProviderId: String? = null
 
         @Composable
         override fun home(profile: UserProfile, actions: MainNavActions) {
@@ -150,7 +160,7 @@ class MapListParityTest {
                 locationState = MapLocationState(),
                 actions = discoveryActions(controller),
                 onUseMyLocation = {},
-                onProviderClick = {},
+                onProviderClick = { lastClickedProviderId = it },
                 markerContent = { markers, onProviderClick ->
                     lastMarkerIds = markers.map(MapMarkerModel::providerId)
                     Column {
@@ -176,7 +186,7 @@ class MapListParityTest {
                 sort = ProviderListSort.NAME,
                 onSortChange = {},
                 actions = discoveryActions(controller),
-                onProviderClick = {}
+                onProviderClick = { lastClickedProviderId = it }
             )
         }
 
@@ -240,11 +250,17 @@ class MapListParityTest {
     }
 
     private companion object {
-        fun provider(id: String, latitude: Double?, longitude: Double?) = Provider(
+        fun provider(
+            id: String,
+            latitude: Double?,
+            longitude: Double?,
+            therapyTypes: List<String>? = null
+        ) = Provider(
             id = id,
             name = id,
             latitude = latitude,
-            longitude = longitude
+            longitude = longitude,
+            therapyTypes = therapyTypes
         )
 
         fun completeProfile() = UserProfile(

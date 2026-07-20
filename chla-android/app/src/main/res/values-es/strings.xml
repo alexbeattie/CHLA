@@ -5,7 +5,6 @@
     <!-- Navigation -->
     <string name="nav_home">Inicio</string>
     <string name="nav_map">Mapa</string>
-    <string name="nav_resources">Lista</string>
     <string name="nav_list">Lista</string>
     <string name="nav_chat">Chat</string>
     <string name="nav_settings">Ajustes</string>
@@ -45,7 +44,6 @@
     <string name="my_location">Mi Ubicación</string>
 
     <!-- Provider List -->
-    <string name="resources_title">Lista</string>
     <string name="list_title">Lista</string>
     <string name="resources_found">%d recursos encontrados</string>
     <string name="resource_found">%d recurso encontrado</string>
@@ -222,7 +220,11 @@
     <string name="discovery_age_chip">Edad: %1$s</string>
     <string name="discovery_diagnosis_chip">Diagnóstico: %1$s</string>
     <string name="discovery_insurance_chip">Seguro: %1$s</string>
-    <string name="discovery_radius_chip">Radio: %1$d millas</string>
+    <plurals name="discovery_radius_chip">
+        <item quantity="one">Radio: %1$d milla</item>
+        <item quantity="other">Radio: %1$d millas</item>
+        <item quantity="many">Radio: %1$d millas</item>
+    </plurals>
     <string name="discovery_age">Edad</string>
     <string name="discovery_any_age">Cualquier edad</string>
     <string name="discovery_diagnosis">Diagnóstico</string>
@@ -230,7 +232,11 @@
     <string name="discovery_insurance">Seguro</string>
     <string name="discovery_any_insurance">Cualquier seguro</string>
     <string name="discovery_radius">Radio</string>
-    <string name="discovery_radius_option">%1$d millas</string>
+    <plurals name="discovery_radius_option">
+        <item quantity="one">%1$d milla</item>
+        <item quantity="other">%1$d millas</item>
+        <item quantity="many">%1$d millas</item>
+    </plurals>
     <string name="discovery_reset">Restablecer</string>
     <string name="discovery_apply">Aplicar</string>
     <string name="discovery_sort_name">Nombre</string>

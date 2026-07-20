@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
@@ -150,7 +151,11 @@ fun DiscoveryFilterSheet(
                     listOf(5, 10, 15, 25, 50).forEach { option ->
                         NullableFilterChip(
                             selected = radius == option,
-                            label = stringResource(R.string.discovery_radius_option, option),
+                            label = pluralStringResource(
+                                R.plurals.discovery_radius_option,
+                                option,
+                                option
+                            ),
                             onClick = { radius = option }
                         )
                     }

@@ -40,7 +40,7 @@ fun DiscoveryStateContent(
                 CircularProgressIndicator(Modifier.testTag("discovery_initial_loading"))
             }
         }
-        state.error != null && !state.hasLoadedOnce && state.providers.isEmpty() -> {
+        state.error != null && state.providers.isEmpty() -> {
             FullError(
                 error = state.error,
                 onRetry = onRetry,

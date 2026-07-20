@@ -158,6 +158,38 @@ class DiscoveryControlsTest {
     }
 
     @Test
+    fun filterSheet_resetClearsDraftAndRestoresDefaultRadiusBeforeApply() {
+        var applied: DiscoveryFilterSelection? = null
+        composeRule.setContent {
+            KINDDTheme {
+                DiscoveryFilterSheet(
+                    criteria = DiscoveryCriteria(
+                        therapyTypes = setOf(TherapyType.ABA),
+                        ageGroup = AgeGroup.ADULT,
+                        diagnosis = "Other",
+                        insurance = "L.A. Care",
+                        radiusMiles = 50,
+                        origin = DiscoveryOrigin.DeviceLocation(34.0, -118.0)
+                    ),
+                    onDismissRequest = {},
+                    onApply = { applied = it }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("discovery_filter_reset").performScrollTo().performClick()
+        composeRule.onNodeWithTag("discovery_filter_apply").performScrollTo().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(emptySet<TherapyType>(), applied?.therapyTypes)
+            assertNull(applied?.ageGroup)
+            assertNull(applied?.diagnosis)
+            assertNull(applied?.insurance)
+            assertEquals(15, applied?.radiusMiles)
+        }
+    }
+
+    @Test
     fun activeChips_areRemovable_hideIneffectiveRadius_andClearOnce() {
         var removedAge = false
         var removedRadius = false
@@ -247,5 +279,42 @@ class DiscoveryControlsTest {
         composeRule.onNodeWithTag("discovery_error_banner").assertExists()
         composeRule.onNodeWithText("Retry").performClick()
         composeRule.runOnIdle { assertEquals(2, retryCount) }
+    }
+
+    @Test
+    fun stateContent_initialLoadingUsesFullLoadingState() {
+        composeRule.setContent {
+            KINDDTheme {
+                DiscoveryStateContent(
+                    state = DiscoveryState(isLoading = true),
+                    onRetry = {}
+                ) {}
+            }
+        }
+
+        composeRule.onNodeWithTag("discovery_initial_loading").assertIsDisplayed()
+        composeRule.onNodeWithTag("discovery_empty").assertDoesNotExist()
+    }
+
+    @Test
+    fun stateContent_loadedEmptyFailureShowsRecoverableErrorInsteadOfNoResults() {
+        var retryCount = 0
+        composeRule.setContent {
+            KINDDTheme {
+                DiscoveryStateContent(
+                    state = DiscoveryState(
+                        providers = emptyList(),
+                        error = DiscoveryError.NETWORK,
+                        hasLoadedOnce = true
+                    ),
+                    onRetry = { retryCount += 1 }
+                ) {}
+            }
+        }
+
+        composeRule.onNodeWithTag("discovery_initial_error").assertIsDisplayed()
+        composeRule.onNodeWithTag("discovery_empty").assertDoesNotExist()
+        composeRule.onNodeWithText("Retry").performClick()
+        composeRule.runOnIdle { assertEquals(1, retryCount) }
     }
 }
