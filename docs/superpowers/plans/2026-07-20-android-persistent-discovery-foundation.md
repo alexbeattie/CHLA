@@ -329,18 +329,28 @@ ProfileModule must expose that exact singleton DataStore<Preferences> under a Us
 ProfileBackupRulesTest must:
 
 - prove context.preferencesDataStoreFile(PROFILE_DATASTORE_NAME), relative to filesDir, is datastore/user_profile.preferences_pb;
-- parse R.xml.backup_rules and assert a file-domain exclusion for that path;
-- parse R.xml.data_extraction_rules and assert the path is excluded under both cloud-backup and device-transfer.
+- parse R.xml.backup_rules and prove its complete include set is only sharedpref path `.`, with only sharedpref/device.xml excluded;
+- parse the cloud-backup section of R.xml.data_extraction_rules and prove its complete include set is only sharedpref path `.`, with only sharedpref/device.xml excluded;
+- prove the device-transfer section has no include allowlist and explicitly excludes exactly the file-domain path datastore/user_profile.preferences_pb.
 
-- [ ] **Step 6: Add explicit cloud and device-transfer exclusions**
+- [ ] **Step 6: Use cloud allowlists and an explicit device-transfer exclusion**
 
-backup_rules.xml must include:
+backup_rules.xml and the cloud-backup section of data_extraction_rules.xml must allow only:
+
+~~~xml
+<include domain="sharedpref" path="."/>
+<exclude domain="sharedpref" path="device.xml"/>
+~~~
+
+Because these are include allowlists, the profile DataStore file is not cloud-backup eligible. Do not add a file-domain include or a redundant file-domain exclude to either cloud section.
+
+The device-transfer section has no include allowlist and must explicitly contain:
 
 ~~~xml
 <exclude domain="file" path="datastore/user_profile.preferences_pb" />
 ~~~
 
-data_extraction_rules.xml must contain that same exclusion inside both cloud-backup and a new device-transfer section. Keep the existing shared-preference include and device.xml exclusion.
+This preserves the privacy design: the profile DataStore is excluded from both cloud backup and device transfer.
 
 - [ ] **Step 7: Run focused verification**
 
