@@ -23,18 +23,27 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.chla.kindd.R
 import com.chla.kindd.data.models.ChatMessage
+import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import com.chla.kindd.ui.theme.*
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
+    initialPrompt: ChatLaunchPrompt? = null,
     viewModel: ChatViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+    val resolvedInitialPrompt = initialPrompt?.let { prompt ->
+        stringResource(prompt.promptResId)
+    }
+
+    LaunchedEffect(initialPrompt, resolvedInitialPrompt) {
+        if (initialPrompt != null && resolvedInitialPrompt != null) {
+            viewModel.sendInitialPrompt(initialPrompt.routeValue, resolvedInitialPrompt)
+        }
+    }
 
     // Scroll to bottom when new messages arrive
     LaunchedEffect(uiState.messages.size) {
@@ -106,6 +115,14 @@ fun ChatScreen(
                 } else {
                     items(uiState.messages) { message ->
                         ChatBubble(message = message)
+                    }
+                }
+                if (uiState.error != null) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.chat_request_failed),
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }
@@ -184,12 +201,12 @@ private fun WelcomeMessage() {
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Ask KINDD",
+            text = stringResource(R.string.chat_welcome_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "AI-powered help finding ABA therapy services",
+            text = stringResource(R.string.chat_welcome_body),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -207,7 +224,7 @@ private fun QuickPrompts(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "Try asking:",
+            text = stringResource(R.string.chat_try_asking),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

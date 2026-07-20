@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,8 +19,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.R
 import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.ui.theme.*
@@ -29,8 +34,7 @@ fun RegionalCentersScreen(
     onBack: () -> Unit,
     viewModel: RegionalCentersViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    var zipCode by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedCenter by remember { mutableStateOf<RegionalCenter?>(null) }
 
     Scaffold(
@@ -85,19 +89,42 @@ fun RegionalCentersScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             OutlinedTextField(
-                                value = zipCode,
-                                onValueChange = { if (it.length <= 5) zipCode = it },
-                                placeholder = { Text("Enter ZIP") },
+                                value = uiState.zipDraft,
+                                onValueChange = viewModel::onZipChanged,
+                                placeholder = { Text(stringResource(R.string.regions_zip_placeholder)) },
                                 modifier = Modifier.weight(1f),
                                 singleLine = true,
-                                shape = RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(8.dp),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Search
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onSearch = { viewModel.submitZip() }
+                                )
                             )
                             Button(
-                                onClick = { viewModel.findByZip(zipCode) },
-                                enabled = zipCode.length == 5
+                                onClick = viewModel::submitZip,
+                                enabled = uiState.zipDraft.matches(Regex("[0-9]{5}")) &&
+                                    uiState.lookupState != RegionalCentersLookupState.LOADING
                             ) {
                                 Text(stringResource(R.string.search))
                             }
+                        }
+
+                        uiState.message?.let { message ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(
+                                    when (message) {
+                                        RegionalCentersMessage.INVALID_ZIP -> R.string.regions_invalid_zip
+                                        RegionalCentersMessage.NO_MATCH -> R.string.regions_no_match
+                                        RegionalCentersMessage.LOOKUP_UNAVAILABLE,
+                                        RegionalCentersMessage.CATALOG_UNAVAILABLE -> R.string.regions_unavailable
+                                    }
+                                ),
+                                color = MaterialTheme.colorScheme.error
+                            )
                         }
 
                         // Show result

@@ -2,6 +2,7 @@ package com.chla.kindd.ui.navigation
 
 import androidx.compose.runtime.Composable
 import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import com.chla.kindd.ui.onboarding.OnboardingMode
 import com.chla.kindd.ui.onboarding.OnboardingRoute
 import com.chla.kindd.ui.screens.AboutScreen
@@ -18,7 +19,7 @@ data class MainNavActions(
     val navigateToMap: () -> Unit,
     val navigateToList: () -> Unit,
     val navigateToRegions: () -> Unit,
-    val navigateToChat: () -> Unit,
+    val navigateToChat: (ChatLaunchPrompt?) -> Unit,
     val navigateToProviderDetail: (String) -> Unit,
     val navigateToFaq: () -> Unit,
     val navigateToAbout: () -> Unit,
@@ -38,6 +39,11 @@ interface MainDestinationContent {
 
     @Composable
     fun chat(actions: MainNavActions)
+
+    @Composable
+    fun chat(prompt: ChatLaunchPrompt?, actions: MainNavActions) {
+        chat(actions)
+    }
 
     @Composable
     fun settings(actions: MainNavActions)
@@ -82,6 +88,11 @@ object ProductionMainDestinationContent : MainDestinationContent {
     @Composable
     override fun chat(actions: MainNavActions) {
         ChatScreen()
+    }
+
+    @Composable
+    override fun chat(prompt: ChatLaunchPrompt?, actions: MainNavActions) {
+        ChatScreen(initialPrompt = prompt)
     }
 
     @Composable

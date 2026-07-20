@@ -46,14 +46,6 @@ class RegionalCenterRepository(
             }
         }
 
-    suspend fun getRegionalCenterByZip(zipCode: String): Result<RegionalCenter> =
-        when (val lookup = lookupRegionalCenter(zipCode)) {
-            is RegionalCenterLookup.Matched -> Result.success(lookup.center)
-            RegionalCenterLookup.Unmatched -> Result.failure(RegionalCenterNotFoundException())
-            is RegionalCenterLookup.Unavailable ->
-                Result.failure(RegionalCenterUnavailableException(lookup.reason))
-        }
-
     override suspend fun getRegionalCentersNearby(
         latitude: Double,
         longitude: Double
@@ -72,9 +64,3 @@ class RegionalCenterRepository(
             }
         }
 }
-
-private class RegionalCenterNotFoundException : Exception()
-
-private class RegionalCenterUnavailableException(
-    val reason: LookupFailure
-) : Exception()

@@ -34,17 +34,28 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.ui.chat.ChatLaunchPrompt
 
 sealed class Screen(
     val route: String,
     val titleRes: Int,
     val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector
+    val unselectedIcon: ImageVector,
+    val destinationRoute: String = route
 ) {
     data object Home : Screen("home", R.string.nav_home, Icons.Filled.Home, Icons.Outlined.Home)
     data object Map : Screen("map", R.string.nav_map, Icons.Filled.Map, Icons.Outlined.Map)
     data object Providers : Screen("providers", R.string.nav_resources, Icons.AutoMirrored.Filled.List, Icons.AutoMirrored.Outlined.List)
-    data object Chat : Screen("chat", R.string.nav_chat, Icons.AutoMirrored.Filled.Chat, Icons.AutoMirrored.Outlined.Chat)
+    data object Chat : Screen(
+        "chat",
+        R.string.nav_chat,
+        Icons.AutoMirrored.Filled.Chat,
+        Icons.AutoMirrored.Outlined.Chat,
+        destinationRoute = "chat?prompt={prompt}"
+    ) {
+        fun createRoute(prompt: ChatLaunchPrompt?): String =
+            prompt?.let { "$route?prompt=${it.routeValue}" } ?: route
+    }
     data object Settings : Screen("settings", R.string.nav_settings, Icons.Filled.Settings, Icons.Outlined.Settings)
 
     data object ProviderDetail : Screen("provider/{providerId}", R.string.provider_details, Icons.AutoMirrored.Filled.List, Icons.AutoMirrored.Outlined.List)
@@ -78,7 +89,7 @@ fun KINDDMainNavHost(
         navigateToMap = { navController.navigate(Screen.Map.route) },
         navigateToList = { navController.navigate(Screen.Providers.route) },
         navigateToRegions = { navController.navigate(Screen.RegionalCenters.route) },
-        navigateToChat = { navController.navigate(Screen.Chat.route) },
+        navigateToChat = { prompt -> navController.navigate(Screen.Chat.createRoute(prompt)) },
         navigateToProviderDetail = { providerId -> navController.navigate("provider/$providerId") },
         navigateToFaq = { navController.navigate(Screen.FAQ.route) },
         navigateToAbout = { navController.navigate(Screen.About.route) },
@@ -92,7 +103,7 @@ fun KINDDMainNavHost(
                 NavigationBar {
                     bottomNavItems.forEach { screen ->
                         val selected = currentDestination?.hierarchy?.any {
-                            it.route == screen.route
+                            it.route == screen.destinationRoute
                         } == true
                         NavigationBarItem(
                             icon = {
@@ -137,8 +148,20 @@ fun KINDDMainNavHost(
             composable(Screen.Providers.route) {
                 destinationContent.list(actions)
             }
-            composable(Screen.Chat.route) {
-                destinationContent.chat(actions)
+            composable(
+                route = Screen.Chat.destinationRoute,
+                arguments = listOf(
+                    navArgument("prompt") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val prompt = ChatLaunchPrompt.fromRouteValue(
+                    backStackEntry.arguments?.getString("prompt")
+                )
+                destinationContent.chat(prompt, actions)
             }
             composable(Screen.Settings.route) {
                 destinationContent.settings(actions)

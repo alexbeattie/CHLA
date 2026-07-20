@@ -78,7 +78,7 @@
     <string name="la_7_centers">Los 7 Centros Regionales del Condado de LA</string>
 
     <!-- Chat -->
-    <string name="chat_title">Preguntar a KINDD</string>
+    <string name="chat_title">Pregúntale a KiNDD</string>
     <string name="chat_subtitle">Ayuda con IA para encontrar servicios</string>
     <string name="chat_placeholder">Pregúntame sobre terapia ABA…</string>
     <string name="send">Enviar</string>
@@ -164,6 +164,53 @@
     <string name="action_retry">Reintentar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_save">Guardar</string>
+
+    <!-- Inicio basado en el perfil -->
+    <string name="home_brand">KiNDD</string>
+    <string name="home_intro">Servicios para el desarrollo, más fáciles de encontrar.</string>
+    <string name="home_who_serves">¿Quién atiende a tu familia?</string>
+    <string name="home_zip_explanation">Ingresa tu código postal para encontrar el centro regional asignado a tu familia.</string>
+    <string name="home_find">Buscar</string>
+    <string name="home_your_regional_center">Tu Centro Regional</string>
+    <string name="home_matched">Coincidencia encontrada</string>
+    <string name="home_details">Detalles</string>
+    <string name="home_no_match">No pudimos asociar ese código postal.</string>
+    <string name="home_lookup_unavailable">No podemos verificarlo ahora. Inténtalo de nuevo cuando tengas conexión.</string>
+    <string name="home_invalid_zip">Ingresa un código postal de cinco dígitos.</string>
+    <string name="home_discover_services">Descubre servicios</string>
+    <string name="home_map">Mapa</string>
+    <string name="home_list">Lista</string>
+    <string name="home_therapy_shortcuts">Buscar por terapia</string>
+    <string name="home_therapy_speech">Habla</string>
+    <string name="home_therapy_occupational">Ocupacional</string>
+    <string name="home_therapy_physical">Física</string>
+    <string name="home_regional_centers_body">Conoce los siete centros regionales que atienden al condado de Los Ángeles.</string>
+    <string name="home_explore">Explorar</string>
+    <string name="home_ask_kindd">Pregúntale a KiNDD</string>
+    <string name="home_ask_kindd_body">Recibe ayuda para entender los servicios y planear tu próximo paso.</string>
+    <string name="home_your_next_step">Tu próximo paso</string>
+    <string name="home_journey_just_diagnosed_title">Solicita una evaluación inicial</string>
+    <string name="home_journey_just_diagnosed_action">¿Qué debo decir?</string>
+    <string name="home_journey_waiting_title">Prepárate para la evaluación inicial</string>
+    <string name="home_journey_waiting_action">Ayúdame a prepararme</string>
+    <string name="home_journey_receiving_title">Aprovecha mejor tu IPP</string>
+    <string name="home_journey_receiving_action">¿Qué puedo solicitar?</string>
+    <string name="home_call_now">Llamar ahora</string>
+
+    <!-- Inicio de Chat tipado -->
+    <string name="chat_welcome_title">Pregúntale a KiNDD</string>
+    <string name="chat_welcome_body">Ayuda con IA para encontrar servicios para el desarrollo</string>
+    <string name="chat_try_asking">Puedes preguntar:</string>
+    <string name="chat_request_failed">No pudimos obtener una respuesta. Inténtalo de nuevo.</string>
+    <string name="chat_prompt_just_diagnosed">Acabamos de recibir un diagnóstico. ¿Qué debo decir cuando llame a mi centro regional para solicitar una evaluación inicial para mi hijo?</string>
+    <string name="chat_prompt_waiting_intake">¿Cómo nos preparamos para la cita de evaluación inicial del centro regional? ¿Qué documentos e información debemos llevar?</string>
+    <string name="chat_prompt_receiving_services">Mi hijo ya recibe servicios del centro regional. ¿Cómo me preparo para una reunión del IPP y qué servicios puedo solicitar?</string>
+
+    <!-- Regiones basadas en el perfil -->
+    <string name="regions_zip_placeholder">Ingresa el código postal</string>
+    <string name="regions_no_match">No pudimos asociar ese código postal con un centro regional.</string>
+    <string name="regions_unavailable">No podemos verificarlo ahora. Inténtalo de nuevo cuando tengas conexión.</string>
+    <string name="regions_invalid_zip">Ingresa un código postal de cinco dígitos.</string>
 
     <!-- Common -->
     <string name="cancel">Cancelar</string>

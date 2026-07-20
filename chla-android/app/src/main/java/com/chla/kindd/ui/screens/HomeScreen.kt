@@ -1,347 +1,396 @@
 package com.chla.kindd.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.R
-import com.chla.kindd.ui.theme.*
+import com.chla.kindd.data.discovery.TherapyType
+import com.chla.kindd.data.profile.JourneyStage
+import com.chla.kindd.ui.chat.ChatLaunchPrompt
+import com.chla.kindd.ui.home.HomeEvent
+import com.chla.kindd.ui.home.HomeLookupState
+import com.chla.kindd.ui.home.HomeMessage
+import com.chla.kindd.ui.home.HomeUiState
+import com.chla.kindd.ui.home.HomeViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToMap: () -> Unit,
     onNavigateToProviders: () -> Unit,
     onNavigateToRegionalCenters: () -> Unit,
-    onNavigateToChat: () -> Unit
+    onNavigateToChat: (ChatLaunchPrompt?) -> Unit,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
-    var zipCode by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                HomeEvent.NavigateToMap -> onNavigateToMap()
+                HomeEvent.NavigateToList -> onNavigateToProviders()
+                HomeEvent.NavigateToRegionalCenters -> onNavigateToRegionalCenters()
+                is HomeEvent.NavigateToChat -> onNavigateToChat(event.prompt)
+                is HomeEvent.Dial -> context.startActivity(
+                    Intent(Intent.ACTION_DIAL, Uri.parse("tel:${event.digits}"))
+                )
+            }
+        }
+    }
+
+    HomeContent(
+        uiState = uiState,
+        onZipChanged = viewModel::onZipChanged,
+        onSubmitZip = viewModel::submitZip,
+        onNavigateToMap = viewModel::openMap,
+        onNavigateToList = viewModel::openList,
+        onNavigateToRegionalCenters = viewModel::openRegionalCenters,
+        onNavigateToChat = viewModel::openChat,
+        onOpenChat = { onNavigateToChat(null) },
+        onTherapySelected = viewModel::selectTherapy,
+        onCall = { viewModel.callCenter() }
+    )
+}
+
+@Composable
+fun HomeContent(
+    uiState: HomeUiState,
+    onZipChanged: (String) -> Unit,
+    onSubmitZip: () -> Unit,
+    onNavigateToMap: () -> Unit,
+    onNavigateToList: () -> Unit,
+    onNavigateToRegionalCenters: () -> Unit,
+    onNavigateToChat: (ChatLaunchPrompt) -> Unit,
+    onOpenChat: () -> Unit,
+    onTherapySelected: (TherapyType) -> Unit,
+    onCall: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .padding(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Hero Section
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(CHLABlue, CHLABlueDark)
-                    )
-                )
-                .padding(24.dp)
-        ) {
+        Surface(color = MaterialTheme.colorScheme.primaryContainer) {
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.home_title),
+                    text = stringResource(R.string.home_brand),
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = stringResource(R.string.home_tagline),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.9f),
-                    textAlign = TextAlign.Center
+                    text = stringResource(R.string.home_intro),
+                    style = MaterialTheme.typography.bodyLarge
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
 
-                // ZIP Code Search
+        if (uiState.profile.regionalCenter == null) {
+            ZipLookupCard(uiState, onZipChanged, onSubmitZip)
+        } else {
+            RegionalCenterCard(uiState, onNavigateToRegionalCenters, onCall)
+        }
+
+        HomeSection(title = stringResource(R.string.home_discover_services)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onNavigateToMap,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                ) {
+                    Icon(Icons.Default.Map, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.home_map))
+                }
+                OutlinedButton(
+                    onClick = onNavigateToList,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                ) {
+                    Icon(Icons.Default.List, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.home_list))
+                }
+            }
+        }
+
+        HomeSection(title = stringResource(R.string.home_therapy_shortcuts)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TherapyRow(
+                    TherapyType.ABA to R.string.aba_therapy,
+                    TherapyType.SPEECH to R.string.home_therapy_speech,
+                    onTherapySelected = onTherapySelected
+                )
+                TherapyRow(
+                    TherapyType.OCCUPATIONAL to R.string.home_therapy_occupational,
+                    TherapyType.PHYSICAL to R.string.home_therapy_physical,
+                    onTherapySelected = onTherapySelected
+                )
+            }
+        }
+
+        HomeActionCard(
+            icon = { Icon(Icons.Default.AccountBalance, contentDescription = null) },
+            title = stringResource(R.string.regional_centers),
+            body = stringResource(R.string.home_regional_centers_body),
+            action = stringResource(R.string.home_explore),
+            onClick = onNavigateToRegionalCenters
+        )
+
+        HomeActionCard(
+            icon = { Icon(Icons.Default.Chat, contentDescription = null) },
+            title = stringResource(R.string.home_ask_kindd),
+            body = stringResource(R.string.home_ask_kindd_body),
+            action = stringResource(R.string.home_ask_kindd),
+            onClick = onOpenChat
+        )
+
+        JourneyCard(uiState, onNavigateToChat, onCall)
+    }
+}
+
+@Composable
+private fun ZipLookupCard(
+    uiState: HomeUiState,
+    onZipChanged: (String) -> Unit,
+    onSubmitZip: () -> Unit
+) {
+    Card(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                stringResource(R.string.home_who_serves),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(stringResource(R.string.home_zip_explanation))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 OutlinedTextField(
-                    value = zipCode,
-                    onValueChange = { if (it.length <= 5) zipCode = it },
-                    placeholder = { Text(stringResource(R.string.enter_zip)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp)),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = CHLAGold,
-                        unfocusedBorderColor = Color.Transparent
-                    ),
+                    value = uiState.zipDraft,
+                    onValueChange = onZipChanged,
+                    label = { Text(stringResource(R.string.onboarding_zip_label)) },
+                    singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Search
                     ),
-                    keyboardActions = KeyboardActions(
-                        onSearch = { if (zipCode.length == 5) onNavigateToMap() }
-                    ),
-                    trailingIcon = {
-                        IconButton(
-                            onClick = { if (zipCode.length == 5) onNavigateToMap() }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search),
-                                tint = CHLABlue
-                            )
-                        }
-                    },
-                    singleLine = true
+                    keyboardActions = KeyboardActions(onSearch = { onSubmitZip() }),
+                    modifier = Modifier.weight(1f).testTag("home_zip_input")
                 )
-            }
-        }
-
-        // Quick Actions
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.quick_actions),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                QuickActionCard(
-                    icon = Icons.Default.MyLocation,
-                    title = stringResource(R.string.find_resources_nearby),
-                    subtitle = stringResource(R.string.find_nearby_desc),
-                    color = CHLABlueLight,
-                    onClick = onNavigateToMap,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionCard(
-                    icon = Icons.Default.FilterList,
-                    title = stringResource(R.string.browse_by_therapy),
-                    subtitle = stringResource(R.string.browse_therapy_desc),
-                    color = Success,
-                    onClick = onNavigateToProviders,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                QuickActionCard(
-                    icon = Icons.Default.AccountBalance,
-                    title = stringResource(R.string.regional_centers),
-                    subtitle = stringResource(R.string.regional_centers_desc),
-                    color = Warning,
-                    onClick = onNavigateToRegionalCenters,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionCard(
-                    icon = Icons.Default.Chat,
-                    title = stringResource(R.string.ask_kindd),
-                    subtitle = stringResource(R.string.ask_kindd_desc),
-                    color = SanGabrielRC,
-                    onClick = onNavigateToChat,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
-        // Therapy Types
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.therapy_types),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(therapyTypes) { therapy ->
-                    TherapyTypeChip(
-                        name = therapy.name,
-                        icon = therapy.icon,
-                        color = therapy.color,
-                        onClick = onNavigateToProviders
-                    )
-                }
-            }
-        }
-
-        // Regional Centers Preview
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .clickable { onNavigateToRegionalCenters() },
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(CHLABlue),
-                    contentAlignment = Alignment.Center
+                Button(
+                    onClick = onSubmitZip,
+                    enabled = uiState.zipDraft.matches(Regex("[0-9]{5}")) &&
+                        uiState.lookupState != HomeLookupState.LOADING,
+                    modifier = Modifier.heightIn(min = 48.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.AccountBalance,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
+                    if (uiState.lookupState == HomeLookupState.LOADING) {
+                        CircularProgressIndicator(modifier = Modifier.height(20.dp))
+                    } else {
+                        Text(stringResource(R.string.home_find))
+                    }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.la_7_centers),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = stringResource(R.string.regional_centers_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+            }
+            uiState.message?.let { message ->
+                Text(
+                    text = stringResource(
+                        when (message) {
+                            HomeMessage.INVALID_ZIP -> R.string.home_invalid_zip
+                            HomeMessage.NO_MATCH -> R.string.home_no_match
+                            HomeMessage.LOOKUP_UNAVAILABLE -> R.string.home_lookup_unavailable
+                        }
+                    ),
+                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
-private fun QuickActionCard(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    color: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+private fun RegionalCenterCard(
+    uiState: HomeUiState,
+    onDetails: () -> Unit,
+    onCall: (String) -> Unit
 ) {
-    Card(
-        modifier = modifier
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    val identity = uiState.profile.regionalCenter ?: return
+    Card(modifier = Modifier.padding(horizontal = 16.dp)) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(color.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(24.dp)
-                )
+            Text(stringResource(R.string.home_your_regional_center), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.home_matched), color = MaterialTheme.colorScheme.primary)
+            Text(identity.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(identity.shortName, style = MaterialTheme.typography.labelLarge)
+            uiState.hydratedCenter?.formattedPhone?.takeIf(String::isNotBlank)?.let { Text(it) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                uiState.dialDigits?.let { digits ->
+                    OutlinedButton(
+                        onClick = { onCall(digits) },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    ) {
+                        Icon(Icons.Default.Phone, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.home_call_now))
+                    }
+                }
+                Button(onClick = onDetails, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.home_details))
+                }
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
 
 @Composable
-private fun TherapyTypeChip(
-    name: String,
-    icon: ImageVector,
-    color: Color,
+private fun HomeSection(title: String, content: @Composable () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        content()
+    }
+}
+
+@Composable
+private fun TherapyRow(
+    first: Pair<TherapyType, Int>,
+    second: Pair<TherapyType, Int>,
+    onTherapySelected: (TherapyType) -> Unit
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(first, second).forEach { (therapy, label) ->
+            OutlinedButton(
+                onClick = { onTherapySelected(therapy) },
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp)
+            ) { Text(stringResource(label)) }
+        }
+    }
+}
+
+@Composable
+private fun HomeActionCard(
+    icon: @Composable () -> Unit,
+    title: String,
+    body: String,
+    action: String,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = color.copy(alpha = 0.1f)
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+    Card(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = color
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                icon()
+                Spacer(Modifier.width(8.dp))
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            }
+            Text(body)
+            OutlinedButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(action)
+            }
         }
     }
 }
 
-private data class TherapyType(
-    val name: String,
-    val icon: ImageVector,
-    val color: Color
-)
+@Composable
+private fun JourneyCard(
+    uiState: HomeUiState,
+    onChat: (ChatLaunchPrompt) -> Unit,
+    onCall: (String) -> Unit
+) {
+    val prompt = uiState.profile.journeyStage.toLaunchPrompt() ?: return
+    val (titleRes, actionRes) = when (uiState.profile.journeyStage) {
+        JourneyStage.JUST_DIAGNOSED ->
+            R.string.home_journey_just_diagnosed_title to R.string.home_journey_just_diagnosed_action
+        JourneyStage.WAITING_FOR_INTAKE ->
+            R.string.home_journey_waiting_title to R.string.home_journey_waiting_action
+        JourneyStage.RECEIVING_SERVICES ->
+            R.string.home_journey_receiving_title to R.string.home_journey_receiving_action
+        JourneyStage.EXPLORING, null -> return
+    }
+    Card(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(stringResource(R.string.home_your_next_step), style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(titleRes), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = { onChat(prompt) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(actionRes))
+                }
+                if (uiState.profile.journeyStage == JourneyStage.JUST_DIAGNOSED) {
+                    uiState.dialDigits?.let { digits ->
+                        OutlinedButton(
+                            onClick = { onCall(digits) },
+                            modifier = Modifier.heightIn(min = 48.dp)
+                        ) { Text(stringResource(R.string.home_call_now)) }
+                    }
+                }
+            }
+        }
+    }
+}
 
-private val therapyTypes = listOf(
-    TherapyType("ABA Therapy", Icons.Default.Psychology, CHLABlue),
-    TherapyType("Speech Therapy", Icons.Default.RecordVoiceOver, Success),
-    TherapyType("Occupational Therapy", Icons.Default.AccessibilityNew, Warning),
-    TherapyType("Physical Therapy", Icons.Default.DirectionsRun, SanGabrielRC)
-)
+private fun JourneyStage?.toLaunchPrompt(): ChatLaunchPrompt? = when (this) {
+    JourneyStage.JUST_DIAGNOSED -> ChatLaunchPrompt.JUST_DIAGNOSED
+    JourneyStage.WAITING_FOR_INTAKE -> ChatLaunchPrompt.WAITING_INTAKE
+    JourneyStage.RECEIVING_SERVICES -> ChatLaunchPrompt.RECEIVING_SERVICES
+    JourneyStage.EXPLORING, null -> null
+}

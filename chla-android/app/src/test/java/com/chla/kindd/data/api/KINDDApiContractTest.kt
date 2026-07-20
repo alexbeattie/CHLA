@@ -166,7 +166,9 @@ class KINDDApiContractTest {
             )
         )
 
-        val center = RegionalCenterRepository(api).getRegionalCenterByZip("90001").getOrThrow()
+        val lookup = RegionalCenterRepository(api).lookupRegionalCenter("90001")
+        assertTrue(lookup is RegionalCenterLookup.Matched)
+        val center = (lookup as RegionalCenterLookup.Matched).center
 
         assertEquals("South Central Los Angeles Regional Center", center.name)
         assertEquals(
