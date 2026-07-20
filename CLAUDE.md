@@ -17,3 +17,9 @@ Use `AGENTS.md` as the shared repo workflow.
 - `AGENTS.md`
 - `QUICK_START.md`
 - `.github/copilot-instructions.md`
+
+## Agent kit
+
+- Log every fix/feature/behavior change as a new entry in `FIXES.md` (newest first); refactors and docs-only changes are exempt.
+- `.githooks/post-commit` runs `scripts/journal.sh` automatically to file each commit; `core.hooksPath` is set to `.githooks`.
+- Worktree helpers: `scripts/start-task.sh <slug> [feat|fix|chore|wip]` to spin one up, `scripts/worktree-audit.sh` to review/clean them.
