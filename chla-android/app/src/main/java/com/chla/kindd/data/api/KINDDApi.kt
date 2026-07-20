@@ -22,26 +22,24 @@ interface KINDDApi {
     ): PaginatedResponse<Provider>
 
     @GET("providers-v2/comprehensive_search/")
-    suspend fun getProvidersNearby(
-        @Query("lat") latitude: Double,
-        @Query("lng") longitude: Double,
-        @Query("radius") radiusMiles: Int = 25,
-        @Query("limit") limit: Int = 50
+    suspend fun searchProviders(
+        @Query("q") query: String? = null,
+        @Query("lat") latitude: Double? = null,
+        @Query("lng") longitude: Double? = null,
+        @Query("radius") radiusMiles: Int? = null,
+        @Query("therapy") therapyTypes: List<String>? = null,
+        @Query("age") ageGroup: String? = null,
+        @Query("diagnosis") diagnosis: String? = null,
+        @Query("insurance") insurance: String? = null
     ): List<Provider>
 
     @GET("providers-v2/by_regional_center/")
     suspend fun getProvidersByRegionalCenter(
         @Query("zip_code") zipCode: String,
-        @Query("therapy") therapyTypes: List<String>? = null,
         @Query("insurance") insurance: String? = null,
-        @Query("age") ageGroup: String? = null
+        @Query("age") ageGroup: String? = null,
+        @Query("diagnosis") diagnosis: String? = null
     ): RegionalCenterProvidersResponse
-
-    @GET("providers-v2/comprehensive_search/")
-    suspend fun searchProviders(
-        @Query("q") query: String,
-        @Query("limit") limit: Int = 50
-    ): List<Provider>
 
     @GET("providers-v2/{id}/")
     suspend fun getProvider(

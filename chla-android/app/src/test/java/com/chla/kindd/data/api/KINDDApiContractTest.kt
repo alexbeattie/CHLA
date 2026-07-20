@@ -1,12 +1,18 @@
 package com.chla.kindd.data.api
 
+import com.chla.kindd.data.discovery.ComprehensiveProviderRequest
+import com.chla.kindd.data.discovery.RegionalCenterProviderRequest
 import com.chla.kindd.data.repository.ProviderRepository
 import com.chla.kindd.data.repository.RegionalCenterRepository
+import com.chla.kindd.data.source.LookupFailure
+import com.chla.kindd.data.source.RegionalCenterLookup
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Retrofit
@@ -27,7 +33,7 @@ class KINDDApiContractTest {
     }
 
     @Test
-    fun `provider text search uses comprehensive search and enforces its limit`() = runBlocking {
+    fun `provider text compatibility search uses comprehensive search and caps after decoding`() = runBlocking {
         server.enqueue(
             jsonResponse(
                 """
@@ -46,16 +52,16 @@ class KINDDApiContractTest {
         )
 
         val providers = ProviderRepository(api).searchProviders("ABA", limit = 1).getOrThrow()
+        val request = server.takeRequest().requestUrl!!
 
         assertEquals(listOf("First Provider"), providers.map { it.name })
-        assertEquals(
-            "/api/providers-v2/comprehensive_search/?q=ABA&limit=1",
-            server.takeRequest().path
-        )
+        assertEquals("/api/providers-v2/comprehensive_search/", request.encodedPath)
+        assertEquals("ABA", request.queryParameter("q"))
+        assertNull(request.queryParameter("limit"))
     }
 
     @Test
-    fun `provider nearby search uses working comprehensive endpoint and enforces its limit`() = runBlocking {
+    fun `provider nearby compatibility search sorts and caps after decoding`() = runBlocking {
         server.enqueue(
             jsonResponse(
                 """
@@ -80,13 +86,71 @@ class KINDDApiContractTest {
         val providers = ProviderRepository(api)
             .getProvidersNearby(34.0522, -118.2437, radiusMiles = 25, limit = 1)
             .getOrThrow()
+        val request = server.takeRequest().requestUrl!!
 
         assertEquals(listOf("Nearest Provider"), providers.map { it.name })
         assertTrue(providers.single().distance != null)
+        assertEquals("/api/providers-v2/comprehensive_search/", request.encodedPath)
+        assertEquals("34.0522", request.queryParameter("lat"))
+        assertEquals("-118.2437", request.queryParameter("lng"))
+        assertEquals("25", request.queryParameter("radius"))
+        assertNull(request.queryParameter("limit"))
+    }
+
+    @Test
+    fun `comprehensive search sends every exact query and caps after decoding`() = runBlocking {
+        server.enqueue(twoProviderResponse())
+
+        val providers = ProviderRepository(api).searchProviders(
+            request = ComprehensiveProviderRequest(
+                query = "ABA",
+                latitude = 34.0522,
+                longitude = -118.2437,
+                radiusMiles = 15,
+                therapyTypes = listOf("ABA Therapy", "Speech Therapy"),
+                ageGroup = "6-12",
+                diagnosis = "Autism",
+                insurance = "Medi-Cal"
+            ),
+            limit = 1
+        ).getOrThrow()
+        val request = server.takeRequest().requestUrl!!
+
+        assertEquals(listOf("First Provider"), providers.map { it.name })
+        assertEquals("/api/providers-v2/comprehensive_search/", request.encodedPath)
+        assertEquals("ABA", request.queryParameter("q"))
+        assertEquals("34.0522", request.queryParameter("lat"))
+        assertEquals("-118.2437", request.queryParameter("lng"))
+        assertEquals("15", request.queryParameter("radius"))
         assertEquals(
-            "/api/providers-v2/comprehensive_search/?lat=34.0522&lng=-118.2437&radius=25&limit=1",
-            server.takeRequest().path
+            listOf("ABA Therapy", "Speech Therapy"),
+            request.queryParameterValues("therapy")
         )
+        assertEquals("6-12", request.queryParameter("age"))
+        assertEquals("Autism", request.queryParameter("diagnosis"))
+        assertEquals("Medi-Cal", request.queryParameter("insurance"))
+        assertNull(request.queryParameter("limit"))
+    }
+
+    @Test
+    fun `Los Angeles comprehensive search without coordinates omits location queries`() = runBlocking {
+        server.enqueue(jsonResponse("[]"))
+
+        ProviderRepository(api).searchProviders(
+            request = ComprehensiveProviderRequest(query = "ABA", radiusMiles = 15),
+            limit = 50
+        ).getOrThrow()
+        val request = server.takeRequest().requestUrl!!
+
+        assertEquals("ABA", request.queryParameter("q"))
+        assertNull(request.queryParameter("lat"))
+        assertNull(request.queryParameter("lng"))
+        assertNull(request.queryParameter("radius"))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `comprehensive request rejects a half coordinate pair`() {
+        ComprehensiveProviderRequest(latitude = 34.0522)
     }
 
     @Test
@@ -108,6 +172,27 @@ class KINDDApiContractTest {
         assertEquals(
             "/api/regional-centers/by_zip_code/?zip_code=90001",
             server.takeRequest().path
+        )
+    }
+
+    @Test
+    fun `regional center ZIP lookup maps 404 to unmatched`() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(404))
+
+        val lookup = RegionalCenterRepository(api).lookupRegionalCenter("90001")
+
+        assertEquals(RegionalCenterLookup.Unmatched, lookup)
+    }
+
+    @Test
+    fun `regional center ZIP lookup sanitizes server failures`() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(503))
+
+        val lookup = RegionalCenterRepository(api).lookupRegionalCenter("90001")
+
+        assertEquals(
+            RegionalCenterLookup.Unavailable(LookupFailure.SERVER),
+            lookup
         )
     }
 
@@ -146,12 +231,12 @@ class KINDDApiContractTest {
     }
 
     @Test
-    fun `regional center provider search unwraps results envelope`() = runBlocking {
+    fun `regional center provider search sends exact ZIP filters and caps after decoding`() = runBlocking {
         server.enqueue(
             jsonResponse(
                 """
                 {
-                  "count": 1,
+                  "count": 2,
                   "regional_center": {
                     "id": 64,
                     "name": "South Central Los Angeles Regional Center",
@@ -163,6 +248,12 @@ class KINDDApiContractTest {
                       "name": "Test Provider",
                       "insurance_accepted": "Medi-Cal",
                       "insurance_carriers": []
+                    },
+                    {
+                      "id": "00000000-0000-0000-0000-000000000004",
+                      "name": "Second Provider",
+                      "insurance_accepted": "Medi-Cal",
+                      "insurance_carriers": []
                     }
                   ]
                 }
@@ -171,26 +262,39 @@ class KINDDApiContractTest {
         )
 
         val providers = ProviderRepository(api)
-            .getProvidersByRegionalCenter("90001")
+            .getProvidersByRegionalCenter(
+                request = RegionalCenterProviderRequest(
+                    zipCode = "90001",
+                    ageGroup = "6-12",
+                    diagnosis = "Autism",
+                    insurance = "Medi-Cal"
+                ),
+                limit = 1
+            )
             .getOrThrow()
+        val request = server.takeRequest().requestUrl!!
 
         assertEquals(listOf("Test Provider"), providers.map { it.name })
-        assertEquals(
-            "/api/providers-v2/by_regional_center/?zip_code=90001",
-            server.takeRequest().path
-        )
+        assertEquals("/api/providers-v2/by_regional_center/", request.encodedPath)
+        assertEquals("90001", request.queryParameter("zip_code"))
+        assertEquals("6-12", request.queryParameter("age"))
+        assertEquals("Autism", request.queryParameter("diagnosis"))
+        assertEquals("Medi-Cal", request.queryParameter("insurance"))
+        assertNull(request.queryParameter("therapy"))
+        assertNull(request.queryParameter("limit"))
     }
 
     @Test
-    fun `regional center provider age filter uses deployed query name`() {
+    fun `regional center provider API exposes no therapy argument`() {
         val method = KINDDApi::class.java.declaredMethods
             .single { it.name == "getProvidersByRegionalCenter" }
         val queryNames = method.parameterAnnotations
             .flatMap { annotations -> annotations.filterIsInstance<Query>() }
             .map(Query::value)
 
-        assertTrue("age" in queryNames)
-        assertTrue("age_group" !in queryNames)
+        assertEquals(setOf("zip_code", "insurance", "age", "diagnosis"), queryNames.toSet())
+        assertFalse("therapy" in queryNames)
+        assertFalse("age_group" in queryNames)
     }
 
     @Test
@@ -211,4 +315,19 @@ class KINDDApiContractTest {
     private fun jsonResponse(body: String) = MockResponse()
         .setHeader("Content-Type", "application/json")
         .setBody(body)
+
+    private fun twoProviderResponse() = jsonResponse(
+        """
+        [
+          {
+            "id": "00000000-0000-0000-0000-000000000031",
+            "name": "First Provider"
+          },
+          {
+            "id": "00000000-0000-0000-0000-000000000032",
+            "name": "Second Provider"
+          }
+        ]
+        """.trimIndent()
+    )
 }

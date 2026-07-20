@@ -2,47 +2,79 @@ package com.chla.kindd.data.repository
 
 import com.chla.kindd.data.api.KINDDApi
 import com.chla.kindd.data.models.RegionalCenter
+import com.chla.kindd.data.source.LookupFailure
+import com.chla.kindd.data.source.RegionalCenterDataSource
+import com.chla.kindd.data.source.RegionalCenterLookup
+import com.chla.kindd.di.IoDispatcher
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.util.concurrent.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+
 class RegionalCenterRepository(
-    private val api: KINDDApi
-) {
-    suspend fun getRegionalCenters(): Result<List<RegionalCenter>> {
-        return withContext(Dispatchers.IO) {
+    private val api: KINDDApi,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+) : RegionalCenterDataSource {
+    override suspend fun getRegionalCenters(): Result<List<RegionalCenter>> =
+        regionalCenterResult {
+            api.getRegionalCenters().results.filter { center ->
+                center.countyServed.equals("Los Angeles", ignoreCase = true)
+            }
+        }
+
+    override suspend fun lookupRegionalCenter(zipCode: String): RegionalCenterLookup =
+        withContext(ioDispatcher) {
             try {
-                val response = api.getRegionalCenters()
-                val losAngelesCenters = response.results.filter { center ->
-                    center.countyServed.equals("Los Angeles", ignoreCase = true)
+                RegionalCenterLookup.Matched(api.getRegionalCenterByZip(zipCode))
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (exception: Exception) {
+                when {
+                    exception is HttpException && exception.code() == 404 ->
+                        RegionalCenterLookup.Unmatched
+                    exception is SocketTimeoutException ->
+                        RegionalCenterLookup.Unavailable(LookupFailure.TIMEOUT)
+                    exception is IOException ->
+                        RegionalCenterLookup.Unavailable(LookupFailure.NETWORK)
+                    exception is HttpException ->
+                        RegionalCenterLookup.Unavailable(LookupFailure.SERVER)
+                    else -> RegionalCenterLookup.Unavailable(LookupFailure.UNKNOWN)
                 }
-                Result.success(losAngelesCenters)
-            } catch (e: Exception) {
-                Result.failure(e)
             }
         }
-    }
 
-    suspend fun getRegionalCenterByZip(zipCode: String): Result<RegionalCenter> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val center = api.getRegionalCenterByZip(zipCode)
-                Result.success(center)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+    suspend fun getRegionalCenterByZip(zipCode: String): Result<RegionalCenter> =
+        when (val lookup = lookupRegionalCenter(zipCode)) {
+            is RegionalCenterLookup.Matched -> Result.success(lookup.center)
+            RegionalCenterLookup.Unmatched -> Result.failure(RegionalCenterNotFoundException())
+            is RegionalCenterLookup.Unavailable ->
+                Result.failure(RegionalCenterUnavailableException(lookup.reason))
         }
-    }
 
-    suspend fun getRegionalCentersNearby(
+    override suspend fun getRegionalCentersNearby(
         latitude: Double,
         longitude: Double
-    ): Result<List<RegionalCenter>> {
-        return withContext(Dispatchers.IO) {
+    ): Result<List<RegionalCenter>> = regionalCenterResult {
+        api.getRegionalCentersNearby(latitude, longitude)
+    }
+
+    private suspend fun <T> regionalCenterResult(block: suspend () -> T): Result<T> =
+        withContext(ioDispatcher) {
             try {
-                val centers = api.getRegionalCentersNearby(latitude, longitude)
-                Result.success(centers)
-            } catch (e: Exception) {
-                Result.failure(e)
+                Result.success(block())
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (exception: Exception) {
+                Result.failure(exception)
             }
         }
-    }
 }
+
+private class RegionalCenterNotFoundException : Exception()
+
+private class RegionalCenterUnavailableException(
+    val reason: LookupFailure
+) : Exception()

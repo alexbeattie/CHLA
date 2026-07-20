@@ -4,6 +4,8 @@ import android.content.Context
 import com.chla.kindd.data.api.KINDDApi
 import com.chla.kindd.data.repository.ProviderRepository
 import com.chla.kindd.data.repository.RegionalCenterRepository
+import com.chla.kindd.data.source.ProviderDiscoveryDataSource
+import com.chla.kindd.data.source.RegionalCenterDataSource
 import com.chla.kindd.services.LocationService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -13,6 +15,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Singleton
 
 @Module
@@ -38,13 +41,31 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideProviderRepository(api: KINDDApi): ProviderRepository {
-        return ProviderRepository(api)
+    fun provideProviderRepository(
+        api: KINDDApi,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
+    ): ProviderRepository {
+        return ProviderRepository(api, ioDispatcher)
     }
 
     @Provides
     @Singleton
-    fun provideRegionalCenterRepository(api: KINDDApi): RegionalCenterRepository {
-        return RegionalCenterRepository(api)
+    fun provideProviderDiscoveryDataSource(
+        repository: ProviderRepository
+    ): ProviderDiscoveryDataSource = repository
+
+    @Provides
+    @Singleton
+    fun provideRegionalCenterRepository(
+        api: KINDDApi,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
+    ): RegionalCenterRepository {
+        return RegionalCenterRepository(api, ioDispatcher)
     }
+
+    @Provides
+    @Singleton
+    fun provideRegionalCenterDataSource(
+        repository: RegionalCenterRepository
+    ): RegionalCenterDataSource = repository
 }
