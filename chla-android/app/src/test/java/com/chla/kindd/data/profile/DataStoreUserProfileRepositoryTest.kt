@@ -8,13 +8,16 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -22,6 +25,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -48,6 +52,30 @@ class DataStoreUserProfileRepositoryTest {
 
         assertEquals(UserProfile(), profile)
         assertFalse(profile.isComplete)
+    }
+
+    @Test
+    fun `IOException from DataStore data emits the default profile`() = runTest {
+        val repository = DataStoreUserProfileRepository(
+            failingStore(IOException("read failed"))
+        )
+
+        assertEquals(UserProfile(), repository.profile.first())
+    }
+
+    @Test
+    fun `non-IOException from DataStore data propagates unchanged`() = runTest {
+        val failure = IllegalStateException("read failed")
+        val repository = DataStoreUserProfileRepository(failingStore(failure))
+        var propagated: Throwable? = null
+
+        try {
+            repository.profile.first()
+        } catch (caught: Throwable) {
+            propagated = caught
+        }
+
+        assertSame(failure, propagated)
     }
 
     @Test
@@ -177,4 +205,13 @@ class DataStoreUserProfileRepositoryTest {
         scope = scope,
         produceFile = { file }
     )
+
+    private fun failingStore(failure: Throwable): DataStore<Preferences> =
+        object : DataStore<Preferences> {
+            override val data: Flow<Preferences> = flow { throw failure }
+
+            override suspend fun updateData(
+                transform: suspend (Preferences) -> Preferences
+            ): Preferences = error("updateData should not be called")
+        }
 }
