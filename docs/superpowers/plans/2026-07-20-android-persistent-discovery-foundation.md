@@ -1606,7 +1606,7 @@ Before implementation begins, verify this document itself:
 - [x] The request matrix matches the deployed backend: repeated therapy only for comprehensive search; ZIP therapy is local.
 - [x] Stable profile/API values are separate from localized labels.
 - [x] First-run unmatched/offline behavior and Home unmatched no-write behavior are distinct.
-- [x] DataStore filename and both backup exclusions are exact.
+- [x] DataStore filename, sharedpref-only legacy/cloud allowlists, and the exact device-transfer profile exclusion are exact.
 - [x] Main graph selection waits for profile hydration.
 - [x] Home criteria update precedes navigation.
 - [x] Map/List use one singleton state and preserve provider identity.

@@ -24,77 +24,62 @@ class ProfileBackupRulesTest {
     }
 
     @Test
-    fun cloudBackupsAllowOnlySharedPreferencesAndExcludeDevicePreferences() {
-        assertEquals(
-            setOf(
-                Rule(
-                    parent = "full-backup-content",
-                    domain = "sharedpref",
-                    path = "."
-                )
-            ),
-            includesIn(R.xml.backup_rules)
-        )
-        assertEquals(
-            setOf(
-                Rule(
-                    parent = "full-backup-content",
-                    domain = "sharedpref",
-                    path = "device.xml"
-                )
-            ),
-            exclusionsIn(R.xml.backup_rules)
-        )
+    fun legacyCloudBackupHasTheExactRuleInventory() {
+        val rules = rulesIn(R.xml.backup_rules)
 
+        assertEquals(2, rules.size)
         assertEquals(
-            setOf(
+            listOf(
                 Rule(
-                    parent = "cloud-backup",
+                    type = "include",
+                    parent = "full-backup-content",
                     domain = "sharedpref",
                     path = "."
-                )
-            ),
-            includesIn(R.xml.data_extraction_rules)
-        )
-        assertEquals(
-            setOf(
+                ),
                 Rule(
-                    parent = "cloud-backup",
+                    type = "exclude",
+                    parent = "full-backup-content",
                     domain = "sharedpref",
                     path = "device.xml"
                 )
             ),
-            exclusionsIn(R.xml.data_extraction_rules, parent = "cloud-backup")
+            rules
         )
     }
 
     @Test
-    fun deviceTransferExplicitlyExcludesOnlyTheProfileDataStoreFile() {
+    fun android12BackupHasTheExactCloudAndDeviceTransferRuleInventory() {
+        val rules = rulesIn(R.xml.data_extraction_rules)
+
+        assertEquals(3, rules.size)
         assertEquals(
-            emptySet<Rule>(),
-            includesIn(R.xml.data_extraction_rules, parent = "device-transfer")
-        )
-        assertEquals(
-            setOf(
+            listOf(
                 Rule(
+                    type = "include",
+                    parent = "cloud-backup",
+                    domain = "sharedpref",
+                    path = "."
+                ),
+                Rule(
+                    type = "exclude",
+                    parent = "cloud-backup",
+                    domain = "sharedpref",
+                    path = "device.xml"
+                ),
+                Rule(
+                    type = "exclude",
                     parent = "device-transfer",
                     domain = "file",
                     path = PROFILE_DATASTORE_PATH
                 )
             ),
-            exclusionsIn(R.xml.data_extraction_rules, parent = "device-transfer")
+            rules
         )
     }
 
-    private fun includesIn(resourceId: Int, parent: String? = null): Set<Rule> =
-        rulesIn(resourceId, tag = "include", parent = parent)
-
-    private fun exclusionsIn(resourceId: Int, parent: String? = null): Set<Rule> =
-        rulesIn(resourceId, tag = "exclude", parent = parent)
-
-    private fun rulesIn(resourceId: Int, tag: String, parent: String?): Set<Rule> {
+    private fun rulesIn(resourceId: Int): List<Rule> {
         val parser = context.resources.getXml(resourceId)
-        val rules = mutableSetOf<Rule>()
+        val rules = mutableListOf<Rule>()
         var currentParent: String? = null
         var event = parser.eventType
 
@@ -104,13 +89,12 @@ class ProfileBackupRulesTest {
                     "full-backup-content", "cloud-backup", "device-transfer" -> {
                         currentParent = parser.name
                     }
-                    tag -> if (parent == null || currentParent == parent) {
-                        rules += Rule(
-                            parent = currentParent,
-                            domain = parser.getAttributeValue(null, "domain"),
-                            path = parser.getAttributeValue(null, "path")
-                        )
-                    }
+                    "include", "exclude" -> rules += Rule(
+                        type = parser.name,
+                        parent = currentParent,
+                        domain = parser.getAttributeValue(null, "domain"),
+                        path = parser.getAttributeValue(null, "path")
+                    )
                 }
                 XmlPullParser.END_TAG -> if (parser.name == currentParent) {
                     currentParent = null
@@ -124,6 +108,7 @@ class ProfileBackupRulesTest {
     }
 
     private data class Rule(
+        val type: String,
         val parent: String?,
         val domain: String?,
         val path: String?
