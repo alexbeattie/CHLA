@@ -29,6 +29,8 @@
     <string name="speech_therapy">Speech Therapy</string>
     <string name="occupational_therapy">Occupational Therapy</string>
     <string name="physical_therapy">Physical Therapy</string>
+    <string name="feeding_therapy">Feeding Therapy</string>
+    <string name="parent_child_interaction_therapy">Parent-Child Interaction and Parent Training</string>
 
     <!-- Map Screen -->
     <string name="map_title">Resource Map</string>

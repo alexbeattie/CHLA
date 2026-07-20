@@ -29,6 +29,8 @@
     <string name="speech_therapy">Terapia del Habla</string>
     <string name="occupational_therapy">Terapia Ocupacional</string>
     <string name="physical_therapy">Fisioterapia</string>
+    <string name="feeding_therapy">Terapia de alimentación</string>
+    <string name="parent_child_interaction_therapy">Interacción padre-hijo y capacitación parental</string>
 
     <!-- Map Screen -->
     <string name="map_title">Mapa de Recursos</string>
