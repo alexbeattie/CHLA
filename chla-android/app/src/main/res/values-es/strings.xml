@@ -101,6 +101,16 @@
     <string name="terms_of_service">Términos de Servicio</string>
     <string name="version">Versión</string>
     <string name="reset_onboarding">Reiniciar Introducción</string>
+    <string name="settings_profile">Perfil</string>
+    <string name="settings_edit_profile">Editar perfil e introducción</string>
+    <string name="settings_edit_profile_description">Revisa tus respuestas y actualiza tu perfil guardado.</string>
+    <string name="settings_clear_profile">Borrar perfil y reiniciar</string>
+    <string name="settings_clear_profile_description">Elimina tu perfil guardado y vuelve a completar la introducción.</string>
+    <string name="settings_clear_profile_dialog_title">¿Borrar el perfil?</string>
+    <string name="settings_clear_profile_dialog_body">Se borrará tu perfil guardado y volverás a completar la introducción.</string>
+    <string name="settings_clear_profile_confirm">Borrar y reiniciar</string>
+    <string name="settings_app_info">Información de la aplicación</string>
+    <string name="settings_footer">KiNDD - NDD Resource Navigator</string>
 
     <!-- About -->
     <string name="about_title">Acerca de KINDD</string>
