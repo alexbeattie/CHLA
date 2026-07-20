@@ -21,10 +21,10 @@ interface KINDDApi {
         @Query("page_size") pageSize: Int = 50
     ): PaginatedResponse<Provider>
 
-    @GET("providers-v2/nearby/")
+    @GET("providers-v2/comprehensive_search/")
     suspend fun getProvidersNearby(
         @Query("lat") latitude: Double,
-        @Query("lon") longitude: Double,
+        @Query("lng") longitude: Double,
         @Query("radius") radiusMiles: Int = 25,
         @Query("limit") limit: Int = 50
     ): List<Provider>
@@ -34,10 +34,10 @@ interface KINDDApi {
         @Query("zip_code") zipCode: String,
         @Query("therapy") therapyTypes: List<String>? = null,
         @Query("insurance") insurance: String? = null,
-        @Query("age_group") ageGroup: String? = null
-    ): List<Provider>
+        @Query("age") ageGroup: String? = null
+    ): RegionalCenterProvidersResponse
 
-    @GET("providers-v2/search/")
+    @GET("providers-v2/comprehensive_search/")
     suspend fun searchProviders(
         @Query("q") query: String,
         @Query("limit") limit: Int = 50
@@ -52,7 +52,7 @@ interface KINDDApi {
     @GET("regional-centers/")
     suspend fun getRegionalCenters(): PaginatedResponse<RegionalCenter>
 
-    @GET("regional-centers/by_zip/")
+    @GET("regional-centers/by_zip_code/")
     suspend fun getRegionalCenterByZip(
         @Query("zip_code") zipCode: String
     ): RegionalCenter
@@ -60,7 +60,7 @@ interface KINDDApi {
     @GET("regional-centers/nearby/")
     suspend fun getRegionalCentersNearby(
         @Query("lat") latitude: Double,
-        @Query("lon") longitude: Double
+        @Query("lng") longitude: Double
     ): List<RegionalCenter>
 
     // LLM
@@ -74,6 +74,11 @@ interface KINDDApi {
         @Body request: LLMRequest
     ): okhttp3.ResponseBody
 }
+
+data class RegionalCenterProvidersResponse(
+    val count: Int,
+    val results: List<Provider>
+)
 
 data class HealthCheckResponse(
     val status: String,

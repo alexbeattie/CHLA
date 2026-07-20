@@ -4,6 +4,11 @@ import com.chla.kindd.data.api.KINDDApi
 import com.chla.kindd.data.models.Provider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
+
 class ProviderRepository(
     private val api: KINDDApi
 ) {
@@ -27,7 +32,11 @@ class ProviderRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val providers = api.getProvidersNearby(latitude, longitude, radiusMiles, limit)
-                Result.success(providers)
+                val nearestProviders = providers
+                    .map { provider -> provider.withDistanceFrom(latitude, longitude) }
+                    .sortedBy { provider -> provider.distance ?: Double.POSITIVE_INFINITY }
+                    .take(limit.coerceAtLeast(0))
+                Result.success(nearestProviders)
             } catch (e: Exception) {
                 Result.failure(e)
             }
@@ -42,13 +51,13 @@ class ProviderRepository(
     ): Result<List<Provider>> {
         return withContext(Dispatchers.IO) {
             try {
-                val providers = api.getProvidersByRegionalCenter(
+                val response = api.getProvidersByRegionalCenter(
                     zipCode = zipCode,
                     therapyTypes = therapyTypes,
                     insurance = insurance,
                     ageGroup = ageGroup
                 )
-                Result.success(providers)
+                Result.success(response.results)
             } catch (e: Exception) {
                 Result.failure(e)
             }
@@ -59,7 +68,7 @@ class ProviderRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val providers = api.searchProviders(query, limit)
-                Result.success(providers)
+                Result.success(providers.take(limit.coerceAtLeast(0)))
             } catch (e: Exception) {
                 Result.failure(e)
             }
@@ -77,3 +86,23 @@ class ProviderRepository(
         }
     }
 }
+
+private fun Provider.withDistanceFrom(latitude: Double, longitude: Double): Provider {
+    val providerLatitude = this.latitude ?: return this
+    val providerLongitude = this.longitude ?: return this
+    val latitudeDelta = Math.toRadians(providerLatitude - latitude)
+    val longitudeDelta = Math.toRadians(providerLongitude - longitude)
+    val originLatitude = Math.toRadians(latitude)
+    val destinationLatitude = Math.toRadians(providerLatitude)
+
+    val haversine = (
+        sin(latitudeDelta / 2) * sin(latitudeDelta / 2) +
+            cos(originLatitude) * cos(destinationLatitude) *
+            sin(longitudeDelta / 2) * sin(longitudeDelta / 2)
+        ).coerceIn(0.0, 1.0)
+    val angularDistance = 2 * atan2(sqrt(haversine), sqrt(1 - haversine))
+
+    return copy(distance = EARTH_RADIUS_MILES * angularDistance)
+}
+
+private const val EARTH_RADIUS_MILES = 3_958.8

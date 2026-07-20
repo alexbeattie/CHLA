@@ -2,6 +2,7 @@ package com.chla.kindd.data.models
 
 import androidx.compose.ui.graphics.Color
 import com.chla.kindd.ui.theme.*
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 
 data class RegionalCenter(
@@ -18,6 +19,7 @@ data class RegionalCenter(
     val latitude: Double? = null,
     val longitude: Double? = null,
     @SerializedName("zip_codes")
+    @JsonAdapter(StringListJsonAdapter::class)
     val zipCodes: List<String>? = null,
     @SerializedName("service_areas")
     val serviceAreas: List<String>? = null,

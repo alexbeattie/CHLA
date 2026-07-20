@@ -11,7 +11,10 @@ class RegionalCenterRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val response = api.getRegionalCenters()
-                Result.success(response.results)
+                val losAngelesCenters = response.results.filter { center ->
+                    center.countyServed.equals("Los Angeles", ignoreCase = true)
+                }
+                Result.success(losAngelesCenters)
             } catch (e: Exception) {
                 Result.failure(e)
             }
