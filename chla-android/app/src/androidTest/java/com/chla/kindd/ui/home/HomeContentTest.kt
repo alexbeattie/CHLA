@@ -149,19 +149,96 @@ class HomeContentTest {
     }
 
     @Test
+    fun primaryActionsForwardTheirDistinctCallbacks() {
+        val calls = mutableListOf<String>()
+        composeRule.setContent {
+            KINDDTheme {
+                HomeContent(
+                    uiState = matchedState(JourneyStage.EXPLORING),
+                    onZipChanged = {},
+                    onSubmitZip = {},
+                    onNavigateToMap = { calls += "map" },
+                    onNavigateToList = { calls += "list" },
+                    onNavigateToRegionalCenters = { calls += "regions" },
+                    onNavigateToChat = {},
+                    onOpenChat = { calls += "chat" },
+                    onTherapySelected = {},
+                    onCall = {}
+                )
+            }
+        }
+
+        listOf(
+            "Map" to "map",
+            "List" to "list",
+            "Explore" to "regions",
+            "Ask KiNDD" to "chat",
+            "Details" to "regions"
+        ).forEach { (label, expected) ->
+            composeRule.onNode(hasClickAction() and hasText(label)).performScrollTo().performClick()
+            composeRule.runOnIdle { assertEquals(expected, calls.last()) }
+        }
+
+        composeRule.runOnIdle {
+            assertEquals(listOf("map", "list", "regions", "chat", "regions"), calls)
+        }
+    }
+
+    @Test
     fun primaryTargetsAreAtLeast48Dp_andTouchedSurfaceHasNoLegacyNames() {
-        setHome(matchedState())
+        val state = mutableStateOf(matchedState())
+        composeRule.setContent {
+            KINDDTheme {
+                HomeContent(
+                    uiState = state.value,
+                    onZipChanged = {},
+                    onSubmitZip = {},
+                    onNavigateToMap = {},
+                    onNavigateToList = {},
+                    onNavigateToRegionalCenters = {},
+                    onNavigateToChat = {},
+                    onOpenChat = {},
+                    onTherapySelected = {},
+                    onCall = {}
+                )
+            }
+        }
 
         val minimumPixels = 48f * composeRule.density.density
-        listOf("Map", "List", "Explore", "Ask KiNDD", "Details").forEach { label ->
+        listOf(
+            "Map",
+            "List",
+            "ABA Therapy",
+            "Speech",
+            "Occupational",
+            "Physical",
+            "Explore",
+            "Ask KiNDD",
+            "Details",
+            "What do I say?"
+        ).forEach { label ->
             val node = composeRule.onNode(hasClickAction() and hasText(label)).performScrollTo()
             val bounds = node.fetchSemanticsNode().boundsInRoot
             assertTrue("$label width", bounds.width >= minimumPixels)
             assertTrue("$label height", bounds.height >= minimumPixels)
         }
+        val callNodes = composeRule.onAllNodes(hasClickAction() and hasText("Call now"))
+        callNodes.fetchSemanticsNodes().indices.forEach { index ->
+            val bounds = callNodes[index].performScrollTo().fetchSemanticsNode().boundsInRoot
+            assertTrue("Call now $index width", bounds.width >= minimumPixels)
+            assertTrue("Call now $index height", bounds.height >= minimumPixels)
+        }
         composeRule.onAllNodesWithText("CHLA", substring = true).assertCountEquals(0)
         composeRule.onAllNodesWithText("KINDD", substring = true).assertCountEquals(0)
         assertTrue(composeRule.onAllNodesWithText("KiNDD", substring = true).fetchSemanticsNodes().isNotEmpty())
+
+        composeRule.runOnIdle { state.value = HomeUiState(zipDraft = "90001") }
+        val findBounds = composeRule.onNode(hasClickAction() and hasText("Find"))
+            .performScrollTo()
+            .fetchSemanticsNode()
+            .boundsInRoot
+        assertTrue("Find width", findBounds.width >= minimumPixels)
+        assertTrue("Find height", findBounds.height >= minimumPixels)
     }
 
     private fun setHome(

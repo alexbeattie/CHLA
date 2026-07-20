@@ -102,6 +102,65 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun zipDraftChangeInvalidatesCancellationIgnoringLookup_beforeItCanPersist() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val oldMatch = CompletableDeferred<RegionalCenterLookup>()
+            val source = ControlledLookupCenterSource(ArrayDeque(listOf(oldMatch)))
+            val original = profile(zip = "90001", identity = null)
+            val repository = RecordingProfileRepository(original)
+            val viewModel = HomeViewModel(repository, source, FakeDiscoveryController())
+            runCurrent()
+
+            viewModel.onZipChanged("90001")
+            viewModel.submitZip()
+            runCurrent()
+            viewModel.onZipChanged("90210")
+
+            assertEquals("90210", viewModel.uiState.value.zipDraft)
+            assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+
+            oldMatch.complete(RegionalCenterLookup.Matched(center(id = 1, name = "Old")))
+            runCurrent()
+
+            assertEquals(original, repository.current)
+            assertTrue(repository.replacements.isEmpty())
+            assertEquals("90210", viewModel.uiState.value.zipDraft)
+            assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+        }
+
+    @Test
+    fun everyZipSubmitSupersedesCancellationIgnoringLookup_whenNewMatchFinishesFirst() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val oldMatch = CompletableDeferred<RegionalCenterLookup>()
+            val newMatch = CompletableDeferred<RegionalCenterLookup>()
+            val source = ControlledLookupCenterSource(ArrayDeque(listOf(oldMatch, newMatch)))
+            val original = profile(zip = "90001", identity = null)
+            val repository = RecordingProfileRepository(original)
+            val viewModel = HomeViewModel(repository, source, FakeDiscoveryController())
+            runCurrent()
+
+            viewModel.onZipChanged("90210")
+            viewModel.submitZip()
+            runCurrent()
+            viewModel.submitZip()
+            runCurrent()
+
+            val expectedCenter = center(id = 2, name = "New")
+            newMatch.complete(RegionalCenterLookup.Matched(expectedCenter))
+            runCurrent()
+            oldMatch.complete(RegionalCenterLookup.Matched(center(id = 1, name = "Old")))
+            runCurrent()
+
+            val expectedProfile = original.copy(
+                zipCode = "90210",
+                regionalCenter = RegionalCenterIdentity.from(expectedCenter)
+            )
+            assertEquals(expectedProfile, repository.current)
+            assertEquals(listOf(expectedProfile), repository.replacements)
+            assertEquals(HomeLookupState.MATCHED, viewModel.uiState.value.lookupState)
+        }
+
+    @Test
     fun unmatchedAndUnavailableLeaveCurrentProfileByteForByteUnchanged() =
         runTest(mainDispatcherRule.testDispatcher) {
             val original = profile()
@@ -125,14 +184,27 @@ class HomeViewModelTest {
     fun therapyIsSetSynchronouslyBeforeListNavigation_forAllHomeShortcuts() =
         runTest(mainDispatcherRule.testDispatcher) {
             val fixture = fixture(profile())
-            val events = collectEvents(fixture.viewModel)
+            val timeline = mutableListOf<String>()
+            fixture.discovery.onSingleTherapyAndRefresh = { therapy ->
+                timeline += "therapy:${therapy.apiValue}"
+            }
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                fixture.viewModel.events.collect { event -> timeline += "event:$event" }
+            }
 
             listOf(TherapyType.ABA, TherapyType.SPEECH, TherapyType.OCCUPATIONAL, TherapyType.PHYSICAL)
                 .forEach { therapy ->
+                    timeline.clear()
                     fixture.viewModel.selectTherapy(therapy)
                     runCurrent()
                     assertEquals(therapy, fixture.discovery.singleTherapies.last())
-                    assertEquals(HomeEvent.NavigateToList, events.last())
+                    assertEquals(
+                        listOf(
+                            "therapy:${therapy.apiValue}",
+                            "event:${HomeEvent.NavigateToList}"
+                        ),
+                        timeline
+                    )
                 }
         }
 
@@ -174,7 +246,9 @@ class HomeViewModelTest {
             val events = collectEvents(fixture.viewModel)
             runCurrent()
 
-            fixture.viewModel.callCenter()
+            val dialDigits = fixture.viewModel.uiState.value.dialDigits
+            requireNotNull(dialDigits)
+            fixture.viewModel.callCenter(dialDigits)
             runCurrent()
             assertEquals(HomeEvent.Dial("1213555126"), events.single())
 
@@ -182,7 +256,9 @@ class HomeViewModelTest {
                 profile(identity = identity.copy(id = 99, name = "Unknown", shortName = "UNKNOWN"))
             )
             runCurrent()
-            fixture.viewModel.callCenter()
+            fixture.viewModel.uiState.value.dialDigits?.let(fixture.viewModel::callCenter)
+            fixture.viewModel.callCenter("+1 (213) 555-1212")
+            fixture.viewModel.callCenter("١٢٣")
             runCurrent()
             assertEquals(1, events.size)
         }
@@ -209,30 +285,49 @@ class HomeViewModelTest {
     @Test
     fun identityChangeClearsDetailsImmediately_andLateOldResponseCannotRestoreThemOrDial() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val firstGate = CompletableDeferred<Result<List<RegionalCenter>>>()
-            val secondGate = CompletableDeferred<Result<List<RegionalCenter>>>()
-            val source = QueuedCenterSource(ArrayDeque(listOf(firstGate, secondGate)))
-            val firstIdentity = RegionalCenterIdentity(1, "First", "FIRST")
-            val secondIdentity = RegionalCenterIdentity(2, "Second", "SECOND")
-            val fixture = fixture(profile(identity = firstIdentity), source)
+            val initialGate = CompletableDeferred<Result<List<RegionalCenter>>>()
+            val staleGate = CompletableDeferred<Result<List<RegionalCenter>>>()
+            val latestGate = CompletableDeferred<Result<List<RegionalCenter>>>()
+            val source = QueuedCenterSource(
+                ArrayDeque(listOf(initialGate, staleGate, latestGate))
+            )
+            val initialIdentity = RegionalCenterIdentity(1, "Initial", "INITIAL")
+            val staleIdentity = RegionalCenterIdentity(2, "Stale", "STALE")
+            val latestIdentity = RegionalCenterIdentity(3, "Latest", "LATEST")
+            val fixture = fixture(profile(identity = initialIdentity), source)
             val events = collectEvents(fixture.viewModel)
             runCurrent()
 
-            fixture.repository.emit(profile(identity = secondIdentity))
+            val initialDetails = center(id = 1, name = "Initial", phone = "111-111-1111")
+            initialGate.complete(Result.success(listOf(initialDetails)))
+            runCurrent()
+            assertEquals(initialDetails, fixture.viewModel.uiState.value.hydratedCenter)
+
+            fixture.repository.emit(profile(identity = staleIdentity))
+            runCurrent()
             assertNull(fixture.viewModel.uiState.value.hydratedCenter)
-            fixture.viewModel.callCenter()
+            fixture.viewModel.uiState.value.dialDigits?.let(fixture.viewModel::callCenter)
             runCurrent()
             assertTrue(events.isEmpty())
 
-            secondGate.complete(Result.success(listOf(center(id = 2, name = "Second", phone = "222-222-2222"))))
+            fixture.repository.emit(profile(identity = latestIdentity))
             runCurrent()
-            firstGate.complete(Result.success(listOf(center(id = 1, name = "First", phone = "111-111-1111"))))
+            val latestDetails = center(id = 3, name = "Latest", phone = "333-333-3333")
+            latestGate.complete(Result.success(listOf(latestDetails)))
+            runCurrent()
+            assertEquals(latestDetails, fixture.viewModel.uiState.value.hydratedCenter)
+
+            staleGate.complete(
+                Result.success(listOf(center(id = 2, name = "Stale", phone = "222-222-2222")))
+            )
             runCurrent()
 
-            assertEquals(2, fixture.viewModel.uiState.value.hydratedCenter?.id)
-            fixture.viewModel.callCenter()
+            assertEquals(latestDetails, fixture.viewModel.uiState.value.hydratedCenter)
+            val dialDigits = fixture.viewModel.uiState.value.dialDigits
+            requireNotNull(dialDigits)
+            fixture.viewModel.callCenter(dialDigits)
             runCurrent()
-            assertEquals(HomeEvent.Dial("2222222222"), events.single())
+            assertEquals(HomeEvent.Dial("3333333333"), events.single())
         }
 
     private fun kotlinx.coroutines.test.TestScope.collectEvents(viewModel: HomeViewModel): MutableList<HomeEvent> {
@@ -296,6 +391,19 @@ class HomeViewModelTest {
         override suspend fun getRegionalCentersNearby(latitude: Double, longitude: Double) =
             Result.success(emptyList<RegionalCenter>())
         override suspend fun lookupRegionalCenter(zipCode: String) = RegionalCenterLookup.Unmatched
+    }
+
+    private class ControlledLookupCenterSource(
+        private val gates: ArrayDeque<CompletableDeferred<RegionalCenterLookup>>
+    ) : RegionalCenterDataSource {
+        val lookups = mutableListOf<String>()
+        override suspend fun getRegionalCenters() = Result.success(emptyList<RegionalCenter>())
+        override suspend fun getRegionalCentersNearby(latitude: Double, longitude: Double) =
+            Result.success(emptyList<RegionalCenter>())
+        override suspend fun lookupRegionalCenter(zipCode: String): RegionalCenterLookup {
+            lookups += zipCode
+            return withContext(NonCancellable) { gates.removeFirst().await() }
+        }
     }
 
     private fun profile(

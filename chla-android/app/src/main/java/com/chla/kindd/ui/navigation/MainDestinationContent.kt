@@ -38,12 +38,7 @@ interface MainDestinationContent {
     fun list(actions: MainNavActions)
 
     @Composable
-    fun chat(actions: MainNavActions)
-
-    @Composable
-    fun chat(prompt: ChatLaunchPrompt?, actions: MainNavActions) {
-        chat(actions)
-    }
+    fun chat(prompt: ChatLaunchPrompt?, actions: MainNavActions)
 
     @Composable
     fun settings(actions: MainNavActions)
@@ -83,11 +78,6 @@ object ProductionMainDestinationContent : MainDestinationContent {
     @Composable
     override fun list(actions: MainNavActions) {
         ProviderListScreen(onProviderClick = actions.navigateToProviderDetail)
-    }
-
-    @Composable
-    override fun chat(actions: MainNavActions) {
-        ChatScreen()
     }
 
     @Composable

@@ -91,7 +91,7 @@ fun HomeScreen(
         onNavigateToChat = viewModel::openChat,
         onOpenChat = { onNavigateToChat(null) },
         onTherapySelected = viewModel::selectTherapy,
-        onCall = { viewModel.callCenter() }
+        onCall = viewModel::callCenter
     )
 }
 

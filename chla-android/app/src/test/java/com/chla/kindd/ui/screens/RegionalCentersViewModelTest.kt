@@ -11,11 +11,14 @@ import com.chla.kindd.data.source.LookupFailure
 import com.chla.kindd.data.source.RegionalCenterDataSource
 import com.chla.kindd.data.source.RegionalCenterLookup
 import com.chla.kindd.testing.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -80,6 +83,66 @@ class RegionalCentersViewModelTest {
         }
 
     @Test
+    fun zipDraftChangeInvalidatesCancellationIgnoringLookup_beforeItCanPersist() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val oldMatch = CompletableDeferred<RegionalCenterLookup>()
+            val source = ControlledLookupCenterSource(ArrayDeque(listOf(oldMatch)))
+            val original = profile()
+            val repository = RecordingProfileRepository(original)
+            val viewModel = RegionalCentersViewModel(repository, source)
+            runCurrent()
+
+            viewModel.onZipChanged("90001")
+            viewModel.submitZip()
+            runCurrent()
+            viewModel.onZipChanged("90210")
+
+            assertEquals("90210", viewModel.uiState.value.zipDraft)
+            assertEquals(RegionalCentersLookupState.IDLE, viewModel.uiState.value.lookupState)
+
+            oldMatch.complete(RegionalCenterLookup.Matched(center(1, "Old")))
+            runCurrent()
+
+            assertEquals(original, repository.current)
+            assertTrue(repository.replacements.isEmpty())
+            assertEquals("90210", viewModel.uiState.value.zipDraft)
+            assertEquals(RegionalCentersLookupState.IDLE, viewModel.uiState.value.lookupState)
+        }
+
+    @Test
+    fun everyZipSubmitSupersedesCancellationIgnoringLookup_whenNewMatchFinishesFirst() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val oldMatch = CompletableDeferred<RegionalCenterLookup>()
+            val newMatch = CompletableDeferred<RegionalCenterLookup>()
+            val source = ControlledLookupCenterSource(ArrayDeque(listOf(oldMatch, newMatch)))
+            val original = profile()
+            val repository = RecordingProfileRepository(original)
+            val viewModel = RegionalCentersViewModel(repository, source)
+            runCurrent()
+
+            viewModel.onZipChanged("90210")
+            viewModel.submitZip()
+            runCurrent()
+            viewModel.submitZip()
+            runCurrent()
+
+            val expectedCenter = center(3, "New")
+            newMatch.complete(RegionalCenterLookup.Matched(expectedCenter))
+            runCurrent()
+            oldMatch.complete(RegionalCenterLookup.Matched(center(2, "Old")))
+            runCurrent()
+
+            val expectedProfile = original.copy(
+                zipCode = "90210",
+                regionalCenter = RegionalCenterIdentity.from(expectedCenter)
+            )
+            assertEquals(expectedProfile, repository.current)
+            assertEquals(listOf(expectedProfile), repository.replacements)
+            assertEquals(RegionalCentersLookupState.MATCHED, viewModel.uiState.value.lookupState)
+            assertEquals(expectedCenter, viewModel.uiState.value.matchedCenter)
+        }
+
+    @Test
     fun unmatchedAndUnavailableChangeOnlySanitizedScreenState() =
         runTest(mainDispatcherRule.testDispatcher) {
             listOf(
@@ -124,6 +187,16 @@ class RegionalCentersViewModelTest {
             lookups += zipCode
             return lookup
         }
+    }
+
+    private class ControlledLookupCenterSource(
+        private val gates: ArrayDeque<CompletableDeferred<RegionalCenterLookup>>
+    ) : RegionalCenterDataSource {
+        override suspend fun getRegionalCenters() = Result.success(emptyList<RegionalCenter>())
+        override suspend fun getRegionalCentersNearby(latitude: Double, longitude: Double) =
+            Result.success(emptyList<RegionalCenter>())
+        override suspend fun lookupRegionalCenter(zipCode: String): RegionalCenterLookup =
+            withContext(NonCancellable) { gates.removeFirst().await() }
     }
 
     private fun profile() = UserProfile(

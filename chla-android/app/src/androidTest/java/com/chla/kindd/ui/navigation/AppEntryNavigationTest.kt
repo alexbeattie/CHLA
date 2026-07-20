@@ -1,5 +1,6 @@
 package com.chla.kindd.ui.navigation
 
+import android.content.res.Configuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -12,19 +13,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
+import com.chla.kindd.R
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.ui.app.AppEntryState
+import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import com.chla.kindd.ui.theme.KINDDTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.util.Locale
 
 class AppEntryNavigationTest {
 
@@ -195,6 +204,120 @@ class AppEntryNavigationTest {
         }
     }
 
+    @Test
+    fun mainDestinationContent_exposesOnlyThePromptAwareChatContract() {
+        val chatMethods = MainDestinationContent::class.java.declaredMethods
+            .filter { method -> method.name == "chat" }
+
+        assertEquals(1, chatMethods.size)
+        assertTrue(chatMethods.single().parameterTypes.contains(ChatLaunchPrompt::class.java))
+    }
+
+    @Test
+    fun typedChatRoutesDecodeEveryFixedKey_andSelectChatByDestinationPattern() {
+        lateinit var navController: TestNavHostController
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDMainNavHost(
+                    profile = completeProfile(),
+                    navController = navController,
+                    destinationContent = TaggedMainDestinationContent
+                )
+            }
+        }
+
+        ChatLaunchPrompt.entries.forEach { prompt ->
+            composeRule.runOnIdle {
+                navController.navigate(Screen.Chat.createRoute(prompt))
+            }
+
+            composeRule.onNodeWithTag(CHAT_TAG).assertTextEquals(prompt.routeValue)
+            composeRule.onNodeWithTag(BOTTOM_CHAT_TAG).assertIsSelected()
+            composeRule.runOnIdle {
+                assertEquals(Screen.Chat.destinationRoute, navController.currentDestination?.route)
+                assertEquals(
+                    prompt.routeValue,
+                    navController.currentBackStackEntry?.arguments?.getString("prompt")
+                )
+                assertFalse(
+                    Screen.Chat.createRoute(prompt).contains(
+                        localizedString(prompt.promptResId, Locale.ENGLISH)
+                    )
+                )
+            }
+        }
+    }
+
+    @Test
+    fun bottomNavigationChatDeliversNoPrompt_andStillSelectsPatternDestination() {
+        lateinit var navController: TestNavHostController
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDMainNavHost(
+                    profile = completeProfile(),
+                    navController = navController,
+                    destinationContent = TaggedMainDestinationContent
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(BOTTOM_CHAT_TAG).performClick()
+
+        composeRule.onNodeWithTag(CHAT_TAG).assertTextEquals(NO_PROMPT_TEXT)
+        composeRule.onNodeWithTag(BOTTOM_CHAT_TAG).assertIsSelected()
+        composeRule.runOnIdle {
+            assertEquals(Screen.Chat.destinationRoute, navController.currentDestination?.route)
+            assertNull(navController.currentBackStackEntry?.arguments?.getString("prompt"))
+        }
+    }
+
+    @Test
+    fun promptResourcesResolveToExactEnglish_andNaturalSpanishCounterparts() {
+        val expectedEnglish = listOf(
+            "We just got a diagnosis. What do I say when I call my regional center to request an intake evaluation for my child?",
+            "How do we prepare for our regional center intake appointment? What documents and information should we bring?",
+            "My child already receives regional center services. How do I prepare for an IPP meeting, and what services can I ask for?"
+        )
+        val expectedSpanish = listOf(
+            "Acabamos de recibir un diagnóstico. ¿Qué debo decir cuando llame a mi centro regional para solicitar una evaluación inicial para mi hijo?",
+            "¿Cómo nos preparamos para la cita de evaluación inicial del centro regional? ¿Qué documentos e información debemos llevar?",
+            "Mi hijo ya recibe servicios del centro regional. ¿Cómo me preparo para una reunión del IPP y qué servicios puedo solicitar?"
+        )
+
+        assertEquals(
+            expectedEnglish,
+            ChatLaunchPrompt.entries.map { prompt ->
+                localizedString(prompt.promptResId, Locale.ENGLISH)
+            }
+        )
+        assertEquals(
+            expectedSpanish,
+            ChatLaunchPrompt.entries.map { prompt ->
+                localizedString(prompt.promptResId, Locale.forLanguageTag("es"))
+            }
+        )
+        assertEquals(
+            listOf(
+                R.string.chat_prompt_just_diagnosed,
+                R.string.chat_prompt_waiting_intake,
+                R.string.chat_prompt_receiving_services
+            ),
+            ChatLaunchPrompt.entries.map(ChatLaunchPrompt::promptResId)
+        )
+    }
+
+    private fun localizedString(resourceId: Int, locale: Locale): String {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val configuration = Configuration(context.resources.configuration).apply {
+            setLocale(locale)
+        }
+        return context.createConfigurationContext(configuration).getString(resourceId)
+    }
+
     @Composable
     private fun testNavController(): TestNavHostController {
         val context = LocalContext.current
@@ -229,8 +352,11 @@ class AppEntryNavigationTest {
         }
 
         @Composable
-        override fun chat(actions: MainNavActions) {
-            TaggedDestination(CHAT_TAG)
+        override fun chat(prompt: ChatLaunchPrompt?, actions: MainNavActions) {
+            Text(
+                text = prompt?.routeValue ?: NO_PROMPT_TEXT,
+                modifier = Modifier.testTag(CHAT_TAG)
+            )
         }
 
         @Composable
@@ -278,6 +404,8 @@ class AppEntryNavigationTest {
         const val BOTTOM_HOME_TAG = "bottom_nav_home"
         const val BOTTOM_MAP_TAG = "bottom_nav_map"
         const val BOTTOM_LIST_TAG = "bottom_nav_list"
+        const val BOTTOM_CHAT_TAG = "bottom_nav_chat"
+        const val NO_PROMPT_TEXT = "no_prompt"
     }
 }
 

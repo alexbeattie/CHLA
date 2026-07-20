@@ -40,6 +40,7 @@ class HomeViewModel @Inject constructor(
     private var hydratedIdentity: RegionalCenterIdentity? = null
     private var hydrationGeneration = 0L
     private var hydrationJob: Job? = null
+    private var lookupGeneration = 0L
     private var lookupJob: Job? = null
 
     init {
@@ -68,6 +69,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onZipChanged(value: String) {
+        invalidateLookup()
         val normalized = value.filter { character -> character in '0'..'9' }.take(5)
         mutableUiState.update {
             it.copy(zipDraft = normalized, lookupState = HomeLookupState.IDLE, message = null)
@@ -75,6 +77,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun submitZip() {
+        val generation = invalidateLookup()
         val zipCode = uiState.value.zipDraft
         if (!zipCode.matches(Regex("[0-9]{5}"))) {
             mutableUiState.update {
@@ -83,31 +86,44 @@ class HomeViewModel @Inject constructor(
             return
         }
 
-        lookupJob?.cancel()
         lookupJob = viewModelScope.launch {
+            if (!isCurrentLookup(generation)) return@launch
             mutableUiState.update {
                 it.copy(lookupState = HomeLookupState.LOADING, message = null)
             }
             when (val lookup = regionalCenterDataSource.lookupRegionalCenter(zipCode)) {
                 is RegionalCenterLookup.Matched -> {
+                    if (!isCurrentLookup(generation)) return@launch
                     profileRepository.replaceProfile(
                         currentProfile.copy(
                             zipCode = zipCode,
                             regionalCenter = RegionalCenterIdentity.from(lookup.center)
                         )
                     )
+                    if (!isCurrentLookup(generation)) return@launch
                     mutableUiState.update {
                         it.copy(lookupState = HomeLookupState.MATCHED, message = null)
                     }
                 }
-                RegionalCenterLookup.Unmatched -> mutableUiState.update {
-                    it.copy(lookupState = HomeLookupState.UNMATCHED, message = HomeMessage.NO_MATCH)
+                RegionalCenterLookup.Unmatched -> {
+                    if (isCurrentLookup(generation)) {
+                        mutableUiState.update {
+                            it.copy(
+                                lookupState = HomeLookupState.UNMATCHED,
+                                message = HomeMessage.NO_MATCH
+                            )
+                        }
+                    }
                 }
-                is RegionalCenterLookup.Unavailable -> mutableUiState.update {
-                    it.copy(
-                        lookupState = HomeLookupState.UNAVAILABLE,
-                        message = HomeMessage.LOOKUP_UNAVAILABLE
-                    )
+                is RegionalCenterLookup.Unavailable -> {
+                    if (isCurrentLookup(generation)) {
+                        mutableUiState.update {
+                            it.copy(
+                                lookupState = HomeLookupState.UNAVAILABLE,
+                                message = HomeMessage.LOOKUP_UNAVAILABLE
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -124,9 +140,20 @@ class HomeViewModel @Inject constructor(
     fun openChat(prompt: ChatLaunchPrompt) {
         eventChannel.trySend(HomeEvent.NavigateToChat(prompt))
     }
-    fun callCenter() {
-        uiState.value.dialDigits?.let { digits -> eventChannel.trySend(HomeEvent.Dial(digits)) }
+    fun callCenter(digits: String) {
+        if (digits.isNotEmpty() && digits.all { character -> character in '0'..'9' }) {
+            eventChannel.trySend(HomeEvent.Dial(digits))
+        }
     }
+
+    private fun invalidateLookup(): Long {
+        lookupGeneration += 1
+        lookupJob?.cancel()
+        lookupJob = null
+        return lookupGeneration
+    }
+
+    private fun isCurrentLookup(generation: Long): Boolean = generation == lookupGeneration
 
     private fun hydrate(identity: RegionalCenterIdentity, generation: Long) {
         hydrationJob = viewModelScope.launch {

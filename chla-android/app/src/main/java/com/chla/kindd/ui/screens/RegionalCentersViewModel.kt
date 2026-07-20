@@ -11,6 +11,7 @@ import com.chla.kindd.data.source.RegionalCenterLookup
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,6 +51,8 @@ class RegionalCentersViewModel @Inject constructor(
     private val mutableUiState = MutableStateFlow(RegionalCentersUiState())
     val uiState: StateFlow<RegionalCentersUiState> = mutableUiState.asStateFlow()
     private var currentProfile = UserProfile()
+    private var lookupGeneration = 0L
+    private var lookupJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -64,6 +67,7 @@ class RegionalCentersViewModel @Inject constructor(
     }
 
     fun onZipChanged(value: String) {
+        invalidateLookup()
         val zip = value.filter { character -> character in '0'..'9' }.take(5)
         mutableUiState.update {
             it.copy(
@@ -76,12 +80,14 @@ class RegionalCentersViewModel @Inject constructor(
     }
 
     fun submitZip() {
+        val generation = invalidateLookup()
         val zipCode = uiState.value.zipDraft
         if (!zipCode.matches(Regex("[0-9]{5}"))) {
             mutableUiState.update { it.copy(message = RegionalCentersMessage.INVALID_ZIP) }
             return
         }
-        viewModelScope.launch {
+        lookupJob = viewModelScope.launch {
+            if (!isCurrentLookup(generation)) return@launch
             mutableUiState.update {
                 it.copy(
                     lookupState = RegionalCentersLookupState.LOADING,
@@ -91,12 +97,14 @@ class RegionalCentersViewModel @Inject constructor(
             }
             when (val lookup = regionalCenterDataSource.lookupRegionalCenter(zipCode)) {
                 is RegionalCenterLookup.Matched -> {
+                    if (!isCurrentLookup(generation)) return@launch
                     profileRepository.replaceProfile(
                         currentProfile.copy(
                             zipCode = zipCode,
                             regionalCenter = RegionalCenterIdentity.from(lookup.center)
                         )
                     )
+                    if (!isCurrentLookup(generation)) return@launch
                     mutableUiState.update {
                         it.copy(
                             matchedCenter = lookup.center,
@@ -104,21 +112,38 @@ class RegionalCentersViewModel @Inject constructor(
                         )
                     }
                 }
-                RegionalCenterLookup.Unmatched -> mutableUiState.update {
-                    it.copy(
-                        lookupState = RegionalCentersLookupState.UNMATCHED,
-                        message = RegionalCentersMessage.NO_MATCH
-                    )
+                RegionalCenterLookup.Unmatched -> {
+                    if (isCurrentLookup(generation)) {
+                        mutableUiState.update {
+                            it.copy(
+                                lookupState = RegionalCentersLookupState.UNMATCHED,
+                                message = RegionalCentersMessage.NO_MATCH
+                            )
+                        }
+                    }
                 }
-                is RegionalCenterLookup.Unavailable -> mutableUiState.update {
-                    it.copy(
-                        lookupState = RegionalCentersLookupState.UNAVAILABLE,
-                        message = RegionalCentersMessage.LOOKUP_UNAVAILABLE
-                    )
+                is RegionalCenterLookup.Unavailable -> {
+                    if (isCurrentLookup(generation)) {
+                        mutableUiState.update {
+                            it.copy(
+                                lookupState = RegionalCentersLookupState.UNAVAILABLE,
+                                message = RegionalCentersMessage.LOOKUP_UNAVAILABLE
+                            )
+                        }
+                    }
                 }
             }
         }
     }
+
+    private fun invalidateLookup(): Long {
+        lookupGeneration += 1
+        lookupJob?.cancel()
+        lookupJob = null
+        return lookupGeneration
+    }
+
+    private fun isCurrentLookup(generation: Long): Boolean = generation == lookupGeneration
 
     private fun loadCenters() {
         viewModelScope.launch {

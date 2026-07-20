@@ -12,6 +12,7 @@ class FakeDiscoveryController(
 
     val calls = mutableListOf<String>()
     val singleTherapies = mutableListOf<TherapyType>()
+    var onSingleTherapyAndRefresh: ((TherapyType) -> Unit)? = null
 
     override fun ensureLoaded() { calls += "ensureLoaded" }
     override fun setQuery(query: String) { calls += "query" }
@@ -25,6 +26,7 @@ class FakeDiscoveryController(
     override fun setSingleTherapyAndRefresh(therapyType: TherapyType) {
         singleTherapies += therapyType
         calls += "therapy:${therapyType.apiValue}"
+        onSingleTherapyAndRefresh?.invoke(therapyType)
     }
     override fun useDeviceLocation(latitude: Double, longitude: Double) { calls += "location" }
     override fun useLosAngelesCatalog() { calls += "catalog" }
