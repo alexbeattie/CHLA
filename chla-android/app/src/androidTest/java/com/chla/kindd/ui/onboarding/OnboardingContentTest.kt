@@ -1,5 +1,8 @@
 package com.chla.kindd.ui.onboarding
 
+import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.getOrNull
@@ -9,7 +12,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -27,7 +30,7 @@ import org.junit.Test
 class OnboardingContentTest {
 
     @get:Rule
-    val composeRule = createComposeRule()
+    val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun audience_showsItsHeadingAndExactlyOnePrimaryAction() {
@@ -92,6 +95,7 @@ class OnboardingContentTest {
 
         composeRule.onNodeWithTag("onboarding_zip_lookup_loading").assertExists()
         composeRule.onNodeWithTag("onboarding_primary_action").assertIsNotEnabled()
+        composeRule.onNodeWithTag("onboarding_use_location").assertIsNotEnabled()
     }
 
     @Test
@@ -212,6 +216,62 @@ class OnboardingContentTest {
     }
 
     @Test
+    fun onboardingBackGuard_consumesSystemBackOnlyWhileSaving() {
+        var fallbackBackCalls = 0
+        val fallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                fallbackBackCalls += 1
+            }
+        }
+        composeRule.activityRule.scenario.onActivity { activity ->
+            activity.onBackPressedDispatcher.addCallback(fallback)
+        }
+        val isSaving = mutableStateOf(true)
+        composeRule.setContent {
+            OnboardingBackGuard(isSaving = isSaving.value)
+        }
+
+        composeRule.runOnIdle {
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+        assertEquals(0, fallbackBackCalls)
+
+        composeRule.runOnIdle { isSaving.value = false }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle {
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+
+        assertEquals(1, fallbackBackCalls)
+        fallback.remove()
+    }
+
+    @Test
+    fun savingZip_disablesUseLocation() {
+        compose(
+            state(
+                step = OnboardingStep.ZIP,
+                draft = draft(zipCode = "90001"),
+                isSaving = true
+            )
+        )
+
+        composeRule.onNodeWithTag("onboarding_use_location").assertIsNotEnabled()
+    }
+
+    @Test
+    fun locatingZip_disablesUseLocation() {
+        compose(
+            state(
+                step = OnboardingStep.ZIP,
+                locationState = LocationState.LOCATING
+            )
+        )
+
+        composeRule.onNodeWithTag("onboarding_use_location").assertIsNotEnabled()
+    }
+
+    @Test
     fun locationDenied_keepsLocationAsAUserControlledAction() {
         compose(
             state(
@@ -222,7 +282,10 @@ class OnboardingContentTest {
 
         composeRule.onNodeWithText("Location access wasn't allowed. Enter your ZIP code or try again.")
             .assertExists()
-        composeRule.onNodeWithTag("onboarding_use_location").assertExists().assertHasClickAction()
+        composeRule.onNodeWithTag("onboarding_use_location")
+            .assertExists()
+            .assertHasClickAction()
+            .assertIsEnabled()
     }
 
     @Test

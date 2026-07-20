@@ -154,7 +154,11 @@ class OnboardingViewModel @Inject constructor(
         } else {
             invalidateAsyncWork()
             mutableUiState.update {
-                it.copy(step = OnboardingStep.ZIP, locationState = LocationState.DENIED)
+                it.copy(
+                    step = OnboardingStep.ZIP,
+                    locationState = LocationState.DENIED,
+                    centerLookupState = CenterLookupState.IDLE
+                )
             }
         }
     }

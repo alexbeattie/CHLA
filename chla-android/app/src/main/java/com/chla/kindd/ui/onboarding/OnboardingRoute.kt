@@ -1,6 +1,7 @@
 package com.chla.kindd.ui.onboarding
 
 import android.Manifest
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +44,7 @@ fun OnboardingRoute(
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    OnboardingBackGuard(isSaving = state.isSaving)
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -86,6 +88,13 @@ fun OnboardingRoute(
 }
 
 @Composable
+internal fun OnboardingBackGuard(isSaving: Boolean) {
+    BackHandler(enabled = isSaving) {
+        // Keep the onboarding host in place until the profile write completes.
+    }
+}
+
+@Composable
 fun OnboardingContent(
     state: OnboardingUiState,
     onAudienceSelected: (AudienceType) -> Unit,
@@ -116,6 +125,10 @@ fun OnboardingContent(
                     locationState = state.locationState,
                     isLookingUpCenter =
                         state.centerLookupState == CenterLookupState.LOADING,
+                    useLocationEnabled =
+                        !state.isSaving &&
+                            state.locationState != LocationState.LOCATING &&
+                            state.centerLookupState != CenterLookupState.LOADING,
                     canContinue = state.canContinue,
                     onZipChanged = onZipChanged,
                     onUseLocation = onUseLocation,

@@ -318,6 +318,44 @@ class OnboardingViewModelTest {
         }
 
     @Test
+    fun permissionDeniedDuringCancellationIgnoringLookup_restoresUsableZipAndRejectsLateResult() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val gate = CompletableDeferred<Unit>()
+            val centers = FakeRegionalCenterDataSource(
+                RegionalCenterLookup.Matched(regionalCenter())
+            ).apply {
+                lookupGate = gate
+                ignoreLookupCancellation = true
+            }
+            val fixture = fixture(regionalCenters = centers)
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.onZipChanged("90001")
+            fixture.viewModel.continueFromCurrentStep()
+            runCurrent()
+            assertEquals(CenterLookupState.LOADING, fixture.viewModel.uiState.value.centerLookupState)
+
+            fixture.viewModel.onLocationPermissionResult(granted = false)
+
+            assertEquals(OnboardingStep.ZIP, fixture.viewModel.uiState.value.step)
+            assertEquals(LocationState.DENIED, fixture.viewModel.uiState.value.locationState)
+            assertEquals(CenterLookupState.IDLE, fixture.viewModel.uiState.value.centerLookupState)
+            assertEquals("90001", fixture.viewModel.uiState.value.draft.zipCode)
+            assertNull(fixture.viewModel.uiState.value.draft.regionalCenter)
+            assertTrue(fixture.viewModel.uiState.value.canContinue)
+
+            gate.complete(Unit)
+            runCurrent()
+
+            assertEquals(OnboardingStep.ZIP, fixture.viewModel.uiState.value.step)
+            assertEquals(LocationState.DENIED, fixture.viewModel.uiState.value.locationState)
+            assertEquals(CenterLookupState.IDLE, fixture.viewModel.uiState.value.centerLookupState)
+            assertEquals("90001", fixture.viewModel.uiState.value.draft.zipCode)
+            assertNull(fixture.viewModel.uiState.value.draft.regionalCenter)
+            assertTrue(fixture.viewModel.uiState.value.canContinue)
+        }
+
+    @Test
     fun permissionDenialAndLocationFailure_returnToZipWithoutAutomaticRelaunch() =
         runTest(mainDispatcherRule.testDispatcher) {
             val location = FakeUserLocationSource(permissionGranted = false, coordinates = null)

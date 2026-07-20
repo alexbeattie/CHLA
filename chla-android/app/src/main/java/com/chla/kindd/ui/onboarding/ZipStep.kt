@@ -26,6 +26,7 @@ internal fun ZipStep(
     zipCode: String,
     locationState: LocationState,
     isLookingUpCenter: Boolean,
+    useLocationEnabled: Boolean,
     canContinue: Boolean,
     onZipChanged: (String) -> Unit,
     onUseLocation: () -> Unit,
@@ -77,7 +78,7 @@ internal fun ZipStep(
         }
         TextButton(
             onClick = onUseLocation,
-            enabled = locationState != LocationState.LOCATING,
+            enabled = useLocationEnabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 48.dp)
