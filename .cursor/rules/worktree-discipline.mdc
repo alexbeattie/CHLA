@@ -1,0 +1,10 @@
+---
+description: One task, one worktree, one window
+alwaysApply: true
+---
+Never do feature work on the base branch in the main checkout. Start tasks with
+scripts/start-task.sh <slug> [feat|fix|chore|wip], which creates
+.worktrees/<slug> on a fresh origin base branch. The main checkout stays clean.
+A task is DONE only when merged AND its worktree is removed —
+run scripts/worktree-audit.sh to check; `worktree-audit.sh clean --apply`
+removes merged+clean ones. Dirty worktrees: stop and ask.
