@@ -1,5 +1,6 @@
 package com.chla.kindd.data.models
 
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 
 data class Provider(
@@ -21,7 +22,10 @@ data class Provider(
     @SerializedName("age_groups")
     val ageGroups: List<String>? = null,
     @SerializedName("insurance_accepted")
-    val insuranceAccepted: List<String>? = null,
+    @JsonAdapter(StringListJsonAdapter::class)
+    private val legacyInsuranceAccepted: List<String>? = null,
+    @SerializedName("insurance_carriers")
+    private val insuranceCarriers: List<String>? = null,
     @SerializedName("diagnoses_treated")
     val diagnosesTreated: List<String>? = null,
     @SerializedName("service_models")
@@ -59,6 +63,21 @@ data class Provider(
 
     val formattedDistance: String
         get() = distance?.let { String.format("%.1f mi", it) } ?: ""
+
+    val insuranceAccepted: List<String>
+        get() {
+            val normalizedCarriers = insuranceCarriers.orEmpty()
+                .map(String::trim)
+                .filter(String::isNotEmpty)
+                .distinctBy { it.lowercase() }
+
+            if (normalizedCarriers.isNotEmpty()) return normalizedCarriers
+
+            return legacyInsuranceAccepted.orEmpty()
+                .map { it.trim().trim('"', '{', '}', '[', ']') }
+                .filter(String::isNotEmpty)
+                .distinctBy { it.lowercase() }
+        }
 
     val hasCoordinates: Boolean
         get() = latitude != null && longitude != null
