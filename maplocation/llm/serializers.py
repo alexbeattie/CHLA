@@ -4,6 +4,8 @@ from rest_framework import serializers
 
 from .models import AssistantResponseReport
 from .response_fingerprints import (
+    INVALID_RESPONSE_FINGERPRINT_CODE,
+    INVALID_RESPONSE_FINGERPRINT_DETAIL,
     InvalidResponseFingerprint,
     validate_response_fingerprint,
 )
@@ -58,6 +60,13 @@ class AssistantResponseReportSerializer(serializers.ModelSerializer):
             )
         except InvalidResponseFingerprint:
             raise serializers.ValidationError(
-                {"response_fingerprint": ["Invalid or expired response fingerprint."]}
+                {
+                    "response_fingerprint": [
+                        serializers.ErrorDetail(
+                            INVALID_RESPONSE_FINGERPRINT_DETAIL,
+                            code=INVALID_RESPONSE_FINGERPRINT_CODE,
+                        )
+                    ]
+                }
             )
         return attrs

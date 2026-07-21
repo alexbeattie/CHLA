@@ -14,9 +14,14 @@ import kotlin.coroutines.resume
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
+import retrofit2.HttpException
+import retrofit2.Response
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelReportTest {
@@ -84,7 +89,44 @@ class ChatViewModelReportTest {
                 ResponseReportUiState(message.id, ResponseReportStatus.FAILURE),
                 viewModel.uiState.value.responseReport
             )
+            assertEquals(
+                "opaque-signed-token",
+                viewModel.uiState.value.messages.single { it.isAssistant }.responseFingerprint
+            )
             assertEquals(historyBeforeReport, viewModel.uiState.value.messages)
+        }
+
+    @Test
+    fun reportResponse_retiresFingerprintAfterTerminalInvalidCapabilityResponse() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            var reportAttempts = 0
+            val viewModel = ChatViewModel(
+                terminalReportFailureApi { reportAttempts += 1 },
+                mainDispatcherRule.testDispatcher
+            )
+            viewModel.sendMessage("private question")
+            runCurrent()
+            val message = viewModel.uiState.value.messages.single { it.isAssistant }
+
+            viewModel.reportResponse(message.id, AssistantResponseReportReason.OTHER)
+            runCurrent()
+
+            assertEquals(1, reportAttempts)
+            assertEquals(
+                ResponseReportUiState(message.id, ResponseReportStatus.TERMINAL_FAILURE),
+                viewModel.uiState.value.responseReport
+            )
+            assertNull(
+                viewModel.uiState.value.messages.single { it.id == message.id }
+                    .responseFingerprint
+            )
+
+            viewModel.dismissResponseReport()
+            viewModel.reportResponse(message.id, AssistantResponseReportReason.OTHER)
+            runCurrent()
+
+            assertEquals(1, reportAttempts)
+            assertEquals(ResponseReportUiState(), viewModel.uiState.value.responseReport)
         }
 
     @Test
@@ -143,6 +185,30 @@ class ChatViewModelReportTest {
             else -> throw UnsupportedOperationException(method)
         }
     }
+
+    private fun terminalReportFailureApi(onReport: () -> Unit): KINDDApi =
+        proxyApi { method, args ->
+            when (method) {
+                "askLLM" -> {
+                    val request = args!![0] as LLMRequest
+                    LLMResponse(
+                        query = request.query,
+                        answer = "An assistant answer",
+                        responseFingerprint = "opaque-signed-token"
+                    )
+                }
+                "reportAssistantResponse" -> {
+                    onReport()
+                    val body =
+                        """{"code":"invalid_response_fingerprint","detail":"Expired."}"""
+                            .toResponseBody("application/json".toMediaType())
+                    throw HttpException(
+                        Response.error<AssistantResponseReportResponse>(400, body)
+                    )
+                }
+                else -> throw UnsupportedOperationException(method)
+            }
+        }
 
     private fun capturingReportApi(requests: MutableList<AssistantResponseReportRequest>): KINDDApi =
         proxyApi { method, args ->

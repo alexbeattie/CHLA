@@ -9,6 +9,8 @@ from django.core import signing
 
 FINGERPRINT_SALT = "llm.response-report.v1"
 FINGERPRINT_MAX_AGE_SECONDS = 24 * 60 * 60
+INVALID_RESPONSE_FINGERPRINT_CODE = "invalid_response_fingerprint"
+INVALID_RESPONSE_FINGERPRINT_DETAIL = "Invalid or expired response fingerprint."
 
 
 class InvalidResponseFingerprint(ValueError):

@@ -236,6 +236,7 @@
     <string name="chat_report_submitting">Submitting…</string>
     <string name="chat_report_success">Thanks. Your report was sent for review.</string>
     <string name="chat_report_failure">The report couldn’t be sent. Check your connection and retry.</string>
+    <string name="chat_report_terminal_failure">This response can no longer be reported.</string>
     <string name="chat_prompt_just_diagnosed">We just got a diagnosis. What do I say when I call my regional center to request an intake evaluation for my child?</string>
     <string name="chat_prompt_waiting_intake">How do we prepare for our regional center intake appointment? What documents and information should we bring?</string>
     <string name="chat_prompt_receiving_services">My child already receives regional center services. How do I prepare for an IPP meeting, and what services can I ask for?</string>

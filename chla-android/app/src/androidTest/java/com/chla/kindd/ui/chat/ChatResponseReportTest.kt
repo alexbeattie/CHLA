@@ -117,6 +117,37 @@ class ChatResponseReportTest {
     }
 
     @Test
+    fun terminalFingerprintFailureRemovesReportActionAndRetryControl() {
+        var uiState by mutableStateOf(reportableConversation())
+        composeRule.setContent {
+            KINDDTheme {
+                ChatContent(
+                    uiState = uiState,
+                    onSend = {},
+                    onRetry = {},
+                    onClear = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("chat_report_response_3").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            uiState = uiState.copy(
+                responseReport = ResponseReportUiState(
+                    "assistant-id",
+                    ResponseReportStatus.TERMINAL_FAILURE
+                )
+            )
+        }
+
+        composeRule.onNodeWithTag("chat_report_terminal_failure").assertIsDisplayed()
+        composeRule.onNodeWithText("This response can no longer be reported.")
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("chat_submit_report").assertDoesNotExist()
+        composeRule.onNodeWithTag("chat_report_response_3").assertDoesNotExist()
+    }
+
+    @Test
     fun spanishReportDialogAtNarrowWidthAndLargeTextRemainsUsable() {
         setNarrowLocalizedContent(
             locale = Locale.forLanguageTag("es"),

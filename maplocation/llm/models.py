@@ -32,3 +32,14 @@ class AssistantResponseReport(models.Model):
 
     def __str__(self):
         return f"{self.get_reason_display()} ({self.created_at:%Y-%m-%d %H:%M})"
+
+
+class ResponseReportThrottleWindow(models.Model):
+    """One global request count per fixed window; contains no client identity."""
+
+    window_start = models.DateTimeField(primary_key=True)
+    request_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "response report throttle window"
+        verbose_name_plural = "response report throttle windows"

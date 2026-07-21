@@ -9,6 +9,7 @@ import com.chla.kindd.data.api.AssistantResponseReportRequest
 import com.chla.kindd.data.api.LLMRequest
 import com.chla.kindd.data.models.ChatMessage
 import com.chla.kindd.di.IoDispatcher
+import com.google.gson.JsonParser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import javax.inject.Inject
+import retrofit2.HttpException
 
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
@@ -38,7 +40,8 @@ enum class ResponseReportStatus {
     IDLE,
     SUBMITTING,
     SUCCESS,
-    FAILURE
+    FAILURE,
+    TERMINAL_FAILURE
 }
 
 enum class ChatFailure {
@@ -175,13 +178,29 @@ class ChatViewModel @Inject constructor(
                 }
             } catch (cancellation: CancellationException) {
                 throw cancellation
-            } catch (_: Exception) {
+            } catch (error: Exception) {
                 if (generation == reportGeneration) {
+                    val terminalFailure = error.isInvalidResponseFingerprintFailure()
                     _uiState.update {
                         it.copy(
+                            messages = if (terminalFailure) {
+                                it.messages.map { message ->
+                                    if (message.id == messageId) {
+                                        message.copy(responseFingerprint = null)
+                                    } else {
+                                        message
+                                    }
+                                }
+                            } else {
+                                it.messages
+                            },
                             responseReport = ResponseReportUiState(
                                 messageId = messageId,
-                                status = ResponseReportStatus.FAILURE
+                                status = if (terminalFailure) {
+                                    ResponseReportStatus.TERMINAL_FAILURE
+                                } else {
+                                    ResponseReportStatus.FAILURE
+                                }
                             )
                         )
                     }
@@ -204,4 +223,16 @@ class ChatViewModel @Inject constructor(
         reportJob = null
         _uiState.value = ChatUiState()
     }
+}
+
+private fun Throwable.isInvalidResponseFingerprintFailure(): Boolean {
+    val httpError = this as? HttpException ?: return false
+    if (httpError.code() != 400) return false
+    val errorBody = httpError.response()?.errorBody() ?: return false
+    return runCatching {
+        JsonParser().parse(errorBody.string())
+            .asJsonObject
+            .get("code")
+            ?.asString == "invalid_response_fingerprint"
+    }.getOrDefault(false)
 }

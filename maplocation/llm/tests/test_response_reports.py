@@ -5,6 +5,7 @@ from django.apps import apps
 from django.contrib import admin
 from django.core.cache import cache
 from django.core import signing
+from django.test import override_settings
 import pytest
 from rest_framework.test import APIClient
 from rest_framework.throttling import AnonRateThrottle, BaseThrottle
@@ -47,6 +48,10 @@ def clear_throttle_cache():
 
 def report_model():
     return apps.all_models["llm"].get("assistantresponsereport")
+
+
+def report_throttle_model():
+    return apps.all_models["llm"].get("responsereportthrottlewindow")
 
 
 def test_valid_anonymous_report_is_persisted_for_admin_review(db):
@@ -174,14 +179,120 @@ def test_report_requires_android_and_caps_metadata_lengths(db):
     assert model.objects.count() == 0
 
 
-def test_report_endpoint_uses_identity_free_database_throttle():
-    from llm.views import AssistantResponseReportView, ResponseFingerprintThrottle
+def test_report_endpoint_uses_identity_free_global_database_throttle():
+    from llm.throttles import GlobalResponseReportThrottle
+    from llm.views import AssistantResponseReportView
 
     assert AssistantResponseReportView.permission_classes[0].__name__ == "AllowAny"
-    assert AssistantResponseReportView.throttle_classes == [ResponseFingerprintThrottle]
-    assert issubclass(ResponseFingerprintThrottle, BaseThrottle)
-    assert not issubclass(ResponseFingerprintThrottle, AnonRateThrottle)
-    assert not hasattr(ResponseFingerprintThrottle(), "cache")
+    assert AssistantResponseReportView.throttle_classes == [GlobalResponseReportThrottle]
+    assert issubclass(GlobalResponseReportThrottle, BaseThrottle)
+    assert not issubclass(GlobalResponseReportThrottle, AnonRateThrottle)
+    assert not hasattr(GlobalResponseReportThrottle(), "cache")
+
+
+@override_settings(RESPONSE_REPORT_GLOBAL_RATE_LIMIT=2)
+def test_global_database_throttle_limits_valid_reports_across_client_identities(db):
+    client = APIClient()
+
+    first = client.post(
+        REPORT_URL,
+        valid_report(fingerprint=signed_fingerprint(nonce="global-valid-1")),
+        format="json",
+        REMOTE_ADDR="192.0.2.30",
+        HTTP_X_FORWARDED_FOR="192.0.2.30",
+        HTTP_X_CLIENT_ID="first-device",
+    )
+    second = client.post(
+        REPORT_URL,
+        valid_report(fingerprint=signed_fingerprint(nonce="global-valid-2")),
+        format="json",
+        REMOTE_ADDR="198.51.100.31",
+        HTTP_X_FORWARDED_FOR="198.51.100.31",
+        HTTP_X_CLIENT_ID="second-device",
+    )
+    limited = client.post(
+        REPORT_URL,
+        valid_report(fingerprint=signed_fingerprint(nonce="global-valid-3")),
+        format="json",
+        REMOTE_ADDR="203.0.113.32",
+        HTTP_X_FORWARDED_FOR="203.0.113.32",
+        HTTP_X_CLIENT_ID="third-device",
+    )
+
+    assert [first.status_code, second.status_code, limited.status_code] == [201, 201, 429]
+    throttle_model = report_throttle_model()
+    assert throttle_model is not None
+    assert {field.name for field in throttle_model._meta.fields} == {
+        "window_start",
+        "request_count",
+    }
+    window = throttle_model.objects.get()
+    assert window.request_count == 2
+    assert report_model().objects.count() == 2
+
+
+@override_settings(RESPONSE_REPORT_GLOBAL_RATE_LIMIT=2)
+def test_invalid_fingerprints_are_globally_limited_without_duplicate_lookup(db):
+    client = APIClient()
+
+    with patch("llm.views.AssistantResponseReport.objects.filter") as duplicate_query:
+        first = client.post(
+            REPORT_URL,
+            valid_report(fingerprint="invalid-random-token-1"),
+            format="json",
+        )
+        second = client.post(
+            REPORT_URL,
+            valid_report(fingerprint="invalid-random-token-2"),
+            format="json",
+        )
+        limited = client.post(
+            REPORT_URL,
+            valid_report(fingerprint="invalid-random-token-3"),
+            format="json",
+        )
+
+    assert first.status_code == 400
+    assert first.json()["code"] == "invalid_response_fingerprint"
+    assert second.status_code == 400
+    assert limited.status_code == 429
+    duplicate_query.assert_not_called()
+    assert report_throttle_model().objects.get().request_count == 2
+
+
+@override_settings(RESPONSE_REPORT_GLOBAL_RATE_LIMIT=1)
+def test_saturated_report_throttle_does_not_block_ask_scope(db, monkeypatch):
+    monkeypatch.setattr(
+        "llm.views.answer_query",
+        lambda *args, **kwargs: {
+            "answer": REPORTED_RESPONSE,
+            "providers_referenced": [],
+            "regional_center": None,
+        },
+    )
+    client = APIClient()
+    accepted = client.post(
+        REPORT_URL,
+        valid_report(fingerprint=signed_fingerprint(nonce="report-limit-1")),
+        format="json",
+        REMOTE_ADDR="192.0.2.33",
+    )
+    limited = client.post(
+        REPORT_URL,
+        valid_report(fingerprint=signed_fingerprint(nonce="report-limit-2")),
+        format="json",
+        REMOTE_ADDR="192.0.2.33",
+    )
+    ask = client.post(
+        "/api/llm/ask/",
+        {"query": "A question", "locale": "en"},
+        format="json",
+        REMOTE_ADDR="192.0.2.33",
+    )
+
+    assert accepted.status_code == 201
+    assert limited.status_code == 429
+    assert ask.status_code == 200
 
 
 def test_ask_issues_answer_bound_response_fingerprint(monkeypatch):
@@ -229,6 +340,7 @@ def test_report_rejects_token_answer_mismatch_and_expired_token(db):
         REMOTE_ADDR="192.0.2.21",
     )
     assert mismatch.status_code == 400
+    assert mismatch.json()["code"] == "invalid_response_fingerprint"
 
     with patch("django.core.signing.time.time", return_value=1_000_000):
         expired_token = signed_fingerprint(nonce="expired")
@@ -243,10 +355,11 @@ def test_report_rejects_token_answer_mismatch_and_expired_token(db):
             REMOTE_ADDR="192.0.2.22",
         )
     assert expired.status_code == 400
+    assert expired.json()["code"] == "invalid_response_fingerprint"
     assert report_model().objects.count() == 0
 
 
-def test_duplicate_report_is_rejected_from_database_after_cache_clear(db):
+def test_duplicate_report_retry_is_idempotent_success_after_cache_clear(db):
     client = APIClient()
     payload = valid_report(fingerprint=signed_fingerprint(nonce="duplicate"))
 
@@ -260,7 +373,8 @@ def test_duplicate_report_is_rejected_from_database_after_cache_clear(db):
     )
 
     assert first.status_code == 201
-    assert duplicate.status_code == 429
+    assert duplicate.status_code == 200
+    assert duplicate.json() == first.json()
     assert report_model().objects.count() == 1
 
 
@@ -303,7 +417,7 @@ def test_saturated_ask_anon_throttle_does_not_block_reporting(db, monkeypatch):
 
 
 @pytest.mark.parametrize("payload", [[], "not-an-object", 17])
-def test_report_rejects_non_object_json_with_controlled_400(payload):
+def test_report_rejects_non_object_json_with_controlled_400(db, payload):
     response = APIClient().post(REPORT_URL, payload, format="json")
 
     assert response.status_code == 400

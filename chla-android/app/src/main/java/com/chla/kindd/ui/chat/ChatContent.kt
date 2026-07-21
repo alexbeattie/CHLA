@@ -105,6 +105,7 @@ private data class ResponseReportStrings(
     val submitting: String,
     val success: String,
     val failure: String,
+    val terminalFailure: String,
     val retry: String,
     val done: String,
     val cancel: String
@@ -199,9 +200,14 @@ fun ChatContent(
                     item { ChatWelcomeCard() }
                 } else {
                     itemsIndexed(uiState.messages) { index, message ->
+                        val hasTerminalReportFailure =
+                            uiState.responseReport.messageId == message.id &&
+                                uiState.responseReport.status ==
+                                ResponseReportStatus.TERMINAL_FAILURE
                         ChatMessageCard(
                             message = message,
                             index = index,
+                            canReport = !hasTerminalReportFailure,
                             onReport = { reportMessage = message }
                         )
                     }
@@ -448,6 +454,7 @@ private fun ChatWelcomeCard() {
 private fun ChatMessageCard(
     message: ChatMessage,
     index: Int,
+    canReport: Boolean,
     onReport: () -> Unit
 ) {
     val isUser = message.isUser
@@ -524,7 +531,8 @@ private fun ChatMessageCard(
                     )
                     if (
                         message.role == ChatMessage.Role.ASSISTANT &&
-                        !message.responseFingerprint.isNullOrBlank()
+                        !message.responseFingerprint.isNullOrBlank() &&
+                        canReport
                     ) {
                         TextButton(
                             onClick = onReport,
@@ -552,6 +560,7 @@ private fun ChatResponseReportDialog(
     var selectedReason by remember { mutableStateOf<AssistantResponseReportReason?>(null) }
     val isSubmitting = state.status == ResponseReportStatus.SUBMITTING
     val isSuccess = state.status == ResponseReportStatus.SUCCESS
+    val isTerminalFailure = state.status == ResponseReportStatus.TERMINAL_FAILURE
     AlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier.testTag("chat_report_dialog"),
@@ -563,6 +572,11 @@ private fun ChatResponseReportDialog(
                     modifier = Modifier
                         .testTag("chat_report_success")
                         .semantics { liveRegion = LiveRegionMode.Polite }
+                )
+            } else if (isTerminalFailure) {
+                ReportStatusText(
+                    text = strings.terminalFailure,
+                    tag = "chat_report_terminal_failure"
                 )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -607,7 +621,7 @@ private fun ChatResponseReportDialog(
             }
         },
         confirmButton = {
-            if (isSuccess) {
+            if (isSuccess || isTerminalFailure) {
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.heightIn(min = 48.dp)
@@ -631,7 +645,7 @@ private fun ChatResponseReportDialog(
             }
         },
         dismissButton = {
-            if (!isSuccess) {
+            if (!isSuccess && !isTerminalFailure) {
                 TextButton(
                     onClick = onDismiss,
                     enabled = !isSubmitting,
@@ -667,6 +681,7 @@ private fun responseReportStrings() = ResponseReportStrings(
     submitting = stringResource(R.string.chat_report_submitting),
     success = stringResource(R.string.chat_report_success),
     failure = stringResource(R.string.chat_report_failure),
+    terminalFailure = stringResource(R.string.chat_report_terminal_failure),
     retry = stringResource(R.string.retry),
     done = stringResource(R.string.done),
     cancel = stringResource(R.string.cancel)

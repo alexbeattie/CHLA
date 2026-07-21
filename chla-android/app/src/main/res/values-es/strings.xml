@@ -237,6 +237,7 @@
     <string name="chat_report_submitting">Enviando…</string>
     <string name="chat_report_success">Gracias. Tu reporte fue enviado para revisión.</string>
     <string name="chat_report_failure">No se pudo enviar el reporte. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="chat_report_terminal_failure">Esta respuesta ya no se puede reportar.</string>
     <string name="chat_prompt_just_diagnosed">Acabamos de recibir un diagnóstico. ¿Qué debo decir cuando llame a mi centro regional para solicitar una evaluación inicial para mi hijo?</string>
     <string name="chat_prompt_waiting_intake">¿Cómo nos preparamos para la cita de evaluación inicial del centro regional? ¿Qué documentos e información debemos llevar?</string>
     <string name="chat_prompt_receiving_services">Mi hijo ya recibe servicios del centro regional. ¿Cómo me preparo para una reunión del IPP y qué servicios puedo solicitar?</string>
