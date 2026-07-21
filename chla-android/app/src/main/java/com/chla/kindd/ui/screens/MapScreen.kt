@@ -1,12 +1,14 @@
 package com.chla.kindd.ui.screens
 
 import android.Manifest
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,9 +16,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.data.discovery.DiscoveryState
 import com.chla.kindd.data.models.Provider
@@ -62,6 +69,29 @@ internal fun providerMarkerRole(provider: Provider): ProviderMarkerRole =
         .firstOrNull { it != ProviderMarkerRole.OTHER }
         ?: ProviderMarkerRole.OTHER
 
+internal fun canEnableMapMyLocation(
+    locationState: MapLocationState,
+    hasPlatformPermission: Boolean
+): Boolean = locationState.hasPermission && hasPlatformPermission
+
+internal class LocationPermissionLifecycleBinding(
+    private val lifecycle: Lifecycle,
+    private val refreshPermission: () -> Unit
+) {
+    private val observer = LifecycleEventObserver { _, event ->
+        if (event == Lifecycle.Event.ON_RESUME) refreshPermission()
+    }
+
+    fun start() {
+        refreshPermission()
+        lifecycle.addObserver(observer)
+    }
+
+    fun stop() {
+        lifecycle.removeObserver(observer)
+    }
+}
+
 fun providerMarkerModels(providers: List<Provider>): List<MapMarkerModel> = providers.mapNotNull {
     if (!it.hasValidCoordinates) return@mapNotNull null
     val latitude = it.latitude ?: return@mapNotNull null
@@ -84,15 +114,34 @@ fun MapScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val locationState by viewModel.locationState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val safeLocationState = locationState.copy(
+        hasPermission = canEnableMapMyLocation(
+            locationState = locationState,
+            hasPlatformPermission = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    )
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
         viewModel::onLocationPermissionResult
     )
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) { viewModel.onFirstAppearance() }
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val binding = LocationPermissionLifecycleBinding(
+            lifecycle = lifecycleOwner.lifecycle,
+            refreshPermission = viewModel::refreshLocationPermission
+        )
+        binding.start()
+        onDispose(binding::stop)
+    }
 
     MapContent(
         state = state,
-        locationState = locationState,
+        locationState = safeLocationState,
         actions = DiscoveryUiActions(
             onQueryChange = viewModel::setQuery,
             onApplyFilters = { selection ->
@@ -114,7 +163,7 @@ fun MapScreen(
             onRefresh = viewModel::refresh
         ),
         onUseMyLocation = {
-            if (locationState.hasPermission) {
+            if (safeLocationState.hasPermission) {
                 viewModel.onLocationPermissionResult(granted = true)
             } else {
                 permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)

@@ -12,6 +12,10 @@ before submission.
 - Users can create an account: **No**.
 - Users can request account deletion: **Not applicable** because the app does not
   create user accounts.
+- Users can request deletion of collected data: **Confirm before Console
+  submission**. The current app has no in-app deletion-request flow. The privacy
+  owner must confirm the public request channel, covered data, retention rules,
+  and response process before selecting Yes or No in Play Console.
 - Ads: **No**. No advertising SDK is included.
 - Background location: **No**.
 - Device location permission: **Optional**. If it is declined or unavailable,

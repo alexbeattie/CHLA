@@ -61,7 +61,8 @@ data class OnboardingUiState(
             OnboardingStep.REGIONAL_CENTER -> when (centerLookupState) {
                 CenterLookupState.MATCHED,
                 CenterLookupState.UNMATCHED -> true
-                CenterLookupState.UNAVAILABLE -> mode == OnboardingMode.FIRST_RUN
+                CenterLookupState.UNAVAILABLE ->
+                    mode == OnboardingMode.FIRST_RUN || draft.regionalCenter != null
                 CenterLookupState.IDLE,
                 CenterLookupState.LOADING -> false
             }

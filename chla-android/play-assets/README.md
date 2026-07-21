@@ -23,4 +23,4 @@ claims to the captures.
 - `02-resource-map.png`: `Map of 50 developmental-service resources across Los Angeles County.`
 - `03-resource-list.png`: `Searchable resource list with therapy types, addresses, and phone numbers.`
 - `04-ask-kindd.png`: `Ask KiNDD assistant explaining what to bring to a Regional Center intake.`
-- `05-regional-centers.png`: `Searchable directory of Los Angeles County Regional Centers.`
+- `05-regional-centers.png`: `Service-area map matching ZIP code 90025 to Westside Regional Center.`

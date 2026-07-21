@@ -285,7 +285,6 @@ class OnboardingViewModel @Inject constructor(
                 )
                 is RegionalCenterLookup.Unavailable -> state.copy(
                     step = OnboardingStep.REGIONAL_CENTER,
-                    draft = state.draft.copy(regionalCenter = null),
                     centerLookupState = CenterLookupState.UNAVAILABLE
                 )
             }

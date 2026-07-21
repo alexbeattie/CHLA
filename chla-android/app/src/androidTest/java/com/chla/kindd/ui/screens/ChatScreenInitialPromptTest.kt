@@ -13,6 +13,9 @@ import com.chla.kindd.data.api.LLMResponse
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import com.chla.kindd.ui.theme.KINDDTheme
 import java.lang.reflect.Proxy
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -64,6 +67,45 @@ class ChatScreenInitialPromptTest {
         )
     }
 
+    @Test
+    fun promptOpenedWhileRequestIsInFlight_dispatchesWhenTheRequestFinishes() {
+        val requests = mutableListOf<LLMRequest>()
+        val pendingReplies = mutableListOf<Continuation<LLMResponse>>()
+        val viewModel = ChatViewModel(
+            pendingApi(requests, pendingReplies),
+            Dispatchers.Unconfined
+        )
+        viewModel.sendMessage("request already in flight")
+
+        composeRule.setContent {
+            KINDDTheme {
+                ChatScreen(
+                    initialPrompt = ChatLaunchPrompt.JUST_DIAGNOSED,
+                    viewModel = viewModel
+                )
+            }
+        }
+
+        composeRule.waitForIdle()
+        assertEquals(listOf("request already in flight"), requests.map(LLMRequest::query))
+
+        composeRule.runOnIdle {
+            pendingReplies.single().resume(
+                LLMResponse(query = "request already in flight", answer = "first answer")
+            )
+        }
+        composeRule.waitUntil { requests.size == 2 }
+
+        assertEquals(
+            listOf(
+                "request already in flight",
+                InstrumentationRegistry.getInstrumentation().targetContext
+                    .getString(ChatLaunchPrompt.JUST_DIAGNOSED.promptResId)
+            ),
+            requests.map(LLMRequest::query)
+        )
+    }
+
     private fun api(requests: MutableList<LLMRequest>): KINDDApi =
         Proxy.newProxyInstance(
             KINDDApi::class.java.classLoader,
@@ -73,6 +115,24 @@ class ChatScreenInitialPromptTest {
                 val request = args!![0] as LLMRequest
                 requests += request
                 LLMResponse(query = request.query, answer = "answer")
+            } else {
+                throw UnsupportedOperationException(method.name)
+            }
+        } as KINDDApi
+
+    private fun pendingApi(
+        requests: MutableList<LLMRequest>,
+        pendingReplies: MutableList<Continuation<LLMResponse>>
+    ): KINDDApi =
+        Proxy.newProxyInstance(
+            KINDDApi::class.java.classLoader,
+            arrayOf(KINDDApi::class.java)
+        ) { _, method, args ->
+            if (method.name == "askLLM") {
+                requests += args!![0] as LLMRequest
+                @Suppress("UNCHECKED_CAST")
+                pendingReplies += args[1] as Continuation<LLMResponse>
+                COROUTINE_SUSPENDED
             } else {
                 throw UnsupportedOperationException(method.name)
             }

@@ -30,7 +30,7 @@ class ChatViewModelReportTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun reportResponse_isSingleFlight_andSuccessDoesNotChangeChatHistory() =
+    fun reportResponse_isSingleFlight_andSuccessRetiresTheReportedResponse() =
         runTest(mainDispatcherRule.testDispatcher) {
             val reportRequests = mutableListOf<AssistantResponseReportRequest>()
             val pendingReports = mutableListOf<Continuation<AssistantResponseReportResponse>>()
@@ -70,13 +70,31 @@ class ChatViewModelReportTest {
                 ResponseReportUiState(message.id, ResponseReportStatus.SUCCESS),
                 viewModel.uiState.value.responseReport
             )
-            assertEquals(historyBeforeReport, viewModel.uiState.value.messages)
+            assertEquals(
+                historyBeforeReport.map { it.id to it.content },
+                viewModel.uiState.value.messages.map { it.id to it.content }
+            )
+            assertNull(
+                viewModel.uiState.value.messages.single { it.id == message.id }
+                    .responseFingerprint
+            )
+
+            viewModel.dismissResponseReport()
+            viewModel.reportResponse(message.id, AssistantResponseReportReason.OTHER)
+            runCurrent()
+
+            assertEquals(1, reportRequests.size)
+            assertEquals(ResponseReportUiState(), viewModel.uiState.value.responseReport)
         }
 
     @Test
     fun reportResponse_exposesRetryableFailure_withoutChangingChatHistory() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val viewModel = ChatViewModel(reportFailureApi(), mainDispatcherRule.testDispatcher)
+            var reportAttempts = 0
+            val viewModel = ChatViewModel(
+                reportFailureApi { reportAttempts += 1 },
+                mainDispatcherRule.testDispatcher
+            )
             viewModel.sendMessage("private question")
             runCurrent()
             val message = viewModel.uiState.value.messages.single { it.isAssistant }
@@ -94,6 +112,19 @@ class ChatViewModelReportTest {
                 viewModel.uiState.value.messages.single { it.isAssistant }.responseFingerprint
             )
             assertEquals(historyBeforeReport, viewModel.uiState.value.messages)
+
+            viewModel.reportResponse(message.id, AssistantResponseReportReason.OTHER)
+            runCurrent()
+
+            assertEquals(2, reportAttempts)
+            assertEquals(
+                ResponseReportUiState(message.id, ResponseReportStatus.FAILURE),
+                viewModel.uiState.value.responseReport
+            )
+            assertEquals(
+                "opaque-signed-token",
+                viewModel.uiState.value.messages.single { it.isAssistant }.responseFingerprint
+            )
         }
 
     @Test
@@ -102,6 +133,39 @@ class ChatViewModelReportTest {
             var reportAttempts = 0
             val viewModel = ChatViewModel(
                 terminalReportFailureApi { reportAttempts += 1 },
+                mainDispatcherRule.testDispatcher
+            )
+            viewModel.sendMessage("private question")
+            runCurrent()
+            val message = viewModel.uiState.value.messages.single { it.isAssistant }
+
+            viewModel.reportResponse(message.id, AssistantResponseReportReason.OTHER)
+            runCurrent()
+
+            assertEquals(1, reportAttempts)
+            assertEquals(
+                ResponseReportUiState(message.id, ResponseReportStatus.TERMINAL_FAILURE),
+                viewModel.uiState.value.responseReport
+            )
+            assertNull(
+                viewModel.uiState.value.messages.single { it.id == message.id }
+                    .responseFingerprint
+            )
+
+            viewModel.dismissResponseReport()
+            viewModel.reportResponse(message.id, AssistantResponseReportReason.OTHER)
+            runCurrent()
+
+            assertEquals(1, reportAttempts)
+            assertEquals(ResponseReportUiState(), viewModel.uiState.value.responseReport)
+        }
+
+    @Test
+    fun reportResponse_retiresFingerprintAfterDuplicateAlreadyReportedResponse() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            var reportAttempts = 0
+            val viewModel = ChatViewModel(
+                duplicateReportFailureApi { reportAttempts += 1 },
                 mainDispatcherRule.testDispatcher
             )
             viewModel.sendMessage("private question")
@@ -171,7 +235,7 @@ class ChatViewModelReportTest {
         }
     }
 
-    private fun reportFailureApi(): KINDDApi = proxyApi { method, args ->
+    private fun reportFailureApi(onReport: () -> Unit): KINDDApi = proxyApi { method, args ->
         when (method) {
             "askLLM" -> {
                 val request = args!![0] as LLMRequest
@@ -181,7 +245,10 @@ class ChatViewModelReportTest {
                     responseFingerprint = "opaque-signed-token"
                 )
             }
-            "reportAssistantResponse" -> throw IllegalStateException("private backend text")
+            "reportAssistantResponse" -> {
+                onReport()
+                throw IllegalStateException("private backend text")
+            }
             else -> throw UnsupportedOperationException(method)
         }
     }
@@ -204,6 +271,30 @@ class ChatViewModelReportTest {
                             .toResponseBody("application/json".toMediaType())
                     throw HttpException(
                         Response.error<AssistantResponseReportResponse>(400, body)
+                    )
+                }
+                else -> throw UnsupportedOperationException(method)
+            }
+        }
+
+    private fun duplicateReportFailureApi(onReport: () -> Unit): KINDDApi =
+        proxyApi { method, args ->
+            when (method) {
+                "askLLM" -> {
+                    val request = args!![0] as LLMRequest
+                    LLMResponse(
+                        query = request.query,
+                        answer = "An assistant answer",
+                        responseFingerprint = "opaque-signed-token"
+                    )
+                }
+                "reportAssistantResponse" -> {
+                    onReport()
+                    val body =
+                        """{"detail":"This assistant response has already been reported."}"""
+                            .toResponseBody("application/json".toMediaType())
+                    throw HttpException(
+                        Response.error<AssistantResponseReportResponse>(429, body)
                     )
                 }
                 else -> throw UnsupportedOperationException(method)

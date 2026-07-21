@@ -14,6 +14,11 @@ if [[ -e "${keystore_file}" ]]; then
     exit 1
 fi
 
+if [[ -e "${certificate_file}" ]]; then
+    echo "Upload certificate already exists at ${certificate_file}. Refusing to replace it."
+    exit 1
+fi
+
 if security find-generic-password \
     -a "${keychain_account}" \
     -s "${keychain_service}" >/dev/null 2>&1; then

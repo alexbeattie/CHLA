@@ -94,6 +94,47 @@ class ChatViewModelInitialPromptTest {
         }
 
     @Test
+    fun sendInitialPrompt_acknowledgesOnlyPromptsAcceptedForDispatch() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val requests = mutableListOf<LLMRequest>()
+            val pendingReplies = mutableListOf<Continuation<LLMResponse>>()
+            val viewModel = ChatViewModel(
+                pendingApi(requests, pendingReplies),
+                mainDispatcherRule.testDispatcher
+            )
+
+            viewModel.sendMessage("request already in flight")
+            runCurrent()
+
+            assertEquals(
+                false,
+                viewModel.sendInitialPrompt(
+                    ChatLaunchPrompt.JUST_DIAGNOSED.routeValue,
+                    "quick prompt"
+                )
+            )
+
+            pendingReplies.single().resume(
+                LLMResponse(query = "request already in flight", answer = "first answer")
+            )
+            runCurrent()
+
+            assertEquals(
+                true,
+                viewModel.sendInitialPrompt(
+                    ChatLaunchPrompt.JUST_DIAGNOSED.routeValue,
+                    "quick prompt"
+                )
+            )
+            runCurrent()
+
+            assertEquals(
+                listOf("request already in flight", "quick prompt"),
+                requests.map(LLMRequest::query)
+            )
+        }
+
+    @Test
     fun clearChat_resetsEveryStateAndPreventsThePendingReplyFromReappearing() =
         runTest(mainDispatcherRule.testDispatcher) {
             val requests = mutableListOf<LLMRequest>()

@@ -86,6 +86,30 @@ class MapViewModel @Inject constructor(
 
     fun refresh() = discoveryController.refresh()
 
+    fun refreshLocationPermission() {
+        val hasPermission = userLocationSource.hasLocationPermission()
+        if (hasPermission) {
+            mutableLocationState.update { current ->
+                current.copy(
+                    hasPermission = true,
+                    status = if (current.status == MapLocationStatus.PERMISSION_DENIED) {
+                        MapLocationStatus.IDLE
+                    } else {
+                        current.status
+                    }
+                )
+            }
+        } else if (mutableLocationState.value.hasPermission) {
+            locationGeneration.incrementAndGet()
+            locationJob?.cancel()
+            locationJob = null
+            mutableLocationState.value = MapLocationState(
+                hasPermission = false,
+                status = MapLocationStatus.PERMISSION_DENIED
+            )
+        }
+    }
+
     fun onLocationPermissionResult(granted: Boolean) {
         val requestGeneration = locationGeneration.incrementAndGet()
         locationJob?.cancel()

@@ -25,10 +25,12 @@ fun ChatScreen(
         mutableStateOf(false)
     }
 
-    LaunchedEffect(initialPrompt, resolvedInitialPrompt) {
+    LaunchedEffect(initialPrompt, resolvedInitialPrompt, uiState.isLoading) {
         if (!initialPromptDispatched && initialPrompt != null && resolvedInitialPrompt != null) {
-            initialPromptDispatched = true
-            viewModel.sendInitialPrompt(initialPrompt.routeValue, resolvedInitialPrompt)
+            initialPromptDispatched = viewModel.sendInitialPrompt(
+                initialPrompt.routeValue,
+                resolvedInitialPrompt
+            )
         }
     }
 

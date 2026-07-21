@@ -61,13 +61,17 @@ class ChatViewModel @Inject constructor(
     private var reportJob: Job? = null
     private var reportGeneration = 0L
 
-    fun sendInitialPrompt(key: String, resolvedText: String) {
-        if (com.chla.kindd.ui.chat.ChatLaunchPrompt.fromRouteValue(key) == null) return
-        sendMessage(resolvedText)
+    fun sendInitialPrompt(key: String, resolvedText: String): Boolean {
+        if (com.chla.kindd.ui.chat.ChatLaunchPrompt.fromRouteValue(key) == null) return false
+        return trySendMessage(resolvedText)
     }
 
     fun sendMessage(content: String) {
-        if (_uiState.value.isLoading) return
+        trySendMessage(content)
+    }
+
+    private fun trySendMessage(content: String): Boolean {
+        if (_uiState.value.isLoading) return false
 
         val userMessage = ChatMessage(
             role = ChatMessage.Role.USER,
@@ -83,6 +87,7 @@ class ChatViewModel @Inject constructor(
         }
 
         startRequest(content)
+        return true
     }
 
     fun retryLastMessage() {
@@ -169,6 +174,7 @@ class ChatViewModel @Inject constructor(
                 if (generation == reportGeneration) {
                     _uiState.update {
                         it.copy(
+                            messages = it.messages.withoutResponseFingerprint(messageId),
                             responseReport = ResponseReportUiState(
                                 messageId = messageId,
                                 status = ResponseReportStatus.SUCCESS
@@ -180,17 +186,11 @@ class ChatViewModel @Inject constructor(
                 throw cancellation
             } catch (error: Exception) {
                 if (generation == reportGeneration) {
-                    val terminalFailure = error.isInvalidResponseFingerprintFailure()
+                    val terminalFailure = error.isTerminalResponseReportFailure()
                     _uiState.update {
                         it.copy(
                             messages = if (terminalFailure) {
-                                it.messages.map { message ->
-                                    if (message.id == messageId) {
-                                        message.copy(responseFingerprint = null)
-                                    } else {
-                                        message
-                                    }
-                                }
+                                it.messages.withoutResponseFingerprint(messageId)
                             } else {
                                 it.messages
                             },
@@ -225,14 +225,21 @@ class ChatViewModel @Inject constructor(
     }
 }
 
-private fun Throwable.isInvalidResponseFingerprintFailure(): Boolean {
+private fun List<ChatMessage>.withoutResponseFingerprint(messageId: String): List<ChatMessage> =
+    map { message ->
+        if (message.id == messageId) message.copy(responseFingerprint = null) else message
+    }
+
+private fun Throwable.isTerminalResponseReportFailure(): Boolean {
     val httpError = this as? HttpException ?: return false
-    if (httpError.code() != 400) return false
     val errorBody = httpError.response()?.errorBody() ?: return false
     return runCatching {
-        JsonParser().parse(errorBody.string())
-            .asJsonObject
-            .get("code")
-            ?.asString == "invalid_response_fingerprint"
+        val error = JsonParser().parse(errorBody.string()).asJsonObject
+        when (httpError.code()) {
+            400 -> error.get("code")?.asString == "invalid_response_fingerprint"
+            429 -> error.get("detail")?.asString ==
+                "This assistant response has already been reported."
+            else -> false
+        }
     }.getOrDefault(false)
 }

@@ -1,5 +1,9 @@
 package com.chla.kindd.ui.screens
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.chla.kindd.data.discovery.DiscoveryController
 import com.chla.kindd.data.discovery.DiscoveryCriteria
 import com.chla.kindd.data.discovery.DiscoveryError
@@ -135,6 +139,93 @@ class MapViewModelTest {
         assertEquals(MapLocationStatus.PERMISSION_DENIED, viewModel.locationState.value.status)
         assertFalse(viewModel.locationState.value.hasPermission)
         assertTrue(controller.calls.isEmpty())
+    }
+
+    @Test
+    fun `permission refresh revokes stale map authorization and cancels location lookup`() =
+        runTest {
+            val locationGate = CompletableDeferred<Unit>()
+            val location = FakeUserLocationSource(
+                permissionGranted = true,
+                coordinates = UserCoordinates(34.0522, -118.2437)
+            ).apply {
+                coordinatesGate = locationGate
+            }
+            val controller = FakeDiscoveryController(stateWithResults())
+            val viewModel = MapViewModel(controller, location)
+
+            viewModel.onLocationPermissionResult(granted = true)
+            runCurrent()
+            location.permissionGranted = false
+
+            viewModel.refreshLocationPermission()
+            advanceUntilIdle()
+
+            assertFalse(viewModel.locationState.value.hasPermission)
+            assertEquals(
+                MapLocationStatus.PERMISSION_DENIED,
+                viewModel.locationState.value.status
+            )
+            assertTrue(controller.calls.isEmpty())
+        }
+
+    @Test
+    fun `permission refresh observes an external grant without starting location lookup`() {
+        val location = FakeUserLocationSource(permissionGranted = false)
+        val viewModel = MapViewModel(FakeDiscoveryController(stateWithResults()), location)
+
+        location.permissionGranted = true
+        viewModel.refreshLocationPermission()
+
+        assertTrue(viewModel.locationState.value.hasPermission)
+        assertEquals(MapLocationStatus.IDLE, viewModel.locationState.value.status)
+        assertEquals(0, location.currentCoordinatesCalls)
+    }
+
+    @Test
+    fun `map my-location gate requires both ViewModel and platform authorization`() {
+        assertTrue(
+            canEnableMapMyLocation(
+                locationState = MapLocationState(hasPermission = true),
+                hasPlatformPermission = true
+            )
+        )
+        assertFalse(
+            canEnableMapMyLocation(
+                locationState = MapLocationState(hasPermission = true),
+                hasPlatformPermission = false
+            )
+        )
+        assertFalse(
+            canEnableMapMyLocation(
+                locationState = MapLocationState(hasPermission = false),
+                hasPlatformPermission = true
+            )
+        )
+    }
+
+    @Test
+    fun `location permission lifecycle binding refreshes on start and resume then detaches`() {
+        val lifecycle = RecordingLifecycle()
+        val owner = object : LifecycleOwner {
+            override val lifecycle: Lifecycle = lifecycle
+        }
+        var refreshCalls = 0
+        val binding = LocationPermissionLifecycleBinding(lifecycle) { refreshCalls += 1 }
+
+        binding.start()
+        assertEquals(1, refreshCalls)
+        assertEquals(1, lifecycle.observerCount)
+
+        lifecycle.dispatch(owner, Lifecycle.Event.ON_PAUSE)
+        assertEquals(1, refreshCalls)
+        lifecycle.dispatch(owner, Lifecycle.Event.ON_RESUME)
+        assertEquals(2, refreshCalls)
+
+        binding.stop()
+        assertEquals(0, lifecycle.observerCount)
+        lifecycle.dispatch(owner, Lifecycle.Event.ON_RESUME)
+        assertEquals(2, refreshCalls)
     }
 
     @Test
@@ -281,6 +372,27 @@ class MapViewModelTest {
         providers = listOf(provider("kept", latitude = 34.0, longitude = -118.0)),
         hasLoadedOnce = true
     )
+}
+
+private class RecordingLifecycle : Lifecycle() {
+    private val observers = linkedSetOf<LifecycleObserver>()
+    override val currentState: State = State.CREATED
+    val observerCount: Int
+        get() = observers.size
+
+    override fun addObserver(observer: LifecycleObserver) {
+        observers += observer
+    }
+
+    override fun removeObserver(observer: LifecycleObserver) {
+        observers -= observer
+    }
+
+    fun dispatch(owner: LifecycleOwner, event: Event) {
+        observers.toList().forEach { observer ->
+            (observer as? LifecycleEventObserver)?.onStateChanged(owner, event)
+        }
+    }
 }
 
 private class SequencedUserLocationSource(

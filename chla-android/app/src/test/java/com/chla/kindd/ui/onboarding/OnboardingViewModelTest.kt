@@ -335,6 +335,85 @@ class OnboardingViewModelTest {
         }
 
     @Test
+    fun unavailable_editWithUnchangedZipPreservesKnownCenterAndSavesOtherChanges() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val saved = completeProfile()
+            val fixture = fixture(
+                repository = RecordingProfileRepository(saved),
+                regionalCenters = FakeRegionalCenterDataSource(
+                    RegionalCenterLookup.Unavailable(LookupFailure.NETWORK)
+                )
+            )
+            fixture.viewModel.initialize(OnboardingMode.EDIT, saved)
+            fixture.viewModel.selectAudience(AudienceType.CLINICIAN)
+            fixture.viewModel.continueFromCurrentStep()
+
+            fixture.viewModel.continueFromCurrentStep()
+            runCurrent()
+
+            assertEquals(CenterLookupState.UNAVAILABLE, fixture.viewModel.uiState.value.centerLookupState)
+            assertEquals(saved.regionalCenter, fixture.viewModel.uiState.value.draft.regionalCenter)
+            assertTrue(fixture.viewModel.uiState.value.canContinue)
+
+            fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.finish()
+            runCurrent()
+
+            assertEquals(
+                listOf(saved.copy(audienceType = AudienceType.CLINICIAN)),
+                fixture.repository.replacedProfiles
+            )
+        }
+
+    @Test
+    fun unavailable_editAfterZipChangesAwayAndBackDoesNotReuseTheOldCenter() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val saved = completeProfile()
+            val fixture = fixture(
+                repository = RecordingProfileRepository(saved),
+                regionalCenters = FakeRegionalCenterDataSource(
+                    RegionalCenterLookup.Unavailable(LookupFailure.NETWORK)
+                )
+            )
+            fixture.viewModel.initialize(OnboardingMode.EDIT, saved)
+            fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.onZipChanged("90002")
+            fixture.viewModel.onZipChanged(saved.zipCode.orEmpty())
+
+            fixture.viewModel.continueFromCurrentStep()
+            runCurrent()
+
+            assertEquals(CenterLookupState.UNAVAILABLE, fixture.viewModel.uiState.value.centerLookupState)
+            assertEquals(saved.zipCode, fixture.viewModel.uiState.value.draft.zipCode)
+            assertNull(fixture.viewModel.uiState.value.draft.regionalCenter)
+            assertFalse(fixture.viewModel.uiState.value.canContinue)
+            assertEquals(saved, fixture.repository.currentProfile)
+            assertTrue(fixture.repository.replacedProfiles.isEmpty())
+        }
+
+    @Test
+    fun unavailable_editWithoutAKnownSavedCenterRemainsBlocked() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val saved = completeProfile().copy(regionalCenter = null)
+            val fixture = fixture(
+                repository = RecordingProfileRepository(saved),
+                regionalCenters = FakeRegionalCenterDataSource(
+                    RegionalCenterLookup.Unavailable(LookupFailure.NETWORK)
+                )
+            )
+            fixture.viewModel.initialize(OnboardingMode.EDIT, saved)
+            fixture.viewModel.continueFromCurrentStep()
+
+            fixture.viewModel.continueFromCurrentStep()
+            runCurrent()
+
+            assertEquals(CenterLookupState.UNAVAILABLE, fixture.viewModel.uiState.value.centerLookupState)
+            assertNull(fixture.viewModel.uiState.value.draft.regionalCenter)
+            assertFalse(fixture.viewModel.uiState.value.canContinue)
+        }
+
+    @Test
     fun deviceLocation_reverseGeocodesZipAndUsesTheSameCenterLookup() =
         runTest(mainDispatcherRule.testDispatcher) {
             val coordinates = UserCoordinates(34.0522, -118.2437)
