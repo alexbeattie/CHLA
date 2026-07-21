@@ -17,6 +17,7 @@ import com.chla.kindd.R
 import com.chla.kindd.data.servicearea.ServiceAreaFeature
 import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
 import com.chla.kindd.ui.regions.RegionalCentersContent
+import com.chla.kindd.ui.regions.RegionalCenterServiceAreaState
 import com.chla.kindd.ui.regions.rememberRegionalCenterServiceAreas
 import com.chla.kindd.ui.theme.KiNDDTopAppBarColorContract
 import com.chla.kindd.ui.theme.kinddTopAppBarColorContract
@@ -29,11 +30,12 @@ fun RegionalCentersScreen(
     mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val bundledServiceAreas by rememberRegionalCenterServiceAreas()
+    val bundledServiceAreaState by rememberRegionalCenterServiceAreas()
 
     RegionalCentersContent(
         uiState = uiState,
-        serviceAreas = serviceAreasOverride ?: bundledServiceAreas,
+        serviceAreaState = serviceAreasOverride?.let(RegionalCenterServiceAreaState::Success)
+            ?: bundledServiceAreaState,
         onBack = onBack,
         onZipChanged = viewModel::onZipChanged,
         onSubmitZip = viewModel::submitZip,

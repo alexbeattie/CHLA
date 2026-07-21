@@ -1,6 +1,7 @@
 package com.chla.kindd.ui.regions
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -9,9 +10,30 @@ import com.chla.kindd.R
 import com.chla.kindd.data.servicearea.BundledServiceAreaDataSource
 import com.chla.kindd.data.servicearea.ServiceAreaFeature
 
-/** Loads the immutable bundled service-area geometry for presentation-only map surfaces. */
+@Immutable
+sealed interface RegionalCenterServiceAreaState {
+    data object Loading : RegionalCenterServiceAreaState
+
+    data class Success(val areas: List<ServiceAreaFeature>) : RegionalCenterServiceAreaState
+
+    data object Error : RegionalCenterServiceAreaState
+}
+
+internal fun Result<List<ServiceAreaFeature>>.toRegionalCenterServiceAreaState():
+    RegionalCenterServiceAreaState = fold(
+    onSuccess = { areas ->
+        if (areas.isEmpty()) {
+            RegionalCenterServiceAreaState.Error
+        } else {
+            RegionalCenterServiceAreaState.Success(areas)
+        }
+    },
+    onFailure = { RegionalCenterServiceAreaState.Error }
+)
+
+/** Loads bundled service-area geometry without collapsing load failures into an empty map. */
 @Composable
-fun rememberRegionalCenterServiceAreas(): State<List<ServiceAreaFeature>> {
+fun rememberRegionalCenterServiceAreas(): State<RegionalCenterServiceAreaState> {
     val applicationContext = LocalContext.current.applicationContext
     val dataSource = remember(applicationContext) {
         BundledServiceAreaDataSource(
@@ -20,7 +42,10 @@ fun rememberRegionalCenterServiceAreas(): State<List<ServiceAreaFeature>> {
             }
         )
     }
-    return produceState(emptyList(), dataSource) {
-        value = dataSource.getServiceAreas().getOrDefault(emptyList())
+    return produceState<RegionalCenterServiceAreaState>(
+        initialValue = RegionalCenterServiceAreaState.Loading,
+        key1 = dataSource
+    ) {
+        value = dataSource.getServiceAreas().toRegionalCenterServiceAreaState()
     }
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KINDD</string>
+    <string name="kindd_logo_content_description">KiNDD</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>
@@ -227,6 +228,8 @@
     <string name="regions_no_match">We couldn\'t match that ZIP code to a regional center.</string>
     <string name="regions_unavailable">We can\'t check right now. Try again when you\'re connected.</string>
     <string name="regions_invalid_zip">Enter a five-digit ZIP code.</string>
+    <string name="regional_center_service_areas_loading">Loading service area boundaries…</string>
+    <string name="regional_center_service_areas_error">Service area boundaries aren’t available right now.</string>
 
     <!-- Shared Map and List discovery -->
     <string name="discovery_search_label">Search providers</string>

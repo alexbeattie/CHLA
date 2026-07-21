@@ -13,6 +13,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
@@ -21,6 +22,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.data.profile.AgeGroup
@@ -33,6 +35,7 @@ import com.chla.kindd.data.source.RegionalCenterDataSource
 import com.chla.kindd.data.source.RegionalCenterLookup
 import com.chla.kindd.data.source.UserCoordinates
 import com.chla.kindd.data.source.UserLocationSource
+import com.chla.kindd.ui.regions.RegionalCenterServiceAreaState
 import com.chla.kindd.ui.theme.KINDDTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,6 +61,10 @@ class OnboardingContentTest {
         composeRule.onNodeWithTag("onboarding_progress_capsules").assertExists()
         composeRule.onNodeWithTag("onboarding_progress_active_0").assertExists()
         composeRule.onNodeWithTag("onboarding_logo").assertExists()
+        composeRule.onNodeWithTag("onboarding_logo_image")
+            .assertIsDisplayed()
+            .assertContentDescriptionEquals("KiNDD")
+        composeRule.onNodeWithText("K").assertDoesNotExist()
         composeRule.onNodeWithTag("onboarding_audience_segmented").assertExists()
         composeRule.onNodeWithTag("onboarding_primary_gradient", useUnmergedTree = true)
             .assertExists()
@@ -111,6 +118,36 @@ class OnboardingContentTest {
         composeRule.onNodeWithTag("onboarding_center_map_hero").assertExists()
         composeRule.onNodeWithTag("regional_center_map_surface").assertExists()
         composeRule.onNodeWithTag("onboarding_matched_center_card").assertExists()
+    }
+
+    @Test
+    fun matchedCenter_serviceAreaLoadingUsesStableFallbackInsteadOfMap() {
+        compose(
+            state(
+                step = OnboardingStep.REGIONAL_CENTER,
+                draft = draft(zipCode = "90001", center = center()),
+                centerLookupState = CenterLookupState.MATCHED
+            ),
+            serviceAreaState = RegionalCenterServiceAreaState.Loading
+        )
+
+        composeRule.onNodeWithTag("regional_center_service_areas_loading").assertIsDisplayed()
+        composeRule.onNodeWithTag("regional_center_map_surface").assertDoesNotExist()
+    }
+
+    @Test
+    fun matchedCenter_serviceAreaErrorUsesStableFallbackInsteadOfMap() {
+        compose(
+            state(
+                step = OnboardingStep.REGIONAL_CENTER,
+                draft = draft(zipCode = "90001", center = center()),
+                centerLookupState = CenterLookupState.MATCHED
+            ),
+            serviceAreaState = RegionalCenterServiceAreaState.Error
+        )
+
+        composeRule.onNodeWithTag("regional_center_service_areas_error").assertIsDisplayed()
+        composeRule.onNodeWithTag("regional_center_map_surface").assertDoesNotExist()
     }
 
     @Test
@@ -586,7 +623,11 @@ class OnboardingContentTest {
         }
     }
 
-    private fun compose(state: OnboardingUiState) {
+    private fun compose(
+        state: OnboardingUiState,
+        serviceAreaState: RegionalCenterServiceAreaState =
+            RegionalCenterServiceAreaState.Success(emptyList())
+    ) {
         composeRule.setContent {
             KINDDTheme {
                 OnboardingContent(
@@ -601,6 +642,7 @@ class OnboardingContentTest {
                     onContinue = {},
                     onFinish = {},
                     onCancel = {},
+                    serviceAreaState = serviceAreaState,
                     mapContent = { _, _ -> Box(Modifier.fillMaxSize()) }
                 )
             }

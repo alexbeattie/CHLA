@@ -1,9 +1,11 @@
 package com.chla.kindd.ui.onboarding
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -27,24 +29,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.ui.theme.KiNDDIndigo
 import com.chla.kindd.ui.theme.KiNDDShapeTokens
-import com.chla.kindd.ui.theme.KiNDDViolet
 
 @Composable
 internal fun AudienceStep(
@@ -100,30 +102,18 @@ internal fun AudienceStep(
 
 @Composable
 private fun KiNDDOnboardingLogo() {
-    Row(
-        modifier = Modifier.testTag("onboarding_logo"),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = Modifier.fillMaxWidth().testTag("onboarding_logo"),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
+        Image(
+            painter = painterResource(R.drawable.kindd_logo),
+            contentDescription = stringResource(R.string.kindd_logo_content_description),
+            contentScale = ContentScale.Fit,
             modifier = Modifier
-                .size(52.dp)
-                .background(
-                    Brush.linearGradient(listOf(KiNDDIndigo, KiNDDViolet)),
-                    RoundedCornerShape(16.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "K",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.White
-            )
-        }
-        Text(
-            text = "KiNDD",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onSurface
+                .fillMaxWidth(0.48f)
+                .aspectRatio(300f / 138f)
+                .testTag("onboarding_logo_image")
         )
     }
 }

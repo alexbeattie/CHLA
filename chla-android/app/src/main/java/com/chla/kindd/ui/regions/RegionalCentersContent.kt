@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,7 +72,6 @@ import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.data.servicearea.ServiceAreaFeature
-import com.chla.kindd.ui.map.RegionalCenterMapSurface
 import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
 import com.chla.kindd.ui.screens.RegionalCentersLookupState
 import com.chla.kindd.ui.screens.RegionalCentersMessage
@@ -88,7 +89,7 @@ private enum class RegionsMode { MAP, LIST }
 @Composable
 fun RegionalCentersContent(
     uiState: RegionalCentersUiState,
-    serviceAreas: List<ServiceAreaFeature>,
+    serviceAreaState: RegionalCenterServiceAreaState,
     onBack: () -> Unit,
     onZipChanged: (String) -> Unit,
     onSubmitZip: () -> Unit,
@@ -110,38 +111,26 @@ fun RegionalCentersContent(
             .background(MaterialTheme.colorScheme.background)
     ) {
         when (mode) {
-            RegionsMode.MAP -> RegionsMap(
-                serviceAreas = serviceAreas,
-                highlightedAcronym = selectedCenter?.shortName ?: uiState.matchedCenter?.shortName,
+            RegionsMode.MAP -> RegionsMapMode(
+                uiState = uiState,
+                serviceAreaState = serviceAreaState,
+                selectedAcronym = selectedCenter?.shortName ?: uiState.matchedCenter?.shortName,
                 onAreaSelected = selectAcronym,
+                onModeSelected = { modeName = it.name },
+                onBack = onBack,
+                onZipChanged = onZipChanged,
+                onSubmitZip = onSubmitZip,
+                onMatchedCenterSelected = { selectedCenter = it },
                 mapContent = mapContent
             )
             RegionsMode.LIST -> RegionsList(
-                centers = uiState.centers,
-                isLoading = uiState.isLoading,
+                uiState = uiState,
+                onModeSelected = { modeName = it.name },
+                onBack = onBack,
+                onZipChanged = onZipChanged,
+                onSubmitZip = onSubmitZip,
+                onMatchedCenterSelected = { selectedCenter = it },
                 onCenterSelected = { selectedCenter = it }
-            )
-        }
-
-        RegionsControls(
-            uiState = uiState,
-            mode = mode,
-            onModeSelected = { modeName = it.name },
-            onBack = onBack,
-            onZipChanged = onZipChanged,
-            onSubmitZip = onSubmitZip,
-            onMatchedCenterSelected = { selectedCenter = it },
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
-
-        if (mode == RegionsMode.MAP && serviceAreas.isNotEmpty()) {
-            RegionsLegend(
-                serviceAreas = serviceAreas,
-                selectedAcronym = selectedCenter?.shortName ?: uiState.matchedCenter?.shortName,
-                onAreaSelected = selectAcronym,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 18.dp, vertical = 112.dp)
             )
         }
     }
@@ -157,42 +146,123 @@ fun RegionalCentersContent(
 }
 
 @Composable
-private fun RegionsMap(
-    serviceAreas: List<ServiceAreaFeature>,
-    highlightedAcronym: String?,
+private fun RegionsMapMode(
+    uiState: RegionalCentersUiState,
+    serviceAreaState: RegionalCenterServiceAreaState,
+    selectedAcronym: String?,
     onAreaSelected: (String) -> Unit,
+    onModeSelected: (RegionsMode) -> Unit,
+    onBack: () -> Unit,
+    onZipChanged: (String) -> Unit,
+    onSubmitZip: () -> Unit,
+    onMatchedCenterSelected: (RegionalCenter) -> Unit,
     mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)?
 ) {
-    Box(modifier = Modifier.fillMaxSize().testTag("regions_map")) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("regions_boundaries_${serviceAreas.size}")
-        ) {
-            RegionalCenterMapSurface(
-                areas = serviceAreas,
-                highlightedAcronym = highlightedAcronym,
-                interactive = true,
-                onAreaClick = onAreaSelected,
-                modifier = Modifier.fillMaxSize(),
+    when (serviceAreaState) {
+        is RegionalCenterServiceAreaState.Success -> Box(Modifier.fillMaxSize()) {
+            RegionsMap(
+                serviceAreaState = serviceAreaState,
+                highlightedAcronym = selectedAcronym,
+                onAreaSelected = onAreaSelected,
                 mapContent = mapContent
             )
+            RegionsControls(
+                uiState = uiState,
+                mode = RegionsMode.MAP,
+                onModeSelected = onModeSelected,
+                onBack = onBack,
+                onZipChanged = onZipChanged,
+                onSubmitZip = onSubmitZip,
+                onMatchedCenterSelected = onMatchedCenterSelected,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+            RegionsLegend(
+                serviceAreas = serviceAreaState.areas,
+                selectedAcronym = selectedAcronym,
+                onAreaSelected = onAreaSelected,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 18.dp, vertical = 112.dp)
+            )
+        }
+        RegionalCenterServiceAreaState.Loading,
+        RegionalCenterServiceAreaState.Error -> Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        ) {
+            RegionsControls(
+                uiState = uiState,
+                mode = RegionsMode.MAP,
+                onModeSelected = onModeSelected,
+                onBack = onBack,
+                onZipChanged = onZipChanged,
+                onSubmitZip = onSubmitZip,
+                onMatchedCenterSelected = onMatchedCenterSelected
+            )
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 18.dp, vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(340.dp)
+                    .clip(RoundedCornerShape(KiNDDShapeTokens.Hero))
+            ) {
+                RegionsMap(
+                    serviceAreaState = serviceAreaState,
+                    highlightedAcronym = selectedAcronym,
+                    onAreaSelected = onAreaSelected,
+                    mapContent = mapContent
+                )
+            }
+            Spacer(modifier = Modifier.height(120.dp))
         }
     }
 }
 
 @Composable
+private fun RegionsMap(
+    serviceAreaState: RegionalCenterServiceAreaState,
+    highlightedAcronym: String?,
+    onAreaSelected: (String) -> Unit,
+    mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)?
+) {
+    Box(modifier = Modifier.fillMaxSize().testTag("regions_map")) {
+        RegionalCenterServiceAreaMap(
+            state = serviceAreaState,
+            highlightedAcronym = highlightedAcronym,
+            interactive = true,
+            onAreaClick = onAreaSelected,
+            modifier = Modifier.fillMaxSize(),
+            mapContent = mapContent
+        )
+    }
+}
+
+@Composable
 private fun RegionsList(
-    centers: List<RegionalCenter>,
-    isLoading: Boolean,
+    uiState: RegionalCentersUiState,
+    onModeSelected: (RegionsMode) -> Unit,
+    onBack: () -> Unit,
+    onZipChanged: (String) -> Unit,
+    onSubmitZip: () -> Unit,
+    onMatchedCenterSelected: (RegionalCenter) -> Unit,
     onCenterSelected: (RegionalCenter) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("regions_list"),
-        contentPadding = PaddingValues(start = 18.dp, top = 252.dp, end = 18.dp, bottom = 120.dp),
+        contentPadding = PaddingValues(bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        if (isLoading && centers.isEmpty()) {
+        item(key = "controls") {
+            RegionsControls(
+                uiState = uiState,
+                mode = RegionsMode.LIST,
+                onModeSelected = onModeSelected,
+                onBack = onBack,
+                onZipChanged = onZipChanged,
+                onSubmitZip = onSubmitZip,
+                onMatchedCenterSelected = onMatchedCenterSelected
+            )
+        }
+        if (uiState.isLoading && uiState.centers.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier.fillMaxWidth().padding(24.dp),
@@ -202,8 +272,12 @@ private fun RegionsList(
                 }
             }
         }
-        items(centers, key = RegionalCenter::id) { center ->
-            RegionalCenterListCard(center = center, onClick = { onCenterSelected(center) })
+        items(uiState.centers, key = RegionalCenter::id) { center ->
+            RegionalCenterListCard(
+                center = center,
+                onClick = { onCenterSelected(center) },
+                modifier = Modifier.padding(horizontal = 18.dp)
+            )
         }
     }
 }
@@ -222,6 +296,7 @@ private fun RegionsControls(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .testTag("regions_controls")
             .statusBarsPadding()
             .padding(horizontal = 18.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -471,9 +546,13 @@ private fun RegionsLegend(
 }
 
 @Composable
-private fun RegionalCenterListCard(center: RegionalCenter, onClick: () -> Unit) {
+private fun RegionalCenterListCard(
+    center: RegionalCenter,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 72.dp)
             .testTag("regions_center_${center.shortName.canonicalAcronym()}"),
@@ -531,6 +610,8 @@ private fun RegionalCenterDetail(center: RegionalCenter, onDismiss: () -> Unit) 
         modifier = Modifier
             .fillMaxWidth()
             .testTag("regions_center_detail")
+            .navigationBarsPadding()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -573,6 +654,7 @@ private fun RegionalCenterDetail(center: RegionalCenter, onDismiss: () -> Unit) 
                 icon = Icons.Default.Phone,
                 text = center.formattedPhone,
                 tint = center.color,
+                testTag = "regions_detail_phone",
                 onClick = {
                     context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${phone.filter(Char::isDigit)}")))
                 }
@@ -583,6 +665,7 @@ private fun RegionalCenterDetail(center: RegionalCenter, onDismiss: () -> Unit) 
                 icon = Icons.Default.Language,
                 text = website,
                 tint = center.color,
+                testTag = "regions_detail_website",
                 onClick = {
                     val url = if (website.startsWith("http")) website else "https://$website"
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
@@ -592,7 +675,10 @@ private fun RegionalCenterDetail(center: RegionalCenter, onDismiss: () -> Unit) 
 
         KiNDDPrimaryGradientCapsule(
             onClick = onDismiss,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .testTag("regions_detail_close")
         ) {
             Text(
                 text = stringResource(R.string.close),
@@ -609,6 +695,7 @@ private fun DetailRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String,
     tint: Color,
+    testTag: String? = null,
     onClick: (() -> Unit)? = null
 ) {
     Row(
@@ -616,6 +703,7 @@ private fun DetailRow(
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .then(if (onClick == null) Modifier else Modifier.clickable(role = Role.Button, onClick = onClick))
+            .then(if (testTag == null) Modifier else Modifier.testTag(testTag))
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically

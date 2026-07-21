@@ -44,8 +44,8 @@ import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.UserProfile
-import com.chla.kindd.data.servicearea.ServiceAreaFeature
 import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
+import com.chla.kindd.ui.regions.RegionalCenterServiceAreaState
 import com.chla.kindd.ui.regions.rememberRegionalCenterServiceAreas
 import com.chla.kindd.ui.theme.KiNDDIndigo
 import com.chla.kindd.ui.theme.KiNDDPrimaryGradientCapsule
@@ -62,7 +62,7 @@ fun OnboardingRoute(
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val serviceAreas by rememberRegionalCenterServiceAreas()
+    val serviceAreaState by rememberRegionalCenterServiceAreas()
     OnboardingBackGuard(
         state = state,
         mode = mode,
@@ -105,7 +105,7 @@ fun OnboardingRoute(
         onContinue = viewModel::continueFromCurrentStep,
         onFinish = viewModel::finish,
         onCancel = viewModel::cancel,
-        serviceAreas = serviceAreas
+        serviceAreaState = serviceAreaState
     )
 }
 
@@ -142,7 +142,7 @@ fun OnboardingContent(
     onFinish: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
-    serviceAreas: List<ServiceAreaFeature> = emptyList(),
+    serviceAreaState: RegionalCenterServiceAreaState = RegionalCenterServiceAreaState.Loading,
     mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
     Box(
@@ -184,7 +184,7 @@ fun OnboardingContent(
                     OnboardingStep.REGIONAL_CENTER -> RegionalCenterStep(
                         center = state.draft.regionalCenter,
                         lookupState = state.centerLookupState,
-                        serviceAreas = serviceAreas,
+                        serviceAreaState = serviceAreaState,
                         mapContent = mapContent,
                         onRetry = onRetryCenterLookup
                     )

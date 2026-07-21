@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
@@ -32,9 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.RegionalCenterIdentity
-import com.chla.kindd.data.servicearea.ServiceAreaFeature
-import com.chla.kindd.ui.map.RegionalCenterMapSurface
 import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
+import com.chla.kindd.ui.regions.RegionalCenterServiceAreaMap
+import com.chla.kindd.ui.regions.RegionalCenterServiceAreaState
 import com.chla.kindd.ui.theme.KiNDDIndigo
 import com.chla.kindd.ui.theme.KiNDDMatchedGreen
 import com.chla.kindd.ui.theme.KiNDDShapeTokens
@@ -43,11 +44,12 @@ import com.chla.kindd.ui.theme.KiNDDShapeTokens
 internal fun RegionalCenterStep(
     center: RegionalCenterIdentity?,
     lookupState: CenterLookupState,
-    serviceAreas: List<ServiceAreaFeature>,
-    mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null,
+    serviceAreaState: RegionalCenterServiceAreaState,
     onRetry: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
+    val separateCard = shouldSeparateMatchedCenterCard(LocalDensity.current.fontScale)
     OnboardingStepColumn(
         modifier = modifier
             .testTag("onboarding_center_status")
@@ -65,25 +67,36 @@ internal fun RegionalCenterStep(
                 )
                 .testTag("onboarding_center_map_hero")
         ) {
-            RegionalCenterMapSurface(
-                areas = serviceAreas,
+            RegionalCenterServiceAreaMap(
+                state = serviceAreaState,
                 highlightedAcronym = center?.shortName,
                 interactive = false,
                 onAreaClick = {},
                 modifier = Modifier.matchParentSize(),
                 mapContent = mapContent
             )
+            if (!separateCard) {
+                CenterStatusCard(
+                    center = center,
+                    lookupState = lookupState,
+                    onRetry = onRetry,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(10.dp)
+                )
+            }
+        }
+        if (separateCard) {
             CenterStatusCard(
                 center = center,
                 lookupState = lookupState,
-                onRetry = onRetry,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(10.dp)
+                onRetry = onRetry
             )
         }
     }
 }
+
+internal fun shouldSeparateMatchedCenterCard(fontScale: Float): Boolean = fontScale >= 1.3f
 
 @Composable
 private fun CenterStatusCard(
