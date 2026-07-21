@@ -293,7 +293,9 @@ class HomeContentTest {
                 )
             }
         }
-        composeRule.onAllNodesWithText("Call now")[0].performClick()
+        composeRule.onNodeWithText("Call now")
+            .performScrollTo()
+            .performSemanticsAction(SemanticsActions.OnClick)
         composeRule.runOnIdle { assertEquals(listOf("12135551212"), dialed) }
 
         composeRule.runOnIdle {

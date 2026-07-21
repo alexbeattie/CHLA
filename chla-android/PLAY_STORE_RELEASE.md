@@ -108,10 +108,12 @@ the Play build:
 ## Policy truth that must be reflected in Play
 
 - Foreground coarse location permission is optional. During Regional Center
-  onboarding, a coarse location fix is converted to ZIP on device and the ZIP
-  is sent to the KiNDD API; a ZIP is required to complete the profile. Raw
-  coarse coordinates are sent only when the user initiates nearby provider
-  discovery. This release does not request precise or background location.
+  onboarding, a coarse location fix is passed to the device's geocoding service
+  to derive a ZIP, and that ZIP is sent to the KiNDD API; depending on the device
+  implementation, geocoding may use a network service. User-initiated nearby
+  provider discovery sends coarse coordinates to the KiNDD API. A ZIP is
+  required to complete the profile. This release does not request precise or
+  background location.
 - ZIP, search text, age group, diagnosis, insurance, and service filters can be
   sent to the KiNDD API.
 - Ask KiNDD prompts are sent to the KiNDD API and processed with AWS Bedrock /

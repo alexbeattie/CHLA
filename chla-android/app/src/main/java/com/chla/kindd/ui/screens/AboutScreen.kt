@@ -1,5 +1,6 @@
 package com.chla.kindd.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,8 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -60,28 +62,22 @@ fun AboutScreen(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Box(
+                    Image(
+                        painter = painterResource(R.drawable.kindd_logo),
+                        contentDescription = stringResource(R.string.kindd_logo_content_description),
+                        contentScale = ContentScale.Fit,
                         modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(CHLABlue),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "K",
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                            .height(56.dp)
+                            .aspectRatio(148f / 42f)
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "KINDD",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Kids in Need of Developmental Disabilities",
+                        text = stringResource(R.string.about_product_tagline),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center

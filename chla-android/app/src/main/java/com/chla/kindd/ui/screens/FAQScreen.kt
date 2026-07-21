@@ -72,7 +72,7 @@ fun FAQScreen(
         ),
         FAQItem(
             "map-1",
-            "How do I use the KINDD map?",
+            "How do I use the KiNDD map?",
             "Enter your ZIP code or allow location access, browse resources in your area, use filters to narrow by therapy type or insurance, then click on a resource for details and contact information."
         )
     )

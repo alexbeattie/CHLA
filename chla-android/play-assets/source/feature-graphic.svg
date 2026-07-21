@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#073F67"/>
+      <stop offset="0.58" stop-color="#31538C"/>
+      <stop offset="1" stop-color="#69479A"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#70D3E8"/>
+      <stop offset="1" stop-color="#F5A7BC"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#041F35" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="500" fill="url(#background)"/>
+  <circle cx="941" cy="46" r="190" fill="#FFFFFF" opacity="0.045"/>
+  <circle cx="869" cy="470" r="238" fill="#ECA3D7" opacity="0.055"/>
+  <circle cx="67" cy="439" r="170" fill="#8EE5F4" opacity="0.055"/>
+
+  <!-- A centered resource network extends the brand without repeating the app icon. -->
+  <circle cx="265" cy="250" r="154" fill="#FFFFFF" opacity="0.055"/>
+  <path d="M174 169 C215 198 238 214 265 250
+           C295 214 322 199 361 178
+           M265 250 C239 285 219 317 192 352
+           M265 250 C297 286 322 318 351 350"
+        fill="none" stroke="url(#accent)" stroke-width="5"
+        stroke-linecap="round" opacity="0.82"/>
+
+  <g transform="translate(265 250)" filter="url(#shadow)">
+    <circle r="66" fill="#FFFFFF"/>
+    <path d="M0,-39 C-23,-39 -40,-22 -40,0 C-40,28 0,54 0,54
+             C0,54 40,28 40,0 C40,-22 23,-39 0,-39 Z"
+          fill="#F52343"/>
+    <circle cy="-2" r="14" fill="#FFFFFF"/>
+  </g>
+
+  <g fill="#FFFFFF" stroke="#8DDDEA" stroke-width="4">
+    <circle cx="174" cy="169" r="27"/>
+    <circle cx="361" cy="178" r="27"/>
+    <circle cx="192" cy="352" r="27"/>
+    <circle cx="351" cy="350" r="27"/>
+  </g>
+  <g fill="#31538C">
+    <circle cx="174" cy="169" r="8"/>
+    <circle cx="361" cy="178" r="8"/>
+    <circle cx="192" cy="352" r="8"/>
+    <circle cx="351" cy="350" r="8"/>
+  </g>
+
+  <rect x="448" y="101" width="88" height="7" rx="3.5" fill="url(#accent)"/>
+  <text x="448" y="142" fill="#BFE8F3"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="20" font-weight="700" letter-spacing="1.2">KiNDD</text>
+  <text x="448" y="204" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="40" font-weight="700">Developmental</text>
+  <text x="448" y="256" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="40" font-weight="700">services, made easier.</text>
+  <text x="448" y="317" fill="#EAF5FF"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="21" font-weight="400">Find regional centers and local resources</text>
+  <text x="448" y="350" fill="#EAF5FF"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="21" font-weight="400">across Los Angeles County.</text>
+  <text x="448" y="407" fill="#BFE8F3"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="20" font-weight="600" letter-spacing="0.8">kinddhelp.org</text>
+</svg>

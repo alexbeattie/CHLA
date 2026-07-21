@@ -1,7 +1,5 @@
 package com.chla.kindd.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -17,6 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.chla.kindd.R
+import com.chla.kindd.platform.launchDialer
+import com.chla.kindd.platform.launchWebsite
 import com.chla.kindd.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -103,10 +103,7 @@ fun ProviderDetailScreen(
                         if (provider.phone != null) {
                             FilledTonalButton(
                                 onClick = {
-                                    val intent = Intent(Intent.ACTION_DIAL).apply {
-                                        data = Uri.parse("tel:${provider.phone}")
-                                    }
-                                    context.startActivity(intent)
+                                    context.launchDialer(provider.phone)
                                 },
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -118,11 +115,10 @@ fun ProviderDetailScreen(
                         if (provider.hasCoordinates) {
                             Button(
                                 onClick = {
-                                    val uri = Uri.parse("google.navigation:q=${provider.latitude},${provider.longitude}")
-                                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-                                        setPackage("com.google.android.apps.maps")
-                                    }
-                                    context.startActivity(intent)
+                                    context.launchWebsite(
+                                        "https://www.google.com/maps/dir/?api=1&destination=" +
+                                            "${provider.latitude},${provider.longitude}"
+                                    )
                                 },
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -152,10 +148,7 @@ fun ProviderDetailScreen(
                                 label = stringResource(R.string.phone),
                                 value = provider.formattedPhone,
                                 onClick = {
-                                    val intent = Intent(Intent.ACTION_DIAL).apply {
-                                        data = Uri.parse("tel:${provider.phone}")
-                                    }
-                                    context.startActivity(intent)
+                                    context.launchDialer(provider.phone)
                                 }
                             )
                         }
@@ -165,10 +158,7 @@ fun ProviderDetailScreen(
                                 label = stringResource(R.string.website),
                                 value = stringResource(R.string.visit_website),
                                 onClick = {
-                                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                                        data = Uri.parse(provider.website)
-                                    }
-                                    context.startActivity(intent)
+                                    context.launchWebsite(provider.website)
                                 }
                             )
                         }
