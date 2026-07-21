@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,6 +37,7 @@ internal fun RegionalCenterServiceAreaMap(
     highlightedAcronym: String?,
     interactive: Boolean,
     onAreaClick: (String) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier,
     mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
@@ -48,6 +50,7 @@ internal fun RegionalCenterServiceAreaMap(
                 highlightedAcronym = highlightedAcronym,
                 interactive = interactive,
                 onAreaClick = onAreaClick,
+                contentPadding = contentPadding,
                 modifier = Modifier.fillMaxSize(),
                 mapContent = mapContent
             )

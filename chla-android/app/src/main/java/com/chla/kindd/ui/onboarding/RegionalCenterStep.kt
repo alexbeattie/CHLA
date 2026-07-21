@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,12 +19,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
@@ -34,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
+import com.chla.kindd.ui.map.mapAttributionBottomPaddingDp
 import com.chla.kindd.ui.regions.RegionalCenterServiceAreaMap
 import com.chla.kindd.ui.regions.RegionalCenterServiceAreaState
 import com.chla.kindd.ui.theme.KiNDDIndigo
@@ -49,7 +56,16 @@ internal fun RegionalCenterStep(
     modifier: Modifier = Modifier,
     mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
-    val separateCard = shouldSeparateMatchedCenterCard(LocalDensity.current.fontScale)
+    val density = LocalDensity.current
+    val separateCard = shouldSeparateMatchedCenterCard(density.fontScale)
+    var overlayCardHeightPx by remember(separateCard) { mutableIntStateOf(0) }
+    val mapContentPadding = PaddingValues(
+        bottom = mapAttributionBottomPaddingDp(
+            overlayHeightPx = overlayCardHeightPx,
+            density = density.density,
+            overlaysMap = !separateCard
+        ).dp
+    )
     OnboardingStepColumn(
         modifier = modifier
             .testTag("onboarding_center_status")
@@ -72,6 +88,7 @@ internal fun RegionalCenterStep(
                 highlightedAcronym = center?.shortName,
                 interactive = false,
                 onAreaClick = {},
+                contentPadding = mapContentPadding,
                 modifier = Modifier.matchParentSize(),
                 mapContent = mapContent
             )
@@ -83,6 +100,7 @@ internal fun RegionalCenterStep(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(10.dp)
+                        .onSizeChanged { overlayCardHeightPx = it.height }
                 )
             }
         }

@@ -1,6 +1,7 @@
 package com.chla.kindd.ui.map
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -21,6 +22,7 @@ fun RegionalCenterMapSurface(
     highlightedAcronym: String?,
     interactive: Boolean,
     onAreaClick: (String) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier,
     mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
@@ -42,7 +44,8 @@ fun RegionalCenterMapSurface(
                 renderModel = renderModel,
                 geometry = geometry,
                 interactive = interactive,
-                onAreaClick = guardedAreaClick
+                onAreaClick = guardedAreaClick,
+                contentPadding = contentPadding
             )
         }
     }
@@ -53,7 +56,8 @@ private fun RegionalCenterGoogleMap(
     renderModel: RegionalCenterMapRenderModel,
     geometry: RegionalCenterMapGeometry,
     interactive: Boolean,
-    onAreaClick: (String) -> Unit
+    onAreaClick: (String) -> Unit,
+    contentPadding: PaddingValues
 ) {
     val density = LocalDensity.current
     val camera = renderModel.camera
@@ -91,7 +95,8 @@ private fun RegionalCenterGoogleMap(
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
-        uiSettings = uiSettings
+        uiSettings = uiSettings,
+        contentPadding = contentPadding
     ) {
         polygonContracts.zip(googleMapGeometry).forEach { (polygon, polygonGeometry) ->
             Polygon(

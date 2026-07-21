@@ -1,6 +1,5 @@
 package com.chla.kindd.services
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
@@ -26,20 +25,24 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
+internal object LocationRequestPolicy {
+    const val permission = "android.permission.ACCESS_COARSE_LOCATION"
+    val priority: Int = Priority.PRIORITY_BALANCED_POWER_ACCURACY
+
+    fun canRequest(coarsePermissionGranted: Boolean): Boolean = coarsePermissionGranted
+}
+
 class LocationService(
     private val context: Context,
     private val fusedLocationClient: FusedLocationProviderClient,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UserLocationSource {
     override fun hasLocationPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
+        val coarsePermissionGranted = ContextCompat.checkSelfPermission(
             context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED ||
-        ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            LocationRequestPolicy.permission
         ) == PackageManager.PERMISSION_GRANTED
+        return LocationRequestPolicy.canRequest(coarsePermissionGranted)
     }
 
     @SuppressLint("MissingPermission")
@@ -58,7 +61,7 @@ class LocationService(
     private suspend fun requestCurrentLocation(): Location? {
         val cancellationTokenSource = CancellationTokenSource()
         val request = CurrentLocationRequest.Builder()
-            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .setPriority(LocationRequestPolicy.priority)
             .setDurationMillis(CURRENT_LOCATION_TIMEOUT_MS)
             .setMaxUpdateAgeMillis(0)
             .build()
@@ -86,7 +89,7 @@ class LocationService(
         }
 
         val locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY,
+            LocationRequestPolicy.priority,
             intervalMs
         ).build()
 
