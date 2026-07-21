@@ -70,6 +70,8 @@ No instrumentation resource test was added: the raw-file integrity test is a loc
 
 This report is included in the single focused Task 2A commit; its final hash is supplied in the handoff because a Git commit cannot contain its own final content hash.
 
+Implementation commit: `abe8c9e6dc8e69404882a178b2864b0fd4a5ec11`
+
 ## Concerns
 
 The focused test and debug build passed. Existing unrelated Kotlin/deprecation warnings remain in the project build output; this task adds none. The first test invocation required an explicit `ANDROID_HOME` because this checkout lacks `chla-android/local.properties`.
