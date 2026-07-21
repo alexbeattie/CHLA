@@ -17,6 +17,8 @@ data class ProviderAddress(
 }
 
 object ProviderAddressFormatter {
+    private const val MAX_JSON_STRING_DEPTH = 3
+
     private val streetKeys = listOf("street", "street_address", "address", "address_line_1")
     private val cityKeys = listOf("city")
     private val stateKeys = listOf("state")
@@ -35,7 +37,7 @@ object ProviderAddressFormatter {
 
         val parsed = when {
             raw == null -> ParsedAddress()
-            raw.startsWith("{") || raw.startsWith("[") -> parseJsonAddress(raw)
+            raw.isJsonLikeAddress() -> parseJsonAddress(raw)
             else -> ParsedAddress(streetParts = listOf(raw))
         }
 
@@ -64,12 +66,15 @@ object ProviderAddressFormatter {
         element.isJsonArray -> element.asJsonArray.fold(ParsedAddress()) { address, fragment ->
             address.merge(parseArrayFragment(fragment))
         }
+        element.isJsonPrimitive && element.asJsonPrimitive.isString -> {
+            ParsedAddress(streetParts = listOfNotNull(decodeStringFragment(element.asString)))
+        }
         else -> ParsedAddress()
     }
 
     private fun parseArrayFragment(element: JsonElement): ParsedAddress = when {
         element.isJsonPrimitive && element.asJsonPrimitive.isString -> {
-            ParsedAddress(streetParts = listOfNotNull(element.asString.safeAddressFragment()))
+            ParsedAddress(streetParts = listOfNotNull(decodeStringFragment(element.asString)))
         }
         element.isJsonObject || element.isJsonArray -> parseElement(element)
         else -> ParsedAddress()
@@ -81,6 +86,17 @@ object ProviderAddressFormatter {
         state = value.stringValue(stateKeys),
         zipCode = value.stringValue(zipKeys)
     )
+
+    private fun decodeStringFragment(value: String, depth: Int = 0): String? {
+        val fragment = value.nonBlank() ?: return null
+        if (!fragment.startsWith("\"")) return fragment.safeAddressFragment()
+        if (depth >= MAX_JSON_STRING_DEPTH) return null
+
+        val nested = runCatching { JsonParser().parse(fragment) }.getOrNull() ?: return null
+        if (!nested.isJsonPrimitive || !nested.asJsonPrimitive.isString) return null
+
+        return decodeStringFragment(nested.asString, depth + 1)
+    }
 
     private fun formatLocality(city: String?, state: String?, zipCode: String?): String? {
         val cityAndState = when {
@@ -138,6 +154,9 @@ object ProviderAddressFormatter {
 
 private fun String?.nonBlank(): String? = this?.trim()?.takeIf(String::isNotEmpty)
 
+private fun String.isJsonLikeAddress(): Boolean =
+    startsWith("{") || startsWith("[") || startsWith("\"") || this == "null"
+
 private fun String?.safeAddressFragment(): String? = nonBlank()?.takeUnless { value ->
-    value.startsWith("{") || value.startsWith("[")
+    value.isJsonLikeAddress()
 }
