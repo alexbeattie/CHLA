@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_parity_county">Condado de Los Ángeles</string>
+    <string name="home_parity_county_compact">Condado de LA</string>
+    <string name="home_parity_change_preferences">Cambiar preferencias</string>
+    <string name="home_parity_more_actions">Opciones de inicio</string>
+    <string name="home_parity_map_summary">Mapa de las áreas de los centros regionales del Condado de Los Ángeles. El tuyo es %1$s.</string>
+    <string name="home_parity_map_summary_unmatched">Mapa de las áreas de servicio de los centros regionales del Condado de Los Ángeles.</string>
+    <string name="home_parity_center_role">Los centros regionales coordinan evaluaciones, servicios y financiamiento para tu familia.</string>
+    <string name="home_parity_zip_explanation">Cada familia del Condado de Los Ángeles tiene un centro regional asignado según su código postal. Ingresa el tuyo para saber con quién comunicarte.</string>
+    <string name="home_parity_service_aba">Terapia ABA</string>
+    <string name="home_parity_service_speech">Habla</string>
+    <string name="home_parity_service_occupational">Ocupacional</string>
+    <string name="home_parity_service_physical">Física</string>
+    <string name="home_parity_next_step_just_diagnosed_detail">Una llamada a %1$s inicia todo: elegibilidad, evaluaciones y servicios. No necesitas una referencia.</string>
+    <string name="home_parity_next_step_waiting_detail">Reunir ahora las evaluaciones, notas médicas y tus propias observaciones ayuda a aprovechar la cita.</string>
+    <string name="home_parity_next_step_receiving_detail">Tu Plan de Programa Individual puede renegociarse. Muchas familias no saben qué pueden solicitar.</string>
+    <string name="home_parity_your_regional_center">tu centro regional</string>
+    <string name="home_parity_how_help">¿Cómo podemos ayudarte?</string>
+    <string name="home_parity_how_help_support">Toca una pregunta o haz la tuya cuando quieras.</string>
+    <string name="home_parity_question_first_steps">Acabamos de recibir un diagnóstico. ¿Qué hacemos primero?</string>
+    <string name="home_parity_question_aba">Encuentra terapia ABA cerca de mí</string>
+    <string name="home_parity_question_funding">¿Qué servicios puede financiar %1$s?</string>
+    <string name="home_parity_question_center_zip">¿Qué centro regional atiende mi código postal?</string>
+    <string name="home_parity_ask_anything">Pregúntale lo que quieras a KiNDD…</string>
+    <string name="home_parity_ask_accessibility">Pregúntale lo que quieras a KiNDD</string>
+    <string name="home_parity_send">Abrir Pregúntale a KiNDD</string>
+    <string name="chat_prompt_find_aba_nearby">Encuentra terapia ABA cerca de mí. Ayúdame a saber qué comparar y qué preguntar a los proveedores.</string>
+    <string name="chat_prompt_first_steps">Acabamos de recibir un diagnóstico. ¿Qué hacemos primero?</string>
+    <string name="chat_prompt_center_funding">¿Qué servicios puede financiar mi centro regional y cómo los solicito?</string>
+    <string name="chat_prompt_find_regional_center">¿Qué centro regional atiende mi código postal y qué debo hacer después?</string>
+</resources>

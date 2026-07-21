@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_prompt_near_me">Cerca de mí</string>
+    <string name="chat_prompt_research">Investigación</string>
+    <string name="chat_prompt_research_query">¿Qué genes tienen la evidencia más sólida de SFARI para el autismo?</string>
+    <string name="chat_prompt_assessment">Evaluación</string>
+    <string name="chat_prompt_centers">Centros</string>
+    <string name="chat_welcome_heading">¿Cómo puede ayudarte KiNDD?</string>
+    <string name="chat_welcome_description">Pregunta sobre servicios para el desarrollo, centros regionales o los próximos pasos.</string>
+    <string name="chat_composer_placeholder">Pregunta sobre servicios…</string>
+    <string name="chat_more_actions">Opciones del chat</string>
+    <string name="chat_open_link_action">Abrir</string>
+    <string name="chat_clear_title">¿Borrar este chat?</string>
+    <string name="chat_clear_body">Esto elimina los mensajes de esta conversación.</string>
+    <string name="chat_clear_confirm">Borrar chat</string>
+    <string name="chat_assistant_message">Respuesta de KiNDD</string>
+
+    <string name="more_title">Más</string>
+    <string name="more_help">Ayuda</string>
+    <string name="more_faq_description">Respuestas a preguntas frecuentes</string>
+    <string name="more_about_description">Conoce KiNDD y su misión</string>
+    <string name="more_explore">Explorar</string>
+    <string name="more_regions_description">Consulta los 7 centros del condado de LA</string>
+    <string name="more_links">Enlaces</string>
+    <string name="more_website">Sitio web de KiNDD</string>
+    <string name="more_website_description">kinddhelp.org</string>
+    <string name="more_legal">Información legal</string>
+    <string name="more_privacy_description">Lee la política vigente en kinddhelp.org</string>
+    <string name="more_terms_description">Lee los términos vigentes en kinddhelp.org</string>
+    <string name="more_profile">Perfil</string>
+    <string name="more_restart_setup">Reiniciar la configuración de bienvenida</string>
+    <string name="more_restart_setup_description">Actualiza el código postal, el contexto de atención y las preferencias</string>
+    <string name="more_settings_description">Idioma, ubicación, perfil e información de la aplicación</string>
+    <string name="more_app_info">Información de la aplicación</string>
+    <string name="more_footer">KiNDD - NDD Resource Navigator</string>
+</resources>

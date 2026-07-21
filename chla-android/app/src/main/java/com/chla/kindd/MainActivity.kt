@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.chla.kindd.ui.navigation.KINDDNavHost
+import com.chla.kindd.ui.navigation.KINDDRoot
 import com.chla.kindd.ui.theme.KINDDTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    KINDDNavHost()
+                    KINDDRoot()
                 }
             }
         }

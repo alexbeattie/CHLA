@@ -12,6 +12,10 @@
 -dontwarn retrofit2.**
 -keep class retrofit2.** { *; }
 
+# Retrofit 2.9.0 reflects on suspend-function Continuation signatures at
+# runtime. R8 can otherwise strip the generic response type in release builds.
+-keep class kotlin.coroutines.Continuation
+
 # OkHttp
 -dontwarn okhttp3.**
 -dontwarn okio.**

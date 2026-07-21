@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_back_to_more">More</string>
+    <string name="settings_setup">Setup</string>
+    <string name="settings_restart_welcome_setup">Restart Welcome Setup</string>
+    <string name="settings_restart_welcome_setup_description">Update your ZIP code, care context, and app preferences.</string>
+    <string name="settings_search_preferences">Search Preferences</string>
+    <string name="settings_preferences">Preferences</string>
+    <string name="settings_app_mode">App Mode</string>
+    <string name="settings_app_mode_family">Family</string>
+    <string name="settings_app_mode_clinician">Clinician</string>
+    <string name="settings_search_filters">Search Filters</string>
+    <string name="settings_default_radius">Default Radius</string>
+    <string name="settings_preference_update_failed">We couldn\'t update that preference. Please try again.</string>
+    <plurals name="settings_active_filter_count">
+        <item quantity="one">%d filter</item>
+        <item quantity="other">%d filters</item>
+    </plurals>
+    <string name="settings_information">Information</string>
+    <string name="settings_reset">Reset</string>
+    <string name="settings_open">Open</string>
+    <string name="settings_language_system_default">System default</string>
+    <string name="settings_language_description">Choose your preferred app language</string>
+    <string name="settings_location">Location</string>
+    <string name="settings_location_access">Location access</string>
+    <string name="settings_location_allowed">Allowed while using KiNDD</string>
+    <string name="settings_location_not_allowed">Not allowed</string>
+    <string name="settings_location_unavailable">Location settings are unavailable on this device.</string>
+    <string name="settings_about_kindd">About KiNDD</string>
+    <string name="settings_about_description">About the NDD Resource Navigator</string>
+    <string name="settings_faq_description">Common questions answered</string>
+    <string name="settings_website">KiNDD website</string>
+    <string name="settings_website_description">kinddhelp.org</string>
+</resources>

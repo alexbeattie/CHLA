@@ -1,89 +1,103 @@
 package com.chla.kindd.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = CHLABlue,
-    onPrimary = SurfaceLight,
-    primaryContainer = CHLABlueLight,
-    onPrimaryContainer = SurfaceLight,
-    secondary = CHLAGold,
-    onSecondary = CHLABlue,
-    secondaryContainer = CHLAGoldDark,
-    onSecondaryContainer = CHLABlue,
-    tertiary = CHLABlueLight,
-    onTertiary = SurfaceLight,
-    background = BackgroundLight,
-    onBackground = TextPrimary,
-    surface = SurfaceLight,
-    onSurface = TextPrimary,
-    surfaceVariant = BackgroundLight,
-    onSurfaceVariant = TextSecondary,
-    error = Error,
-    onError = SurfaceLight,
+    primary = KiNDDDeepIndigo,
+    onPrimary = KiNDDSurfaceLight,
+    primaryContainer = Color(0xFFE2E1FF),
+    onPrimaryContainer = Color(0xFF170065),
+    secondary = KiNDDViolet,
+    onSecondary = Color.Black,
+    secondaryContainer = Color(0xFFEDE5FF),
+    onSecondaryContainer = Color(0xFF251047),
+    tertiary = KiNDDMatchedGreen,
+    onTertiary = KiNDDCanvasDark,
+    tertiaryContainer = Color(0xFFD5F6E9),
+    onTertiaryContainer = Color(0xFF002117),
+    background = KiNDDCanvasLight,
+    onBackground = KiNDDOnSurfaceLight,
+    surface = KiNDDSurfaceLight,
+    onSurface = KiNDDOnSurfaceLight,
+    surfaceVariant = KiNDDSurfaceVariantLight,
+    onSurfaceVariant = KiNDDOnSurfaceVariantLight,
+    outline = KiNDDOutlineLight,
+    error = KiNDDErrorLight,
+    onError = KiNDDOnErrorLight,
+    errorContainer = KiNDDErrorContainerLight,
+    onErrorContainer = KiNDDOnErrorContainerLight,
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = CHLABlueLight,
-    onPrimary = SurfaceDark,
-    primaryContainer = CHLABlue,
-    onPrimaryContainer = SurfaceLight,
-    secondary = CHLAGold,
-    onSecondary = CHLABlue,
-    secondaryContainer = CHLAGoldDark,
-    onSecondaryContainer = CHLABlue,
-    tertiary = CHLABlueLight,
-    onTertiary = SurfaceDark,
-    background = BackgroundDark,
-    onBackground = TextPrimaryDark,
-    surface = SurfaceDark,
-    onSurface = TextPrimaryDark,
-    surfaceVariant = SurfaceDark,
-    onSurfaceVariant = TextSecondaryDark,
-    error = Error,
-    onError = SurfaceLight,
+    primary = KiNDDViolet,
+    onPrimary = Color.Black,
+    primaryContainer = KiNDDDeepIndigo,
+    onPrimaryContainer = Color(0xFFE2E1FF),
+    secondary = KiNDDPurple,
+    onSecondary = KiNDDCanvasDark,
+    secondaryContainer = Color(0xFF4D2875),
+    onSecondaryContainer = Color(0xFFEDE5FF),
+    tertiary = Color(0xFF6EE7B7),
+    onTertiary = Color(0xFF00382A),
+    tertiaryContainer = KiNDDMatchedGreen,
+    onTertiaryContainer = Color(0xFF002117),
+    background = KiNDDCanvasDark,
+    onBackground = KiNDDOnSurfaceDark,
+    surface = KiNDDSurfaceDark,
+    onSurface = KiNDDOnSurfaceDark,
+    surfaceVariant = KiNDDSurfaceVariantDark,
+    onSurfaceVariant = KiNDDOnSurfaceVariantDark,
+    outline = KiNDDOutlineDark,
+    error = KiNDDErrorDark,
+    onError = KiNDDOnErrorDark,
+    errorContainer = KiNDDErrorContainerDark,
+    onErrorContainer = KiNDDOnErrorContainerDark,
+)
+
+private val KiNDDShapes = Shapes(
+    extraSmall = RoundedCornerShape(KiNDDShapeTokens.Selection),
+    small = RoundedCornerShape(KiNDDShapeTokens.Compact),
+    medium = RoundedCornerShape(KiNDDShapeTokens.Card),
+    large = RoundedCornerShape(KiNDDShapeTokens.Hero),
+    extraLarge = RoundedCornerShape(KiNDDShapeTokens.Sheet)
 )
 
 @Composable
 fun KINDDTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // Disabled to use project brand colors
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            window.statusBarColor = Color.Transparent.toArgb()
+            window.navigationBarColor = Color.Transparent.toArgb()
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = KiNDDTypography,
+        shapes = KiNDDShapes,
         content = content
     )
 }

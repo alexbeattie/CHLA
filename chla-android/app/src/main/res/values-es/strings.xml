@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KINDD</string>
+    <string name="app_name">KiNDD</string>
+    <string name="kindd_logo_content_description">KiNDD</string>
 
     <!-- Navigation -->
     <string name="nav_home">Inicio</string>
     <string name="nav_map">Mapa</string>
-    <string name="nav_resources">Recursos</string>
+    <string name="nav_list">Lista</string>
     <string name="nav_chat">Chat</string>
     <string name="nav_settings">Ajustes</string>
+    <string name="nav_ask">Preguntar a KiNDD</string>
+    <string name="nav_regions">Regiones</string>
+    <string name="nav_more">Más</string>
 
     <!-- Home Screen -->
-    <string name="home_title">Navegador de Recursos KINDD</string>
+    <string name="home_title">Navegador de Recursos KiNDD</string>
     <string name="home_tagline">Creamos esperanza y construimos futuros más saludables</string>
     <string name="home_subtitle">Encuentre terapia ABA y servicios de autismo en el Condado de Los Ángeles</string>
     <string name="enter_zip">Ingrese Código Postal</string>
@@ -22,16 +26,19 @@
     <string name="browse_therapy_desc">Filtrar por tipo de terapia</string>
     <string name="regional_centers">Centros Regionales</string>
     <string name="regional_centers_desc">Encuentre su Centro Regional</string>
-    <string name="ask_kindd">Preguntar a KINDD</string>
+    <string name="ask_kindd">Preguntar a KiNDD</string>
     <string name="ask_kindd_desc">Asistencia con IA</string>
     <string name="therapy_types">Tipos de Terapia</string>
     <string name="aba_therapy">Terapia ABA</string>
     <string name="speech_therapy">Terapia del Habla</string>
     <string name="occupational_therapy">Terapia Ocupacional</string>
     <string name="physical_therapy">Fisioterapia</string>
+    <string name="feeding_therapy">Terapia de alimentación</string>
+    <string name="parent_child_interaction_therapy">Interacción padre-hijo y capacitación parental</string>
 
     <!-- Map Screen -->
     <string name="map_title">Mapa de Recursos</string>
+    <string name="map_refresh">Actualizar mapa</string>
     <string name="search_resources">Buscar recursos</string>
     <string name="filter">Filtrar</string>
     <string name="filters">Filtros</string>
@@ -42,11 +49,20 @@
     <string name="my_location">Mi Ubicación</string>
 
     <!-- Provider List -->
-    <string name="resources_title">Recursos</string>
+    <string name="list_title">Recursos</string>
     <string name="resources_found">%d recursos encontrados</string>
     <string name="resource_found">%d recurso encontrado</string>
-    <string name="search_placeholder">Buscar por nombre, servicio o ubicación</string>
+    <plurals name="map_result_count_action">
+        <item quantity="one">%d recurso mostrado en el mapa. Ver recursos coincidentes en la lista</item>
+        <item quantity="other">%d recursos mostrados en el mapa. Ver recursos coincidentes en la lista</item>
+        <item quantity="many">%d recursos mostrados en el mapa. Ver recursos coincidentes en la lista</item>
+    </plurals>
+    <string name="search_placeholder">Buscar recursos, servicios o código postal</string>
+    <string name="list_no_resources_found">No Se Encontraron Recursos</string>
+    <string name="list_no_resources_description">Intente ajustar sus filtros de búsqueda o ampliar su radio de búsqueda.</string>
+    <string name="list_refresh">Actualizar</string>
     <string name="loading">Cargando…</string>
+    <string name="app_entry_loading_content_description">Cargando KiNDD</string>
     <string name="error_loading">Error al cargar recursos</string>
     <string name="retry">Reintentar</string>
 
@@ -76,7 +92,7 @@
     <string name="la_7_centers">Los 7 Centros Regionales del Condado de LA</string>
 
     <!-- Chat -->
-    <string name="chat_title">Preguntar a KINDD</string>
+    <string name="chat_title">Pregúntale a KiNDD</string>
     <string name="chat_subtitle">Ayuda con IA para encontrar servicios</string>
     <string name="chat_placeholder">Pregúntame sobre terapia ABA…</string>
     <string name="send">Enviar</string>
@@ -99,9 +115,21 @@
     <string name="terms_of_service">Términos de Servicio</string>
     <string name="version">Versión</string>
     <string name="reset_onboarding">Reiniciar Introducción</string>
+    <string name="settings_profile">Perfil</string>
+    <string name="settings_edit_profile">Editar respuestas de configuración</string>
+    <string name="settings_edit_profile_description">Revisa las preguntas de introducción y el contexto de atención.</string>
+    <string name="settings_clear_profile">Borrar perfil y reiniciar</string>
+    <string name="settings_clear_profile_description">Elimina tu perfil guardado y vuelve a completar la introducción.</string>
+    <string name="settings_clear_profile_dialog_title">¿Borrar el perfil?</string>
+    <string name="settings_clear_profile_dialog_body">Se borrará tu perfil guardado y volverás a completar la introducción.</string>
+    <string name="settings_clear_profile_confirm">Borrar y reiniciar</string>
+    <string name="settings_clear_profile_failed">No pudimos borrar tu perfil. Inténtalo de nuevo.</string>
+    <string name="settings_app_info">Información de la aplicación</string>
+    <string name="settings_footer">KiNDD - NDD Resource Navigator</string>
 
     <!-- About -->
-    <string name="about_title">Acerca de KINDD</string>
+    <string name="about_title">Acerca de KiNDD</string>
+    <string name="about_product_tagline">Navegador de recursos NDD</string>
     <string name="about_mission">Nuestra Misión</string>
     <string name="about_mission_text">Ayudamos a las familias a conectarse con los servicios para trastornos del neurodesarrollo (NDD) que necesitan.</string>
     <string name="free_to_use">Gratis para Usar</string>
@@ -113,7 +141,7 @@
 
     <!-- Onboarding -->
     <string name="welcome">Bienvenido</string>
-    <string name="welcome_to_kindd">Bienvenido a KINDD</string>
+    <string name="welcome_to_kindd">Bienvenido a KiNDD</string>
     <string name="onboarding_subtitle">Encuentre recursos de terapia ABA en el Condado de Los Ángeles</string>
     <string name="use_my_location">Usar Mi Ubicación</string>
     <string name="enter_location_manually">Ingresar Ubicación Manualmente</string>
@@ -121,8 +149,172 @@
     <string name="next">Siguiente</string>
     <string name="get_started">Comenzar</string>
 
+    <!-- Incorporación con perfil -->
+    <string name="onboarding_progress">Paso %1$d de %2$d</string>
+    <string name="onboarding_welcome_title">Encontraste el lugar indicado.</string>
+    <string name="onboarding_welcome_body">KiNDD ayuda a las familias del condado de Los Ángeles a orientarse entre los servicios para el desarrollo: centros regionales, proveedores de terapia y los próximos pasos.</string>
+    <string name="onboarding_audience_prompt">Estoy aquí como</string>
+    <string name="onboarding_audience_family">Madre, padre o familiar</string>
+    <string name="onboarding_audience_clinician">Profesional clínico</string>
+    <string name="onboarding_zip_title">¿Dónde está tu hogar?</string>
+    <string name="onboarding_zip_body">A cada familia del condado de Los Ángeles se le asigna un centro regional según su código postal. El tuyo determina a quién llamar.</string>
+    <string name="onboarding_zip_label">Código postal</string>
+    <string name="onboarding_use_location">Usar mi ubicación</string>
+    <string name="onboarding_location_locating">Buscando tu código postal…</string>
+    <string name="onboarding_location_denied">No se permitió el acceso a la ubicación. Ingresa tu código postal o inténtalo de nuevo.</string>
+    <string name="onboarding_location_failed">No pudimos encontrar un código postal a partir de tu ubicación. Ingrésalo abajo o inténtalo de nuevo.</string>
+    <string name="onboarding_center_title">Tu Centro Regional</string>
+    <string name="onboarding_center_matched">Coincidencia encontrada</string>
+    <string name="onboarding_center_body">Coordina evaluaciones, servicios y financiamiento para tu familia, y está preparado para recibir llamadas como la tuya.</string>
+    <string name="onboarding_center_unmatched_title">Lo resolveremos juntos</string>
+    <string name="onboarding_center_unmatched_body">No pudimos asociar ese código postal con un centro regional. Aun así, puedes explorar todos los recursos, y KiNDD puede ayudarte a encontrar quién atiende a tu familia.</string>
+    <string name="onboarding_center_unavailable_title">No podemos verificarlo ahora</string>
+    <string name="onboarding_center_unavailable_body">Inténtalo de nuevo cuando tengas conexión. Aun así, puedes explorar KiNDD sin un centro regional asignado.</string>
+    <string name="onboarding_journey_title">¿En qué etapa del camino estás?</string>
+    <string name="onboarding_journey_body">KiNDD usa esta información para sugerir tu próximo paso; nada es definitivo.</string>
+    <string name="onboarding_journey_just_diagnosed">Diagnóstico reciente</string>
+    <string name="onboarding_journey_waiting_intake">Esperando la evaluación inicial</string>
+    <string name="onboarding_journey_receiving_services">Recibiendo servicios</string>
+    <string name="onboarding_journey_exploring">Explorando opciones</string>
+    <string name="onboarding_age_title">¿Qué edad tiene tu hijo?</string>
+    <string name="onboarding_age_body">Opcional: nos ayuda a mostrar primero los servicios adecuados para su edad.</string>
+    <string name="onboarding_age_early_intervention">0-5 años (Intervención temprana)</string>
+    <string name="onboarding_age_school_age">6-12 años (Edad escolar)</string>
+    <string name="onboarding_age_adolescent">13-18 años (Adolescencia)</string>
+    <string name="onboarding_age_adult">19+ años (Adultez)</string>
+    <string name="onboarding_age_all_ages">Todas las edades</string>
+    <string name="onboarding_save_failed">No pudimos guardar tus cambios. Inténtalo de nuevo.</string>
+    <string name="action_back">Atrás</string>
+    <string name="action_continue">Continuar</string>
+    <string name="action_get_started">Comenzar</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_save">Guardar</string>
+
+    <!-- Inicio basado en el perfil -->
+    <string name="home_brand">KiNDD</string>
+    <string name="home_intro">Servicios para el desarrollo, más fáciles de encontrar.</string>
+    <string name="home_who_serves">¿Quién atiende a tu familia?</string>
+    <string name="home_zip_explanation">Ingresa tu código postal para encontrar el centro regional asignado a tu familia.</string>
+    <string name="home_find">Buscar</string>
+    <string name="home_your_regional_center">Tu Centro Regional</string>
+    <string name="home_matched">Coincidencia encontrada</string>
+    <string name="home_details">Detalles</string>
+    <string name="home_no_match">No pudimos asociar ese código postal.</string>
+    <string name="home_lookup_unavailable">No podemos verificarlo ahora. Inténtalo de nuevo cuando tengas conexión.</string>
+    <string name="home_invalid_zip">Ingresa un código postal de cinco dígitos.</string>
+    <string name="home_discover_services">Descubre servicios</string>
+    <string name="home_map">Mapa</string>
+    <string name="home_list">Lista</string>
+    <string name="home_therapy_shortcuts">Buscar por terapia</string>
+    <string name="home_therapy_speech">Habla</string>
+    <string name="home_therapy_occupational">Ocupacional</string>
+    <string name="home_therapy_physical">Física</string>
+    <string name="home_regional_centers_body">Conoce los siete centros regionales que atienden al condado de Los Ángeles.</string>
+    <string name="home_explore">Explorar</string>
+    <string name="home_ask_kindd">Pregúntale a KiNDD</string>
+    <string name="home_ask_kindd_body">Recibe ayuda para entender los servicios y planear tu próximo paso.</string>
+    <string name="home_your_next_step">Tu próximo paso</string>
+    <string name="home_journey_just_diagnosed_title">Solicita una evaluación inicial</string>
+    <string name="home_journey_just_diagnosed_action">¿Qué debo decir?</string>
+    <string name="home_journey_waiting_title">Prepárate para la evaluación inicial</string>
+    <string name="home_journey_waiting_action">Ayúdame a prepararme</string>
+    <string name="home_journey_receiving_title">Aprovecha mejor tu IPP</string>
+    <string name="home_journey_receiving_action">¿Qué puedo solicitar?</string>
+    <string name="home_call_now">Llamar ahora</string>
+
+    <!-- Inicio de Chat tipado -->
+    <string name="chat_welcome_title">Pregúntale a KiNDD</string>
+    <string name="chat_welcome_body">Ayuda con IA para encontrar servicios para el desarrollo</string>
+    <string name="chat_try_asking">Puedes preguntar:</string>
+    <string name="chat_request_failed">No pude comunicarme con KiNDD en este momento. Es posible que se haya interrumpido tu conexión o que el servicio no esté disponible temporalmente. Tu pregunta no se perdió; toca Reintentar para intentarlo de nuevo.</string>
+    <string name="chat_report_response">Reportar respuesta</string>
+    <string name="chat_report_title">Reportar respuesta</string>
+    <string name="chat_report_prompt">¿Por qué reportas esta respuesta?</string>
+    <string name="chat_report_reason_unsafe">Insegura o inapropiada</string>
+    <string name="chat_report_reason_inaccurate">Inexacta o engañosa</string>
+    <string name="chat_report_reason_other">Otro motivo</string>
+    <string name="chat_report_submit">Enviar reporte</string>
+    <string name="chat_report_submitting">Enviando…</string>
+    <string name="chat_report_success">Gracias. Tu reporte fue enviado para revisión.</string>
+    <string name="chat_report_failure">No se pudo enviar el reporte. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="chat_report_terminal_failure">Esta respuesta ya no se puede reportar.</string>
+    <string name="chat_prompt_just_diagnosed">Acabamos de recibir un diagnóstico. ¿Qué debo decir cuando llame a mi centro regional para solicitar una evaluación inicial para mi hijo?</string>
+    <string name="chat_prompt_waiting_intake">¿Cómo nos preparamos para la cita de evaluación inicial del centro regional? ¿Qué documentos e información debemos llevar?</string>
+    <string name="chat_prompt_receiving_services">Mi hijo ya recibe servicios del centro regional. ¿Cómo me preparo para una reunión del IPP y qué servicios puedo solicitar?</string>
+
+    <!-- Regiones basadas en el perfil -->
+    <string name="regions_zip_placeholder">Ingresa el código postal</string>
+    <string name="regions_no_match">No pudimos asociar ese código postal con un centro regional.</string>
+    <string name="regions_unavailable">No podemos verificarlo ahora. Inténtalo de nuevo cuando tengas conexión.</string>
+    <string name="regions_invalid_zip">Ingresa un código postal de cinco dígitos.</string>
+    <string name="regional_center_service_areas_loading">Cargando los límites de las áreas de servicio…</string>
+    <string name="regional_center_service_areas_error">Los límites de las áreas de servicio no están disponibles en este momento.</string>
+
+    <!-- Descubrimiento compartido en Mapa y Lista -->
+    <string name="discovery_search_label">Buscar proveedores</string>
+    <string name="discovery_clear_search">Borrar búsqueda</string>
+    <string name="discovery_clear_all">Borrar todo</string>
+    <string name="discovery_remove_filter">Quitar %1$s</string>
+    <string name="discovery_age_chip">Edad: %1$s</string>
+    <string name="discovery_diagnosis_chip">Diagnóstico: %1$s</string>
+    <string name="discovery_insurance_chip">Seguro: %1$s</string>
+    <plurals name="discovery_radius_chip">
+        <item quantity="one">Radio: %1$d milla</item>
+        <item quantity="other">Radio: %1$d millas</item>
+        <item quantity="many">Radio: %1$d millas</item>
+    </plurals>
+    <string name="discovery_age">Edad</string>
+    <string name="discovery_any_age">Cualquier edad</string>
+    <string name="discovery_diagnosis">Diagnóstico</string>
+    <string name="discovery_any_diagnosis">Cualquier diagnóstico</string>
+    <string name="discovery_insurance">Seguro</string>
+    <string name="discovery_any_insurance">Cualquier seguro</string>
+    <string name="discovery_radius">Radio</string>
+    <plurals name="discovery_radius_option">
+        <item quantity="one">%1$d milla</item>
+        <item quantity="other">%1$d millas</item>
+        <item quantity="many">%1$d millas</item>
+    </plurals>
+    <string name="discovery_reset">Restablecer</string>
+    <string name="discovery_apply">Aplicar</string>
+    <string name="discovery_sort_name">Nombre</string>
+    <string name="discovery_sort_distance">Distancia</string>
+    <string name="discovery_sort_action">Ordenar recursos</string>
+    <string name="provider_more_services">+%1$d más</string>
+    <string name="discovery_use_my_location">Usar mi ubicación</string>
+    <string name="discovery_location_locating">Buscando tu ubicación…</string>
+    <string name="discovery_location_denied">No se permitió el acceso a la ubicación. Tus resultados actuales siguen disponibles.</string>
+    <string name="discovery_location_failed">No pudimos encontrar tu ubicación. Tus resultados actuales siguen disponibles.</string>
+    <string name="discovery_error_network">No podemos conectarnos ahora. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="discovery_error_timeout">La solicitud tardó demasiado. Inténtalo de nuevo.</string>
+    <string name="discovery_error_server">El servicio no está disponible ahora. Inténtalo de nuevo.</string>
+    <string name="discovery_error_unknown">No pudimos cargar los proveedores. Inténtalo de nuevo.</string>
+    <string name="discovery_diagnosis_autism">Trastorno del espectro autista</string>
+    <string name="discovery_diagnosis_global_delay">Retraso global del desarrollo</string>
+    <string name="discovery_diagnosis_intellectual">Discapacidad intelectual</string>
+    <string name="discovery_diagnosis_speech_language">Trastorno del habla y del lenguaje</string>
+    <string name="discovery_other">Otro</string>
+    <string name="discovery_insurance_regional_center">Centro regional</string>
+    <string name="discovery_insurance_private_pay">Pago particular</string>
+    <string name="discovery_insurance_medi_cal">Medi-Cal</string>
+    <string name="discovery_insurance_medicare">Medicare</string>
+    <string name="discovery_insurance_blue_cross">Blue Cross</string>
+    <string name="discovery_insurance_blue_shield">Blue Shield</string>
+    <string name="discovery_insurance_anthem">Anthem</string>
+    <string name="discovery_insurance_aetna">Aetna</string>
+    <string name="discovery_insurance_cigna">Cigna</string>
+    <string name="discovery_insurance_kaiser">Kaiser Permanente</string>
+    <string name="discovery_insurance_united">United Healthcare</string>
+    <string name="discovery_insurance_health_net">Health Net</string>
+    <string name="discovery_insurance_molina">Molina</string>
+    <string name="discovery_insurance_la_care">L.A. Care</string>
+    <string name="discovery_insurance_covered_california">Covered California</string>
+    <string name="discovery_unknown_filter">Filtro seleccionado</string>
+
     <!-- Common -->
     <string name="cancel">Cancelar</string>
+    <string name="done">Listo</string>
     <string name="close">Cerrar</string>
     <string name="save">Guardar</string>
     <string name="ok">OK</string>
