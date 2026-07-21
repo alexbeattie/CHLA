@@ -106,7 +106,8 @@ class ChatViewModel @Inject constructor(
 
                 val assistantMessage = ChatMessage(
                     role = ChatMessage.Role.ASSISTANT,
-                    content = response.answer
+                    content = response.answer,
+                    responseFingerprint = response.responseFingerprint
                 )
 
                 if (generation == requestGeneration) {
@@ -137,6 +138,9 @@ class ChatViewModel @Inject constructor(
         val response = _uiState.value.messages
             .firstOrNull { it.id == messageId && it.isAssistant }
             ?: return
+        val responseFingerprint = response.responseFingerprint
+            ?.takeIf(String::isNotBlank)
+            ?: return
         val generation = ++reportGeneration
         _uiState.update {
             it.copy(
@@ -154,7 +158,8 @@ class ChatViewModel @Inject constructor(
                             reason = reason,
                             reportedResponse = response.content,
                             locale = Locale.getDefault().language.ifBlank { "und" },
-                            appVersion = BuildConfig.VERSION_NAME
+                            appVersion = BuildConfig.VERSION_NAME,
+                            responseFingerprint = responseFingerprint
                         )
                     )
                 }

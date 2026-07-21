@@ -514,7 +514,6 @@ private fun ChatMessageCard(
                     color = Color.White
                 )
             } else {
-                val reportLabel = stringResource(R.string.chat_report_response)
                 Column(modifier = Modifier.fillMaxWidth()) {
                     SafeMarkdownText(
                         markdown = message.content,
@@ -523,14 +522,19 @@ private fun ChatMessageCard(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     )
-                    TextButton(
-                        onClick = onReport,
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .heightIn(min = 48.dp)
-                            .testTag("chat_report_response_$index")
+                    if (
+                        message.role == ChatMessage.Role.ASSISTANT &&
+                        !message.responseFingerprint.isNullOrBlank()
                     ) {
-                        Text(reportLabel)
+                        TextButton(
+                            onClick = onReport,
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .heightIn(min = 48.dp)
+                                .testTag("chat_report_response_$index")
+                        ) {
+                            Text(stringResource(R.string.chat_report_response))
+                        }
                     }
                 }
             }

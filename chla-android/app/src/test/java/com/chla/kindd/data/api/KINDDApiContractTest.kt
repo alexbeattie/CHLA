@@ -42,7 +42,8 @@ class KINDDApiContractTest {
                 reason = AssistantResponseReportReason.INACCURATE_OR_MISLEADING,
                 reportedResponse = "An assistant answer",
                 locale = "es-US",
-                appVersion = "1.4.1"
+                appVersion = "1.4.1",
+                responseFingerprint = "opaque-signed-token"
             )
         )
         val recorded = server.takeRequest()
@@ -53,7 +54,14 @@ class KINDDApiContractTest {
         assertEquals(17L, response.id)
         assertEquals("received", response.status)
         assertEquals(
-            setOf("reason", "reported_response", "locale", "platform", "app_version"),
+            setOf(
+                "reason",
+                "reported_response",
+                "locale",
+                "platform",
+                "app_version",
+                "response_fingerprint"
+            ),
             json.keySet()
         )
         assertEquals("inaccurate_or_misleading", json["reason"].asString)
@@ -61,6 +69,28 @@ class KINDDApiContractTest {
         assertEquals("es-US", json["locale"].asString)
         assertEquals("android", json["platform"].asString)
         assertEquals("1.4.1", json["app_version"].asString)
+        assertEquals("opaque-signed-token", json["response_fingerprint"].asString)
+    }
+
+    @Test
+    fun `ask response decodes additive response fingerprint`() = runBlocking {
+        server.enqueue(
+            jsonResponse(
+                """
+                {
+                  "query": "A question",
+                  "answer": "An assistant answer",
+                  "providers_referenced": [],
+                  "regional_center": null,
+                  "response_fingerprint": "opaque-signed-token"
+                }
+                """.trimIndent()
+            )
+        )
+
+        val response = api.askLLM(LLMRequest(query = "A question"))
+
+        assertEquals("opaque-signed-token", response.responseFingerprint)
     }
 
     @Test

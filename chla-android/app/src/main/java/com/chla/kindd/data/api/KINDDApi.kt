@@ -101,7 +101,9 @@ data class LLMResponse(
     @com.google.gson.annotations.SerializedName("providers_referenced")
     val providersReferenced: List<String>? = null,  // UUIDs from backend
     @com.google.gson.annotations.SerializedName("regional_center")
-    val regionalCenter: String? = null
+    val regionalCenter: String? = null,
+    @com.google.gson.annotations.SerializedName("response_fingerprint")
+    val responseFingerprint: String? = null
 )
 
 enum class AssistantResponseReportReason {
@@ -122,7 +124,9 @@ data class AssistantResponseReportRequest(
     val locale: String,
     val platform: String = "android",
     @com.google.gson.annotations.SerializedName("app_version")
-    val appVersion: String
+    val appVersion: String,
+    @com.google.gson.annotations.SerializedName("response_fingerprint")
+    val responseFingerprint: String
 )
 
 data class AssistantResponseReportResponse(

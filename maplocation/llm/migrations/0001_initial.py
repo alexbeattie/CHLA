@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                         max_length=32,
                     ),
                 ),
-                ("reported_response", models.TextField(max_length=6000)),
+                ("reported_response", models.TextField(max_length=12000)),
                 ("locale", models.CharField(max_length=16)),
                 (
                     "platform",
@@ -42,6 +42,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("app_version", models.CharField(max_length=32)),
+                (
+                    "response_fingerprint_digest",
+                    models.CharField(editable=False, max_length=64, unique=True),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
             ],
             options={

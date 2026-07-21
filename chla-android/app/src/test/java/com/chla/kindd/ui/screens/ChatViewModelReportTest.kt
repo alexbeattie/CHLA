@@ -51,6 +51,7 @@ class ChatViewModelReportTest {
             assertEquals(1, reportRequests.size)
             assertEquals("An assistant answer", reportRequests.single().reportedResponse)
             assertEquals("android", reportRequests.single().platform)
+            assertEquals("opaque-signed-token", reportRequests.single().responseFingerprint)
             assertEquals(
                 ResponseReportUiState(message.id, ResponseReportStatus.SUBMITTING),
                 viewModel.uiState.value.responseReport
@@ -94,9 +95,11 @@ class ChatViewModelReportTest {
             viewModel.sendMessage("private question")
             runCurrent()
             val userMessage = viewModel.uiState.value.messages.single { it.isUser }
+            val assistantMessage = viewModel.uiState.value.messages.single { it.isAssistant }
 
             viewModel.reportResponse(userMessage.id, AssistantResponseReportReason.OTHER)
             viewModel.reportResponse("unknown", AssistantResponseReportReason.OTHER)
+            viewModel.reportResponse(assistantMessage.id, AssistantResponseReportReason.OTHER)
             runCurrent()
 
             assertEquals(emptyList<AssistantResponseReportRequest>(), requests)
@@ -110,7 +113,11 @@ class ChatViewModelReportTest {
         when (method) {
             "askLLM" -> {
                 val request = args!![0] as LLMRequest
-                LLMResponse(query = request.query, answer = "An assistant answer")
+                LLMResponse(
+                    query = request.query,
+                    answer = "An assistant answer",
+                    responseFingerprint = "opaque-signed-token"
+                )
             }
             "reportAssistantResponse" -> {
                 requests += args!![0] as AssistantResponseReportRequest
@@ -126,7 +133,11 @@ class ChatViewModelReportTest {
         when (method) {
             "askLLM" -> {
                 val request = args!![0] as LLMRequest
-                LLMResponse(query = request.query, answer = "An assistant answer")
+                LLMResponse(
+                    query = request.query,
+                    answer = "An assistant answer",
+                    responseFingerprint = "opaque-signed-token"
+                )
             }
             "reportAssistantResponse" -> throw IllegalStateException("private backend text")
             else -> throw UnsupportedOperationException(method)

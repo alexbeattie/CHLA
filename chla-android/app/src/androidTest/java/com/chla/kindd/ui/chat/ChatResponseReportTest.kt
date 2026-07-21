@@ -44,7 +44,7 @@ class ChatResponseReportTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun onlyAssistantCardsExposeAnAccessibleReportAction() {
+    fun onlyFingerprintedAssistantCardsExposeAnAccessibleReportAction() {
         composeRule.setContent {
             KINDDTheme {
                 ChatContent(
@@ -57,7 +57,9 @@ class ChatResponseReportTest {
         }
 
         composeRule.onNodeWithTag("chat_report_response_0").assertDoesNotExist()
-        val action = composeRule.onNodeWithTag("chat_report_response_1")
+        composeRule.onNodeWithTag("chat_report_response_1").assertDoesNotExist()
+        composeRule.onNodeWithTag("chat_report_response_2").assertDoesNotExist()
+        val action = composeRule.onNodeWithTag("chat_report_response_3")
             .performScrollTo()
             .assertIsDisplayed()
             .assertTextEquals("Report response")
@@ -91,7 +93,7 @@ class ChatResponseReportTest {
             }
         }
 
-        composeRule.onNodeWithTag("chat_report_response_1").performScrollTo().performClick()
+        composeRule.onNodeWithTag("chat_report_response_3").performScrollTo().performClick()
         composeRule.onNodeWithTag("chat_report_dialog").assertIsDisplayed()
         composeRule.onNodeWithText("Unsafe or inappropriate").assertIsDisplayed()
         composeRule.onNodeWithText("Inaccurate or misleading").performClick()
@@ -129,13 +131,13 @@ class ChatResponseReportTest {
             )
         }
 
-        val report = composeRule.onNodeWithTag("chat_report_response_1")
+        val report = composeRule.onNodeWithTag("chat_report_response_3")
             .performScrollTo()
             .assertTextEquals("Reportar respuesta")
             .fetchSemanticsNode()
         assertTrue(report.boundsInRoot.left >= 0f)
         assertTrue(report.boundsInRoot.right <= 320f * composeRule.density.density)
-        composeRule.onNodeWithTag("chat_report_response_1")
+        composeRule.onNodeWithTag("chat_report_response_3")
             .performSemanticsAction(SemanticsActions.OnClick)
         composeRule.onNodeWithTag("chat_report_dialog").assertIsDisplayed()
         composeRule.onNodeWithText("Inexacta o engañosa").performClick()
@@ -146,9 +148,21 @@ class ChatResponseReportTest {
         messages = listOf(
             ChatMessage(id = "user-id", role = ChatMessage.Role.USER, content = "A question"),
             ChatMessage(
+                id = "system-id",
+                role = ChatMessage.Role.SYSTEM,
+                content = "A system message",
+                responseFingerprint = "opaque-system-token"
+            ),
+            ChatMessage(
+                id = "assistant-without-fingerprint",
+                role = ChatMessage.Role.ASSISTANT,
+                content = "An old assistant answer"
+            ),
+            ChatMessage(
                 id = "assistant-id",
                 role = ChatMessage.Role.ASSISTANT,
-                content = "An assistant answer"
+                content = "An assistant answer",
+                responseFingerprint = "opaque-signed-token"
             )
         )
     )

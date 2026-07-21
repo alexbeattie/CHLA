@@ -14,10 +14,15 @@ class AssistantResponseReport(models.Model):
         OTHER = "other", "Other"
 
     reason = models.CharField(max_length=32, choices=Reason.choices)
-    reported_response = models.TextField(max_length=6000)
+    reported_response = models.TextField(max_length=12000)
     locale = models.CharField(max_length=16)
     platform = models.CharField(max_length=16, choices=(("android", "Android"),))
     app_version = models.CharField(max_length=32)
+    response_fingerprint_digest = models.CharField(
+        max_length=64,
+        unique=True,
+        editable=False,
+    )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:

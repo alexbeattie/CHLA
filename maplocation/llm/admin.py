@@ -13,6 +13,7 @@ class AssistantResponseReportAdmin(admin.ModelAdmin):
         "locale",
         "platform",
         "app_version",
+        "response_fingerprint_digest",
         "created_at",
     )
     ordering = ("-created_at",)
