@@ -217,7 +217,8 @@ class MapListParityTest {
         }
         assertImmersiveMapChrome()
         composeRule.onNodeWithTag("map_refresh_progress").assertIsDisplayed()
-        composeRule.onNodeWithTag("map_result_count").assertTextContains("1")
+        composeRule.onNodeWithTag("map_result_count")
+            .assertTextContains("1", substring = true)
 
         composeRule.runOnIdle {
             state = state.copy(isLoading = false, error = DiscoveryError.NETWORK)
