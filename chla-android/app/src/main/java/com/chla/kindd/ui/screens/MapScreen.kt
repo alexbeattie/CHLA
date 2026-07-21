@@ -56,6 +56,7 @@ data class MapMarkerModel(
 )
 
 fun providerMarkerModels(providers: List<Provider>): List<MapMarkerModel> = providers.mapNotNull {
+    if (!it.hasValidCoordinates) return@mapNotNull null
     val latitude = it.latitude ?: return@mapNotNull null
     val longitude = it.longitude ?: return@mapNotNull null
     MapMarkerModel(
@@ -163,7 +164,10 @@ fun MapContent(
             )
             Button(
                 onClick = onUseMyLocation,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                enabled = locationState.status != MapLocationStatus.LOCATING,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .testTag("map_use_location")
             ) {
                 Text(stringResource(R.string.discovery_use_my_location))
             }

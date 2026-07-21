@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -34,6 +35,7 @@ import com.chla.kindd.ui.navigation.MainNavActions
 import com.chla.kindd.ui.navigation.Screen
 import com.chla.kindd.ui.screens.MapContent
 import com.chla.kindd.ui.screens.MapLocationState
+import com.chla.kindd.ui.screens.MapLocationStatus
 import com.chla.kindd.ui.screens.MapMarkerModel
 import com.chla.kindd.ui.screens.ProviderListContent
 import com.chla.kindd.ui.screens.ProviderListSort
@@ -129,6 +131,27 @@ class MapListParityTest {
                 controller.state.value.providers.map(Provider::id)
             )
         }
+    }
+
+    @Test
+    fun useMyLocation_isDisabledWhileLocationLookupIsRunning() {
+        composeRule.setContent {
+            KINDDTheme {
+                MapContent(
+                    state = DiscoveryState(hasLoadedOnce = true),
+                    locationState = MapLocationState(
+                        hasPermission = true,
+                        status = MapLocationStatus.LOCATING
+                    ),
+                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
+                    onUseMyLocation = {},
+                    onProviderClick = {},
+                    markerContent = { _, _ -> Unit }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("map_use_location").assertIsNotEnabled()
     }
 
     @Composable

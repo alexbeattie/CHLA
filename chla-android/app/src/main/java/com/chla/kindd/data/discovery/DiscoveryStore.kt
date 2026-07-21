@@ -137,7 +137,8 @@ class DiscoveryStore @Inject constructor(
                     ageGroup = null,
                     diagnosis = null,
                     insurance = null,
-                    radiusMiles = DEFAULT_RADIUS_MILES
+                    radiusMiles = DEFAULT_RADIUS_MILES,
+                    origin = DiscoveryOrigin.LosAngelesCatalog
                 )
             )
             scheduleRequestLocked(force = true)
@@ -224,12 +225,12 @@ class DiscoveryStore @Inject constructor(
                     is PlannedDiscoveryRequest.ProfileZip ->
                         dataSource.getProvidersByRegionalCenter(
                             request = plannedRequest.remote,
-                            limit = RESULT_LIMIT
+                            limit = UNFILTERED_PROFILE_ZIP_LIMIT
                         ).getOrThrow()
                 }
             }
             val providers = if (plannedRequest is PlannedDiscoveryRequest.ProfileZip) {
-                planner.applyLocalFilters(remoteProviders, plannedRequest)
+                planner.applyLocalFilters(remoteProviders, plannedRequest).take(RESULT_LIMIT)
             } else {
                 remoteProviders
             }
@@ -281,5 +282,6 @@ class DiscoveryStore @Inject constructor(
         const val QUERY_DEBOUNCE_MILLIS = 300L
         const val DEFAULT_RADIUS_MILES = 15
         const val RESULT_LIMIT = 50
+        const val UNFILTERED_PROFILE_ZIP_LIMIT = Int.MAX_VALUE
     }
 }

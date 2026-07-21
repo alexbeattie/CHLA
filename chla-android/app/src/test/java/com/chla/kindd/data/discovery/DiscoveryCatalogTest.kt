@@ -87,29 +87,23 @@ class DiscoveryCatalogTest {
     }
 
     @Test
-    fun `discovery state map providers are only the coordinate-bearing subset`() {
-        val bothCoordinates = Provider(
-            id = "both",
-            name = "Both",
-            latitude = 34.0,
-            longitude = -118.0
-        )
-        val latitudeOnly = Provider(
-            id = "latitude",
-            name = "Latitude",
-            latitude = 34.0
-        )
-        val longitudeOnly = Provider(
-            id = "longitude",
-            name = "Longitude",
-            longitude = -118.0
+    fun `discovery state map providers require valid terrestrial coordinates`() {
+        val providers = listOf(
+            provider("null-latitude", latitude = null, longitude = -118.0),
+            provider("null-longitude", latitude = 34.0, longitude = null),
+            provider("nan-latitude", latitude = Double.NaN, longitude = -118.0),
+            provider("infinite-longitude", latitude = 34.0, longitude = Double.POSITIVE_INFINITY),
+            provider("latitude-too-low", latitude = -90.1, longitude = -118.0),
+            provider("latitude-too-high", latitude = 90.1, longitude = -118.0),
+            provider("longitude-too-low", latitude = 34.0, longitude = -180.1),
+            provider("longitude-too-high", latitude = 34.0, longitude = 180.1),
+            provider("zero-origin", latitude = 0.0, longitude = 0.0),
+            provider("los-angeles", latitude = 34.0522, longitude = -118.2437)
         )
 
-        val state = DiscoveryState(
-            providers = listOf(bothCoordinates, latitudeOnly, longitudeOnly)
-        )
+        val state = DiscoveryState(providers = providers)
 
-        assertEquals(listOf("both"), state.mapProviders.map(Provider::id))
+        assertEquals(listOf("los-angeles"), state.mapProviders.map(Provider::id))
     }
 
     @Test
@@ -130,4 +124,11 @@ class DiscoveryCatalogTest {
         assertNull(DiscoveryCriteria().ageGroup)
         assertEquals(AgeGroup.ALL_AGES, DiscoveryCriteria(ageGroup = AgeGroup.ALL_AGES).ageGroup)
     }
+
+    private fun provider(id: String, latitude: Double?, longitude: Double?) = Provider(
+        id = id,
+        name = id,
+        latitude = latitude,
+        longitude = longitude
+    )
 }

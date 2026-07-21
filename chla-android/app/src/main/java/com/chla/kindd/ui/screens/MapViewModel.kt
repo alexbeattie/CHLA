@@ -10,7 +10,9 @@ import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.source.UserLocationSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,6 +46,9 @@ class MapViewModel @Inject constructor(
 
     val mapProviders: List<Provider>
         get() = state.value.mapProviders
+
+    private val locationGeneration = AtomicLong(0)
+    private var locationJob: Job? = null
 
     fun onFirstAppearance() = discoveryController.ensureLoaded()
 
@@ -80,6 +85,10 @@ class MapViewModel @Inject constructor(
     fun retry() = discoveryController.retry()
 
     fun onLocationPermissionResult(granted: Boolean) {
+        val requestGeneration = locationGeneration.incrementAndGet()
+        locationJob?.cancel()
+        locationJob = null
+
         if (!granted) {
             mutableLocationState.value = MapLocationState(
                 hasPermission = false,
@@ -92,23 +101,39 @@ class MapViewModel @Inject constructor(
             hasPermission = true,
             status = MapLocationStatus.LOCATING
         )
-        viewModelScope.launch {
+        locationJob = viewModelScope.launch {
             try {
                 val coordinates = userLocationSource.currentCoordinates()
                 if (coordinates == null) {
-                    mutableLocationState.update { it.copy(status = MapLocationStatus.FAILED) }
+                    updateLocationIfCurrent(requestGeneration) {
+                        it.copy(status = MapLocationStatus.FAILED)
+                    }
                     return@launch
                 }
+                if (locationGeneration.get() != requestGeneration) return@launch
                 discoveryController.useDeviceLocation(
                     latitude = coordinates.latitude,
                     longitude = coordinates.longitude
                 )
-                mutableLocationState.update { it.copy(status = MapLocationStatus.IDLE) }
+                updateLocationIfCurrent(requestGeneration) {
+                    it.copy(status = MapLocationStatus.IDLE)
+                }
             } catch (exception: CancellationException) {
                 throw exception
             } catch (_: Exception) {
-                mutableLocationState.update { it.copy(status = MapLocationStatus.FAILED) }
+                updateLocationIfCurrent(requestGeneration) {
+                    it.copy(status = MapLocationStatus.FAILED)
+                }
             }
+        }
+    }
+
+    private inline fun updateLocationIfCurrent(
+        requestGeneration: Long,
+        transform: (MapLocationState) -> MapLocationState
+    ) {
+        if (locationGeneration.get() == requestGeneration) {
+            mutableLocationState.update(transform)
         }
     }
 

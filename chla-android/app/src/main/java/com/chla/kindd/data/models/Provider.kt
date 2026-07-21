@@ -79,8 +79,19 @@ data class Provider(
                 .distinctBy { it.lowercase() }
         }
 
+    val hasValidCoordinates: Boolean
+        get() {
+            val latitude = latitude ?: return false
+            val longitude = longitude ?: return false
+            return latitude.isFinite() &&
+                longitude.isFinite() &&
+                latitude in -90.0..90.0 &&
+                longitude in -180.0..180.0 &&
+                !(latitude == 0.0 && longitude == 0.0)
+        }
+
     val hasCoordinates: Boolean
-        get() = latitude != null && longitude != null
+        get() = hasValidCoordinates
 }
 
 data class PaginatedResponse<T>(

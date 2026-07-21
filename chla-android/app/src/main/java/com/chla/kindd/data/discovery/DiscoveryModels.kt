@@ -35,5 +35,5 @@ data class DiscoveryState(
     val lastSuccessfulRequestKey: String? = null
 ) {
     val mapProviders: List<Provider>
-        get() = providers.filter(Provider::hasCoordinates)
+        get() = providers.filter(Provider::hasValidCoordinates)
 }

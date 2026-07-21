@@ -232,6 +232,73 @@ class DiscoveryStoreTest {
         }
 
     @Test
+    fun `ProfileZip filters the complete remote result before applying the final cap`() =
+        runTest {
+            val unrelated = (1..50).map { index -> provider("unrelated-$index") }
+            val matching = (51..101).map { index ->
+                Provider(id = "match-$index", name = "Matching Provider $index")
+            }
+            val dataSource = FakeProviderDiscoveryDataSource().apply {
+                enqueueProviders(provider("seed"))
+                enqueueProviders(*(unrelated + matching).toTypedArray())
+            }
+            val fixture = fixture(completeProfile(), dataSource)
+            runCurrent()
+
+            fixture.store.setQuery("matching")
+            advanceTimeBy(300)
+            runCurrent()
+
+            val call = dataSource.calls.last() as ProviderDiscoveryCall.ProfileZip
+            assertEquals(Int.MAX_VALUE, call.limit)
+            assertEquals(50, fixture.store.state.value.providers.size)
+            assertEquals(
+                (51..100).map { index -> "match-$index" },
+                fixture.store.state.value.providers.map(Provider::id)
+            )
+        }
+
+    @Test
+    fun `clear all removes device origin and every facet while preserving the query`() = runTest {
+        val dataSource = FakeProviderDiscoveryDataSource().apply {
+            enqueueProviders(provider("seed"))
+            enqueueProviders(provider("located"))
+            enqueueProviders(provider("cleared"))
+        }
+        val fixture = fixture(completeProfile(), dataSource)
+        runCurrent()
+
+        fixture.store.useDeviceLocation(34.0522, -118.2437)
+        runCurrent()
+        fixture.store.setQuery("support")
+        fixture.store.applyFilters(
+            therapyTypes = setOf(TherapyType.ABA),
+            ageGroup = AgeGroup.ADULT,
+            diagnosis = "Other",
+            insurance = "Medi-Cal",
+            radiusMiles = 50
+        )
+        fixture.store.clearAllFilters()
+
+        assertEquals(
+            DiscoveryCriteria(
+                query = "support",
+                radiusMiles = 15,
+                origin = DiscoveryOrigin.LosAngelesCatalog
+            ),
+            fixture.store.state.value.criteria
+        )
+        runCurrent()
+        assertEquals(
+            ProviderDiscoveryCall.Comprehensive(
+                request = ComprehensiveProviderRequest(query = "support"),
+                limit = 50
+            ),
+            dataSource.calls.last()
+        )
+    }
+
+    @Test
     fun `rapid requests cannot let slower cancellation ignoring result overwrite latest`() =
         runTest {
             val dataSource = FakeProviderDiscoveryDataSource().apply {

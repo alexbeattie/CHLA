@@ -11,10 +11,14 @@ import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.source.FakeUserLocationSource
 import com.chla.kindd.data.source.UserCoordinates
 import com.chla.kindd.testing.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -141,11 +145,108 @@ class MapViewModelTest {
             assertTrue(controller.calls.isEmpty())
         }
 
+    @Test
+    fun `new location request cancels the previous lookup`() = runTest {
+        val first = CompletableDeferred<UserCoordinates?>()
+        val location = SequencedUserLocationSource(
+            first = first,
+            second = UserCoordinates(34.0522, -118.2437),
+            ignoreFirstCancellation = false
+        )
+        val controller = FakeDiscoveryController(stateWithResults())
+        val viewModel = MapViewModel(controller, location)
+
+        viewModel.onLocationPermissionResult(granted = true)
+        runCurrent()
+        viewModel.onLocationPermissionResult(granted = true)
+        runCurrent()
+
+        assertTrue(location.firstWasCancelled)
+        assertEquals(
+            listOf(PresenterCall.UseDeviceLocation(34.0522, -118.2437)),
+            controller.calls
+        )
+        assertEquals(MapLocationStatus.IDLE, viewModel.locationState.value.status)
+    }
+
+    @Test
+    fun `stale cancellation ignoring location cannot update discovery or status`() = runTest {
+        val first = CompletableDeferred<UserCoordinates?>()
+        val location = SequencedUserLocationSource(
+            first = first,
+            second = UserCoordinates(34.0522, -118.2437),
+            ignoreFirstCancellation = true
+        )
+        val controller = FakeDiscoveryController(stateWithResults())
+        val viewModel = MapViewModel(controller, location)
+
+        viewModel.onLocationPermissionResult(granted = true)
+        runCurrent()
+        viewModel.onLocationPermissionResult(granted = true)
+        runCurrent()
+        first.complete(UserCoordinates(33.9425, -118.4081))
+        runCurrent()
+
+        assertEquals(
+            listOf(PresenterCall.UseDeviceLocation(34.0522, -118.2437)),
+            controller.calls
+        )
+        assertEquals(MapLocationStatus.IDLE, viewModel.locationState.value.status)
+    }
+
+    @Test
+    fun `marker models use the same valid coordinate contract as discovery state`() {
+        val providers = listOf(
+            provider("null", latitude = null, longitude = -118.0),
+            provider("nan", latitude = Double.NaN, longitude = -118.0),
+            provider("infinite", latitude = 34.0, longitude = Double.NEGATIVE_INFINITY),
+            provider("latitude-range", latitude = 91.0, longitude = -118.0),
+            provider("longitude-range", latitude = 34.0, longitude = -181.0),
+            provider("zero", latitude = 0.0, longitude = 0.0),
+            provider("valid", latitude = 34.0522, longitude = -118.2437)
+        )
+
+        assertEquals(
+            DiscoveryState(providers = providers).mapProviders.map(Provider::id),
+            providerMarkerModels(providers).map(MapMarkerModel::providerId)
+        )
+        assertEquals(listOf("valid"), providerMarkerModels(providers).map(MapMarkerModel::providerId))
+    }
+
     private fun stateWithResults() = DiscoveryState(
         criteria = DiscoveryCriteria(origin = DiscoveryOrigin.ProfileZip("90001")),
         providers = listOf(provider("kept", latitude = 34.0, longitude = -118.0)),
         hasLoadedOnce = true
     )
+}
+
+private class SequencedUserLocationSource(
+    private val first: CompletableDeferred<UserCoordinates?>,
+    private val second: UserCoordinates,
+    private val ignoreFirstCancellation: Boolean
+) : com.chla.kindd.data.source.UserLocationSource {
+    private var calls = 0
+    var firstWasCancelled: Boolean = false
+        private set
+
+    override fun hasLocationPermission(): Boolean = true
+
+    override suspend fun currentCoordinates(): UserCoordinates? = when (++calls) {
+        1 -> if (ignoreFirstCancellation) {
+            withContext(NonCancellable) { first.await() }
+        } else {
+            try {
+                first.await()
+            } catch (cancellation: java.util.concurrent.CancellationException) {
+                firstWasCancelled = true
+                throw cancellation
+            }
+        }
+        2 -> second
+        else -> error("Unexpected location call")
+    }
+
+    override suspend fun zipCodeFor(coordinates: UserCoordinates): String? = null
 }
 
 internal sealed interface PresenterCall {
