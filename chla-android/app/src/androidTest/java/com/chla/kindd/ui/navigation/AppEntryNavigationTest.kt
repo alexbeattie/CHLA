@@ -1,6 +1,7 @@
 package com.chla.kindd.ui.navigation
 
 import android.content.res.Configuration
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -10,13 +11,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
@@ -267,7 +272,7 @@ class AppEntryNavigationTest {
     }
 
     @Test
-    fun typedChatRoutesDecodeEveryFixedKey_andSelectChatByDestinationPattern() {
+    fun floatingNavigation_exposesSixIconOnlyLocalizedActions_withMinimumTouchBounds() {
         lateinit var navController: TestNavHostController
 
         composeRule.setContent {
@@ -281,30 +286,37 @@ class AppEntryNavigationTest {
             }
         }
 
-        ChatLaunchPrompt.entries.forEach { prompt ->
-            composeRule.runOnIdle {
-                navController.navigate(Screen.Chat.createRoute(prompt))
-            }
+        val expectedActions = listOf(
+            BOTTOM_HOME_TAG to localizedString(R.string.nav_home, Locale.ENGLISH),
+            BOTTOM_MAP_TAG to localizedString(R.string.nav_map, Locale.ENGLISH),
+            BOTTOM_ASK_TAG to "Ask KiNDD",
+            BOTTOM_REGIONS_TAG to "Regions",
+            BOTTOM_LIST_TAG to localizedString(R.string.nav_list, Locale.ENGLISH),
+            BOTTOM_MORE_TAG to "More"
+        )
+        val minimumPixels = 48f * composeRule.density.density
 
-            composeRule.onNodeWithTag(CHAT_TAG).assertTextEquals(prompt.routeValue)
-            composeRule.onNodeWithTag(BOTTOM_CHAT_TAG).assertIsSelected()
-            composeRule.runOnIdle {
-                assertEquals(Screen.Chat.destinationRoute, navController.currentDestination?.route)
-                assertEquals(
-                    prompt.routeValue,
-                    navController.currentBackStackEntry?.arguments?.getString("prompt")
-                )
-                assertFalse(
-                    Screen.Chat.createRoute(prompt).contains(
-                        localizedString(prompt.promptResId, Locale.ENGLISH)
-                    )
-                )
-            }
+        expectedActions.forEach { (tag, label) ->
+            val node = composeRule.onNodeWithTag(tag)
+                .assertExists()
+                .assertContentDescriptionEquals(label)
+                .fetchSemanticsNode()
+            assertTrue("$tag is narrower than 48dp", node.boundsInRoot.width >= minimumPixels)
+            assertTrue("$tag is shorter than 48dp", node.boundsInRoot.height >= minimumPixels)
+            assertTrue(
+                "$tag exposes a visible navigation text label",
+                node.config.getOrNull(SemanticsProperties.Text).orEmpty().isEmpty()
+            )
+        }
+
+        composeRule.onNodeWithTag(BOTTOM_HOME_TAG).assertIsSelected()
+        composeRule.runOnIdle {
+            assertEquals(Screen.Home.route, navController.currentDestination?.route)
         }
     }
 
     @Test
-    fun bottomNavigationChatDeliversNoPrompt_andStillSelectsPatternDestination() {
+    fun floatingNavigation_isNarrowerThanRoot_andOverlaysDestinationContent() {
         lateinit var navController: TestNavHostController
 
         composeRule.setContent {
@@ -318,13 +330,129 @@ class AppEntryNavigationTest {
             }
         }
 
-        composeRule.onNodeWithTag(BOTTOM_CHAT_TAG).performClick()
+        val rootBounds = composeRule.onNodeWithTag(MAIN_NAV_ROOT_TAG)
+            .fetchSemanticsNode().boundsInRoot
+        val capsuleBounds = composeRule.onNodeWithTag(FLOATING_NAV_CAPSULE_TAG)
+            .fetchSemanticsNode().boundsInRoot
 
-        composeRule.onNodeWithTag(CHAT_TAG).assertTextEquals(NO_PROMPT_TEXT)
-        composeRule.onNodeWithTag(BOTTOM_CHAT_TAG).assertIsSelected()
+        assertTrue("Floating navigation must not consume the full width", capsuleBounds.width < rootBounds.width)
+        assertTrue("Floating navigation must sit inside the content root", capsuleBounds.bottom <= rootBounds.bottom)
+        composeRule.onNodeWithTag(HOME_TAG).assertExists()
+    }
+
+    @Test
+    fun regionsAndMore_useExistingRoutes_whilePrimaryDestinationsPreserveGraphState() {
+        lateinit var navController: TestNavHostController
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDMainNavHost(
+                    profile = completeProfile(),
+                    navController = navController,
+                    destinationContent = TaggedMainDestinationContent
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(BOTTOM_REGIONS_TAG).performClick()
+        composeRule.onNodeWithTag(REGIONS_TAG).assertExists()
         composeRule.runOnIdle {
-            assertEquals(Screen.Chat.destinationRoute, navController.currentDestination?.route)
-            assertNull(navController.currentBackStackEntry?.arguments?.getString("prompt"))
+            assertEquals(Screen.RegionalCenters.route, navController.currentDestination?.route)
+        }
+
+        composeRule.onNodeWithTag(BOTTOM_HOME_TAG).performClick()
+        composeRule.onNodeWithTag(HOME_TAG).assertExists()
+        composeRule.onNodeWithTag(BOTTOM_MAP_TAG).performClick()
+        composeRule.onNodeWithTag(MAP_TAG).assertExists()
+        composeRule.onNodeWithTag(BOTTOM_LIST_TAG).performClick()
+        composeRule.onNodeWithTag(LIST_TAG).assertExists()
+
+        composeRule.onNodeWithTag(BOTTOM_MORE_TAG).performClick()
+        composeRule.onNodeWithTag(SETTINGS_TAG).assertExists()
+        composeRule.runOnIdle {
+            assertEquals(Screen.Settings.route, navController.currentDestination?.route)
+            assertNull(navController.graph.findNode("onboarding"))
+        }
+    }
+
+    @Test
+    fun ask_opensDismissibleChatSheet_overCurrentDestination() {
+        lateinit var navController: TestNavHostController
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDMainNavHost(
+                    profile = completeProfile(),
+                    navController = navController,
+                    destinationContent = TaggedMainDestinationContent
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(BOTTOM_MAP_TAG).performClick()
+        composeRule.onNodeWithTag(MAP_TAG).assertExists()
+        composeRule.onNodeWithTag(BOTTOM_ASK_TAG).performClick()
+
+        composeRule.onNodeWithTag(CHAT_SHEET_TAG).assertExists()
+        composeRule.onNodeWithTag(CHAT_TAG).assertTextEquals(NO_PROMPT_TEXT)
+        composeRule.onNodeWithTag(MAP_TAG).assertExists()
+        composeRule.runOnIdle {
+            assertEquals(Screen.Map.route, navController.currentDestination?.route)
+        }
+
+        pressBack()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(CHAT_SHEET_TAG).assertDoesNotExist()
+        composeRule.onNodeWithTag(CHAT_TAG).assertDoesNotExist()
+        composeRule.onNodeWithTag(MAP_TAG).assertExists()
+    }
+
+    @Test
+    fun typedChatLaunchPrompt_opensSheet_deliversOnce_withoutPuttingTextInRoute() {
+        lateinit var navController: TestNavHostController
+        val deliveredPrompts = mutableListOf<ChatLaunchPrompt?>()
+        val recordingContent = object : MainDestinationContent by TaggedMainDestinationContent {
+            @Composable
+            override fun chat(prompt: ChatLaunchPrompt?, actions: MainNavActions) {
+                DisposableEffect(prompt) {
+                    deliveredPrompts += prompt
+                    onDispose { }
+                }
+                Text(
+                    text = prompt?.routeValue ?: NO_PROMPT_TEXT,
+                    modifier = Modifier.testTag(CHAT_TAG)
+                )
+            }
+        }
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDMainNavHost(
+                    profile = completeProfile(),
+                    navController = navController,
+                    destinationContent = recordingContent
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(TYPED_CHAT_LAUNCH_TAG).performClick()
+        composeRule.onNodeWithTag(CHAT_SHEET_TAG).assertExists()
+        composeRule.onNodeWithTag(CHAT_TAG)
+            .assertTextEquals(ChatLaunchPrompt.JUST_DIAGNOSED.routeValue)
+        composeRule.runOnIdle {
+            assertEquals(listOf(ChatLaunchPrompt.JUST_DIAGNOSED), deliveredPrompts)
+            assertEquals(Screen.Home.route, navController.currentDestination?.route)
+            assertFalse(
+                navController.currentDestination?.route.orEmpty().contains(
+                    localizedString(
+                        ChatLaunchPrompt.JUST_DIAGNOSED.promptResId,
+                        Locale.ENGLISH
+                    )
+                )
+            )
         }
     }
 
@@ -407,6 +535,12 @@ class AppEntryNavigationTest {
         @Composable
         override fun home(profile: UserProfile, actions: MainNavActions) {
             TaggedDestination(HOME_TAG)
+            Button(
+                onClick = { actions.navigateToChat(ChatLaunchPrompt.JUST_DIAGNOSED) },
+                modifier = Modifier.testTag(TYPED_CHAT_LAUNCH_TAG)
+            ) {
+                Text("Open typed chat")
+            }
             Text(
                 text = listOf(
                     profile.zipCode.orEmpty(),
@@ -481,7 +615,13 @@ class AppEntryNavigationTest {
         const val BOTTOM_HOME_TAG = "bottom_nav_home"
         const val BOTTOM_MAP_TAG = "bottom_nav_map"
         const val BOTTOM_LIST_TAG = "bottom_nav_list"
-        const val BOTTOM_CHAT_TAG = "bottom_nav_chat"
+        const val BOTTOM_ASK_TAG = "bottom_nav_ask"
+        const val BOTTOM_REGIONS_TAG = "bottom_nav_regions"
+        const val BOTTOM_MORE_TAG = "bottom_nav_more"
+        const val FLOATING_NAV_CAPSULE_TAG = "floating_nav_capsule"
+        const val MAIN_NAV_ROOT_TAG = "main_nav_root"
+        const val CHAT_SHEET_TAG = "chat_modal_sheet"
+        const val TYPED_CHAT_LAUNCH_TAG = "launch_typed_chat"
         const val NO_PROMPT_TEXT = "no_prompt"
     }
 }

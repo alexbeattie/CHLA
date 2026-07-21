@@ -1,6 +1,12 @@
 package com.chla.kindd.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.List
@@ -12,18 +18,18 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -35,6 +41,8 @@ import androidx.navigation.navArgument
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
+import com.chla.kindd.ui.theme.KiNDDShapeTokens
+import com.chla.kindd.ui.theme.KiNDDSpacingTokens
 
 sealed class Screen(
     val route: String,
@@ -70,14 +78,7 @@ sealed class Screen(
     data object EditProfile : Screen("edit-profile", R.string.welcome, Icons.Filled.Settings, Icons.Outlined.Settings)
 }
 
-val bottomNavItems = listOf(
-    Screen.Home,
-    Screen.Map,
-    Screen.Providers,
-    Screen.Chat,
-    Screen.Settings
-)
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KINDDMainNavHost(
     profile: UserProfile,
@@ -86,63 +87,53 @@ fun KINDDMainNavHost(
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val showBottomBar = currentDestination?.route !in setOf(
+    val showFloatingNavigation = currentDestination?.route !in setOf(
         Screen.ProviderDetail.route,
-        Screen.EditProfile.route
+        Screen.EditProfile.route,
+        Screen.Chat.destinationRoute
     )
+    var showChatSheet by rememberSaveable { mutableStateOf(false) }
+    var chatPromptRouteValue by rememberSaveable { mutableStateOf<String?>(null) }
+    val chatPrompt = ChatLaunchPrompt.fromRouteValue(chatPromptRouteValue)
+    val dismissChat = {
+        showChatSheet = false
+        chatPromptRouteValue = null
+    }
+    val navigateToPrimaryDestination: (Screen) -> Unit = { screen ->
+        navController.navigate(screen.route) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
     val actions = MainNavActions(
-        navigateToMap = { navController.navigate(Screen.Map.route) },
-        navigateToList = { navController.navigate(Screen.Providers.route) },
-        navigateToRegions = { navController.navigate(Screen.RegionalCenters.route) },
-        navigateToChat = { prompt -> navController.navigate(Screen.Chat.createRoute(prompt)) },
+        navigateToMap = { navigateToPrimaryDestination(Screen.Map) },
+        navigateToList = { navigateToPrimaryDestination(Screen.Providers) },
+        navigateToRegions = { navigateToPrimaryDestination(Screen.RegionalCenters) },
+        navigateToChat = { prompt ->
+            chatPromptRouteValue = prompt?.routeValue
+            showChatSheet = true
+        },
         navigateToProviderDetail = { providerId -> navController.navigate("provider/$providerId") },
         navigateToFaq = { navController.navigate(Screen.FAQ.route) },
         navigateToAbout = { navController.navigate(Screen.About.route) },
         navigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
-        navigateBack = { navController.popBackStack() }
+        navigateBack = {
+            if (showChatSheet) dismissChat() else navController.popBackStack()
+        }
     )
 
-    Scaffold(
-        bottomBar = {
-            if (showBottomBar) {
-                NavigationBar {
-                    bottomNavItems.forEach { screen ->
-                        val selected = currentDestination?.hierarchy?.any {
-                            it.route == screen.destinationRoute
-                        } == true
-                        NavigationBarItem(
-                            icon = {
-                                Icon(
-                                    imageVector = if (selected) {
-                                        screen.selectedIcon
-                                    } else {
-                                        screen.unselectedIcon
-                                    },
-                                    contentDescription = stringResource(screen.titleRes)
-                                )
-                            },
-                            label = { Text(stringResource(screen.titleRes)) },
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            modifier = Modifier.testTag(screen.bottomNavigationTag())
-                        )
-                    }
-                }
-            }
-        }
-    ) { innerPadding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("main_nav_root")
+    ) {
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.fillMaxSize()
         ) {
             composable(Screen.Home.route) {
                 destinationContent.home(profile, actions)
@@ -166,7 +157,11 @@ fun KINDDMainNavHost(
                 val prompt = ChatLaunchPrompt.fromRouteValue(
                     backStackEntry.arguments?.getString("prompt")
                 )
-                destinationContent.chat(prompt, actions)
+                LaunchedEffect(backStackEntry.id, prompt) {
+                    chatPromptRouteValue = prompt?.routeValue
+                    showChatSheet = true
+                    navController.popBackStack()
+                }
             }
             composable(Screen.Settings.route) {
                 destinationContent.settings(actions)
@@ -194,10 +189,44 @@ fun KINDDMainNavHost(
                 destinationContent.editProfile(profile, actions)
             }
         }
-    }
-}
 
-private fun Screen.bottomNavigationTag(): String = when (this) {
-    Screen.Providers -> "bottom_nav_list"
-    else -> "bottom_nav_$route"
+        if (showFloatingNavigation) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(
+                        horizontal = KiNDDSpacingTokens.PageInset,
+                        vertical = KiNDDSpacingTokens.FloatingNavigationBottom
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                KiNDDFloatingNavigation(
+                    currentRoute = currentDestination?.route,
+                    onDestinationClick = navigateToPrimaryDestination,
+                    onAskClick = { actions.navigateToChat(null) }
+                )
+            }
+        }
+    }
+
+    if (showChatSheet) {
+        ModalBottomSheet(
+            onDismissRequest = dismissChat,
+            shape = RoundedCornerShape(
+                topStart = KiNDDShapeTokens.Sheet,
+                topEnd = KiNDDShapeTokens.Sheet
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.94f)
+                    .testTag("chat_modal_sheet")
+            ) {
+                destinationContent.chat(chatPrompt, actions)
+            }
+        }
+    }
 }

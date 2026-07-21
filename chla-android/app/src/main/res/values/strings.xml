@@ -8,6 +8,9 @@
     <string name="nav_list">List</string>
     <string name="nav_chat">Chat</string>
     <string name="nav_settings">Settings</string>
+    <string name="nav_ask">Ask KiNDD</string>
+    <string name="nav_regions">Regions</string>
+    <string name="nav_more">More</string>
 
     <!-- Home Screen -->
     <string name="home_title">KINDD Resource Navigator</string>
