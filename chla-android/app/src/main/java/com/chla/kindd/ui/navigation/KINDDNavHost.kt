@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -101,6 +102,7 @@ fun KINDDMainNavHost(
         } == true
     var showChatSheet by rememberSaveable { mutableStateOf(false) }
     var chatPromptRouteValue by rememberSaveable { mutableStateOf<String?>(null) }
+    val chatSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val chatPrompt = ChatLaunchPrompt.fromRouteValue(chatPromptRouteValue)
     val dismissChat = {
         showChatSheet = false
@@ -238,6 +240,7 @@ fun KINDDMainNavHost(
     if (showChatSheet) {
         ModalBottomSheet(
             onDismissRequest = dismissChat,
+            sheetState = chatSheetState,
             shape = RoundedCornerShape(
                 topStart = KiNDDShapeTokens.Sheet,
                 topEnd = KiNDDShapeTokens.Sheet

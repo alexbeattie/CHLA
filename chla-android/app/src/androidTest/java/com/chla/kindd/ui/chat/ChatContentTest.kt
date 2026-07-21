@@ -1,17 +1,33 @@
 package com.chla.kindd.ui.chat
 
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import androidx.test.platform.app.InstrumentationRegistry
 import com.chla.kindd.data.api.KINDDApi
 import com.chla.kindd.data.api.LLMRequest
 import com.chla.kindd.data.api.LLMResponse
@@ -27,6 +43,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import java.util.Locale
 
 class ChatContentTest {
 
@@ -63,8 +80,99 @@ class ChatContentTest {
     }
 
     @Test
-    fun messageFlow_usesGradientAndNeutralCards_retainsSanitizedError_andConfirmsClear() {
+    fun researchPrompt_sendsTheDedicatedLocalizedQuestionExactlyOnce() {
+        val sends = mutableListOf<String>()
+        composeRule.setContent {
+            KINDDTheme {
+                ChatContent(
+                    uiState = ChatUiState(),
+                    onSend = { sends += it },
+                    onRetry = {},
+                    onClear = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("chat_prompt_research")
+            .performScrollTo()
+            .performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf("Which genes have the strongest SFARI evidence for autism?"),
+                sends
+            )
+        }
+    }
+
+    @Test
+    fun loading_disablesSuggestionPromptsAsWellAsTheComposer() {
+        composeRule.setContent {
+            KINDDTheme {
+                ChatContent(
+                    uiState = ChatUiState(isLoading = true),
+                    onSend = {},
+                    onRetry = {},
+                    onClear = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("chat_prompt_near_me").assertIsNotEnabled()
+        composeRule.onNodeWithTag("chat_prompt_research").assertIsNotEnabled()
+        composeRule.onNodeWithTag("chat_send").assertIsNotEnabled()
+    }
+
+    @Test
+    fun assistantMessage_rendersSafeContractMarkdownInsideAVioletEdgedCard() {
+        composeRule.setContent {
+            KINDDTheme {
+                ChatContent(
+                    uiState = ChatUiState(
+                        messages = listOf(
+                            ChatMessage(
+                                role = ChatMessage.Role.ASSISTANT,
+                                content = "**Next step:**\n- Read [KiNDD](https://kinddhelp.com)."
+                            )
+                        )
+                    ),
+                    onSend = {},
+                    onRetry = {},
+                    onClear = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("chat_assistant_message_0").assertIsDisplayed()
+        composeRule.onNodeWithTag("chat_assistant_edge_0").assertIsDisplayed()
+        composeRule.onNodeWithTag("chat_assistant_markdown_0")
+            .assertTextEquals("Next step:\n• Read KiNDD.")
+    }
+
+    @Test
+    fun safeMarkdownLink_opensOnlyTheAnnotatedWebDestination() {
+        var openedUrl: String? = null
+        composeRule.setContent {
+            KINDDTheme {
+                SafeMarkdownText(
+                    markdown = "[Source](https://kinddhelp.com)",
+                    modifier = Modifier.testTag("safe_markdown_link"),
+                    onOpenLink = { openedUrl = it }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("safe_markdown_link").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals("https://kinddhelp.com", openedUrl)
+        }
+    }
+
+    @Test
+    fun messageFlow_usesGradientAndNeutralCards_retainsRetryableError_andConfirmsClear() {
         var clearCount = 0
+        var retryCount = 0
         composeRule.setContent {
             KINDDTheme {
                 ChatContent(
@@ -82,6 +190,7 @@ class ChatContentTest {
                         error = ChatFailure.REQUEST_FAILED
                     ),
                     onSend = {},
+                    onRetry = { retryCount += 1 },
                     onClear = { clearCount += 1 }
                 )
             }
@@ -90,9 +199,10 @@ class ChatContentTest {
         composeRule.onNodeWithTag("chat_user_message_0").assertIsDisplayed()
         composeRule.onNodeWithTag("chat_assistant_message_1").assertIsDisplayed()
         composeRule.onNodeWithTag("chat_error").assertIsDisplayed()
-        composeRule.onNodeWithText("We couldn't get a response. Please try again.")
-            .assertIsDisplayed()
+        composeRule.onNodeWithText("Your question wasn’t lost", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("private backend text").assertDoesNotExist()
+        composeRule.onNodeWithTag("chat_retry").performClick()
+        composeRule.runOnIdle { assertEquals(1, retryCount) }
 
         composeRule.onNodeWithTag("chat_overflow").performClick()
         composeRule.onNodeWithTag("chat_clear_action").performClick()
@@ -114,6 +224,7 @@ class ChatContentTest {
                         sends += message
                         uiState = uiState.copy(isLoading = true)
                     },
+                    onRetry = {},
                     onClear = {}
                 )
             }
@@ -125,6 +236,85 @@ class ChatContentTest {
         composeRule.runOnIdle { assertEquals(listOf("Help me find services"), sends) }
         composeRule.onNodeWithTag("chat_loading").assertIsDisplayed()
         composeRule.onNodeWithTag("chat_send").assertIsNotEnabled()
+    }
+
+    @Test
+    fun spanishToolbar_at320DpAndLargeText_keepsTitleClearOfOverflow() {
+        val sends = mutableListOf<String>()
+        setNarrowLocalizedContent(
+            locale = Locale.forLanguageTag("es"),
+            widthDp = 320,
+            fontScale = 1.3f
+        ) {
+            ChatContent(
+                uiState = ChatUiState(
+                    messages = listOf(
+                        ChatMessage(
+                            role = ChatMessage.Role.USER,
+                            content = "Una pregunta"
+                        )
+                    )
+                ),
+                onSend = { sends += it },
+                onRetry = {},
+                onClear = {}
+            )
+        }
+
+        composeRule.onNodeWithTag("chat_toolbar_title")
+            .assertIsDisplayed()
+            .assertTextEquals("Pregúntale a KiNDD")
+        val titleBounds = composeRule.onNodeWithTag("chat_toolbar_title")
+            .fetchSemanticsNode().boundsInRoot
+        val overflowBounds = composeRule.onNodeWithTag("chat_overflow")
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "Spanish Ask title must not overlap the overflow action",
+            titleBounds.right <= overflowBounds.left
+        )
+        composeRule.onNodeWithTag("chat_prompt_research")
+            .performScrollTo()
+            .performClick()
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf("¿Qué genes tienen la evidencia más sólida de SFARI para el autismo?"),
+                sends
+            )
+        }
+    }
+
+    private fun setNarrowLocalizedContent(
+        locale: Locale,
+        widthDp: Int,
+        fontScale: Float,
+        content: @Composable () -> Unit
+    ) {
+        val baseContext = InstrumentationRegistry.getInstrumentation().targetContext
+        val configuration = Configuration(baseContext.resources.configuration).apply {
+            setLocale(locale)
+            screenWidthDp = widthDp
+            screenHeightDp = 720
+            this.fontScale = fontScale
+        }
+        val localizedContext = baseContext.createConfigurationContext(configuration)
+        composeRule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(
+                LocalContext provides localizedContext,
+                LocalConfiguration provides configuration,
+                LocalDensity provides Density(density.density, fontScale)
+            ) {
+                KINDDTheme {
+                    Box(
+                        Modifier
+                            .width(widthDp.dp)
+                            .height(720.dp)
+                    ) {
+                        content()
+                    }
+                }
+            }
+        }
     }
 
     private fun successApi(): KINDDApi =

@@ -2,6 +2,7 @@ package com.chla.kindd.ui.chat
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,6 +55,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -68,6 +70,8 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.models.ChatMessage
@@ -82,20 +86,42 @@ import com.chla.kindd.ui.theme.kinddTopWash
 private data class PromptCapsule(
     @StringRes val labelRes: Int,
     @StringRes val promptRes: Int,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val tag: String
 )
 
 private val promptCapsules = listOf(
-    PromptCapsule(R.string.chat_prompt_near_me, R.string.suggestion_find_providers, Icons.Default.LocationOn),
-    PromptCapsule(R.string.chat_prompt_research, R.string.suggestion_insurance, Icons.Default.Search),
-    PromptCapsule(R.string.chat_prompt_assessment, R.string.suggestion_eligibility, Icons.Default.Checklist),
-    PromptCapsule(R.string.chat_prompt_centers, R.string.suggestion_regional_center, Icons.Default.QuestionAnswer)
+    PromptCapsule(
+        R.string.chat_prompt_near_me,
+        R.string.suggestion_find_providers,
+        Icons.Default.LocationOn,
+        "chat_prompt_near_me"
+    ),
+    PromptCapsule(
+        R.string.chat_prompt_research,
+        R.string.chat_prompt_research_query,
+        Icons.Default.Search,
+        "chat_prompt_research"
+    ),
+    PromptCapsule(
+        R.string.chat_prompt_assessment,
+        R.string.suggestion_eligibility,
+        Icons.Default.Checklist,
+        "chat_prompt_assessment"
+    ),
+    PromptCapsule(
+        R.string.chat_prompt_centers,
+        R.string.suggestion_regional_center,
+        Icons.Default.QuestionAnswer,
+        "chat_prompt_centers"
+    )
 )
 
 @Composable
 fun ChatContent(
     uiState: ChatUiState,
     onSend: (String) -> Unit,
+    onRetry: () -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -127,7 +153,10 @@ fun ChatContent(
                 hasMessages = uiState.messages.isNotEmpty(),
                 onRequestClear = { showClearConfirmation = true }
             )
-            ChatPromptCapsules(onSend = onSend)
+            ChatPromptCapsules(
+                enabled = !uiState.isLoading,
+                onSend = onSend
+            )
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -147,7 +176,7 @@ fun ChatContent(
                     item { ChatLoadingCard() }
                 }
                 if (uiState.error != null) {
-                    item { ChatErrorCard() }
+                    item { ChatErrorCard(onRetry = onRetry) }
                 }
             }
             ChatComposer(
@@ -200,32 +229,44 @@ private fun ChatToolbar(
     onRequestClear: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
             .testTag("chat_toolbar"),
-        contentAlignment = Alignment.Center
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        Spacer(modifier = Modifier.size(48.dp))
         Row(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(9.dp)
+            horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = Icons.Default.AutoAwesome,
                 contentDescription = null,
                 tint = KiNDDViolet,
-                modifier = Modifier.size(26.dp)
+                modifier = Modifier.size(24.dp)
             )
+            Spacer(Modifier.width(7.dp))
             Text(
                 text = stringResource(R.string.chat_title),
+                modifier = Modifier.testTag("chat_toolbar_title"),
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
-        if (hasMessages) {
-            Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+        Box(
+            modifier = Modifier.size(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (hasMessages) {
                 IconButton(
                     onClick = { showMenu = true },
                     modifier = Modifier
@@ -259,7 +300,10 @@ private fun ChatToolbar(
 }
 
 @Composable
-private fun ChatPromptCapsules(onSend: (String) -> Unit) {
+private fun ChatPromptCapsules(
+    enabled: Boolean,
+    onSend: (String) -> Unit
+) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -267,13 +311,18 @@ private fun ChatPromptCapsules(onSend: (String) -> Unit) {
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(promptCapsules) { prompt ->
+        items(promptCapsules, key = PromptCapsule::tag) { prompt ->
             val fullPrompt = stringResource(prompt.promptRes)
             Surface(
                 modifier = Modifier
                     .heightIn(min = 48.dp)
-                    .clickable(role = Role.Button) { onSend(fullPrompt) }
-                    .semantics { role = Role.Button },
+                    .alpha(if (enabled) 1f else 0.54f)
+                    .testTag(prompt.tag)
+                    .clickable(enabled = enabled, role = Role.Button) { onSend(fullPrompt) }
+                    .semantics {
+                        role = Role.Button
+                        if (!enabled) disabled()
+                    },
                 shape = RoundedCornerShape(percent = 50),
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 2.dp,
@@ -345,8 +394,14 @@ private fun ChatWelcomeCard() {
 @Composable
 private fun ChatMessageCard(message: ChatMessage, index: Int) {
     val isUser = message.isUser
+    val bubbleShape = RoundedCornerShape(20.dp)
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (isUser) Modifier
+                else Modifier.testTag("chat_assistant_message_$index")
+            ),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
@@ -374,7 +429,15 @@ private fun ChatMessageCard(message: ChatMessage, index: Int) {
                     if (isUser) Modifier.widthIn(max = 310.dp)
                     else Modifier.weight(1f)
                 )
-                .clip(RoundedCornerShape(20.dp))
+                .then(
+                    if (isUser) Modifier
+                    else Modifier.border(
+                        width = 1.dp,
+                        color = KiNDDViolet.copy(alpha = 0.48f),
+                        shape = bubbleShape
+                    )
+                )
+                .clip(bubbleShape)
                 .background(
                     if (isUser) KiNDDPrimaryActionGradient
                     else Brush.linearGradient(
@@ -385,13 +448,23 @@ private fun ChatMessageCard(message: ChatMessage, index: Int) {
                     )
                 )
                 .padding(horizontal = 14.dp, vertical = 12.dp)
-                .testTag(if (isUser) "chat_user_message_$index" else "chat_assistant_message_$index")
+                .testTag(if (isUser) "chat_user_message_$index" else "chat_assistant_edge_$index")
         ) {
-            Text(
-                text = message.content,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (isUser) Color.White else MaterialTheme.colorScheme.onSurface
-            )
+            if (isUser) {
+                Text(
+                    text = message.content,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White
+                )
+            } else {
+                SafeMarkdownText(
+                    markdown = message.content,
+                    modifier = Modifier.testTag("chat_assistant_markdown_$index"),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
         }
     }
 }
@@ -420,21 +493,59 @@ private fun ChatLoadingCard() {
 }
 
 @Composable
-private fun ChatErrorCard() {
-    Surface(
+private fun ChatErrorCard(onRetry: () -> Unit) {
+    val shape = RoundedCornerShape(20.dp)
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("chat_error")
             .semantics { liveRegion = LiveRegionMode.Polite },
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.errorContainer
+        verticalAlignment = Alignment.Top
     ) {
-        Text(
-            text = stringResource(R.string.chat_request_failed),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier.padding(14.dp)
-        )
+        Box(
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(KiNDDAiGradient),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(13.dp)
+            )
+        }
+        Spacer(Modifier.width(7.dp))
+        Surface(
+            modifier = Modifier
+                .weight(1f)
+                .border(
+                    width = 1.dp,
+                    color = KiNDDViolet.copy(alpha = 0.48f),
+                    shape = shape
+                ),
+            shape = shape,
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                Text(
+                    text = stringResource(R.string.chat_request_failed),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                TextButton(
+                    onClick = onRetry,
+                    modifier = Modifier.testTag("chat_retry")
+                ) {
+                    Text(
+                        text = stringResource(R.string.retry),
+                        color = KiNDDIndigo
+                    )
+                }
+            }
+        }
     }
 }
 

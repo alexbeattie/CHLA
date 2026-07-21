@@ -221,7 +221,7 @@
     <string name="chat_welcome_title">Pregúntale a KiNDD</string>
     <string name="chat_welcome_body">Ayuda con IA para encontrar servicios para el desarrollo</string>
     <string name="chat_try_asking">Puedes preguntar:</string>
-    <string name="chat_request_failed">No pudimos obtener una respuesta. Inténtalo de nuevo.</string>
+    <string name="chat_request_failed">No pude comunicarme con KiNDD en este momento. Es posible que se haya interrumpido tu conexión o que el servicio no esté disponible temporalmente. Tu pregunta no se perdió; toca Reintentar para intentarlo de nuevo.</string>
     <string name="chat_prompt_just_diagnosed">Acabamos de recibir un diagnóstico. ¿Qué debo decir cuando llame a mi centro regional para solicitar una evaluación inicial para mi hijo?</string>
     <string name="chat_prompt_waiting_intake">¿Cómo nos preparamos para la cita de evaluación inicial del centro regional? ¿Qué documentos e información debemos llevar?</string>
     <string name="chat_prompt_receiving_services">Mi hijo ya recibe servicios del centro regional. ¿Cómo me preparo para una reunión del IPP y qué servicios puedo solicitar?</string>

@@ -7,6 +7,9 @@ import com.chla.kindd.testing.MainDispatcherRule
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import java.lang.reflect.Proxy
 import java.util.concurrent.CancellationException
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.resume
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -29,9 +32,10 @@ class ChatViewModelInitialPromptTest {
 
         ChatLaunchPrompt.entries.forEach { prompt ->
             viewModel.sendInitialPrompt(prompt.routeValue, "localized ${prompt.routeValue}")
+            runCurrent()
             viewModel.sendInitialPrompt(prompt.routeValue, "reopened ${prompt.routeValue}")
+            runCurrent()
         }
-        runCurrent()
 
         assertEquals(ChatLaunchPrompt.entries.size * 2, requests.size)
         assertEquals(
@@ -72,12 +76,100 @@ class ChatViewModelInitialPromptTest {
             assertNull(cancelled.uiState.value.error)
         }
 
+    @Test
+    fun sendMessage_ignoresAdditionalQuestionsWhileARequestIsInFlight() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val requests = mutableListOf<LLMRequest>()
+            val viewModel = ChatViewModel(api(requests), mainDispatcherRule.testDispatcher)
+
+            viewModel.sendMessage("first question")
+            viewModel.sendMessage("second question")
+            runCurrent()
+
+            assertEquals(listOf("first question"), requests.map(LLMRequest::query))
+            assertEquals(
+                listOf("first question", "answer"),
+                viewModel.uiState.value.messages.map { it.content }
+            )
+        }
+
+    @Test
+    fun clearChat_resetsEveryStateAndPreventsThePendingReplyFromReappearing() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val requests = mutableListOf<LLMRequest>()
+            val pendingReplies = mutableListOf<Continuation<LLMResponse>>()
+            val viewModel = ChatViewModel(
+                pendingApi(requests, pendingReplies),
+                mainDispatcherRule.testDispatcher
+            )
+
+            viewModel.sendMessage("question to remove")
+            runCurrent()
+            assertTrue(viewModel.uiState.value.isLoading)
+            assertEquals(listOf("question to remove"), requests.map(LLMRequest::query))
+
+            viewModel.clearChat()
+
+            assertEquals(ChatUiState(), viewModel.uiState.value)
+            pendingReplies.single().resume(
+                LLMResponse(query = "question to remove", answer = "late answer")
+            )
+            runCurrent()
+            assertEquals(ChatUiState(), viewModel.uiState.value)
+        }
+
+    @Test
+    fun retryLastMessage_reusesThePreservedQuestionWithoutAddingAnotherUserBubble() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val requests = mutableListOf<LLMRequest>()
+            val viewModel = ChatViewModel(
+                proxyApi { request ->
+                    requests += request
+                    throw IllegalStateException("private backend text")
+                },
+                mainDispatcherRule.testDispatcher
+            )
+            viewModel.sendMessage("question worth preserving")
+            runCurrent()
+
+            viewModel.retryLastMessage()
+            runCurrent()
+
+            assertEquals(
+                listOf("question worth preserving", "question worth preserving"),
+                requests.map(LLMRequest::query)
+            )
+            assertEquals(
+                listOf("question worth preserving"),
+                viewModel.uiState.value.messages.map { it.content }
+            )
+            assertEquals(ChatFailure.REQUEST_FAILED, viewModel.uiState.value.error)
+        }
+
     private fun api(requests: MutableList<LLMRequest>): KINDDApi = proxyApi { request ->
         requests += request
         LLMResponse(query = request.query, answer = "answer")
     }
 
     private fun apiFailure(throwable: Throwable): KINDDApi = proxyApi { throw throwable }
+
+    private fun pendingApi(
+        requests: MutableList<LLMRequest>,
+        pendingReplies: MutableList<Continuation<LLMResponse>>
+    ): KINDDApi =
+        Proxy.newProxyInstance(
+            KINDDApi::class.java.classLoader,
+            arrayOf(KINDDApi::class.java)
+        ) { _, method, args ->
+            if (method.name == "askLLM") {
+                requests += args!![0] as LLMRequest
+                @Suppress("UNCHECKED_CAST")
+                pendingReplies += args[1] as Continuation<LLMResponse>
+                COROUTINE_SUSPENDED
+            } else {
+                throw UnsupportedOperationException(method.name)
+            }
+        } as KINDDApi
 
     private fun proxyApi(block: (LLMRequest) -> LLMResponse): KINDDApi =
         Proxy.newProxyInstance(

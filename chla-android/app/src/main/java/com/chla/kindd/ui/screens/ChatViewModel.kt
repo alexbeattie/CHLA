@@ -9,6 +9,7 @@ import com.chla.kindd.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,6 +37,8 @@ class ChatViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+    private var requestJob: Job? = null
+    private var requestGeneration = 0L
 
     fun sendInitialPrompt(key: String, resolvedText: String) {
         if (com.chla.kindd.ui.chat.ChatLaunchPrompt.fromRouteValue(key) == null) return
@@ -43,6 +46,8 @@ class ChatViewModel @Inject constructor(
     }
 
     fun sendMessage(content: String) {
+        if (_uiState.value.isLoading) return
+
         val userMessage = ChatMessage(
             role = ChatMessage.Role.USER,
             content = content
@@ -56,7 +61,20 @@ class ChatViewModel @Inject constructor(
             )
         }
 
-        viewModelScope.launch {
+        startRequest(content)
+    }
+
+    fun retryLastMessage() {
+        val currentState = _uiState.value
+        if (currentState.isLoading || currentState.error == null) return
+        val question = currentState.messages.lastOrNull(ChatMessage::isUser)?.content ?: return
+        _uiState.update { it.copy(isLoading = true, error = null) }
+        startRequest(question)
+    }
+
+    private fun startRequest(content: String) {
+        val generation = ++requestGeneration
+        requestJob = viewModelScope.launch {
             try {
                 val locale = Locale.getDefault().language
                 val response = withContext(ioDispatcher) {
@@ -73,26 +91,33 @@ class ChatViewModel @Inject constructor(
                     content = response.answer
                 )
 
-                _uiState.update {
-                    it.copy(
-                        messages = it.messages + assistantMessage,
-                        isLoading = false
-                    )
+                if (generation == requestGeneration) {
+                    _uiState.update {
+                        it.copy(
+                            messages = it.messages + assistantMessage,
+                            isLoading = false
+                        )
+                    }
                 }
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = ChatFailure.REQUEST_FAILED
-                    )
+                if (generation == requestGeneration) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = ChatFailure.REQUEST_FAILED
+                        )
+                    }
                 }
             }
         }
     }
 
     fun clearChat() {
-        _uiState.update { it.copy(messages = emptyList()) }
+        requestGeneration += 1
+        requestJob?.cancel()
+        requestJob = null
+        _uiState.value = ChatUiState()
     }
 }

@@ -2,6 +2,7 @@
 <resources>
     <string name="chat_prompt_near_me">Near Me</string>
     <string name="chat_prompt_research">Research</string>
+    <string name="chat_prompt_research_query">Which genes have the strongest SFARI evidence for autism?</string>
     <string name="chat_prompt_assessment">Assessment</string>
     <string name="chat_prompt_centers">Centers</string>
     <string name="chat_welcome_heading">How can KiNDD help?</string>

@@ -554,6 +554,14 @@ class AppEntryNavigationTest {
         composeRule.onNodeWithTag(CHAT_SHEET_TAG).assertExists()
         composeRule.onNodeWithTag(CHAT_TAG).assertTextEquals(NO_PROMPT_TEXT)
         composeRule.onNodeWithTag(MAP_TAG).assertExists()
+        val rootBounds = composeRule.onNodeWithTag(MAIN_NAV_ROOT_TAG)
+            .fetchSemanticsNode().boundsInRoot
+        val sheetBounds = composeRule.onNodeWithTag(CHAT_SHEET_TAG)
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "Ask should open near full height instead of stopping at the half-expanded anchor",
+            sheetBounds.top <= rootBounds.height * 0.20f
+        )
         composeRule.runOnIdle {
             assertEquals(Screen.Map.route, navController.currentDestination?.route)
         }

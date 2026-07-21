@@ -35,6 +35,7 @@ fun ChatScreen(
     ChatContent(
         uiState = uiState,
         onSend = viewModel::sendMessage,
+        onRetry = viewModel::retryLastMessage,
         onClear = viewModel::clearChat
     )
 }
