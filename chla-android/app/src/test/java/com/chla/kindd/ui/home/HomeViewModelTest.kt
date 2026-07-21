@@ -202,6 +202,109 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun selfAuthoredRootCallbackBeforeCasReturnKeepsGeneration_andCompletesMatchedState() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val original = profile(zip = "90001", identity = null)
+            val matched = center(id = 72, name = "Matched center")
+            val repository = OrderedCasRepository(original, CasBehavior.TRUE)
+            val viewModel = HomeViewModel(
+                repository,
+                CenterSource(
+                    centers = Result.success(listOf(matched)),
+                    lookup = RegionalCenterLookup.Matched(matched)
+                ),
+                FakeDiscoveryController()
+            )
+            viewModel.onReadyProfileChanged(original)
+            repository.beforeCasReturn = viewModel::onReadyProfileChanged
+            viewModel.onZipChanged("90210")
+
+            viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
+            runCurrent()
+
+            val replacement = original.copy(
+                zipCode = "90210",
+                regionalCenter = RegionalCenterIdentity.from(matched)
+            )
+            assertEquals(replacement, repository.actualProfile)
+            assertEquals(HomeLookupState.MATCHED, viewModel.uiState.value.lookupState)
+            assertFalse(viewModel.uiState.value.isZipDraftDirty)
+            assertEquals("90210", viewModel.uiState.value.displayedZip(replacement))
+            assertEquals(replacement.regionalCenter, viewModel.uiState.value.hydratedIdentity)
+
+            viewModel.onReadyProfileChanged(
+                replacement.copy(journeyStage = JourneyStage.RECEIVING_SERVICES)
+            )
+
+            assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+        }
+
+    @Test
+    fun selfAuthoredRootCallbackAfterCasReturnDoesNotClearMatchedState() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val original = profile(zip = "90001", identity = null)
+            val matched = center(id = 72, name = "Matched center")
+            val repository = OrderedCasRepository(original, CasBehavior.TRUE)
+            val viewModel = HomeViewModel(
+                repository,
+                CenterSource(lookup = RegionalCenterLookup.Matched(matched)),
+                FakeDiscoveryController()
+            )
+            viewModel.onReadyProfileChanged(original)
+            viewModel.onZipChanged("90210")
+
+            viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
+            runCurrent()
+            assertEquals(HomeLookupState.MATCHED, viewModel.uiState.value.lookupState)
+            assertFalse(viewModel.uiState.value.isZipDraftDirty)
+
+            viewModel.onReadyProfileChanged(repository.actualProfile)
+            runCurrent()
+
+            assertEquals(HomeLookupState.MATCHED, viewModel.uiState.value.lookupState)
+            assertFalse(viewModel.uiState.value.isZipDraftDirty)
+        }
+
+    @Test
+    fun failedOrThrowingCasDoesNotLeaveAReplacementTokenThatSuppressesExternalRoot() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            listOf(CasBehavior.FALSE, CasBehavior.THROW).forEach { behavior ->
+                val original = profile(zip = "90001", identity = null)
+                val matched = center(id = 72, name = "Matched center")
+                val firstLookup = CompletableDeferred<RegionalCenterLookup>().apply {
+                    complete(RegionalCenterLookup.Matched(matched))
+                }
+                val secondLookup = CompletableDeferred<RegionalCenterLookup>()
+                val repository = OrderedCasRepository(original, behavior)
+                val viewModel = HomeViewModel(
+                    repository,
+                    ControlledLookupCenterSource(ArrayDeque(listOf(firstLookup, secondLookup))),
+                    FakeDiscoveryController()
+                )
+                viewModel.onReadyProfileChanged(original)
+                viewModel.onZipChanged("90210")
+                viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
+                runCurrent()
+
+                viewModel.onZipChanged("91311")
+                viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
+                runCurrent()
+                assertEquals(HomeLookupState.LOADING, viewModel.uiState.value.lookupState)
+
+                val externalProfile = original.copy(
+                    zipCode = "90210",
+                    regionalCenter = RegionalCenterIdentity.from(matched)
+                )
+                viewModel.onReadyProfileChanged(externalProfile)
+
+                assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+                secondLookup.complete(RegionalCenterLookup.Unmatched)
+                runCurrent()
+                assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+            }
+        }
+
+    @Test
     fun readyProfileHydratesCenterByDeployedId_withoutOwningProfilePresentation() =
         runTest(mainDispatcherRule.testDispatcher) {
             val details = center(id = 41, name = "Current deployed name", phone = "(213) 555-1212")
@@ -684,6 +787,47 @@ class HomeViewModelTest {
         ): Boolean = false
 
         override suspend fun clearProfile() = Unit
+    }
+
+    private enum class CasBehavior { TRUE, FALSE, THROW }
+
+    private class OrderedCasRepository(
+        initial: UserProfile,
+        private val behavior: CasBehavior
+    ) : UserProfileRepository {
+        private val profiles = MutableStateFlow(initial)
+        var actualProfile: UserProfile = initial
+            private set
+        var beforeCasReturn: ((UserProfile) -> Unit)? = null
+
+        override val profile: Flow<UserProfile> = profiles
+
+        override suspend fun replaceProfile(profile: UserProfile) {
+            actualProfile = profile
+            profiles.value = profile
+        }
+
+        override suspend fun replaceProfileIfCurrent(
+            expected: UserProfile,
+            replacement: UserProfile
+        ): Boolean {
+            return when (behavior) {
+                CasBehavior.FALSE -> false
+                CasBehavior.THROW -> throw IllegalStateException("private CAS failure")
+                CasBehavior.TRUE -> {
+                    if (actualProfile != expected) return false
+                    actualProfile = replacement
+                    profiles.value = replacement
+                    beforeCasReturn?.invoke(replacement)
+                    true
+                }
+            }
+        }
+
+        override suspend fun clearProfile() {
+            actualProfile = UserProfile()
+            profiles.value = actualProfile
+        }
     }
 
     private class LaggingProfileRepository(initial: UserProfile) : UserProfileRepository {

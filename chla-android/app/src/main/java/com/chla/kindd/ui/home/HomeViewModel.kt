@@ -41,40 +41,36 @@ class HomeViewModel @Inject constructor(
     private var lookupGeneration = 0L
     private var lookupJob: Job? = null
     private var lastSynchronizedProfile: UserProfile? = null
+    private var pendingSelfReplacement: PendingSelfReplacement? = null
 
     fun onReadyProfileChanged(profile: UserProfile) {
+        pendingSelfReplacement?.takeIf { pending ->
+            pending.replacement == profile
+        }?.let { pending ->
+            pending.rootObserved = true
+            lastSynchronizedProfile = profile
+            synchronizeHydratedIdentity(profile.regionalCenter)
+            if (pending.casSucceeded) {
+                clearPendingSelfReplacement(pending)
+            }
+            return
+        }
+
         val previousProfile = lastSynchronizedProfile
         if (profile == previousProfile) return
+        pendingSelfReplacement = null
         lastSynchronizedProfile = profile
 
-        val isProfileUpdate = previousProfile != null
-        val identity = profile.regionalCenter
-        val identityChanged = identity != mutableUiState.value.hydratedIdentity
-        if (isProfileUpdate) {
+        if (previousProfile != null) {
             invalidateLookup()
-        }
-
-        if (identityChanged) {
-            hydrationGeneration += 1
-            hydrationJob?.cancel()
-        }
-        if (isProfileUpdate || identityChanged) {
             mutableUiState.update { state ->
                 state.copy(
-                    hydratedIdentity = if (identityChanged) identity else state.hydratedIdentity,
-                    hydratedCenter = if (identityChanged) null else state.hydratedCenter,
-                    lookupState = if (isProfileUpdate) {
-                        HomeLookupState.IDLE
-                    } else {
-                        state.lookupState
-                    },
-                    message = if (isProfileUpdate) null else state.message
+                    lookupState = HomeLookupState.IDLE,
+                    message = null
                 )
             }
         }
-        if (identityChanged && identity != null) {
-            hydrate(identity, hydrationGeneration)
-        }
+        synchronizeHydratedIdentity(profile.regionalCenter)
     }
 
     fun onZipChanged(value: String) {
@@ -100,6 +96,7 @@ class HomeViewModel @Inject constructor(
             return
         }
         lookupJob = viewModelScope.launch {
+            var replacementToken: PendingSelfReplacement? = null
             try {
                 if (!isCurrentLookup(generation)) return@launch
                 mutableUiState.update {
@@ -112,15 +109,26 @@ class HomeViewModel @Inject constructor(
                             zipCode = zipCode,
                             regionalCenter = RegionalCenterIdentity.from(lookup.center)
                         )
+                        val token = PendingSelfReplacement(
+                            replacement = replacement,
+                            generation = generation
+                        )
+                        replacementToken = token
+                        pendingSelfReplacement = token
                         val replaced = profileRepository.replaceProfileIfCurrent(
                             expected = expectedProfile,
                             replacement = replacement
                         )
-                        if (!isCurrentLookup(generation)) return@launch
                         if (!replaced) {
-                            finishSupersededLookup(generation)
+                            clearPendingSelfReplacement(token)
+                            finishSupersededLookup(token.generation)
                             return@launch
                         }
+                        token.casSucceeded = true
+                        if (token.rootObserved) {
+                            clearPendingSelfReplacement(token)
+                        }
+                        if (!isCurrentLookup(token.generation)) return@launch
                         mutableUiState.update {
                             it.copy(
                                 zipDraft = zipCode,
@@ -151,8 +159,10 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             } catch (cancellation: CancellationException) {
+                replacementToken?.let(::clearPendingSelfReplacement)
                 throw cancellation
             } catch (_: Exception) {
+                replacementToken?.let(::clearPendingSelfReplacement)
                 if (isCurrentLookup(generation)) {
                     showLookupUnavailable()
                 } else {
@@ -209,6 +219,28 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun synchronizeHydratedIdentity(identity: RegionalCenterIdentity?) {
+        if (identity == uiState.value.hydratedIdentity) return
+
+        hydrationGeneration += 1
+        hydrationJob?.cancel()
+        mutableUiState.update { state ->
+            state.copy(
+                hydratedIdentity = identity,
+                hydratedCenter = null
+            )
+        }
+        if (identity != null) {
+            hydrate(identity, hydrationGeneration)
+        }
+    }
+
+    private fun clearPendingSelfReplacement(token: PendingSelfReplacement) {
+        if (pendingSelfReplacement === token) {
+            pendingSelfReplacement = null
+        }
+    }
+
     private fun hydrate(identity: RegionalCenterIdentity, generation: Long) {
         hydrationJob = viewModelScope.launch {
             try {
@@ -235,4 +267,11 @@ class HomeViewModel @Inject constructor(
             center.name.equals(identity.name, ignoreCase = true) ||
                 center.shortName.equals(identity.shortName, ignoreCase = true)
         }
+
+    private data class PendingSelfReplacement(
+        val replacement: UserProfile,
+        val generation: Long,
+        var rootObserved: Boolean = false,
+        var casSucceeded: Boolean = false
+    )
 }
