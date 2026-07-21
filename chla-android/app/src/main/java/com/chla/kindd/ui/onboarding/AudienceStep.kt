@@ -1,7 +1,10 @@
 package com.chla.kindd.ui.onboarding
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -9,14 +12,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -29,6 +42,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.AudienceType
+import com.chla.kindd.ui.theme.KiNDDIndigo
+import com.chla.kindd.ui.theme.KiNDDShapeTokens
+import com.chla.kindd.ui.theme.KiNDDViolet
 
 @Composable
 internal fun AudienceStep(
@@ -37,29 +53,123 @@ internal fun AudienceStep(
     modifier: Modifier = Modifier
 ) {
     OnboardingStepColumn(modifier = modifier) {
+        KiNDDOnboardingLogo()
         OnboardingHeading(stringResource(R.string.onboarding_welcome_title))
         Text(
             text = stringResource(R.string.onboarding_welcome_body),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 12.dp)
         )
         Text(
             text = stringResource(R.string.onboarding_audience_prompt),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
         )
-        OnboardingChoice(
-            label = stringResource(R.string.onboarding_audience_family),
-            selected = selectedAudience == AudienceType.FAMILY,
-            onClick = { onAudienceSelected(AudienceType.FAMILY) },
-            testTag = "onboarding_audience_family",
-            role = Role.RadioButton
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f),
+                    RoundedCornerShape(KiNDDShapeTokens.Compact)
+                )
+                .padding(4.dp)
+                .testTag("onboarding_audience_segmented"),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            AudienceSegment(
+                label = stringResource(R.string.onboarding_audience_family),
+                icon = Icons.Default.Groups,
+                selected = selectedAudience == AudienceType.FAMILY,
+                onClick = { onAudienceSelected(AudienceType.FAMILY) },
+                testTag = "onboarding_audience_family",
+                modifier = Modifier.weight(1f)
+            )
+            AudienceSegment(
+                label = stringResource(R.string.onboarding_audience_clinician),
+                icon = Icons.Default.MedicalServices,
+                selected = selectedAudience == AudienceType.CLINICIAN,
+                onClick = { onAudienceSelected(AudienceType.CLINICIAN) },
+                testTag = "onboarding_audience_clinician",
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun KiNDDOnboardingLogo() {
+    Row(
+        modifier = Modifier.testTag("onboarding_logo"),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(52.dp)
+                .background(
+                    Brush.linearGradient(listOf(KiNDDIndigo, KiNDDViolet)),
+                    RoundedCornerShape(16.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "K",
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White
+            )
+        }
+        Text(
+            text = "KiNDD",
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.onSurface
         )
-        OnboardingChoice(
-            label = stringResource(R.string.onboarding_audience_clinician),
-            selected = selectedAudience == AudienceType.CLINICIAN,
-            onClick = { onAudienceSelected(AudienceType.CLINICIAN) },
-            testTag = "onboarding_audience_clinician",
-            role = Role.RadioButton
+    }
+}
+
+@Composable
+private fun AudienceSegment(
+    label: String,
+    icon: ImageVector,
+    selected: Boolean,
+    onClick: () -> Unit,
+    testTag: String,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(13.dp)
+    Row(
+        modifier = modifier
+            .heightIn(min = 52.dp)
+            .background(
+                if (selected) MaterialTheme.colorScheme.surface else Color.Transparent,
+                shape
+            )
+            .then(
+                if (selected) Modifier.border(1.dp, KiNDDIndigo.copy(alpha = 0.35f), shape)
+                else Modifier
+            )
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .semantics {
+                contentDescription = label
+                this.selected = selected
+            }
+            .testTag(testTag)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = if (selected) KiNDDIndigo else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = 6.dp)
         )
     }
 }
@@ -74,8 +184,9 @@ internal fun OnboardingStepColumn(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(horizontal = 24.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = 24.dp, vertical = 18.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
         content = content
     )
 }
@@ -84,9 +195,10 @@ internal fun OnboardingStepColumn(
 internal fun OnboardingHeading(text: String) {
     Text(
         text = text,
-        modifier = Modifier.semantics { heading() },
+        modifier = Modifier.fillMaxWidth().semantics { heading() },
         style = MaterialTheme.typography.headlineMedium,
-        color = MaterialTheme.colorScheme.onSurface
+        color = MaterialTheme.colorScheme.onSurface,
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center
     )
 }
 
@@ -96,23 +208,29 @@ internal fun OnboardingChoice(
     selected: Boolean,
     onClick: () -> Unit,
     testTag: String,
-    role: Role
+    role: Role,
+    icon: ImageVector? = null
 ) {
+    val shape = RoundedCornerShape(KiNDDShapeTokens.Selection)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
+            .heightIn(min = 56.dp)
             .testTag(testTag)
             .selectable(selected = selected, role = role, onClick = onClick)
             .semantics {
                 contentDescription = label
                 this.selected = selected
             },
-        shape = MaterialTheme.shapes.medium,
+        shape = shape,
+        border = if (selected) androidx.compose.foundation.BorderStroke(
+            1.5.dp,
+            KiNDDIndigo.copy(alpha = 0.60f)
+        ) else null,
         color = if (selected) {
-            MaterialTheme.colorScheme.primaryContainer
+            KiNDDIndigo.copy(alpha = 0.10f)
         } else {
-            MaterialTheme.colorScheme.surfaceVariant
+            MaterialTheme.colorScheme.surface
         }
     ) {
         Row(
@@ -120,8 +238,34 @@ internal fun OnboardingChoice(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            RadioButton(selected = selected, onClick = null)
-            Text(text = label, style = MaterialTheme.typography.bodyLarge)
+            icon?.let {
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .background(KiNDDIndigo.copy(alpha = 0.12f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = null,
+                        tint = KiNDDIndigo,
+                        modifier = Modifier.size(19.dp).testTag("onboarding_choice_icon")
+                    )
+                }
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
+            )
+            if (selected) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = KiNDDIndigo,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
         }
     }
 }

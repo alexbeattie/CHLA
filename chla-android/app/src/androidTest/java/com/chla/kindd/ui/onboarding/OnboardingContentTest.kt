@@ -5,6 +5,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.getOrNull
@@ -49,10 +52,37 @@ class OnboardingContentTest {
     }
 
     @Test
+    fun audience_usesCapsuleProgressLogoAndSegmentedChoice() {
+        compose(state(step = OnboardingStep.AUDIENCE))
+
+        composeRule.onNodeWithTag("onboarding_progress_capsules").assertExists()
+        composeRule.onNodeWithTag("onboarding_progress_active_0").assertExists()
+        composeRule.onNodeWithTag("onboarding_logo").assertExists()
+        composeRule.onNodeWithTag("onboarding_audience_segmented").assertExists()
+        composeRule.onNodeWithTag("onboarding_primary_gradient", useUnmergedTree = true)
+            .assertExists()
+    }
+
+    @Test
     fun zip_showsItsHeadingAndExactlyOnePrimaryAction() {
         assertStep(
             state(step = OnboardingStep.ZIP, draft = draft(zipCode = "90001")),
             "Where is home?"
+        )
+    }
+
+    @Test
+    fun zip_usesLocationIconAndCompactCenteredControl() {
+        compose(state(step = OnboardingStep.ZIP, draft = draft(zipCode = "90001")))
+
+        composeRule.onNodeWithTag("onboarding_zip_icon").assertExists()
+        val zipControl = composeRule.onNodeWithTag("onboarding_zip_control")
+            .assertExists()
+            .fetchSemanticsNode()
+        val maximumWidth = 240f * composeRule.density.density
+        assertTrue(
+            "ZIP control is wider than the compact 240dp contract",
+            zipControl.boundsInRoot.width <= maximumWidth
         )
     }
 
@@ -69,11 +99,34 @@ class OnboardingContentTest {
     }
 
     @Test
+    fun matchedCenter_usesBoundaryMapHeroAndOverlaidCard() {
+        compose(
+            state(
+                step = OnboardingStep.REGIONAL_CENTER,
+                draft = draft(zipCode = "90001", center = center()),
+                centerLookupState = CenterLookupState.MATCHED
+            )
+        )
+
+        composeRule.onNodeWithTag("onboarding_center_map_hero").assertExists()
+        composeRule.onNodeWithTag("regional_center_map_surface").assertExists()
+        composeRule.onNodeWithTag("onboarding_matched_center_card").assertExists()
+    }
+
+    @Test
     fun journey_showsItsHeadingAndExactlyOnePrimaryAction() {
         assertStep(
             state(step = OnboardingStep.JOURNEY, draft = draft(zipCode = "90001")),
             "Where are you in the journey?"
         )
+    }
+
+    @Test
+    fun journey_usesIconLedSelectionCards() {
+        compose(state(step = OnboardingStep.JOURNEY, draft = draft(zipCode = "90001")))
+
+        composeRule.onAllNodesWithTag("onboarding_choice_icon", useUnmergedTree = true)
+            .assertCountEquals(JourneyStage.entries.size)
     }
 
     @Test
@@ -85,6 +138,19 @@ class OnboardingContentTest {
             ),
             "How old is your child?"
         )
+    }
+
+    @Test
+    fun age_usesIconLedSelectionCards() {
+        compose(
+            state(
+                step = OnboardingStep.AGE,
+                draft = draft(zipCode = "90001", journey = JourneyStage.EXPLORING)
+            )
+        )
+
+        composeRule.onAllNodesWithTag("onboarding_choice_icon", useUnmergedTree = true)
+            .assertCountEquals(AgeGroup.entries.size)
     }
 
     @Test
@@ -534,7 +600,8 @@ class OnboardingContentTest {
                     onBack = {},
                     onContinue = {},
                     onFinish = {},
-                    onCancel = {}
+                    onCancel = {},
+                    mapContent = { _, _ -> Box(Modifier.fillMaxSize()) }
                 )
             }
         }

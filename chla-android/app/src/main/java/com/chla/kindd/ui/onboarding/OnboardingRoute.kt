@@ -4,6 +4,7 @@ import android.Manifest
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,20 +12,30 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,6 +44,14 @@ import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.data.servicearea.ServiceAreaFeature
+import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
+import com.chla.kindd.ui.regions.rememberRegionalCenterServiceAreas
+import com.chla.kindd.ui.theme.KiNDDIndigo
+import com.chla.kindd.ui.theme.KiNDDPrimaryGradientCapsule
+import com.chla.kindd.ui.theme.KiNDDSecondaryCapsule
+import com.chla.kindd.ui.theme.KiNDDViolet
+import com.chla.kindd.ui.theme.kinddTopWash
 
 @Composable
 fun OnboardingRoute(
@@ -43,6 +62,7 @@ fun OnboardingRoute(
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val serviceAreas by rememberRegionalCenterServiceAreas()
     OnboardingBackGuard(
         state = state,
         mode = mode,
@@ -84,7 +104,8 @@ fun OnboardingRoute(
         onBack = viewModel::goBack,
         onContinue = viewModel::continueFromCurrentStep,
         onFinish = viewModel::finish,
-        onCancel = viewModel::cancel
+        onCancel = viewModel::cancel,
+        serviceAreas = serviceAreas
     )
 }
 
@@ -120,62 +141,78 @@ fun OnboardingContent(
     onContinue: () -> Unit,
     onFinish: () -> Unit,
     onCancel: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    serviceAreas: List<ServiceAreaFeature> = emptyList(),
+    mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        OnboardingProgress(
-            state = state,
-            onCancel = onCancel
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(360.dp)
+                .background(kinddTopWash())
         )
-        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-            when (state.step) {
-                OnboardingStep.AUDIENCE -> AudienceStep(
-                    selectedAudience = state.draft.audienceType,
-                    onAudienceSelected = onAudienceSelected
-                )
-                OnboardingStep.ZIP -> ZipStep(
-                    zipCode = state.draft.zipCode.orEmpty(),
-                    locationState = state.locationState,
-                    isLookingUpCenter =
-                        state.centerLookupState == CenterLookupState.LOADING,
-                    useLocationEnabled =
-                        !state.isSaving &&
-                            state.locationState != LocationState.LOCATING &&
-                            state.centerLookupState != CenterLookupState.LOADING,
-                    canContinue = state.canContinue,
-                    onZipChanged = onZipChanged,
-                    onUseLocation = onUseLocation,
-                    onContinue = onContinue
-                )
-                OnboardingStep.REGIONAL_CENTER -> RegionalCenterStep(
-                    center = state.draft.regionalCenter,
-                    lookupState = state.centerLookupState,
-                    onRetry = onRetryCenterLookup
-                )
-                OnboardingStep.JOURNEY -> JourneyStep(
-                    selectedJourney = state.draft.journeyStage,
-                    onJourneySelected = onJourneySelected
-                )
-                OnboardingStep.AGE -> AgeGroupStep(
-                    selectedAgeGroup = state.draft.ageGroup,
-                    onAgeSelected = onAgeSelected
+        Column(modifier = Modifier.fillMaxSize()) {
+            OnboardingProgress(
+                state = state,
+                onCancel = onCancel
+            )
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                when (state.step) {
+                    OnboardingStep.AUDIENCE -> AudienceStep(
+                        selectedAudience = state.draft.audienceType,
+                        onAudienceSelected = onAudienceSelected
+                    )
+                    OnboardingStep.ZIP -> ZipStep(
+                        zipCode = state.draft.zipCode.orEmpty(),
+                        locationState = state.locationState,
+                        isLookingUpCenter =
+                            state.centerLookupState == CenterLookupState.LOADING,
+                        useLocationEnabled =
+                            !state.isSaving &&
+                                state.locationState != LocationState.LOCATING &&
+                                state.centerLookupState != CenterLookupState.LOADING,
+                        canContinue = state.canContinue,
+                        onZipChanged = onZipChanged,
+                        onUseLocation = onUseLocation,
+                        onContinue = onContinue
+                    )
+                    OnboardingStep.REGIONAL_CENTER -> RegionalCenterStep(
+                        center = state.draft.regionalCenter,
+                        lookupState = state.centerLookupState,
+                        serviceAreas = serviceAreas,
+                        mapContent = mapContent,
+                        onRetry = onRetryCenterLookup
+                    )
+                    OnboardingStep.JOURNEY -> JourneyStep(
+                        selectedJourney = state.draft.journeyStage,
+                        onJourneySelected = onJourneySelected
+                    )
+                    OnboardingStep.AGE -> AgeGroupStep(
+                        selectedAgeGroup = state.draft.ageGroup,
+                        onAgeSelected = onAgeSelected
+                    )
+                }
+            }
+            state.saveError?.let {
+                Text(
+                    text = stringResource(R.string.onboarding_save_failed),
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
                 )
             }
-        }
-        state.saveError?.let {
-            Text(
-                text = stringResource(R.string.onboarding_save_failed),
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error
+            OnboardingActions(
+                state = state,
+                onBack = onBack,
+                onContinue = onContinue,
+                onFinish = onFinish
             )
         }
-        OnboardingActions(
-            state = state,
-            onBack = onBack,
-            onContinue = onContinue,
-            onFinish = onFinish
-        )
     }
 }
 
@@ -184,9 +221,10 @@ private fun OnboardingProgress(
     state: OnboardingUiState,
     onCancel: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -198,7 +236,8 @@ private fun OnboardingProgress(
                     state.progressStep,
                     OnboardingStep.entries.size
                 ),
-                style = MaterialTheme.typography.labelLarge
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.weight(1f))
             if (state.mode == OnboardingMode.EDIT) {
@@ -213,12 +252,29 @@ private fun OnboardingProgress(
                 }
             }
         }
-        LinearProgressIndicator(
-            progress = {
-                state.progressStep / OnboardingStep.entries.size.toFloat()
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Row(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .testTag("onboarding_progress_capsules"),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OnboardingStep.entries.forEachIndexed { index, _ ->
+                val active = index == state.step.ordinal
+                Box(
+                    modifier = Modifier
+                        .size(width = if (active) 22.dp else 7.dp, height = 7.dp)
+                        .background(
+                            color = if (active) KiNDDIndigo else KiNDDIndigo.copy(alpha = 0.18f),
+                            shape = CircleShape
+                        )
+                        .then(
+                            if (active) Modifier.testTag("onboarding_progress_active_$index")
+                            else Modifier
+                        )
+                )
+            }
+        }
     }
 }
 
@@ -229,39 +285,63 @@ private fun OnboardingActions(
     onContinue: () -> Unit,
     onFinish: () -> Unit
 ) {
+    val primaryEnabled = state.canContinue && !state.isSaving
     Row(
-        modifier = Modifier.fillMaxWidth().padding(24.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (state.step != OnboardingStep.AUDIENCE) {
-            TextButton(
-                onClick = onBack,
-                enabled = !state.isSaving,
+            KiNDDSecondaryCapsule(
+                onClick = { if (!state.isSaving) onBack() },
                 modifier = Modifier
-                    .heightIn(min = 48.dp)
                     .testTag("onboarding_back_action")
+                    .alpha(if (state.isSaving) 0.45f else 1f)
+                    .semantics { if (state.isSaving) disabled() }
             ) {
-                Text(stringResource(R.string.action_back))
+                Text(
+                    text = stringResource(R.string.action_back),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         Spacer(modifier = Modifier.weight(1f))
-        Button(
-            onClick = if (state.step == OnboardingStep.AGE) onFinish else onContinue,
-            enabled = state.canContinue && !state.isSaving,
+        KiNDDPrimaryGradientCapsule(
+            onClick = {
+                if (primaryEnabled) {
+                    if (state.step == OnboardingStep.AGE) onFinish() else onContinue()
+                }
+            },
             modifier = Modifier
-                .heightIn(min = 48.dp)
                 .testTag("onboarding_primary_action")
+                .alpha(if (primaryEnabled) 1f else 0.45f)
+                .semantics { if (!primaryEnabled) disabled() }
         ) {
-            Text(
-                stringResource(
-                    when {
-                        state.step != OnboardingStep.AGE -> R.string.action_continue
-                        state.mode == OnboardingMode.EDIT -> R.string.action_save
-                        else -> R.string.action_get_started
-                    }
+            Row(
+                modifier = Modifier.testTag("onboarding_primary_gradient"),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(
+                        when {
+                            state.step != OnboardingStep.AGE -> R.string.action_continue
+                            state.mode == OnboardingMode.EDIT -> R.string.action_save
+                            else -> R.string.action_get_started
+                        }
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
                 )
-            )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }

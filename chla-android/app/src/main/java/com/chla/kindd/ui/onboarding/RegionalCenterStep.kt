@@ -1,9 +1,18 @@
 package com.chla.kindd.ui.onboarding
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -11,19 +20,31 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.RegionalCenterIdentity
+import com.chla.kindd.data.servicearea.ServiceAreaFeature
+import com.chla.kindd.ui.map.RegionalCenterMapSurface
+import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
+import com.chla.kindd.ui.theme.KiNDDIndigo
+import com.chla.kindd.ui.theme.KiNDDMatchedGreen
+import com.chla.kindd.ui.theme.KiNDDShapeTokens
 
 @Composable
 internal fun RegionalCenterStep(
     center: RegionalCenterIdentity?,
     lookupState: CenterLookupState,
+    serviceAreas: List<ServiceAreaFeature>,
+    mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -32,29 +53,119 @@ internal fun RegionalCenterStep(
             .testTag("onboarding_center_status")
             .semantics { liveRegion = LiveRegionMode.Polite }
     ) {
-        OnboardingHeading(stringResource(R.string.onboarding_center_title))
-        when (lookupState) {
-            CenterLookupState.MATCHED -> MatchedCenter(center)
-            CenterLookupState.UNMATCHED -> {
-                Text(
-                    text = stringResource(R.string.onboarding_center_unmatched_title),
-                    style = MaterialTheme.typography.titleLarge
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(380.dp)
+                .clip(RoundedCornerShape(KiNDDShapeTokens.Hero))
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.16f),
+                    RoundedCornerShape(KiNDDShapeTokens.Hero)
                 )
+                .testTag("onboarding_center_map_hero")
+        ) {
+            RegionalCenterMapSurface(
+                areas = serviceAreas,
+                highlightedAcronym = center?.shortName,
+                interactive = false,
+                onAreaClick = {},
+                modifier = Modifier.matchParentSize(),
+                mapContent = mapContent
+            )
+            CenterStatusCard(
+                center = center,
+                lookupState = lookupState,
+                onRetry = onRetry,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(10.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CenterStatusCard(
+    center: RegionalCenterIdentity?,
+    lookupState: CenterLookupState,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+                RoundedCornerShape(KiNDDShapeTokens.Card)
+            )
+            .border(
+                1.dp,
+                if (lookupState == CenterLookupState.MATCHED) {
+                    KiNDDIndigo.copy(alpha = 0.25f)
+                } else {
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.16f)
+                },
+                RoundedCornerShape(KiNDDShapeTokens.Card)
+            )
+            .testTag("onboarding_matched_center_card")
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        when (lookupState) {
+            CenterLookupState.MATCHED -> {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.onboarding_center_title),
+                        modifier = Modifier.weight(1f).semantics { heading() },
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(KiNDDMatchedGreen, CircleShape)
+                        )
+                        Text(
+                            text = stringResource(R.string.onboarding_center_matched),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = KiNDDMatchedGreen,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+                center?.let {
+                    Text(
+                        text = it.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = it.shortName,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = KiNDDIndigo
+                    )
+                }
                 Text(
-                    text = stringResource(R.string.onboarding_center_unmatched_body),
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = stringResource(R.string.onboarding_center_body),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            CenterLookupState.UNAVAILABLE -> {
-                Text(
-                    text = stringResource(R.string.onboarding_center_unavailable_title),
-                    style = MaterialTheme.typography.titleLarge
+            CenterLookupState.UNMATCHED -> {
+                StatusCopy(
+                    title = stringResource(R.string.onboarding_center_unmatched_title),
+                    body = stringResource(R.string.onboarding_center_unmatched_body)
                 )
-                Text(
-                    text = stringResource(R.string.onboarding_center_unavailable_body),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            }
+            CenterLookupState.UNAVAILABLE -> {
+                StatusCopy(
+                    title = stringResource(R.string.onboarding_center_unavailable_title),
+                    body = stringResource(R.string.onboarding_center_unavailable_body)
                 )
                 OutlinedButton(
                     onClick = onRetry,
@@ -70,28 +181,31 @@ internal fun RegionalCenterStep(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(modifier = Modifier.size(28.dp))
                 Text(stringResource(R.string.loading))
             }
-            CenterLookupState.IDLE -> Unit
+            CenterLookupState.IDLE -> {
+                Text(
+                    text = stringResource(R.string.onboarding_center_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.semantics { heading() }
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun MatchedCenter(center: RegionalCenterIdentity?) {
+private fun StatusCopy(title: String, body: String) {
     Text(
-        text = stringResource(R.string.onboarding_center_matched),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.semantics { heading() }
     )
-    center?.let {
-        Text(text = it.name, style = MaterialTheme.typography.titleLarge)
-        Text(text = it.shortName, style = MaterialTheme.typography.titleMedium)
-    }
     Text(
-        text = stringResource(R.string.onboarding_center_body),
-        style = MaterialTheme.typography.bodyLarge,
+        text = body,
+        style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 }
