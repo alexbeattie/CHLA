@@ -1,6 +1,7 @@
 package com.chla.kindd.ui.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -45,6 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +59,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -69,10 +72,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.chla.kindd.BuildConfig
 import com.chla.kindd.R
 import com.chla.kindd.ui.settings.SettingsEvent
+import com.chla.kindd.ui.settings.SettingsLocationPermissionStatus
 import com.chla.kindd.ui.settings.SettingsViewModel
+import com.chla.kindd.ui.settings.formatSettingsAppVersion
+import com.chla.kindd.ui.settings.supportsPerAppLanguageSettings
 import com.chla.kindd.ui.theme.KiNDDIndigo
 import com.chla.kindd.ui.theme.KiNDDPurple
 import com.chla.kindd.ui.theme.KiNDDShapeTokens
@@ -80,6 +88,7 @@ import com.chla.kindd.ui.theme.KiNDDSpacingTokens
 import com.chla.kindd.ui.theme.KiNDDViolet
 import com.chla.kindd.ui.theme.kinddTopWash
 
+@SuppressLint("InlinedApi")
 @Composable
 fun SettingsScreen(
     onNavigateToFAQ: () -> Unit,
@@ -90,6 +99,7 @@ fun SettingsScreen(
 ) {
     var clearFailed by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val editNavigator = remember(onNavigateToEditProfile) { onNavigateToEditProfile }
     LaunchedEffect(viewModel, editNavigator) {
         viewModel.events.collect { event ->
@@ -100,10 +110,36 @@ fun SettingsScreen(
         }
     }
 
-    val locationAllowed = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_COARSE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
+    val locationPermissionStatus = remember(context) {
+        SettingsLocationPermissionStatus {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+    DisposableEffect(lifecycleOwner, locationPermissionStatus) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                locationPermissionStatus.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val openLanguageSettings: (() -> Unit)? =
+        if (supportsPerAppLanguageSettings(Build.VERSION.SDK_INT)) {
+            {
+                context.launchSafely(
+                    Intent(Settings.ACTION_APP_LOCALE_SETTINGS).apply {
+                        data = Uri.parse("package:${context.packageName}")
+                    }
+                )
+            }
+        } else {
+            null
+        }
 
     SettingsContent(
         onNavigateToFAQ = onNavigateToFAQ,
@@ -115,14 +151,7 @@ fun SettingsScreen(
         },
         clearFailed = clearFailed,
         onNavigateBack = onNavigateBack,
-        onOpenLanguageSettings = {
-            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                Intent(Settings.ACTION_APP_LOCALE_SETTINGS)
-            } else {
-                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            }.apply { data = Uri.parse("package:${context.packageName}") }
-            context.launchSafely(intent)
-        },
+        onOpenLanguageSettings = openLanguageSettings,
         onOpenLocationSettings = {
             context.launchSafely(
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -134,9 +163,10 @@ fun SettingsScreen(
             context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse("https://kinddhelp.com")))
         },
         locationStatus = stringResource(
-            if (locationAllowed) R.string.settings_location_allowed
+            if (locationPermissionStatus.isAllowed) R.string.settings_location_allowed
             else R.string.settings_location_not_allowed
-        )
+        ),
+        appVersion = formatSettingsAppVersion(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
     )
 }
 
@@ -152,7 +182,8 @@ fun SettingsContent(
     onOpenLanguageSettings: (() -> Unit)? = null,
     onOpenLocationSettings: (() -> Unit)? = null,
     onOpenWebsite: (() -> Unit)? = null,
-    locationStatus: String? = null
+    locationStatus: String? = null,
+    appVersion: String = formatSettingsAppVersion(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
 ) {
     var showClearConfirmation by rememberSaveable { mutableStateOf(false) }
 
@@ -184,10 +215,34 @@ fun SettingsContent(
             item {
                 SettingsHeader(onNavigateBack = onNavigateBack)
             }
+
+            if (onOpenLanguageSettings != null) {
+                item {
+                    SettingsSectionLabel(
+                        text = stringResource(R.string.language),
+                        testTag = "settings_language_heading"
+                    )
+                }
+                item {
+                    SettingsGroup(modifier = Modifier.testTag("settings_language_group")) {
+                        SettingsRow(
+                            icon = Icons.Default.Language,
+                            iconTint = KiNDDIndigo,
+                            title = stringResource(R.string.language),
+                            subtitle = stringResource(R.string.settings_language_description),
+                            trailingText = stringResource(R.string.settings_open),
+                            onClick = onOpenLanguageSettings,
+                            modifier = Modifier.testTag("settings_language")
+                        )
+                    }
+                }
+            }
+
             item {
                 SettingsSectionLabel(
                     text = stringResource(R.string.settings_setup),
-                    modifier = Modifier.padding(top = 12.dp)
+                    modifier = Modifier.padding(top = 6.dp),
+                    testTag = "settings_profile_heading"
                 )
             }
             item {
@@ -195,6 +250,26 @@ fun SettingsContent(
                     SettingsRow(
                         icon = Icons.Default.RestartAlt,
                         iconTint = KiNDDIndigo,
+                        title = stringResource(R.string.settings_restart_welcome_setup),
+                        subtitle = stringResource(R.string.settings_restart_welcome_setup_description),
+                        onClick = onEditProfile,
+                        modifier = Modifier.testTag("settings_restart_setup")
+                    )
+                }
+            }
+
+            item {
+                SettingsSectionLabel(
+                    text = stringResource(R.string.settings_search_preferences),
+                    modifier = Modifier.padding(top = 6.dp),
+                    testTag = "settings_search_preferences_heading"
+                )
+            }
+            item {
+                SettingsGroup(modifier = Modifier.testTag("settings_preferences_group")) {
+                    SettingsRow(
+                        icon = Icons.Default.RestartAlt,
+                        iconTint = KiNDDPurple,
                         title = stringResource(R.string.settings_edit_profile),
                         subtitle = stringResource(R.string.settings_edit_profile_description),
                         onClick = onEditProfile,
@@ -203,38 +278,33 @@ fun SettingsContent(
                 }
             }
 
-            if (onOpenLanguageSettings != null || onOpenLocationSettings != null) {
-                item {
-                    SettingsSectionLabel(
-                        text = stringResource(R.string.settings_preferences),
-                        modifier = Modifier.padding(top = 12.dp)
+            item {
+                SettingsSectionLabel(
+                    text = stringResource(R.string.settings_location),
+                    modifier = Modifier.padding(top = 6.dp),
+                    testTag = "settings_location_heading"
+                )
+            }
+            item {
+                SettingsGroup(modifier = Modifier.testTag("settings_location_group")) {
+                    SettingsRow(
+                        icon = Icons.Default.LocationOn,
+                        iconTint = KiNDDViolet,
+                        title = stringResource(R.string.settings_location_access),
+                        subtitle = locationStatus,
+                        trailingText = if (onOpenLocationSettings == null) null else {
+                            stringResource(R.string.settings_open)
+                        },
+                        onClick = onOpenLocationSettings,
+                        modifier = Modifier.testTag("settings_location")
                     )
-                }
-                item {
-                    SettingsGroup(modifier = Modifier.testTag("settings_preferences_group")) {
-                        if (onOpenLanguageSettings != null) {
-                            SettingsRow(
-                                icon = Icons.Default.Language,
-                                iconTint = KiNDDIndigo,
-                                title = stringResource(R.string.language),
-                                subtitle = stringResource(R.string.settings_language_system_default),
-                                trailingText = stringResource(R.string.settings_open),
-                                onClick = onOpenLanguageSettings
-                            )
-                        }
-                        if (onOpenLanguageSettings != null && onOpenLocationSettings != null) {
-                            HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
-                        }
-                        if (onOpenLocationSettings != null) {
-                            SettingsRow(
-                                icon = Icons.Default.LocationOn,
-                                iconTint = KiNDDViolet,
-                                title = stringResource(R.string.settings_location_access),
-                                subtitle = locationStatus,
-                                trailingText = stringResource(R.string.settings_open),
-                                onClick = onOpenLocationSettings
-                            )
-                        }
+                    if (onOpenLocationSettings == null) {
+                        Text(
+                            text = stringResource(R.string.settings_location_unavailable),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 62.dp, end = 16.dp, bottom = 12.dp)
+                        )
                     }
                 }
             }
@@ -252,7 +322,8 @@ fun SettingsContent(
                         iconTint = KiNDDIndigo,
                         title = stringResource(R.string.settings_about_kindd),
                         subtitle = stringResource(R.string.settings_about_description),
-                        onClick = onNavigateToAbout
+                        onClick = onNavigateToAbout,
+                        modifier = Modifier.testTag("settings_about")
                     )
                     HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
                     SettingsRow(
@@ -260,7 +331,8 @@ fun SettingsContent(
                         iconTint = KiNDDPurple,
                         title = stringResource(R.string.faq),
                         subtitle = stringResource(R.string.settings_faq_description),
-                        onClick = onNavigateToFAQ
+                        onClick = onNavigateToFAQ,
+                        modifier = Modifier.testTag("settings_faq")
                     )
                     if (onOpenWebsite != null) {
                         HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
@@ -269,7 +341,8 @@ fun SettingsContent(
                             iconTint = KiNDDViolet,
                             title = stringResource(R.string.settings_website),
                             subtitle = stringResource(R.string.settings_website_description),
-                            onClick = onOpenWebsite
+                            onClick = onOpenWebsite,
+                            modifier = Modifier.testTag("settings_website")
                         )
                     }
                 }
@@ -287,7 +360,7 @@ fun SettingsContent(
                         icon = Icons.Default.Info,
                         iconTint = KiNDDIndigo,
                         title = stringResource(R.string.version),
-                        trailingText = BuildConfig.VERSION_NAME
+                        trailingText = appVersion
                     )
                 }
             }
@@ -335,6 +408,14 @@ fun SettingsContent(
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
+            item {
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(112.dp)
+                        .testTag("settings_bottom_navigation_clearance")
+                )
+            }
         }
     }
 
@@ -377,6 +458,7 @@ private fun SettingsHeader(onNavigateBack: (() -> Unit)?) {
                 modifier = Modifier
                     .heightIn(min = 48.dp)
                     .clickable(role = Role.Button, onClick = onNavigateBack)
+                    .testTag("settings_back_to_more")
                     .semantics { role = Role.Button },
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -407,12 +489,19 @@ private fun SettingsHeader(onNavigateBack: (() -> Unit)?) {
 }
 
 @Composable
-private fun SettingsSectionLabel(text: String, modifier: Modifier = Modifier) {
+private fun SettingsSectionLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+    testTag: String? = null
+) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(start = 16.dp, end = 16.dp, bottom = 2.dp)
+        modifier = modifier
+            .padding(start = 16.dp, end = 16.dp, bottom = 2.dp)
+            .then(if (testTag == null) Modifier else Modifier.testTag(testTag))
+            .semantics { heading() }
     )
 }
 

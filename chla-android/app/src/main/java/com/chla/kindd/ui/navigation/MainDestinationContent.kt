@@ -29,6 +29,20 @@ data class MainNavActions(
     val navigateToSettings: () -> Unit = {}
 )
 
+internal data class SettingsDestinationActions(
+    val navigateToFaq: () -> Unit,
+    val navigateToAbout: () -> Unit,
+    val navigateToEditProfile: () -> Unit,
+    val navigateBackToMore: () -> Unit
+)
+
+internal fun MainNavActions.toSettingsDestinationActions() = SettingsDestinationActions(
+    navigateToFaq = navigateToFaq,
+    navigateToAbout = navigateToAbout,
+    navigateToEditProfile = navigateToEditProfile,
+    navigateBackToMore = navigateBack
+)
+
 interface MainDestinationContent {
     @Composable
     fun home(profile: UserProfile, actions: MainNavActions)
@@ -97,10 +111,12 @@ object ProductionMainDestinationContent : MainDestinationContent {
 
     @Composable
     override fun settings(actions: MainNavActions) {
+        val settingsActions = actions.toSettingsDestinationActions()
         SettingsScreen(
-            onNavigateToFAQ = actions.navigateToFaq,
-            onNavigateToAbout = actions.navigateToAbout,
-            onNavigateToEditProfile = actions.navigateToEditProfile
+            onNavigateToFAQ = settingsActions.navigateToFaq,
+            onNavigateToAbout = settingsActions.navigateToAbout,
+            onNavigateToEditProfile = settingsActions.navigateToEditProfile,
+            onNavigateBack = settingsActions.navigateBackToMore
         )
     }
 

@@ -2,14 +2,20 @@
 <resources>
     <string name="settings_back_to_more">Más</string>
     <string name="settings_setup">Configuración</string>
+    <string name="settings_restart_welcome_setup">Reiniciar la configuración de bienvenida</string>
+    <string name="settings_restart_welcome_setup_description">Actualiza tu código postal, contexto de atención y preferencias de la aplicación.</string>
+    <string name="settings_search_preferences">Preferencias de búsqueda</string>
     <string name="settings_preferences">Preferencias</string>
     <string name="settings_information">Información</string>
     <string name="settings_reset">Restablecer</string>
     <string name="settings_open">Abrir</string>
     <string name="settings_language_system_default">Predeterminado del sistema</string>
+    <string name="settings_language_description">Elige el idioma que prefieres para la aplicación</string>
+    <string name="settings_location">Ubicación</string>
     <string name="settings_location_access">Acceso a la ubicación</string>
     <string name="settings_location_allowed">Permitido mientras usas KiNDD</string>
     <string name="settings_location_not_allowed">No permitido</string>
+    <string name="settings_location_unavailable">Los ajustes de ubicación no están disponibles en este dispositivo.</string>
     <string name="settings_about_kindd">Acerca de KiNDD</string>
     <string name="settings_about_description">Información sobre el Navegador de Recursos NDD</string>
     <string name="settings_faq_description">Respuestas a preguntas frecuentes</string>
