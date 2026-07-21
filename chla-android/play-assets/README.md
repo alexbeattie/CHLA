@@ -22,5 +22,5 @@ claims to the captures.
 - `01-home.png`: `KiNDD home screen with a matched Regional Center, map, and service shortcuts.`
 - `02-resource-map.png`: `Map of 50 developmental-service resources across Los Angeles County.`
 - `03-resource-list.png`: `Searchable resource list with therapy types, addresses, and phone numbers.`
-- `04-ask-kindd.png`: `Ask KiNDD assistant explaining how to contact an LA County Regional Center.`
+- `04-ask-kindd.png`: `Ask KiNDD assistant explaining what to bring to a Regional Center intake.`
 - `05-regional-centers.png`: `Searchable directory of Los Angeles County Regional Centers.`
