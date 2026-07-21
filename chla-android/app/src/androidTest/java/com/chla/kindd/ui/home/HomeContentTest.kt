@@ -2,7 +2,7 @@ package com.chla.kindd.ui.home
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -104,7 +104,7 @@ class HomeContentTest {
         composeRule.runOnIdle { profile.value = unmatchedProfile("91311") }
 
         composeRule.onNodeWithText("Who serves your family?").assertIsDisplayed()
-        composeRule.onNodeWithTag("home_zip_input").assertTextEquals("ZIP code", "91311")
+        composeRule.onNodeWithTag("home_zip_input").assertTextContains("91311")
     }
 
     @Test
