@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,9 +39,13 @@ fun ChatScreen(
     val resolvedInitialPrompt = initialPrompt?.let { prompt ->
         stringResource(prompt.promptResId)
     }
+    var initialPromptDispatched by rememberSaveable(initialPrompt?.routeValue) {
+        mutableStateOf(false)
+    }
 
     LaunchedEffect(initialPrompt, resolvedInitialPrompt) {
-        if (initialPrompt != null && resolvedInitialPrompt != null) {
+        if (!initialPromptDispatched && initialPrompt != null && resolvedInitialPrompt != null) {
+            initialPromptDispatched = true
             viewModel.sendInitialPrompt(initialPrompt.routeValue, resolvedInitialPrompt)
         }
     }

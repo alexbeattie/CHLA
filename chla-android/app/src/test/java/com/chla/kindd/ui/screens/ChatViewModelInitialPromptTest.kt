@@ -23,19 +23,21 @@ class ChatViewModelInitialPromptTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun eachFixedKey_isSentAtMostOncePerViewModel() = runTest(mainDispatcherRule.testDispatcher) {
+    fun eachFixedKey_isAcceptedForEachSheetPresentation() = runTest(mainDispatcherRule.testDispatcher) {
         val requests = mutableListOf<LLMRequest>()
         val viewModel = ChatViewModel(api(requests), mainDispatcherRule.testDispatcher)
 
         ChatLaunchPrompt.entries.forEach { prompt ->
             viewModel.sendInitialPrompt(prompt.routeValue, "localized ${prompt.routeValue}")
-            viewModel.sendInitialPrompt(prompt.routeValue, "duplicate")
+            viewModel.sendInitialPrompt(prompt.routeValue, "reopened ${prompt.routeValue}")
         }
         runCurrent()
 
-        assertEquals(ChatLaunchPrompt.entries.size, requests.size)
+        assertEquals(ChatLaunchPrompt.entries.size * 2, requests.size)
         assertEquals(
-            ChatLaunchPrompt.entries.map { "localized ${it.routeValue}" },
+            ChatLaunchPrompt.entries.flatMap {
+                listOf("localized ${it.routeValue}", "reopened ${it.routeValue}")
+            },
             requests.map(LLMRequest::query)
         )
     }

@@ -132,3 +132,63 @@ Kotlin files.
 - The connected Compose suite proves sizing, semantics, overlay geometry, and
   behavior. A separate end-to-end screenshot-diff gate was not introduced in
   this task.
+
+## Review remediation
+
+Review remediation implementation: this commit, based on `5e448d4`.
+
+The four follow-up findings were reproduced with tests before production
+changes:
+
+- The focused unit RED failed at `compileDebugUnitTestKotlin` because the
+  required `KiNDDPressVisual` contract did not exist. The existing
+  ViewModel-lifetime prompt gate also rejected a second identical typed prompt.
+- The focused connected RED ran 19 tests and reported three expected failures:
+  the Home/list-style bottom control overlapped the floating capsule, reopening
+  an identical typed prompt never issued the second request, and the Ask target
+  exposed a filled color circle instead of a neutral glass container.
+- A later integration-contract RED proved Home was being host-shrunk: its
+  destination bottom was `1995px` while the root bottom was `2205px`. Home owns
+  its explicit 190dp scroll and 94dp Ask offsets, so the host now leaves Home
+  and the full-bleed Map at full height while reserving navigation-bar-aware
+  clearance for List, Regions, Settings, and other non-fullscreen destinations.
+- The final pressed-surface test was also mutation-checked: temporarily moving
+  press feedback back after the fill reproduced the defect on the primary
+  capsule (`press_primary` edge pixel remained `-10131727`), and restoring the
+  press layer ahead of the surface returned the test to GREEN.
+
+The remediation makes prompt dispatch presentation-scoped in `ChatScreen`
+instead of Activity/ViewModel-scoped, moves the press layer before every shared
+control's shadow/fill/border, keeps selected icon fills inside the shared icon
+control, and renders the Ask sparkle as a violet-to-pink `SrcIn` mask in an
+offscreen compositing layer over glass. Connected pixel assertions cover both
+the neutral Ask container/colored glyph and the drawn edges of the primary,
+secondary, icon, and card surfaces while pressed.
+
+Fresh GREEN evidence:
+
+```bash
+ANDROID_HOME="/Users/alexbeattie/Library/Android/sdk" \
+ANDROID_SERIAL=emulator-5554 \
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.chla.kindd.ui.navigation.AppEntryNavigationTest,com.chla.kindd.ui.screens.ChatScreenInitialPromptTest,com.chla.kindd.ui.theme.KiNDDPressSurfaceTest \
+  --no-daemon --console=plain
+```
+
+Result: `BUILD SUCCESSFUL` in 55 seconds on `Pixel_8(AVD) - 16`; 19 tests,
+0 failures, 0 errors, 0 skipped. One earlier combined attempt was externally
+interrupted when another worktree installed the same package and Android killed
+the instrumentation PID with signal 9; the clean uncontended rerun above is the
+accepted result.
+
+```bash
+ANDROID_HOME="/Users/alexbeattie/Library/Android/sdk" \
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
+./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug \
+  --no-daemon --console=plain
+```
+
+Result: `BUILD SUCCESSFUL` in 52 seconds; 171 unit tests, 0 failures and
+0 errors; the 18MB debug APK assembled; lint completed with 0 errors and 87
+pre-existing warnings.

@@ -1,6 +1,8 @@
 package com.chla.kindd.ui.navigation
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,6 +13,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.platform.LocalContext
@@ -19,6 +23,7 @@ import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso.pressBack
@@ -316,6 +321,51 @@ class AppEntryNavigationTest {
     }
 
     @Test
+    fun askAction_usesNeutralGlassContainerWithAColoredGradientGlyph() {
+        lateinit var navController: TestNavHostController
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDMainNavHost(
+                    profile = completeProfile(),
+                    navController = navController,
+                    destinationContent = TaggedMainDestinationContent
+                )
+            }
+        }
+
+        val pixels = composeRule.onNodeWithTag(BOTTOM_ASK_TAG)
+            .captureToImage()
+            .toPixelMap()
+        val containerSample = pixels[pixels.width / 6, pixels.height / 2]
+        val containerChannels = listOf(
+            containerSample.red,
+            containerSample.green,
+            containerSample.blue
+        )
+        assertTrue(
+            "Ask container must remain neutral glass instead of a filled color circle",
+            containerChannels.max() - containerChannels.min() < 0.12f
+        )
+
+        val centerColors = buildList {
+            for (x in pixels.width / 3 until pixels.width * 2 / 3) {
+                for (y in pixels.height / 3 until pixels.height * 2 / 3) {
+                    add(pixels[x, y])
+                }
+            }
+        }
+        assertTrue(
+            "Ask glyph must contain violet-to-pink color rather than only white",
+            centerColors.any { color ->
+                val channels = listOf(color.red, color.green, color.blue)
+                channels.max() - channels.min() > 0.18f
+            }
+        )
+    }
+
+    @Test
     fun floatingNavigation_isNarrowerThanRoot_andOverlaysDestinationContent() {
         lateinit var navController: TestNavHostController
 
@@ -338,6 +388,74 @@ class AppEntryNavigationTest {
         assertTrue("Floating navigation must not consume the full width", capsuleBounds.width < rootBounds.width)
         assertTrue("Floating navigation must sit inside the content root", capsuleBounds.bottom <= rootBounds.bottom)
         composeRule.onNodeWithTag(HOME_TAG).assertExists()
+    }
+
+    @Test
+    fun floatingNavigation_reservesBottomClearance_butHomeAndMapOwnTheirFullHeightInsets() {
+        lateinit var navController: TestNavHostController
+        val clearanceContent = object : MainDestinationContent by TaggedMainDestinationContent {
+            @Composable
+            override fun home(profile: UserProfile, actions: MainNavActions) {
+                DestinationWithBottomControl(HOME_TAG, HOME_BOTTOM_CONTROL_TAG)
+            }
+
+            @Composable
+            override fun list(actions: MainNavActions) {
+                DestinationWithBottomControl(LIST_TAG, LIST_BOTTOM_CONTROL_TAG)
+            }
+
+            @Composable
+            override fun regions(actions: MainNavActions) {
+                DestinationWithBottomControl(REGIONS_TAG, REGIONS_BOTTOM_CONTROL_TAG)
+            }
+
+            @Composable
+            override fun settings(actions: MainNavActions) {
+                DestinationWithBottomControl(SETTINGS_TAG, SETTINGS_BOTTOM_CONTROL_TAG)
+            }
+
+            @Composable
+            override fun map(actions: MainNavActions) {
+                Box(Modifier.fillMaxSize().testTag(MAP_FULL_BLEED_TAG))
+            }
+        }
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDMainNavHost(
+                    profile = completeProfile(),
+                    navController = navController,
+                    destinationContent = clearanceContent
+                )
+            }
+        }
+
+        fun assertControlClearsFloatingNavigation(tag: String) {
+            val controlBottom = composeRule.onNodeWithTag(tag)
+                .fetchSemanticsNode().boundsInRoot.bottom
+            val capsuleTop = composeRule.onNodeWithTag(FLOATING_NAV_CAPSULE_TAG)
+                .fetchSemanticsNode().boundsInRoot.top
+            assertTrue("$tag must finish above floating navigation", controlBottom <= capsuleTop)
+        }
+
+        val rootBottom = composeRule.onNodeWithTag(MAIN_NAV_ROOT_TAG)
+            .fetchSemanticsNode().boundsInRoot.bottom
+        val homeBottom = composeRule.onNodeWithTag(HOME_TAG)
+            .fetchSemanticsNode().boundsInRoot.bottom
+        assertEquals(rootBottom, homeBottom, 0.5f)
+
+        composeRule.onNodeWithTag(BOTTOM_LIST_TAG).performClick()
+        assertControlClearsFloatingNavigation(LIST_BOTTOM_CONTROL_TAG)
+        composeRule.onNodeWithTag(BOTTOM_REGIONS_TAG).performClick()
+        assertControlClearsFloatingNavigation(REGIONS_BOTTOM_CONTROL_TAG)
+        composeRule.onNodeWithTag(BOTTOM_MORE_TAG).performClick()
+        assertControlClearsFloatingNavigation(SETTINGS_BOTTOM_CONTROL_TAG)
+
+        composeRule.onNodeWithTag(BOTTOM_MAP_TAG).performClick()
+        val mapBottom = composeRule.onNodeWithTag(MAP_FULL_BLEED_TAG)
+            .fetchSemanticsNode().boundsInRoot.bottom
+        assertEquals(rootBottom, mapBottom, 0.5f)
     }
 
     @Test
@@ -623,10 +741,29 @@ class AppEntryNavigationTest {
         const val CHAT_SHEET_TAG = "chat_modal_sheet"
         const val TYPED_CHAT_LAUNCH_TAG = "launch_typed_chat"
         const val NO_PROMPT_TEXT = "no_prompt"
+        const val HOME_BOTTOM_CONTROL_TAG = "home_bottom_control"
+        const val LIST_BOTTOM_CONTROL_TAG = "list_bottom_control"
+        const val REGIONS_BOTTOM_CONTROL_TAG = "regions_bottom_control"
+        const val SETTINGS_BOTTOM_CONTROL_TAG = "settings_bottom_control"
+        const val MAP_FULL_BLEED_TAG = "map_full_bleed"
     }
 }
 
 @Composable
 private fun TaggedDestination(tag: String) {
     Text(text = tag, modifier = Modifier.testTag(tag))
+}
+
+@Composable
+private fun DestinationWithBottomControl(destinationTag: String, controlTag: String) {
+    Box(Modifier.fillMaxSize().testTag(destinationTag)) {
+        Button(
+            onClick = {},
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .testTag(controlTag)
+        ) {
+            Text(controlTag)
+        }
+    }
 }

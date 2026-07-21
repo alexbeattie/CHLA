@@ -29,8 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -38,6 +41,22 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+
+internal data class KiNDDPressVisual(
+    val scale: Float,
+    val alpha: Float
+)
+
+internal fun kinddPressVisual(
+    pressed: Boolean,
+    spatialMotionEnabled: Boolean,
+    card: Boolean
+): KiNDDPressVisual = when {
+    !pressed -> KiNDDPressVisual(scale = 1f, alpha = 1f)
+    !spatialMotionEnabled -> KiNDDPressVisual(scale = 1f, alpha = 0.66f)
+    card -> KiNDDPressVisual(scale = 0.985f, alpha = 1f)
+    else -> KiNDDPressVisual(scale = 0.97f, alpha = 1f)
+}
 
 private fun Modifier.kinddPressable(
     onClick: () -> Unit,
@@ -47,25 +66,19 @@ private fun Modifier.kinddPressable(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val spatialMotionEnabled = ValueAnimator.areAnimatorsEnabled()
-    val targetScale = if (pressed && spatialMotionEnabled) {
-        if (card) 0.985f else 0.97f
-    } else {
-        1f
-    }
+    val pressVisual = kinddPressVisual(pressed, spatialMotionEnabled, card)
     val scale by animateFloatAsState(
-        targetValue = targetScale,
+        targetValue = pressVisual.scale,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessHigh
         ),
         label = "KiNDD press scale"
     )
-    val alpha = if (pressed && !spatialMotionEnabled) 0.66f else 1f
-
     graphicsLayer {
         scaleX = scale
         scaleY = scale
-        this.alpha = alpha
+        alpha = pressVisual.alpha
     }.clickable(
         interactionSource = interactionSource,
         indication = null,
@@ -132,9 +145,9 @@ private fun KiNDDGradientCapsule(
     Box(
         modifier = modifier
             .defaultMinSize(minHeight = 48.dp)
+            .kinddPressable(onClick = onClick, role = Role.Button)
             .clip(RoundedCornerShape(percent = 50))
             .background(brush)
-            .kinddPressable(onClick = onClick, role = Role.Button)
             .padding(contentPadding),
         contentAlignment = Alignment.Center,
         content = content
@@ -152,10 +165,10 @@ fun KiNDDSecondaryCapsule(
     Box(
         modifier = modifier
             .defaultMinSize(minHeight = 48.dp)
+            .kinddPressable(onClick = onClick, role = Role.Button)
             .clip(shape)
             .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.30f), shape)
-            .kinddPressable(onClick = onClick, role = Role.Button)
             .padding(contentPadding),
         contentAlignment = Alignment.Center,
         content = content
@@ -169,28 +182,47 @@ fun KiNDDCompactIconAction(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    containerBrush: Brush? = null
+    containerBrush: Brush? = null,
+    containerColor: Color? = null,
+    iconBrush: Brush? = null
 ) {
     Box(
         modifier = modifier
             .size(48.dp)
+            .kinddPressable(onClick = onClick, role = Role.Button)
             .clip(CircleShape)
             .then(
-                if (containerBrush == null) {
-                    Modifier
-                } else {
-                    Modifier.background(containerBrush)
+                when {
+                    containerBrush != null -> Modifier.background(containerBrush)
+                    containerColor != null -> Modifier.background(containerColor)
+                    else -> Modifier
                 }
             )
-            .kinddPressable(onClick = onClick, role = Role.Button)
             .semantics { this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(22.dp)
+            tint = if (iconBrush == null) tint else Color.White,
+            modifier = Modifier
+                .size(22.dp)
+                .then(
+                    if (iconBrush == null) {
+                        Modifier
+                    } else {
+                        Modifier
+                            .graphicsLayer {
+                                compositingStrategy = CompositingStrategy.Offscreen
+                            }
+                            .drawWithCache {
+                                onDrawWithContent {
+                                    drawContent()
+                                    drawRect(iconBrush, blendMode = BlendMode.SrcIn)
+                                }
+                            }
+                    }
+                )
         )
     }
 }
@@ -212,11 +244,11 @@ fun KiNDDCardSurface(
     }
     Box(
         modifier = modifier
+            .then(clickableModifier)
             .shadow(2.dp, shape, ambientColor = Color.Black.copy(alpha = 0.10f))
             .clip(shape)
             .background(MaterialTheme.colorScheme.surface)
             .border(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.18f), shape)
-            .then(clickableModifier)
             .padding(contentPadding),
         content = content
     )

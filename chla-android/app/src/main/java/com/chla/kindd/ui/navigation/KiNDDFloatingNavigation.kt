@@ -1,7 +1,6 @@
 package com.chla.kindd.ui.navigation
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -22,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -114,8 +112,7 @@ internal fun KiNDDFloatingNavigation(
                 icon = Icons.Filled.AutoAwesome,
                 contentDescription = stringResource(R.string.nav_ask),
                 onClick = onAskClick,
-                tint = Color.White,
-                containerBrush = KiNDDAiGradient,
+                iconBrush = KiNDDAiGradient,
                 modifier = Modifier
                     .padding(horizontal = 1.dp)
                     .testTag(FLOATING_NAV_ASK_TAG)
@@ -144,14 +141,8 @@ private fun FloatingDestinationAction(
         contentDescription = label,
         onClick = { onDestinationClick(destination.screen) },
         tint = if (selected) KiNDDIndigo else MaterialTheme.colorScheme.onSurfaceVariant,
+        containerColor = if (selected) KiNDDIndigo.copy(alpha = 0.10f) else null,
         modifier = Modifier
-            .then(
-                if (selected) {
-                    Modifier.background(KiNDDIndigo.copy(alpha = 0.10f), CircleShape)
-                } else {
-                    Modifier
-                }
-            )
             .testTag(destination.tag)
             .semantics {
                 this.selected = selected

@@ -92,6 +92,10 @@ fun KINDDMainNavHost(
         Screen.EditProfile.route,
         Screen.Chat.destinationRoute
     )
+    val reserveFloatingNavigationClearance = showFloatingNavigation &&
+        currentDestination?.route?.let { route ->
+            route !in setOf(Screen.Home.route, Screen.Map.route)
+        } == true
     var showChatSheet by rememberSaveable { mutableStateOf(false) }
     var chatPromptRouteValue by rememberSaveable { mutableStateOf<String?>(null) }
     val chatPrompt = ChatLaunchPrompt.fromRouteValue(chatPromptRouteValue)
@@ -133,7 +137,17 @@ fun KINDDMainNavHost(
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    if (reserveFloatingNavigationClearance) {
+                        Modifier
+                            .navigationBarsPadding()
+                            .padding(bottom = KiNDDSpacingTokens.FloatingNavigationContentClearance)
+                    } else {
+                        Modifier
+                    }
+                )
         ) {
             composable(Screen.Home.route) {
                 destinationContent.home(profile, actions)

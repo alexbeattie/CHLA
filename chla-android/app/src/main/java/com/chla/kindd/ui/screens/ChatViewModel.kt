@@ -36,11 +36,9 @@ class ChatViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
-    private val handledInitialPromptKeys = mutableSetOf<String>()
 
     fun sendInitialPrompt(key: String, resolvedText: String) {
         if (com.chla.kindd.ui.chat.ChatLaunchPrompt.fromRouteValue(key) == null) return
-        if (!handledInitialPromptKeys.add(key)) return
         sendMessage(resolvedText)
     }
 

@@ -22,6 +22,7 @@ object KiNDDSpacingTokens {
     val PageInset = 18.dp
     val Section = 22.dp
     val FloatingNavigationBottom = 8.dp
+    val FloatingNavigationContentClearance = 80.dp
 }
 
 val KiNDDPrimaryActionGradient: Brush
