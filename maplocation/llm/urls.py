@@ -18,9 +18,15 @@ from .views import (
     ImageAnalysisView,
     DocumentAnalysisView,
     AutismResearchView,
+    AssistantResponseReportView,
 )
 
 urlpatterns = [
+    path(
+        "response-reports/",
+        AssistantResponseReportView.as_view(),
+        name="llm-response-report",
+    ),
     path("ask/", AskKiNDDView.as_view(), name="llm-ask"),
     path("stream/", StreamingAskView.as_view(), name="llm-stream"),
     path("agent/", AgentAskView.as_view(), name="llm-agent"),
