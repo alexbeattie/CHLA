@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-07-21 — Prepare Android for Google Play release
+- **Branch:** feature/android-persistent-discovery
+- **Files:** chla-android/app/build.gradle.kts, chla-android/build.gradle.kts, chla-android/gradle/wrapper/gradle-wrapper.properties, chla-android/app/src/main/AndroidManifest.xml, chla-android/app/src/main/java/com/chla/kindd/ui/, chla-android/app/src/main/res/values/, chla-android/app/src/main/res/values-es/, chla-android/app/src/test/, chla-android/app/src/androidTest/java/com/chla/kindd/ui/home/HomeContentTest.kt, chla-android/scripts/, chla-android/PLAY_STORE_RELEASE.md, chla-android/play-assets/
+- **Problem:** The Android project targeted an expiring Play API level, produced only unsigned release artifacts, lacked a reproducible signing, policy, asset, and submission workflow, obscured required Maps attribution in two map heroes, directly launched external provider actions, and could unnecessarily exclude devices without location hardware. The full device suite also exposed one off-screen home action tap that could miss the control.
+- **Fix:** Target Android 16 with its supported pinned toolchain, normalize the user-facing KiNDD name, add environment-only release signing backed by macOS Keychain and Maps-key validation, reserve Maps attribution space, route provider actions through guarded launchers, declare location hardware optional, make the home call-action test use semantics, and prepare the Organization-account runbook, listing, policy worksheets, and current Play assets.
+
 ### 2026-07-21 — Render unexpected chat headings safely
 - **Branch:** feature/android-persistent-discovery
 - **Files:** chla-android/app/src/main/java/com/chla/kindd/ui/chat/SafeMarkdown.kt, chla-android/app/src/test/java/com/chla/kindd/ui/chat/SafeMarkdownTest.kt

@@ -61,11 +61,8 @@ class PlayReleaseManifestContractTest {
     }
 
     private fun manifest(): Document {
-        val releaseManifest = File(
-            "build/intermediates/merged_manifests/release/" +
-                "processReleaseManifest/AndroidManifest.xml"
-        )
-        assertTrue("Merged release manifest must exist", releaseManifest.isFile)
+        val releaseManifest = File("src/main/AndroidManifest.xml")
+        assertTrue("Source manifest must exist", releaseManifest.isFile)
         return DocumentBuilderFactory.newInstance().apply {
             isNamespaceAware = true
         }.newDocumentBuilder().parse(releaseManifest)
