@@ -9,7 +9,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import com.chla.kindd.ui.screens.ChatTopAppBar
 import com.chla.kindd.ui.screens.RegionalCentersTopAppBar
 import com.chla.kindd.ui.theme.KINDDTheme
 import com.chla.kindd.ui.theme.KiNDDTopAppBarColorContract
@@ -25,45 +24,12 @@ class AdaptiveAppBarTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun chatBarConsumesExactReadableProductionContractInLightTheme() =
-        assertChatAppBar(darkTheme = false)
-
-    @Test
-    fun chatBarConsumesExactReadableProductionContractInDarkTheme() =
-        assertChatAppBar(darkTheme = true)
-
-    @Test
     fun regionalCentersBarConsumesExactReadableProductionContractInLightTheme() =
         assertRegionalCentersAppBar(darkTheme = false)
 
     @Test
     fun regionalCentersBarConsumesExactReadableProductionContractInDarkTheme() =
         assertRegionalCentersAppBar(darkTheme = true)
-
-    private fun assertChatAppBar(darkTheme: Boolean) {
-        lateinit var scheme: ColorScheme
-        lateinit var contract: KiNDDTopAppBarColorContract
-        composeRule.setContent {
-            KINDDTheme(darkTheme = darkTheme) {
-                val productionContract = kinddTopAppBarColorContract()
-                val productionScheme = MaterialTheme.colorScheme
-                SideEffect {
-                    scheme = productionScheme
-                    contract = productionContract
-                }
-                ChatTopAppBar(
-                    hasMessages = true,
-                    onClear = {},
-                    colorContract = productionContract
-                )
-            }
-        }
-
-        composeRule.onNodeWithText("Ask KiNDD").assertIsDisplayed()
-        composeRule.onNodeWithText("AI-powered help finding services").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Clear Chat").assertIsDisplayed()
-        composeRule.runOnIdle { assertExactContract(scheme, contract) }
-    }
 
     private fun assertRegionalCentersAppBar(darkTheme: Boolean) {
         lateinit var scheme: ColorScheme

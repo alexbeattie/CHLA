@@ -14,9 +14,11 @@ import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -70,6 +72,7 @@ sealed class Screen(
             prompt?.let { "$route?prompt=${it.routeValue}" } ?: route
     }
     data object Settings : Screen("settings", R.string.nav_settings, Icons.Filled.Settings, Icons.Outlined.Settings)
+    data object More : Screen("more", R.string.nav_more, Icons.Filled.MoreHoriz, Icons.Outlined.MoreHoriz)
 
     data object ProviderDetail : Screen("provider/{providerId}", R.string.provider_details, Icons.AutoMirrored.Filled.List, Icons.AutoMirrored.Outlined.List)
     data object RegionalCenters : Screen("regional-centers", R.string.regional_centers, Icons.Filled.Map, Icons.Outlined.Map)
@@ -124,7 +127,10 @@ fun KINDDMainNavHost(
         navigateToFaq = { navController.navigate(Screen.FAQ.route) },
         navigateToAbout = { navController.navigate(Screen.About.route) },
         navigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
-        navigateToSettings = { navigateToPrimaryDestination(Screen.Settings) },
+        navigateToSettings = {
+            navigateToPrimaryDestination(Screen.More)
+            navController.navigate(Screen.Settings.route) { launchSingleTop = true }
+        },
         navigateBack = {
             if (showChatSheet) dismissChat() else navController.popBackStack()
         }
@@ -180,6 +186,9 @@ fun KINDDMainNavHost(
             }
             composable(Screen.Settings.route) {
                 destinationContent.settings(actions)
+            }
+            composable(Screen.More.route) {
+                destinationContent.more(actions)
             }
             composable(
                 route = Screen.ProviderDetail.route,

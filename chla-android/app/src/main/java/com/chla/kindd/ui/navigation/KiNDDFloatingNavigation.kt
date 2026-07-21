@@ -81,7 +81,7 @@ private val floatingDestinations = listOf(
         FLOATING_NAV_LIST_TAG
     ),
     FloatingDestination(
-        Screen.Settings,
+        Screen.More,
         R.string.nav_more,
         Icons.Filled.MoreHoriz,
         Icons.Outlined.MoreHoriz,
@@ -134,7 +134,8 @@ private fun FloatingDestinationAction(
     onDestinationClick: (Screen) -> Unit
 ) {
     val selected = currentRoute == destination.screen.destinationRoute ||
-        currentRoute == destination.screen.route
+        currentRoute == destination.screen.route ||
+        (destination.screen == Screen.More && currentRoute == Screen.Settings.route)
     val label = stringResource(destination.labelRes)
     KiNDDCompactIconAction(
         icon = if (selected) destination.selectedIcon else destination.unselectedIcon,

@@ -2,6 +2,7 @@ package com.chla.kindd.ui.navigation
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -415,6 +416,11 @@ class AppEntryNavigationTest {
             }
 
             @Composable
+            override fun more(actions: MainNavActions) {
+                DestinationWithBottomControl(MORE_TAG, MORE_BOTTOM_CONTROL_TAG)
+            }
+
+            @Composable
             override fun map(actions: MainNavActions) {
                 Box(Modifier.fillMaxSize().testTag(MAP_FULL_BLEED_TAG))
             }
@@ -450,7 +456,7 @@ class AppEntryNavigationTest {
         composeRule.onNodeWithTag(BOTTOM_REGIONS_TAG).performClick()
         assertControlClearsFloatingNavigation(REGIONS_BOTTOM_CONTROL_TAG)
         composeRule.onNodeWithTag(BOTTOM_MORE_TAG).performClick()
-        assertControlClearsFloatingNavigation(SETTINGS_BOTTOM_CONTROL_TAG)
+        assertControlClearsFloatingNavigation(MORE_BOTTOM_CONTROL_TAG)
 
         composeRule.onNodeWithTag(BOTTOM_MAP_TAG).performClick()
         val mapBottom = composeRule.onNodeWithTag(MAP_FULL_BLEED_TAG)
@@ -459,7 +465,7 @@ class AppEntryNavigationTest {
     }
 
     @Test
-    fun regionsAndMore_useExistingRoutes_whilePrimaryDestinationsPreserveGraphState() {
+    fun regionsAndMore_useFirstClassRoutes_whilePrimaryDestinationsPreserveGraphState() {
         lateinit var navController: TestNavHostController
 
         composeRule.setContent {
@@ -487,9 +493,10 @@ class AppEntryNavigationTest {
         composeRule.onNodeWithTag(LIST_TAG).assertExists()
 
         composeRule.onNodeWithTag(BOTTOM_MORE_TAG).performClick()
-        composeRule.onNodeWithTag(SETTINGS_TAG).assertExists()
+        composeRule.onNodeWithTag(SETTINGS_TAG).assertDoesNotExist()
+        composeRule.onNodeWithTag(MORE_TAG).assertExists()
         composeRule.runOnIdle {
-            assertEquals(Screen.Settings.route, navController.currentDestination?.route)
+            assertEquals("more", navController.currentDestination?.route)
             assertNull(navController.graph.findNode("onboarding"))
         }
     }
@@ -514,6 +521,12 @@ class AppEntryNavigationTest {
         composeRule.runOnIdle {
             assertEquals(Screen.Settings.route, navController.currentDestination?.route)
         }
+
+        composeRule.onNodeWithTag(BOTTOM_MORE_TAG).assertIsSelected()
+        pressBack()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(MORE_TAG).assertExists()
+        composeRule.onNodeWithTag(BOTTOM_MORE_TAG).assertIsSelected()
     }
 
     @Test
@@ -683,27 +696,29 @@ class AppEntryNavigationTest {
     private object TaggedMainDestinationContent : MainDestinationContent {
         @Composable
         override fun home(profile: UserProfile, actions: MainNavActions) {
-            TaggedDestination(HOME_TAG)
-            Button(
-                onClick = { actions.navigateToChat(ChatLaunchPrompt.JUST_DIAGNOSED) },
-                modifier = Modifier.testTag(TYPED_CHAT_LAUNCH_TAG)
-            ) {
-                Text("Open typed chat")
+            Column {
+                TaggedDestination(HOME_TAG)
+                Button(
+                    onClick = { actions.navigateToChat(ChatLaunchPrompt.JUST_DIAGNOSED) },
+                    modifier = Modifier.testTag(TYPED_CHAT_LAUNCH_TAG)
+                ) {
+                    Text("Open typed chat")
+                }
+                Button(
+                    onClick = actions.navigateToSettings,
+                    modifier = Modifier.testTag(HOME_SETTINGS_LAUNCH_TAG)
+                ) {
+                    Text("Open settings from Home")
+                }
+                Text(
+                    text = listOf(
+                        profile.zipCode.orEmpty(),
+                        profile.regionalCenter?.shortName.orEmpty(),
+                        profile.journeyStage?.name.orEmpty()
+                    ).joinToString("|"),
+                    modifier = Modifier.testTag(READY_PROFILE_TAG)
+                )
             }
-            Button(
-                onClick = actions.navigateToSettings,
-                modifier = Modifier.testTag(HOME_SETTINGS_LAUNCH_TAG)
-            ) {
-                Text("Open settings from Home")
-            }
-            Text(
-                text = listOf(
-                    profile.zipCode.orEmpty(),
-                    profile.regionalCenter?.shortName.orEmpty(),
-                    profile.journeyStage?.name.orEmpty()
-                ).joinToString("|"),
-                modifier = Modifier.testTag(READY_PROFILE_TAG)
-            )
         }
 
         @Composable
@@ -727,6 +742,11 @@ class AppEntryNavigationTest {
         @Composable
         override fun settings(actions: MainNavActions) {
             TaggedDestination(SETTINGS_TAG)
+        }
+
+        @Composable
+        override fun more(actions: MainNavActions) {
+            TaggedDestination(MORE_TAG)
         }
 
         @Composable
@@ -763,6 +783,7 @@ class AppEntryNavigationTest {
         const val LIST_TAG = "fake_list_destination"
         const val CHAT_TAG = "fake_chat_destination"
         const val SETTINGS_TAG = "fake_settings_destination"
+        const val MORE_TAG = "fake_more_destination"
         const val REGIONS_TAG = "fake_regions_destination"
         const val FAQ_TAG = "fake_faq_destination"
         const val ABOUT_TAG = "fake_about_destination"
@@ -783,6 +804,7 @@ class AppEntryNavigationTest {
         const val LIST_BOTTOM_CONTROL_TAG = "list_bottom_control"
         const val REGIONS_BOTTOM_CONTROL_TAG = "regions_bottom_control"
         const val SETTINGS_BOTTOM_CONTROL_TAG = "settings_bottom_control"
+        const val MORE_BOTTOM_CONTROL_TAG = "more_bottom_control"
         const val MAP_FULL_BLEED_TAG = "map_full_bleed"
     }
 }

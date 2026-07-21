@@ -10,6 +10,7 @@ import com.chla.kindd.ui.screens.ChatScreen
 import com.chla.kindd.ui.screens.FAQScreen
 import com.chla.kindd.ui.screens.HomeScreen
 import com.chla.kindd.ui.screens.MapScreen
+import com.chla.kindd.ui.screens.MoreScreen
 import com.chla.kindd.ui.screens.ProviderDetailScreen
 import com.chla.kindd.ui.screens.ProviderListScreen
 import com.chla.kindd.ui.screens.RegionalCentersScreen
@@ -43,6 +44,9 @@ interface MainDestinationContent {
 
     @Composable
     fun settings(actions: MainNavActions)
+
+    @Composable
+    fun more(actions: MainNavActions)
 
     @Composable
     fun providerDetail(providerId: String, actions: MainNavActions)
@@ -97,6 +101,15 @@ object ProductionMainDestinationContent : MainDestinationContent {
             onNavigateToFAQ = actions.navigateToFaq,
             onNavigateToAbout = actions.navigateToAbout,
             onNavigateToEditProfile = actions.navigateToEditProfile
+        )
+    }
+
+    @Composable
+    override fun more(actions: MainNavActions) {
+        MoreScreen(
+            onNavigateToFAQ = actions.navigateToFaq,
+            onNavigateToEditProfile = actions.navigateToEditProfile,
+            onNavigateToSettings = actions.navigateToSettings
         )
     }
 
