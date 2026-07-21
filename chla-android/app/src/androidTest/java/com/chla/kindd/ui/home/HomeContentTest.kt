@@ -2,6 +2,7 @@ package com.chla.kindd.ui.home
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -49,12 +50,85 @@ class HomeContentTest {
 
     @Test
     fun matchedLayoutShowsCenterActions() {
-        setHome(matchedState())
+        setHome(matchedState(), profile = matchedProfile())
         composeRule.onNodeWithText("Your Regional Center").assertIsDisplayed()
         composeRule.onNodeWithText("Matched").assertIsDisplayed()
         composeRule.onNodeWithText("SCLARC").assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("Call now").fetchSemanticsNodes().isNotEmpty())
         composeRule.onNodeWithText("Details").assertIsDisplayed()
+    }
+
+    @Test
+    fun completeReadyProfilesRenderTheirAuthoritativeIdentityOnTheFirstFrame() {
+        val profile = mutableStateOf(matchedProfile())
+        composeRule.setContent {
+            KINDDTheme {
+                HomeContent(
+                    profile = profile.value,
+                    uiState = HomeUiState(),
+                    onZipChanged = {},
+                    onSubmitZip = {},
+                    onNavigateToMap = {},
+                    onNavigateToList = {},
+                    onNavigateToRegionalCenters = {},
+                    onNavigateToChat = {},
+                    onOpenChat = {},
+                    onTherapySelected = {},
+                    onCall = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("SCLARC").assertIsDisplayed()
+        composeRule.onNodeWithText("Who serves your family?").assertDoesNotExist()
+
+        composeRule.runOnIdle { profile.value = unmatchedProfile("91311") }
+
+        composeRule.onNodeWithText("Who serves your family?").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_zip_input").assertTextEquals("ZIP code", "91311")
+    }
+
+    @Test
+    fun rootProfileUpdatesImmediatelyReplaceSameCenterJourneyAndDifferentCenterIdentity() {
+        val readyProfile = mutableStateOf(matchedProfile(JourneyStage.JUST_DIAGNOSED))
+        composeRule.setContent {
+            KINDDTheme {
+                HomeContent(
+                    profile = readyProfile.value,
+                    uiState = matchedState(),
+                    onZipChanged = {},
+                    onSubmitZip = {},
+                    onNavigateToMap = {},
+                    onNavigateToList = {},
+                    onNavigateToRegionalCenters = {},
+                    onNavigateToChat = {},
+                    onOpenChat = {},
+                    onTherapySelected = {},
+                    onCall = {}
+                )
+            }
+        }
+        composeRule.onNodeWithText("Request an intake evaluation")
+            .performScrollTo()
+            .assertIsDisplayed()
+
+        composeRule.runOnIdle {
+            readyProfile.value = matchedProfile(JourneyStage.WAITING_FOR_INTAKE)
+        }
+        composeRule.onNodeWithText("Get ready for the intake")
+            .performScrollTo()
+            .assertIsDisplayed()
+
+        composeRule.runOnIdle {
+            readyProfile.value = matchedProfile().copy(
+                regionalCenter = RegionalCenterIdentity(9, "Westside Regional Center", "WRC")
+            )
+        }
+        composeRule.onNodeWithText("Westside Regional Center")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("SCLARC").assertDoesNotExist()
+        composeRule.onNodeWithText("Call now").assertDoesNotExist()
     }
 
     @Test
@@ -77,11 +151,12 @@ class HomeContentTest {
     @Test
     fun journeyCardsSelectExactCopyAndTypedPromptKeys() {
         val prompts = mutableListOf<ChatLaunchPrompt>()
-        val state = mutableStateOf(matchedState(JourneyStage.JUST_DIAGNOSED))
+        val journey = mutableStateOf(JourneyStage.JUST_DIAGNOSED)
         composeRule.setContent {
             KINDDTheme {
                 HomeContent(
-                    uiState = state.value,
+                    profile = matchedProfile(journey.value),
+                    uiState = matchedState(journey.value),
                     onZipChanged = {},
                     onSubmitZip = {},
                     onNavigateToMap = {},
@@ -98,13 +173,13 @@ class HomeContentTest {
             JourneyStage.JUST_DIAGNOSED to ("What do I say?" to ChatLaunchPrompt.JUST_DIAGNOSED),
             JourneyStage.WAITING_FOR_INTAKE to ("Help me prepare" to ChatLaunchPrompt.WAITING_INTAKE),
             JourneyStage.RECEIVING_SERVICES to ("What can I ask for?" to ChatLaunchPrompt.RECEIVING_SERVICES)
-        ).forEach { (journey, expected) ->
-            composeRule.runOnIdle { state.value = matchedState(journey) }
+        ).forEach { (stage, expected) ->
+            composeRule.runOnIdle { journey.value = stage }
             composeRule.onNodeWithText(expected.first).performScrollTo().performClick()
             composeRule.runOnIdle { assertEquals(expected.second, prompts.removeLast()) }
         }
 
-        composeRule.runOnIdle { state.value = matchedState(JourneyStage.EXPLORING) }
+        composeRule.runOnIdle { journey.value = JourneyStage.EXPLORING }
         composeRule.onNodeWithText("Your next step").assertDoesNotExist()
     }
 
@@ -115,6 +190,7 @@ class HomeContentTest {
         composeRule.setContent {
             KINDDTheme {
                 HomeContent(
+                    profile = matchedProfile(),
                     uiState = state.value,
                     onZipChanged = {},
                     onSubmitZip = {},
@@ -154,6 +230,7 @@ class HomeContentTest {
         composeRule.setContent {
             KINDDTheme {
                 HomeContent(
+                    profile = matchedProfile(JourneyStage.EXPLORING),
                     uiState = matchedState(JourneyStage.EXPLORING),
                     onZipChanged = {},
                     onSubmitZip = {},
@@ -187,9 +264,11 @@ class HomeContentTest {
     @Test
     fun primaryTargetsAreAtLeast48Dp_andTouchedSurfaceHasNoLegacyNames() {
         val state = mutableStateOf(matchedState())
+        val profile = mutableStateOf(matchedProfile())
         composeRule.setContent {
             KINDDTheme {
                 HomeContent(
+                    profile = profile.value,
                     uiState = state.value,
                     onZipChanged = {},
                     onSubmitZip = {},
@@ -232,7 +311,10 @@ class HomeContentTest {
         composeRule.onAllNodesWithText("KINDD", substring = true).assertCountEquals(0)
         assertTrue(composeRule.onAllNodesWithText("KiNDD", substring = true).fetchSemanticsNodes().isNotEmpty())
 
-        composeRule.runOnIdle { state.value = HomeUiState(zipDraft = "90001") }
+        composeRule.runOnIdle {
+            state.value = HomeUiState(zipDraft = "90001")
+            profile.value = unmatchedProfile("90001")
+        }
         val findBounds = composeRule.onNode(hasClickAction() and hasText("Find"))
             .performScrollTo()
             .fetchSemanticsNode()
@@ -243,6 +325,7 @@ class HomeContentTest {
 
     private fun setHome(
         state: HomeUiState,
+        profile: UserProfile = unmatchedProfile(state.zipDraft.ifBlank { "90001" }),
         onSubmit: () -> Unit = {},
         onTherapy: (TherapyType) -> Unit = {},
         onChat: (ChatLaunchPrompt) -> Unit = {},
@@ -251,6 +334,7 @@ class HomeContentTest {
         composeRule.setContent {
             KINDDTheme {
                 HomeContent(
+                    profile = profile,
                     uiState = state,
                     onZipChanged = {},
                     onSubmitZip = onSubmit,
@@ -267,16 +351,29 @@ class HomeContentTest {
     }
 
     private fun matchedState(journey: JourneyStage = JourneyStage.JUST_DIAGNOSED) = HomeUiState(
-        profile = UserProfile(
-            onboardingCompleted = true,
-            audienceType = AudienceType.FAMILY,
-            zipCode = "90001",
-            regionalCenter = RegionalCenterIdentity(7, "South Central Los Angeles Regional Center", "SCLARC"),
-            journeyStage = journey
-        ),
+        hydratedIdentity = matchedProfile(journey).regionalCenter,
         hydratedCenter = center(),
         zipDraft = "90001",
         lookupState = HomeLookupState.MATCHED
+    )
+
+    private fun matchedProfile(journey: JourneyStage = JourneyStage.JUST_DIAGNOSED) = UserProfile(
+        onboardingCompleted = true,
+        audienceType = AudienceType.FAMILY,
+        zipCode = "90001",
+        regionalCenter = RegionalCenterIdentity(
+            7,
+            "South Central Los Angeles Regional Center",
+            "SCLARC"
+        ),
+        journeyStage = journey
+    )
+
+    private fun unmatchedProfile(zip: String) = UserProfile(
+        onboardingCompleted = true,
+        audienceType = AudienceType.FAMILY,
+        zipCode = zip,
+        journeyStage = JourneyStage.EXPLORING
     )
 
     private fun center(phone: String? = "+1 (213) 555-1212") = RegionalCenter(

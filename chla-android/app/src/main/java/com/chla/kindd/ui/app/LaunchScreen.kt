@@ -17,8 +17,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.chla.kindd.R
 import com.chla.kindd.data.profile.UserProfile
 
 const val APP_ENTRY_LOADING_TAG = "app_entry_loading"
@@ -56,6 +58,7 @@ fun AppEntryContent(
 
 @Composable
 fun LaunchScreen(modifier: Modifier = Modifier) {
+    val loadingDescription = stringResource(R.string.app_entry_loading_content_description)
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -78,7 +81,7 @@ fun LaunchScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .padding(top = 24.dp)
                     .size(40.dp)
-                    .semantics { contentDescription = "Loading KiNDD" },
+                    .semantics { contentDescription = loadingDescription },
                 color = MaterialTheme.colorScheme.primary
             )
         }

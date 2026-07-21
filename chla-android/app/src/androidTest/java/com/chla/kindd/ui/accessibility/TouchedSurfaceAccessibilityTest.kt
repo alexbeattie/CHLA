@@ -207,6 +207,12 @@ class TouchedSurfaceAccessibilityTest {
     fun home_spanishLargeTextExposesHeadingsAndPoliteLookupStatus() {
         setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = false, fontScale = 1.5f) {
             HomeContent(
+                profile = UserProfile(
+                    onboardingCompleted = true,
+                    audienceType = AudienceType.FAMILY,
+                    zipCode = "9000",
+                    journeyStage = JourneyStage.EXPLORING
+                ),
                 uiState = HomeUiState(
                     zipDraft = "9000",
                     lookupState = HomeLookupState.UNAVAILABLE,

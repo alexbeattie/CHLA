@@ -49,6 +49,7 @@
     <string name="resource_found">%d recurso encontrado</string>
     <string name="search_placeholder">Buscar por nombre, servicio o ubicación</string>
     <string name="loading">Cargando…</string>
+    <string name="app_entry_loading_content_description">Cargando KiNDD</string>
     <string name="error_loading">Error al cargar recursos</string>
     <string name="retry">Reintentar</string>
 

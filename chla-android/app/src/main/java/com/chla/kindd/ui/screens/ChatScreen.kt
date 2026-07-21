@@ -54,32 +54,9 @@ fun ChatScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Column {
-                        Text(stringResource(R.string.chat_title))
-                        Text(
-                            text = stringResource(R.string.chat_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CHLABlue,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                actions = {
-                    if (uiState.messages.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.clearChat() }) {
-                            Icon(
-                                imageVector = Icons.Default.DeleteOutline,
-                                contentDescription = stringResource(R.string.clear_chat),
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
-                }
+            ChatTopAppBar(
+                hasMessages = uiState.messages.isNotEmpty(),
+                onClear = viewModel::clearChat
             )
         }
     ) { paddingValues ->
@@ -176,6 +153,42 @@ fun ChatScreen(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun ChatTopAppBar(
+    hasMessages: Boolean,
+    onClear: () -> Unit,
+    colorContract: KiNDDTopAppBarColorContract = kinddTopAppBarColorContract()
+) {
+    TopAppBar(
+        title = {
+            Column {
+                Text(stringResource(R.string.chat_title))
+                Text(
+                    text = stringResource(R.string.chat_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorContract.subtitleContentColor
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = colorContract.containerColor,
+            titleContentColor = colorContract.titleContentColor,
+            actionIconContentColor = colorContract.actionIconContentColor
+        ),
+        actions = {
+            if (hasMessages) {
+                IconButton(onClick = onClear) {
+                    Icon(
+                        imageVector = Icons.Default.DeleteOutline,
+                        contentDescription = stringResource(R.string.clear_chat)
+                    )
+                }
+            }
+        }
+    )
 }
 
 @Composable

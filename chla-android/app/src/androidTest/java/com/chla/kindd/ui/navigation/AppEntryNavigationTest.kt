@@ -23,6 +23,7 @@ import androidx.navigation.testing.TestNavHostController
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.data.profile.JourneyStage
+import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.ui.app.AppEntryState
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
@@ -97,6 +98,58 @@ class AppEntryNavigationTest {
         composeRule.onNodeWithTag(HOME_TAG).assertExists()
         composeRule.onNodeWithTag(ONBOARDING_TAG).assertDoesNotExist()
         composeRule.onNodeWithTag(BOTTOM_HOME_TAG).assertExists()
+    }
+
+    @Test
+    fun readyProfileUpdatesReachHomeForSameAndDifferentCenterIdentities() {
+        var state by mutableStateOf<AppEntryState>(
+            AppEntryState.Ready(
+                completeProfile().copy(
+                    regionalCenter = RegionalCenterIdentity(7, "South Central", "SCLARC")
+                )
+            )
+        )
+        lateinit var navController: TestNavHostController
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDRootContent(
+                    state = state,
+                    onboardingContent = {},
+                    mainContent = { profile ->
+                        KINDDMainNavHost(
+                            profile = profile,
+                            navController = navController,
+                            destinationContent = TaggedMainDestinationContent
+                        )
+                    }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(READY_PROFILE_TAG)
+            .assertTextEquals("90001|SCLARC|EXPLORING")
+
+        composeRule.runOnIdle {
+            val current = (state as AppEntryState.Ready).profile
+            state = AppEntryState.Ready(
+                current.copy(zipCode = "90210", journeyStage = JourneyStage.WAITING_FOR_INTAKE)
+            )
+        }
+        composeRule.onNodeWithTag(READY_PROFILE_TAG)
+            .assertTextEquals("90210|SCLARC|WAITING_FOR_INTAKE")
+
+        composeRule.runOnIdle {
+            val current = (state as AppEntryState.Ready).profile
+            state = AppEntryState.Ready(
+                current.copy(
+                    regionalCenter = RegionalCenterIdentity(9, "Westside", "WRC")
+                )
+            )
+        }
+        composeRule.onNodeWithTag(READY_PROFILE_TAG)
+            .assertTextEquals("90210|WRC|WAITING_FOR_INTAKE")
     }
 
     @Test
@@ -310,6 +363,21 @@ class AppEntryNavigationTest {
         )
     }
 
+    @Test
+    fun launchLoadingDescriptionHasExactEnglishAndSpanishResources() {
+        assertEquals(
+            "Loading KiNDD",
+            localizedString(R.string.app_entry_loading_content_description, Locale.ENGLISH)
+        )
+        assertEquals(
+            "Cargando KiNDD",
+            localizedString(
+                R.string.app_entry_loading_content_description,
+                Locale.forLanguageTag("es")
+            )
+        )
+    }
+
     private fun localizedString(resourceId: Int, locale: Locale): String {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val configuration = Configuration(context.resources.configuration).apply {
@@ -339,6 +407,14 @@ class AppEntryNavigationTest {
         @Composable
         override fun home(profile: UserProfile, actions: MainNavActions) {
             TaggedDestination(HOME_TAG)
+            Text(
+                text = listOf(
+                    profile.zipCode.orEmpty(),
+                    profile.regionalCenter?.shortName.orEmpty(),
+                    profile.journeyStage?.name.orEmpty()
+                ).joinToString("|"),
+                modifier = Modifier.testTag(READY_PROFILE_TAG)
+            )
         }
 
         @Composable
@@ -392,6 +468,7 @@ class AppEntryNavigationTest {
 
     private companion object {
         const val HOME_TAG = "fake_home_destination"
+        const val READY_PROFILE_TAG = "ready_profile_destination_value"
         const val ONBOARDING_TAG = "fake_onboarding_destination"
         const val MAP_TAG = "fake_map_destination"
         const val LIST_TAG = "fake_list_destination"

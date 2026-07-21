@@ -39,19 +39,7 @@ fun RegionalCentersScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.regional_centers_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CHLABlue,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
+            RegionalCentersTopAppBar(onBack = onBack)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -208,6 +196,30 @@ fun RegionalCentersScreen(
             )
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun RegionalCentersTopAppBar(
+    onBack: () -> Unit,
+    colorContract: KiNDDTopAppBarColorContract = kinddTopAppBarColorContract()
+) {
+    TopAppBar(
+        title = { Text(stringResource(R.string.regional_centers_title)) },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = stringResource(R.string.back)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = colorContract.containerColor,
+            titleContentColor = colorContract.titleContentColor,
+            navigationIconContentColor = colorContract.navigationIconContentColor
+        )
+    )
 }
 
 @Composable

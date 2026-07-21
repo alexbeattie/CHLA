@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.R
 import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.profile.JourneyStage
+import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import com.chla.kindd.ui.home.HomeEvent
 import com.chla.kindd.ui.home.HomeLookupState
@@ -63,6 +64,7 @@ import com.chla.kindd.ui.home.HomeViewModel
 
 @Composable
 fun HomeScreen(
+    profile: UserProfile,
     onNavigateToMap: () -> Unit,
     onNavigateToProviders: () -> Unit,
     onNavigateToRegionalCenters: () -> Unit,
@@ -71,6 +73,10 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    LaunchedEffect(viewModel, profile) {
+        viewModel.onReadyProfileChanged(profile)
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -87,21 +93,28 @@ fun HomeScreen(
     }
 
     HomeContent(
+        profile = profile,
         uiState = uiState,
         onZipChanged = viewModel::onZipChanged,
-        onSubmitZip = viewModel::submitZip,
+        onSubmitZip = {
+            viewModel.submitZip(
+                expectedProfile = profile,
+                displayedZip = uiState.displayedZip(profile)
+            )
+        },
         onNavigateToMap = viewModel::openMap,
         onNavigateToList = viewModel::openList,
         onNavigateToRegionalCenters = viewModel::openRegionalCenters,
         onNavigateToChat = viewModel::openChat,
         onOpenChat = { onNavigateToChat(null) },
         onTherapySelected = viewModel::selectTherapy,
-        onCall = viewModel::callCenter
+        onCall = { digits -> viewModel.callCenter(profile, digits) }
     )
 }
 
 @Composable
 fun HomeContent(
+    profile: UserProfile,
     uiState: HomeUiState,
     onZipChanged: (String) -> Unit,
     onSubmitZip: () -> Unit,
@@ -142,10 +155,10 @@ fun HomeContent(
             }
         }
 
-        if (uiState.profile.regionalCenter == null) {
-            ZipLookupCard(uiState, onZipChanged, onSubmitZip)
+        if (profile.regionalCenter == null) {
+            ZipLookupCard(profile, uiState, onZipChanged, onSubmitZip)
         } else {
-            RegionalCenterCard(uiState, onNavigateToRegionalCenters, onCall)
+            RegionalCenterCard(profile, uiState, onNavigateToRegionalCenters, onCall)
         }
 
         HomeSection(title = stringResource(R.string.home_discover_services)) {
@@ -206,12 +219,13 @@ fun HomeContent(
             onClick = onOpenChat
         )
 
-        JourneyCard(uiState, onNavigateToChat, onCall)
+        JourneyCard(profile, uiState, onNavigateToChat, onCall)
     }
 }
 
 @Composable
 private fun ZipLookupCard(
+    profile: UserProfile,
     uiState: HomeUiState,
     onZipChanged: (String) -> Unit,
     onSubmitZip: () -> Unit
@@ -233,7 +247,7 @@ private fun ZipLookupCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedTextField(
-                    value = uiState.zipDraft,
+                    value = uiState.displayedZip(profile),
                     onValueChange = onZipChanged,
                     label = { Text(stringResource(R.string.onboarding_zip_label)) },
                     singleLine = true,
@@ -246,7 +260,7 @@ private fun ZipLookupCard(
                 )
                 Button(
                     onClick = onSubmitZip,
-                    enabled = uiState.zipDraft.matches(Regex("[0-9]{5}")) &&
+                    enabled = uiState.displayedZip(profile).matches(Regex("[0-9]{5}")) &&
                         uiState.lookupState != HomeLookupState.LOADING,
                     modifier = Modifier.heightIn(min = 48.dp)
                 ) {
@@ -287,11 +301,13 @@ private fun ZipLookupCard(
 
 @Composable
 private fun RegionalCenterCard(
+    profile: UserProfile,
     uiState: HomeUiState,
     onDetails: () -> Unit,
     onCall: (String) -> Unit
 ) {
-    val identity = uiState.profile.regionalCenter ?: return
+    val identity = profile.regionalCenter ?: return
+    val hydratedCenter = uiState.centerDetailsFor(profile)
     Card(modifier = Modifier.padding(horizontal = 16.dp)) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -305,9 +321,9 @@ private fun RegionalCenterCard(
             Text(stringResource(R.string.home_matched), color = MaterialTheme.colorScheme.primary)
             Text(identity.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text(identity.shortName, style = MaterialTheme.typography.labelLarge)
-            uiState.hydratedCenter?.formattedPhone?.takeIf(String::isNotBlank)?.let { Text(it) }
+            hydratedCenter?.formattedPhone?.takeIf(String::isNotBlank)?.let { Text(it) }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                uiState.dialDigits?.let { digits ->
+                uiState.dialDigitsFor(profile)?.let { digits ->
                     OutlinedButton(
                         onClick = { onCall(digits) },
                         modifier = Modifier.heightIn(min = 48.dp)
@@ -391,12 +407,13 @@ private fun HomeActionCard(
 
 @Composable
 private fun JourneyCard(
+    profile: UserProfile,
     uiState: HomeUiState,
     onChat: (ChatLaunchPrompt) -> Unit,
     onCall: (String) -> Unit
 ) {
-    val prompt = uiState.profile.journeyStage.toLaunchPrompt() ?: return
-    val (titleRes, actionRes) = when (uiState.profile.journeyStage) {
+    val prompt = profile.journeyStage.toLaunchPrompt() ?: return
+    val (titleRes, actionRes) = when (profile.journeyStage) {
         JourneyStage.JUST_DIAGNOSED ->
             R.string.home_journey_just_diagnosed_title to R.string.home_journey_just_diagnosed_action
         JourneyStage.WAITING_FOR_INTAKE ->
@@ -421,8 +438,8 @@ private fun JourneyCard(
                 Button(onClick = { onChat(prompt) }, modifier = Modifier.heightIn(min = 48.dp)) {
                     Text(stringResource(actionRes))
                 }
-                if (uiState.profile.journeyStage == JourneyStage.JUST_DIAGNOSED) {
-                    uiState.dialDigits?.let { digits ->
+                if (profile.journeyStage == JourneyStage.JUST_DIAGNOSED) {
+                    uiState.dialDigitsFor(profile)?.let { digits ->
                         OutlinedButton(
                             onClick = { onCall(digits) },
                             modifier = Modifier.heightIn(min = 48.dp)

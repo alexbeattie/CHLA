@@ -36,35 +36,29 @@ class HomeViewModel @Inject constructor(
     private val eventChannel = Channel<HomeEvent>(Channel.BUFFERED)
     val events = eventChannel.receiveAsFlow()
 
-    private var currentProfile = UserProfile()
-    private var hydratedIdentity: RegionalCenterIdentity? = null
     private var hydrationGeneration = 0L
     private var hydrationJob: Job? = null
     private var lookupGeneration = 0L
     private var lookupJob: Job? = null
 
-    init {
-        viewModelScope.launch {
-            profileRepository.profile.collect { profile ->
-                currentProfile = profile
-                val identity = profile.regionalCenter
-                val identityChanged = identity != hydratedIdentity
-                if (identityChanged) {
-                    hydratedIdentity = identity
-                    hydrationGeneration += 1
-                    hydrationJob?.cancel()
-                }
-                mutableUiState.update { state ->
-                    state.copy(
-                        profile = profile,
-                        zipDraft = profile.zipCode.orEmpty(),
-                        hydratedCenter = if (identityChanged) null else state.hydratedCenter
-                    )
-                }
-                if (identityChanged && identity != null) {
-                    hydrate(identity, hydrationGeneration)
-                }
-            }
+    fun onReadyProfileChanged(profile: UserProfile) {
+        val identity = profile.regionalCenter
+        val identityChanged = identity != mutableUiState.value.hydratedIdentity
+        if (!identityChanged) return
+
+        invalidateLookup()
+        hydrationGeneration += 1
+        hydrationJob?.cancel()
+        mutableUiState.update { state ->
+            state.copy(
+                hydratedIdentity = identity,
+                hydratedCenter = null,
+                lookupState = HomeLookupState.IDLE,
+                message = null
+            )
+        }
+        if (identity != null) {
+            hydrate(identity, hydrationGeneration)
         }
     }
 
@@ -72,13 +66,18 @@ class HomeViewModel @Inject constructor(
         invalidateLookup()
         val normalized = value.filter { character -> character in '0'..'9' }.take(5)
         mutableUiState.update {
-            it.copy(zipDraft = normalized, lookupState = HomeLookupState.IDLE, message = null)
+            it.copy(
+                zipDraft = normalized,
+                isZipDraftDirty = true,
+                lookupState = HomeLookupState.IDLE,
+                message = null
+            )
         }
     }
 
-    fun submitZip() {
+    fun submitZip(expectedProfile: UserProfile, displayedZip: String) {
         val generation = invalidateLookup()
-        val zipCode = uiState.value.zipDraft
+        val zipCode = displayedZip
         if (!zipCode.matches(Regex("[0-9]{5}"))) {
             mutableUiState.update {
                 it.copy(lookupState = HomeLookupState.IDLE, message = HomeMessage.INVALID_ZIP)
@@ -86,7 +85,6 @@ class HomeViewModel @Inject constructor(
             return
         }
         lookupJob = viewModelScope.launch {
-            val submittedProfile = currentProfile
             try {
                 if (!isCurrentLookup(generation)) return@launch
                 mutableUiState.update {
@@ -94,16 +92,13 @@ class HomeViewModel @Inject constructor(
                 }
                 when (val lookup = regionalCenterDataSource.lookupRegionalCenter(zipCode)) {
                     is RegionalCenterLookup.Matched -> {
-                        if (!canApplyLookup(generation, submittedProfile)) {
-                            finishSupersededLookup(generation)
-                            return@launch
-                        }
-                        val replacement = submittedProfile.copy(
+                        if (!isCurrentLookup(generation)) return@launch
+                        val replacement = expectedProfile.copy(
                             zipCode = zipCode,
                             regionalCenter = RegionalCenterIdentity.from(lookup.center)
                         )
                         val replaced = profileRepository.replaceProfileIfCurrent(
-                            expected = submittedProfile,
+                            expected = expectedProfile,
                             replacement = replacement
                         )
                         if (!isCurrentLookup(generation)) return@launch
@@ -112,11 +107,16 @@ class HomeViewModel @Inject constructor(
                             return@launch
                         }
                         mutableUiState.update {
-                            it.copy(lookupState = HomeLookupState.MATCHED, message = null)
+                            it.copy(
+                                zipDraft = zipCode,
+                                isZipDraftDirty = false,
+                                lookupState = HomeLookupState.MATCHED,
+                                message = null
+                            )
                         }
                     }
                     RegionalCenterLookup.Unmatched -> {
-                        if (canApplyLookup(generation, submittedProfile)) {
+                        if (isCurrentLookup(generation)) {
                             mutableUiState.update {
                                 it.copy(
                                     lookupState = HomeLookupState.UNMATCHED,
@@ -128,7 +128,7 @@ class HomeViewModel @Inject constructor(
                         }
                     }
                     is RegionalCenterLookup.Unavailable -> {
-                        if (canApplyLookup(generation, submittedProfile)) {
+                        if (isCurrentLookup(generation)) {
                             showLookupUnavailable()
                         } else {
                             finishSupersededLookup(generation)
@@ -138,7 +138,7 @@ class HomeViewModel @Inject constructor(
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
-                if (canApplyLookup(generation, submittedProfile)) {
+                if (isCurrentLookup(generation)) {
                     showLookupUnavailable()
                 } else {
                     finishSupersededLookup(generation)
@@ -158,11 +158,11 @@ class HomeViewModel @Inject constructor(
     fun openChat(prompt: ChatLaunchPrompt) {
         eventChannel.trySend(HomeEvent.NavigateToChat(prompt))
     }
-    fun callCenter(digits: String) {
+    fun callCenter(authoritativeProfile: UserProfile, digits: String) {
         if (
             digits.isNotEmpty() &&
             digits.all { character -> character in '0'..'9' } &&
-            digits == uiState.value.dialDigits
+            digits == uiState.value.dialDigitsFor(authoritativeProfile)
         ) {
             eventChannel.trySend(HomeEvent.Dial(digits))
         }
@@ -176,9 +176,6 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun isCurrentLookup(generation: Long): Boolean = generation == lookupGeneration
-
-    private fun canApplyLookup(generation: Long, submittedProfile: UserProfile): Boolean =
-        isCurrentLookup(generation) && currentProfile == submittedProfile
 
     private fun finishSupersededLookup(generation: Long) {
         if (isCurrentLookup(generation)) {
@@ -202,13 +199,13 @@ class HomeViewModel @Inject constructor(
             try {
                 val centers = regionalCenterDataSource.getRegionalCenters().getOrNull().orEmpty()
                 val match = findCenter(identity, centers)
-                if (generation == hydrationGeneration && identity == currentProfile.regionalCenter) {
+                if (generation == hydrationGeneration && identity == uiState.value.hydratedIdentity) {
                     mutableUiState.update { state -> state.copy(hydratedCenter = match) }
                 }
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
-                if (generation == hydrationGeneration && identity == currentProfile.regionalCenter) {
+                if (generation == hydrationGeneration && identity == uiState.value.hydratedIdentity) {
                     mutableUiState.update { state -> state.copy(hydratedCenter = null) }
                 }
             }

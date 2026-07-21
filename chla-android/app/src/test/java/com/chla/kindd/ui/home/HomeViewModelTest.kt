@@ -19,6 +19,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runCurrent
@@ -38,7 +39,87 @@ class HomeViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun profileFlowRendersEverySavedField_andHydratesCenterByDeployedId() =
+    fun constructionDoesNotCollectASecondAuthoritativeProfileFlow() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val repository = CountingProfileRepository(profile())
+
+            HomeViewModel(repository, CenterSource(), FakeDiscoveryController())
+            runCurrent()
+
+            assertEquals(0, repository.collectionCount)
+        }
+
+    @Test
+    fun findBeforeAnyProfileSyncUsesReadyZip_andPreservesTheCompleteReadyProfile() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val ready = profile(
+                zip = "90001",
+                identity = null,
+                audience = AudienceType.CLINICIAN,
+                journey = JourneyStage.RECEIVING_SERVICES,
+                age = AgeGroup.ADULT
+            )
+            val matched = center(id = 72, name = "South Central Los Angeles Regional Center")
+            val repository = RecordingProfileRepository(ready)
+            val source = CenterSource(lookup = RegionalCenterLookup.Matched(matched))
+            val viewModel = HomeViewModel(repository, source, FakeDiscoveryController())
+
+            viewModel.submitZip(ready, ready.zipCode.orEmpty())
+            runCurrent()
+
+            assertEquals(listOf("90001"), source.lookups)
+            assertEquals(
+                ready.copy(regionalCenter = RegionalCenterIdentity.from(matched)),
+                repository.current
+            )
+            assertFalse(viewModel.uiState.value.isZipDraftDirty)
+            assertEquals(HomeLookupState.MATCHED, viewModel.uiState.value.lookupState)
+        }
+
+    @Test
+    fun earlyTypedZipDraftSurvivesProfileSynchronization() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val ready = profile(zip = "90001", identity = null)
+            val viewModel = HomeViewModel(
+                RecordingProfileRepository(ready),
+                CenterSource(),
+                FakeDiscoveryController()
+            )
+
+            viewModel.onZipChanged("91311")
+            viewModel.onReadyProfileChanged(
+                ready.copy(
+                    regionalCenter = RegionalCenterIdentity(7, "Synced center", "SYNC")
+                )
+            )
+            runCurrent()
+
+            assertEquals("91311", viewModel.uiState.value.displayedZip(ready))
+            assertTrue(viewModel.uiState.value.isZipDraftDirty)
+        }
+
+    @Test
+    fun repeatedReadyProfileWithSameIdentityDoesNotDuplicateHydration() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val identity = RegionalCenterIdentity(7, "Saved center", "SAVED")
+            val source = CenterSource(centers = Result.success(listOf(center(id = 7))))
+            val viewModel = HomeViewModel(
+                RecordingProfileRepository(profile(identity = identity)),
+                source,
+                FakeDiscoveryController()
+            )
+
+            viewModel.onReadyProfileChanged(profile(identity = identity))
+            viewModel.onReadyProfileChanged(
+                profile(identity = identity, journey = JourneyStage.RECEIVING_SERVICES)
+            )
+            runCurrent()
+
+            assertEquals(1, source.centerRequests)
+        }
+
+    @Test
+    fun readyProfileHydratesCenterByDeployedId_withoutOwningProfilePresentation() =
         runTest(mainDispatcherRule.testDispatcher) {
             val details = center(id = 41, name = "Current deployed name", phone = "(213) 555-1212")
             val profile = profile(
@@ -51,11 +132,7 @@ class HomeViewModelTest {
             val fixture = fixture(profile, CenterSource(centers = Result.success(listOf(details))))
             runCurrent()
 
-            assertEquals(profile, fixture.viewModel.uiState.value.profile)
-            assertEquals("90001", fixture.viewModel.uiState.value.zipDraft)
-            assertEquals(AudienceType.CLINICIAN, fixture.viewModel.uiState.value.profile.audienceType)
-            assertEquals(JourneyStage.RECEIVING_SERVICES, fixture.viewModel.uiState.value.profile.journeyStage)
-            assertEquals(AgeGroup.ADOLESCENT, fixture.viewModel.uiState.value.profile.ageGroup)
+            assertEquals(profile.regionalCenter, fixture.viewModel.uiState.value.hydratedIdentity)
             assertEquals(details, fixture.viewModel.uiState.value.hydratedCenter)
         }
 
@@ -65,7 +142,7 @@ class HomeViewModelTest {
 
         fixture.viewModel.onZipChanged("12a3٤4")
         assertEquals("1234", fixture.viewModel.uiState.value.zipDraft)
-        fixture.viewModel.submitZip()
+        fixture.viewModel.submitZip(profile(), fixture.viewModel.uiState.value.displayedZip(profile()))
         runCurrent()
 
         assertTrue(fixture.centers.lookups.isEmpty())
@@ -89,7 +166,7 @@ class HomeViewModelTest {
             )
             fixture.viewModel.onZipChanged("90210")
 
-            fixture.viewModel.submitZip()
+            fixture.viewModel.submitZip(original, fixture.viewModel.uiState.value.displayedZip(original))
             runCurrent()
 
             assertEquals(1, fixture.repository.replacements.size)
@@ -112,7 +189,7 @@ class HomeViewModelTest {
             runCurrent()
 
             viewModel.onZipChanged("90001")
-            viewModel.submitZip()
+            viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
             runCurrent()
             viewModel.onZipChanged("90210")
 
@@ -140,9 +217,9 @@ class HomeViewModelTest {
             runCurrent()
 
             viewModel.onZipChanged("90210")
-            viewModel.submitZip()
+            viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
             runCurrent()
-            viewModel.submitZip()
+            viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
             runCurrent()
 
             val expectedCenter = center(id = 2, name = "New")
@@ -178,9 +255,10 @@ class HomeViewModelTest {
             runCurrent()
 
             viewModel.onZipChanged("90210")
-            viewModel.submitZip()
+            viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
             runCurrent()
             repository.emit(externallyEdited)
+            viewModel.onReadyProfileChanged(externallyEdited)
             runCurrent()
 
             pendingMatch.complete(RegionalCenterLookup.Matched(center(id = 22, name = "Late")))
@@ -188,7 +266,7 @@ class HomeViewModelTest {
 
             assertEquals(externallyEdited, repository.current)
             assertTrue(repository.replacements.isEmpty())
-            assertEquals("91311", viewModel.uiState.value.zipDraft)
+            assertEquals("90210", viewModel.uiState.value.zipDraft)
             assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
         }
 
@@ -210,7 +288,7 @@ class HomeViewModelTest {
             runCurrent()
 
             viewModel.onZipChanged("90210")
-            viewModel.submitZip()
+            viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
             runCurrent()
             repository.commitWithoutFlowEmission(externallyEdited)
 
@@ -232,7 +310,10 @@ class HomeViewModelTest {
                 CenterSource(lookupFailure = IllegalStateException("private lookup body 90001"))
             )
             lookupFailureFixture.viewModel.onZipChanged("90210")
-            lookupFailureFixture.viewModel.submitZip()
+            lookupFailureFixture.viewModel.submitZip(
+                original,
+                lookupFailureFixture.viewModel.uiState.value.displayedZip(original)
+            )
             runCurrent()
 
             assertEquals(original, lookupFailureFixture.repository.current)
@@ -247,7 +328,10 @@ class HomeViewModelTest {
             writeFailureFixture.repository.replaceFailure =
                 IllegalStateException("private write body 90210")
             writeFailureFixture.viewModel.onZipChanged("90210")
-            writeFailureFixture.viewModel.submitZip()
+            writeFailureFixture.viewModel.submitZip(
+                original,
+                writeFailureFixture.viewModel.uiState.value.displayedZip(original)
+            )
             runCurrent()
 
             assertEquals(original, writeFailureFixture.repository.current)
@@ -267,7 +351,10 @@ class HomeViewModelTest {
             ).forEach { result ->
                 val fixture = fixture(original, CenterSource(lookup = result))
                 fixture.viewModel.onZipChanged("90210")
-                fixture.viewModel.submitZip()
+                fixture.viewModel.submitZip(
+                    original,
+                    fixture.viewModel.uiState.value.displayedZip(original)
+                )
                 runCurrent()
 
                 assertEquals(original, fixture.repository.current)
@@ -343,19 +430,22 @@ class HomeViewModelTest {
             val events = collectEvents(fixture.viewModel)
             runCurrent()
 
-            val dialDigits = fixture.viewModel.uiState.value.dialDigits
+            val dialDigits = fixture.viewModel.uiState.value.dialDigitsFor(fixture.repository.current)
             requireNotNull(dialDigits)
-            fixture.viewModel.callCenter(dialDigits)
+            fixture.viewModel.callCenter(fixture.repository.current, dialDigits)
             runCurrent()
             assertEquals(HomeEvent.Dial("1213555126"), events.single())
 
             fixture.repository.emit(
                 profile(identity = identity.copy(id = 99, name = "Unknown", shortName = "UNKNOWN"))
             )
+            fixture.viewModel.onReadyProfileChanged(fixture.repository.current)
             runCurrent()
-            fixture.viewModel.uiState.value.dialDigits?.let(fixture.viewModel::callCenter)
-            fixture.viewModel.callCenter("+1 (213) 555-1212")
-            fixture.viewModel.callCenter("١٢٣")
+            fixture.viewModel.uiState.value.dialDigitsFor(fixture.repository.current)?.let { digits ->
+                fixture.viewModel.callCenter(fixture.repository.current, digits)
+            }
+            fixture.viewModel.callCenter(fixture.repository.current, "+1 (213) 555-1212")
+            fixture.viewModel.callCenter(fixture.repository.current, "١٢٣")
             runCurrent()
             assertEquals(1, events.size)
         }
@@ -374,9 +464,9 @@ class HomeViewModelTest {
             val failedProfile = profile(identity = RegionalCenterIdentity(999, "Saved Center", "WRC"))
             val failed = fixture(failedProfile, CenterSource(centers = Result.failure(Exception("private"))))
             runCurrent()
-            assertEquals(failedProfile.regionalCenter, failed.viewModel.uiState.value.profile.regionalCenter)
+            assertEquals(failedProfile.regionalCenter, failed.viewModel.uiState.value.hydratedIdentity)
             assertNull(failed.viewModel.uiState.value.hydratedCenter)
-            assertNull(failed.viewModel.uiState.value.dialDigits)
+            assertNull(failed.viewModel.uiState.value.dialDigitsFor(failedProfile))
         }
 
     @Test
@@ -399,27 +489,29 @@ class HomeViewModelTest {
             initialGate.complete(Result.success(listOf(initialDetails)))
             runCurrent()
             assertEquals(initialDetails, fixture.viewModel.uiState.value.hydratedCenter)
-            val capturedInitialDigits = fixture.viewModel.uiState.value.dialDigits
+            val capturedInitialDigits = fixture.viewModel.uiState.value.dialDigitsFor(fixture.repository.current)
             requireNotNull(capturedInitialDigits)
-            fixture.viewModel.callCenter(capturedInitialDigits)
+            fixture.viewModel.callCenter(fixture.repository.current, capturedInitialDigits)
             runCurrent()
             assertEquals(HomeEvent.Dial("1111111111"), events.single())
             events.clear()
 
             fixture.repository.emit(profile(identity = staleIdentity))
+            fixture.viewModel.onReadyProfileChanged(fixture.repository.current)
             runCurrent()
             assertNull(fixture.viewModel.uiState.value.hydratedCenter)
-            fixture.viewModel.callCenter(capturedInitialDigits)
+            fixture.viewModel.callCenter(fixture.repository.current, capturedInitialDigits)
             runCurrent()
             assertTrue(events.isEmpty())
 
             fixture.repository.emit(profile(identity = latestIdentity))
+            fixture.viewModel.onReadyProfileChanged(fixture.repository.current)
             runCurrent()
             val latestDetails = center(id = 3, name = "Latest", phone = "333-333-3333")
             latestGate.complete(Result.success(listOf(latestDetails)))
             runCurrent()
             assertEquals(latestDetails, fixture.viewModel.uiState.value.hydratedCenter)
-            fixture.viewModel.callCenter(capturedInitialDigits)
+            fixture.viewModel.callCenter(fixture.repository.current, capturedInitialDigits)
             runCurrent()
             assertTrue(events.isEmpty())
 
@@ -429,12 +521,12 @@ class HomeViewModelTest {
             runCurrent()
 
             assertEquals(latestDetails, fixture.viewModel.uiState.value.hydratedCenter)
-            fixture.viewModel.callCenter(capturedInitialDigits)
+            fixture.viewModel.callCenter(fixture.repository.current, capturedInitialDigits)
             runCurrent()
             assertTrue(events.isEmpty())
-            val dialDigits = fixture.viewModel.uiState.value.dialDigits
+            val dialDigits = fixture.viewModel.uiState.value.dialDigitsFor(fixture.repository.current)
             requireNotNull(dialDigits)
-            fixture.viewModel.callCenter(dialDigits)
+            fixture.viewModel.callCenter(fixture.repository.current, dialDigits)
             runCurrent()
             assertEquals(HomeEvent.Dial("3333333333"), events.single())
         }
@@ -451,8 +543,10 @@ class HomeViewModelTest {
     ): Fixture {
         val repository = RecordingProfileRepository(initial)
         val discovery = FakeDiscoveryController()
+        val viewModel = HomeViewModel(repository, centers, discovery)
+        viewModel.onReadyProfileChanged(initial)
         return Fixture(
-            HomeViewModel(repository, centers, discovery),
+            viewModel,
             repository,
             centers as? CenterSource ?: CenterSource(),
             discovery
@@ -491,6 +585,24 @@ class HomeViewModelTest {
         fun emit(profile: UserProfile) { profiles.value = profile }
     }
 
+    private class CountingProfileRepository(initial: UserProfile) : UserProfileRepository {
+        var collectionCount = 0
+            private set
+        override val profile: Flow<UserProfile> = flow {
+            collectionCount += 1
+            emit(initial)
+        }
+
+        override suspend fun replaceProfile(profile: UserProfile) = Unit
+
+        override suspend fun replaceProfileIfCurrent(
+            expected: UserProfile,
+            replacement: UserProfile
+        ): Boolean = false
+
+        override suspend fun clearProfile() = Unit
+    }
+
     private class LaggingProfileRepository(initial: UserProfile) : UserProfileRepository {
         private val observedProfiles = MutableStateFlow(initial)
         var actualProfile = initial
@@ -527,7 +639,12 @@ class HomeViewModelTest {
         var lookupFailure: Throwable? = null
     ) : RegionalCenterDataSource {
         val lookups = mutableListOf<String>()
-        override suspend fun getRegionalCenters() = centers
+        var centerRequests = 0
+            private set
+        override suspend fun getRegionalCenters(): Result<List<RegionalCenter>> {
+            centerRequests += 1
+            return centers
+        }
         override suspend fun getRegionalCentersNearby(latitude: Double, longitude: Double) = centers
         override suspend fun lookupRegionalCenter(zipCode: String): RegionalCenterLookup {
             lookups += zipCode

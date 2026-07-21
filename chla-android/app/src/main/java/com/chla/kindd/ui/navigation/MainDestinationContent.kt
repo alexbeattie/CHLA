@@ -63,6 +63,7 @@ object ProductionMainDestinationContent : MainDestinationContent {
     @Composable
     override fun home(profile: UserProfile, actions: MainNavActions) {
         HomeScreen(
+            profile = profile,
             onNavigateToMap = actions.navigateToMap,
             onNavigateToProviders = actions.navigateToList,
             onNavigateToRegionalCenters = actions.navigateToRegions,
