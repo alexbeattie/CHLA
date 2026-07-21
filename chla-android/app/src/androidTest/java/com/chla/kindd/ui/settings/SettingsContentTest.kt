@@ -72,4 +72,36 @@ class SettingsContentTest {
         composeRule.onNodeWithText("We couldn't clear your profile. Please try again.")
             .assertIsDisplayed()
     }
+
+    @Test
+    fun settings_usesCompactGroupedHierarchy_withoutDeadActions() {
+        var faqCount = 0
+        var aboutCount = 0
+        composeRule.setContent {
+            KINDDTheme {
+                SettingsContent(
+                    onNavigateToFAQ = { faqCount += 1 },
+                    onNavigateToAbout = { aboutCount += 1 },
+                    onEditProfile = {},
+                    onClearProfile = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("settings_grouped_canvas").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings_solid_top_app_bar").assertDoesNotExist()
+        composeRule.onNodeWithTag("settings_setup_group").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings_information_group").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings_app_info_group").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Privacy Policy").assertDoesNotExist()
+        composeRule.onNodeWithText("Terms of Service").assertDoesNotExist()
+
+        composeRule.onNodeWithText("About KiNDD").performClick()
+        composeRule.onNodeWithText("FAQ").performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, aboutCount)
+            assertEquals(1, faqCount)
+        }
+    }
 }

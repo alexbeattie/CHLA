@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_back_to_more">More</string>
+    <string name="settings_setup">Setup</string>
+    <string name="settings_preferences">Preferences</string>
+    <string name="settings_information">Information</string>
+    <string name="settings_reset">Reset</string>
+    <string name="settings_open">Open</string>
+    <string name="settings_language_system_default">System default</string>
+    <string name="settings_location_access">Location access</string>
+    <string name="settings_location_allowed">Allowed while using KiNDD</string>
+    <string name="settings_location_not_allowed">Not allowed</string>
+    <string name="settings_about_kindd">About KiNDD</string>
+    <string name="settings_about_description">About the NDD Resource Navigator</string>
+    <string name="settings_faq_description">Common questions answered</string>
+    <string name="settings_website">KiNDD website</string>
+    <string name="settings_website_description">kinddhelp.com</string>
+</resources>
