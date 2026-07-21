@@ -11,19 +11,19 @@ import androidx.core.content.ContextCompat
 import com.chla.kindd.data.source.UserCoordinates
 import com.chla.kindd.data.source.UserLocationSource
 import com.chla.kindd.di.IoDispatcher
+import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import java.util.Locale
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class LocationService(
@@ -46,14 +46,27 @@ class LocationService(
     suspend fun getCurrentLocation(): Location? {
         if (!hasLocationPermission()) return null
 
-        return suspendCancellableCoroutine { continuation ->
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location ->
-                    continuation.resume(location)
-                }
-                .addOnFailureListener { exception ->
-                    continuation.resumeWithException(exception)
-                }
+        return resolveCachedOrCurrentLocation(
+            timeoutMillis = CURRENT_LOCATION_TIMEOUT_MS,
+            cachedLocation = { fusedLocationClient.lastLocation.await() },
+            currentLocation = { requestCurrentLocation() }
+        )
+    }
+
+    @SuppressLint("MissingPermission")
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private suspend fun requestCurrentLocation(): Location? {
+        val cancellationTokenSource = CancellationTokenSource()
+        val request = CurrentLocationRequest.Builder()
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .setDurationMillis(CURRENT_LOCATION_TIMEOUT_MS)
+            .setMaxUpdateAgeMillis(0)
+            .build()
+        return try {
+            fusedLocationClient.getCurrentLocation(request, cancellationTokenSource.token)
+                .await(cancellationTokenSource)
+        } finally {
+            cancellationTokenSource.cancel()
         }
     }
 
@@ -157,5 +170,9 @@ class LocationService(
         val results = FloatArray(1)
         Location.distanceBetween(lat1, lon1, lat2, lon2, results)
         return results[0] * 0.000621371f // Convert meters to miles
+    }
+
+    private companion object {
+        const val CURRENT_LOCATION_TIMEOUT_MS = 10_000L
     }
 }

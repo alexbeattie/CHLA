@@ -1,7 +1,5 @@
 package com.chla.kindd.ui.regions
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -72,6 +70,8 @@ import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.data.servicearea.ServiceAreaFeature
+import com.chla.kindd.platform.launchDialer
+import com.chla.kindd.platform.launchWebsite
 import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
 import com.chla.kindd.ui.screens.RegionalCentersLookupState
 import com.chla.kindd.ui.screens.RegionalCentersMessage
@@ -656,7 +656,7 @@ private fun RegionalCenterDetail(center: RegionalCenter, onDismiss: () -> Unit) 
                 tint = center.color,
                 testTag = "regions_detail_phone",
                 onClick = {
-                    context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${phone.filter(Char::isDigit)}")))
+                    context.launchDialer(phone)
                 }
             )
         }
@@ -667,8 +667,7 @@ private fun RegionalCenterDetail(center: RegionalCenter, onDismiss: () -> Unit) 
                 tint = center.color,
                 testTag = "regions_detail_website",
                 onClick = {
-                    val url = if (website.startsWith("http")) website else "https://$website"
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    context.launchWebsite(website)
                 }
             )
         }

@@ -1,7 +1,5 @@
 package com.chla.kindd.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.platform.launchDialer
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import com.chla.kindd.ui.home.HomeEvent
 import com.chla.kindd.ui.home.HomeUiState
@@ -66,9 +65,7 @@ fun HomeScreen(
                 HomeEvent.NavigateToList -> onNavigateToProviders()
                 HomeEvent.NavigateToRegionalCenters -> onNavigateToRegionalCenters()
                 is HomeEvent.NavigateToChat -> onNavigateToChat(event.prompt)
-                is HomeEvent.Dial -> context.startActivity(
-                    Intent(Intent.ACTION_DIAL, Uri.parse("tel:${event.digits}"))
-                )
+                is HomeEvent.Dial -> context.launchDialer(event.digits)
             }
         }
     }

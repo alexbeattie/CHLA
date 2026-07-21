@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-07-21 — Bound fresh-device location and external app launches
+- **Branch:** feature/android-persistent-discovery
+- **Files:** chla-android/app/src/main/java/com/chla/kindd/services/LocationService.kt, chla-android/app/src/main/java/com/chla/kindd/services/CurrentLocationFallback.kt, chla-android/app/src/main/java/com/chla/kindd/platform/ExternalIntents.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/HomeScreen.kt, chla-android/app/src/main/java/com/chla/kindd/ui/regions/RegionalCentersContent.kt, chla-android/app/src/main/AndroidManifest.xml
+- **Problem:** Fresh installs could fail location immediately when no cached fix existed, and Home or regional-center phone/website actions could crash on malformed destinations or missing handlers.
+- **Fix:** Fall back to a cancellable 10-second Play Services current-location request, and route phone/web actions through a shared validated, resolvable, failure-safe launcher.
+
 ### 2026-07-21 — Align Android accessibility tests with current semantics
 - **Branch:** feature/android-persistent-discovery
 - **Files:** chla-android/app/src/androidTest/java/com/chla/kindd/ui/accessibility/TouchedSurfaceAccessibilityTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/discovery/DiscoveryControlsTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/settings/SettingsContentTest.kt
