@@ -14,7 +14,7 @@ class AssistantResponseReport(models.Model):
         OTHER = "other", "Other"
 
     reason = models.CharField(max_length=32, choices=Reason.choices)
-    reported_response = models.TextField(max_length=12000)
+    reported_response = models.TextField()
     locale = models.CharField(max_length=16)
     platform = models.CharField(max_length=16, choices=(("android", "Android"),))
     app_version = models.CharField(max_length=32)
@@ -32,3 +32,14 @@ class AssistantResponseReport(models.Model):
 
     def __str__(self):
         return f"{self.get_reason_display()} ({self.created_at:%Y-%m-%d %H:%M})"
+
+
+class ResponseReportThrottleWindow(models.Model):
+    """One global request count per fixed window; contains no client identity."""
+
+    window_start = models.DateTimeField(primary_key=True)
+    request_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "response report throttle window"
+        verbose_name_plural = "response report throttle windows"

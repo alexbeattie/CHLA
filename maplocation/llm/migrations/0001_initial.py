@@ -10,6 +10,20 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name="ResponseReportThrottleWindow",
+            fields=[
+                (
+                    "window_start",
+                    models.DateTimeField(primary_key=True, serialize=False),
+                ),
+                ("request_count", models.PositiveIntegerField(default=0)),
+            ],
+            options={
+                "verbose_name": "response report throttle window",
+                "verbose_name_plural": "response report throttle windows",
+            },
+        ),
+        migrations.CreateModel(
             name="AssistantResponseReport",
             fields=[
                 (
@@ -32,7 +46,7 @@ class Migration(migrations.Migration):
                         max_length=32,
                     ),
                 ),
-                ("reported_response", models.TextField(max_length=12000)),
+                ("reported_response", models.TextField()),
                 ("locale", models.CharField(max_length=16)),
                 (
                     "platform",

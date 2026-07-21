@@ -6,14 +6,13 @@ Includes both regular and streaming (SSE) endpoints.
 
 import json
 import logging
-from collections.abc import Mapping
 
 from django.db import IntegrityError, transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework.throttling import AnonRateThrottle, BaseThrottle
+from rest_framework.throttling import AnonRateThrottle
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from django.http import StreamingHttpResponse
@@ -38,10 +37,12 @@ from .langgraph_agent import (
 from .observability import llm_monitor_snapshot
 from .models import AssistantResponseReport
 from .response_fingerprints import (
+    INVALID_RESPONSE_FINGERPRINT_CODE,
+    INVALID_RESPONSE_FINGERPRINT_DETAIL,
     issue_response_fingerprint,
-    response_fingerprint_digest,
 )
 from .serializers import AssistantResponseReportSerializer
+from .throttles import GlobalResponseReportThrottle
 
 logger = logging.getLogger(__name__)
 
@@ -55,30 +56,28 @@ class LLMSensitiveThrottle(AnonRateThrottle):
     rate = "10/minute"
 
 
-class ResponseFingerprintThrottle(BaseThrottle):
-    """Reject reused report tokens using only their one-way database digest."""
-
-    def allow_request(self, request, view):
-        if not isinstance(request.data, Mapping):
-            return True
-        token = request.data.get("response_fingerprint")
-        if not isinstance(token, str) or not token:
-            return True
-        digest = response_fingerprint_digest(token)
-        return not AssistantResponseReport.objects.filter(
-            response_fingerprint_digest=digest
-        ).exists()
-
-
 class AssistantResponseReportView(APIView):
     """Accept a minimal anonymous report about one Android assistant response."""
 
     permission_classes = [AllowAny]
-    throttle_classes = [ResponseFingerprintThrottle]
+    throttle_classes = [GlobalResponseReportThrottle]
 
     def post(self, request):
         serializer = AssistantResponseReportSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            fingerprint_errors = serializer.errors.get("response_fingerprint", ())
+            if any(
+                getattr(error, "code", None) == INVALID_RESPONSE_FINGERPRINT_CODE
+                for error in fingerprint_errors
+            ):
+                return Response(
+                    {
+                        "code": INVALID_RESPONSE_FINGERPRINT_CODE,
+                        "detail": INVALID_RESPONSE_FINGERPRINT_DETAIL,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         fingerprint_digest = serializer.validated_data["response_fingerprint_digest"]
         try:
             with transaction.atomic():

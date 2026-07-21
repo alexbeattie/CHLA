@@ -5,6 +5,7 @@ from django.apps import apps
 from django.contrib import admin
 from django.core.cache import cache
 from django.core import signing
+from django.test import override_settings
 import pytest
 from rest_framework.test import APIClient
 from rest_framework.throttling import AnonRateThrottle, BaseThrottle
@@ -51,6 +52,10 @@ def report_model():
     return apps.all_models["llm"].get("assistantresponsereport")
 
 
+def report_throttle_model():
+    return apps.all_models["llm"].get("responsereportthrottlewindow")
+
+
 def test_valid_anonymous_report_is_persisted_for_admin_review(db):
     payload = valid_report()
     response = APIClient().post(REPORT_URL, payload, format="json")
@@ -73,7 +78,7 @@ def test_valid_anonymous_report_is_persisted_for_admin_review(db):
     assert model in admin.site._registry
 
 
-def test_report_rejects_unsupported_reason_empty_and_oversized_content(db):
+def test_report_rejects_unsupported_reason_and_empty_content(db):
     client = APIClient()
     invalid_payloads = (
         {
@@ -83,7 +88,6 @@ def test_report_rejects_unsupported_reason_empty_and_oversized_content(db):
         },
         {**valid_report(), "reason": "dislike"},
         {**valid_report(), "reported_response": "   "},
-        valid_report(response="x" * 12001),
     )
 
     for index, payload in enumerate(invalid_payloads, start=1):
@@ -177,13 +181,46 @@ def test_report_requires_android_and_caps_metadata_lengths(db):
 
 
 def test_report_endpoint_uses_identity_free_database_throttle():
-    from llm.views import AssistantResponseReportView, ResponseFingerprintThrottle
+    from llm.throttles import GlobalResponseReportThrottle
+    from llm.views import AssistantResponseReportView
 
     assert AssistantResponseReportView.permission_classes[0].__name__ == "AllowAny"
-    assert AssistantResponseReportView.throttle_classes == [ResponseFingerprintThrottle]
-    assert issubclass(ResponseFingerprintThrottle, BaseThrottle)
-    assert not issubclass(ResponseFingerprintThrottle, AnonRateThrottle)
-    assert not hasattr(ResponseFingerprintThrottle(), "cache")
+    assert AssistantResponseReportView.throttle_classes == [GlobalResponseReportThrottle]
+    assert issubclass(GlobalResponseReportThrottle, BaseThrottle)
+    assert not issubclass(GlobalResponseReportThrottle, AnonRateThrottle)
+    assert not hasattr(GlobalResponseReportThrottle(), "cache")
+
+
+@override_settings(RESPONSE_REPORT_GLOBAL_RATE_LIMIT=2)
+def test_global_database_throttle_limits_unique_forged_tokens_across_identities(db):
+    client = APIClient()
+    responses = []
+
+    for index, address in enumerate(
+        ("192.0.2.30", "198.51.100.31", "203.0.113.32"),
+        start=1,
+    ):
+        responses.append(
+            client.post(
+                REPORT_URL,
+                valid_report(fingerprint=f"unique-forged-token-{index}"),
+                format="json",
+                REMOTE_ADDR=address,
+                HTTP_X_FORWARDED_FOR=address,
+                HTTP_X_CLIENT_ID=f"client-{index}",
+            )
+        )
+
+    assert [response.status_code for response in responses] == [400, 400, 429]
+    throttle_model = report_throttle_model()
+    assert throttle_model is not None
+    assert {field.name for field in throttle_model._meta.fields} == {
+        "window_start",
+        "request_count",
+    }
+    assert throttle_model.objects.count() == 1
+    assert throttle_model.objects.get().request_count == 2
+    assert report_model().objects.count() == 0
 
 
 def test_ask_issues_answer_bound_response_fingerprint(monkeypatch):
@@ -219,6 +256,57 @@ def test_ask_issues_answer_bound_response_fingerprint(monkeypatch):
     assert set(payload) == {"answer_sha256", "nonce"}
 
 
+def test_every_ask_answer_can_be_reported_exactly_beyond_legacy_length(db, monkeypatch):
+    exact_answer = "Long Ask answer: " + ("x" * 12001)
+    monkeypatch.setattr(
+        "llm.views.answer_query",
+        lambda *args, **kwargs: {
+            "answer": exact_answer,
+            "providers_referenced": [],
+            "regional_center": None,
+        },
+    )
+    client = APIClient()
+
+    ask = client.post(
+        "/api/llm/ask/",
+        {"query": "A question", "locale": "en"},
+        format="json",
+        REMOTE_ADDR="192.0.2.25",
+    )
+    report = client.post(
+        REPORT_URL,
+        valid_report(
+            response=exact_answer,
+            fingerprint=ask.json()["response_fingerprint"],
+        ),
+        format="json",
+        REMOTE_ADDR="192.0.2.25",
+    )
+
+    assert ask.status_code == 200
+    assert report.status_code == 201
+    assert report_model().objects.get().reported_response == exact_answer
+
+
+def test_invalid_and_tampered_fingerprints_return_stable_android_code(db):
+    client = APIClient()
+    fingerprints = (
+        "not-a-signed-response-fingerprint",
+        f"{signed_fingerprint(nonce='tampered')}x",
+    )
+
+    for fingerprint in fingerprints:
+        response = client.post(
+            REPORT_URL,
+            valid_report(fingerprint=fingerprint),
+            format="json",
+        )
+
+        assert response.status_code == 400
+        assert response.json()["code"] == "invalid_response_fingerprint"
+
+
 def test_report_rejects_token_answer_mismatch_and_expired_token(db):
     client = APIClient()
     mismatch = client.post(
@@ -231,6 +319,7 @@ def test_report_rejects_token_answer_mismatch_and_expired_token(db):
         REMOTE_ADDR="192.0.2.21",
     )
     assert mismatch.status_code == 400
+    assert mismatch.json()["code"] == "invalid_response_fingerprint"
 
     with patch("django.core.signing.time.time", return_value=1_000_000):
         expired_token = signed_fingerprint(nonce="expired")
@@ -245,6 +334,7 @@ def test_report_rejects_token_answer_mismatch_and_expired_token(db):
             REMOTE_ADDR="192.0.2.22",
         )
     assert expired.status_code == 400
+    assert expired.json()["code"] == "invalid_response_fingerprint"
     assert report_model().objects.count() == 0
 
 
