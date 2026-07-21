@@ -4,22 +4,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import com.chla.kindd.data.servicearea.ServiceAreaCoordinate
 import com.chla.kindd.data.servicearea.ServiceAreaFeature
-import com.chla.kindd.ui.theme.EasternRC
-import com.chla.kindd.ui.theme.HarborRC
-import com.chla.kindd.ui.theme.LantermanRC
-import com.chla.kindd.ui.theme.NorthLARC
-import com.chla.kindd.ui.theme.SanGabrielRC
-import com.chla.kindd.ui.theme.SouthCentralRC
-import com.chla.kindd.ui.theme.WestsideRC
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -66,17 +62,17 @@ class RegionalCenterMapSurfaceTest {
     @Test
     fun renderModel_mapsCanonicalRegionColorsByAcronym() {
         val colors = buildRegionalCenterMapRenderModel(sevenAreas(), null).areas
-            .associate { it.canonicalAcronym to it.strokeColor }
+            .associate { it.canonicalAcronym to it.strokeColor.copy(alpha = 1f).toArgb() }
 
         assertEquals(
             mapOf(
-                "NLACRC" to NorthLARC,
-                "FDLRC" to LantermanRC,
-                "HRC" to HarborRC,
-                "SCLARC" to SouthCentralRC,
-                "ELARC" to EasternRC,
-                "WRC" to WestsideRC,
-                "SGPRC" to SanGabrielRC
+                "NLACRC" to 0xFFD9A621.toInt(),
+                "FDLRC" to 0xFF9966B3.toInt(),
+                "HRC" to 0xFF3399DB.toInt(),
+                "SCLARC" to 0xFFF28C33.toInt(),
+                "ELARC" to 0xFF4CBF73.toInt(),
+                "WRC" to 0xFFE64D80.toInt(),
+                "SGPRC" to 0xFF338C59.toInt()
             ),
             colors
         )
@@ -110,12 +106,35 @@ class RegionalCenterMapSurfaceTest {
 
         val normal = model.areas.first { it.canonicalAcronym == "WRC" }
         val highlighted = model.areas.first { it.canonicalAcronym == "HRC" }
-        assertEquals(WestsideRC.copy(alpha = 0.15f).alpha, normal.fillColor.alpha, 0f)
-        assertEquals(1.5f, normal.strokeWidth, 0.001f)
+        assertEquals(0x26E64D80, normal.fillColor.toArgb())
+        assertEquals(0xB3E64D80.toInt(), normal.strokeColor.toArgb())
+        assertEquals(1.5.dp, normal.strokeWidth)
         assertFalse(normal.highlighted)
-        assertEquals(HarborRC.copy(alpha = 0.34f).alpha, highlighted.fillColor.alpha, 0f)
-        assertEquals(3f, highlighted.strokeWidth, 0.001f)
+        assertEquals(0x573399DB, highlighted.fillColor.toArgb())
+        assertEquals(0xFF3399DB.toInt(), highlighted.strokeColor.toArgb())
+        assertEquals(3.dp, highlighted.strokeWidth)
         assertTrue(highlighted.highlighted)
+    }
+
+    @Test
+    fun googleMapGeometry_preservesPolygonOrderCoordinatesAndCacheIdentity() {
+        val geometry = buildRegionalCenterMapGeometry(
+            listOf(area("SG/PRC", polygons = listOf(ring(0.0), ring(1.0))))
+        )
+        val cache = RegionalCenterGoogleMapGeometryCache()
+
+        val first = cache.get(geometry)
+        val second = cache.get(geometry)
+        val replacement = cache.get(
+            buildRegionalCenterMapGeometry(listOf(area("WRC")))
+        )
+
+        assertEquals(2, first.size)
+        assertEquals(listOf(0, 1), first.map { it.ringIndex })
+        assertEquals(ring(0.0).map { it.latitude }, first.first().points.map { it.latitude })
+        assertEquals(ring(0.0).map { it.longitude }, first.first().points.map { it.longitude })
+        assertSame(first, second)
+        assertNotSame(first, replacement)
     }
 
     @Test

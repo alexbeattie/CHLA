@@ -39,13 +39,13 @@ val CHLAGold = Color(0xFFFFC923)
 val CHLAGoldDark = Color(0xFFFFB700)
 
 // Regional Center Colors
-val WestsideRC = Color(0xFF4A90D9)
-val HarborRC = Color(0xFF2ECC71)
-val SouthCentralRC = Color(0xFFE74C3C)
-val EasternRC = Color(0xFF9B59B6)
-val NorthLARC = Color(0xFFF39C12)
-val LantermanRC = Color(0xFF1ABC9C)
-val SanGabrielRC = Color(0xFFE91E63)
+val WestsideRC = Color(0xFFE64D80)
+val HarborRC = Color(0xFF3399DB)
+val SouthCentralRC = Color(0xFFF28C33)
+val EasternRC = Color(0xFF4CBF73)
+val NorthLARC = Color(0xFFD9A621)
+val LantermanRC = Color(0xFF9966B3)
+val SanGabrielRC = Color(0xFF338C59)
 
 // Neutral Colors
 val BackgroundLight = Color(0xFFF8F9FA)
