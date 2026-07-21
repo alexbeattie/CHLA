@@ -40,24 +40,39 @@ class HomeViewModel @Inject constructor(
     private var hydrationJob: Job? = null
     private var lookupGeneration = 0L
     private var lookupJob: Job? = null
+    private var lastSynchronizedProfile: UserProfile? = null
 
     fun onReadyProfileChanged(profile: UserProfile) {
+        val previousProfile = lastSynchronizedProfile
+        if (profile == previousProfile) return
+        lastSynchronizedProfile = profile
+
+        val isProfileUpdate = previousProfile != null
         val identity = profile.regionalCenter
         val identityChanged = identity != mutableUiState.value.hydratedIdentity
-        if (!identityChanged) return
-
-        invalidateLookup()
-        hydrationGeneration += 1
-        hydrationJob?.cancel()
-        mutableUiState.update { state ->
-            state.copy(
-                hydratedIdentity = identity,
-                hydratedCenter = null,
-                lookupState = HomeLookupState.IDLE,
-                message = null
-            )
+        if (isProfileUpdate) {
+            invalidateLookup()
         }
-        if (identity != null) {
+
+        if (identityChanged) {
+            hydrationGeneration += 1
+            hydrationJob?.cancel()
+        }
+        if (isProfileUpdate || identityChanged) {
+            mutableUiState.update { state ->
+                state.copy(
+                    hydratedIdentity = if (identityChanged) identity else state.hydratedIdentity,
+                    hydratedCenter = if (identityChanged) null else state.hydratedCenter,
+                    lookupState = if (isProfileUpdate) {
+                        HomeLookupState.IDLE
+                    } else {
+                        state.lookupState
+                    },
+                    message = if (isProfileUpdate) null else state.message
+                )
+            }
+        }
+        if (identityChanged && identity != null) {
             hydrate(identity, hydrationGeneration)
         }
     }

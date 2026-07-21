@@ -119,6 +119,89 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun distinctReadyUpdateWithSameIdentityInvalidatesCancellationIgnoringLookup() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val pending = CompletableDeferred<RegionalCenterLookup>()
+            val source = ControlledLookupCenterSource(ArrayDeque(listOf(pending)))
+            val original = profile(zip = "90001", identity = null)
+            val updated = original.copy(
+                zipCode = "91311",
+                journeyStage = JourneyStage.RECEIVING_SERVICES
+            )
+            val viewModel = HomeViewModel(
+                RecordingProfileRepository(original),
+                source,
+                FakeDiscoveryController()
+            )
+            viewModel.onReadyProfileChanged(original)
+            viewModel.onZipChanged("90210")
+            viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
+            runCurrent()
+            assertEquals(HomeLookupState.LOADING, viewModel.uiState.value.lookupState)
+
+            viewModel.onReadyProfileChanged(updated)
+
+            assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+            assertNull(viewModel.uiState.value.message)
+            assertEquals("90210", viewModel.uiState.value.displayedZip(updated))
+            assertTrue(viewModel.uiState.value.isZipDraftDirty)
+
+            pending.complete(RegionalCenterLookup.Unmatched)
+            runCurrent()
+
+            assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+            assertNull(viewModel.uiState.value.message)
+        }
+
+    @Test
+    fun distinctReadyUpdateWithSameIdentityClearsPriorLookupError() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val original = profile(zip = "90001", identity = null)
+            val viewModel = HomeViewModel(
+                RecordingProfileRepository(original),
+                CenterSource(lookup = RegionalCenterLookup.Unmatched),
+                FakeDiscoveryController()
+            )
+            viewModel.onReadyProfileChanged(original)
+            viewModel.onZipChanged("90210")
+            viewModel.submitZip(original, viewModel.uiState.value.displayedZip(original))
+            runCurrent()
+            assertEquals(HomeMessage.NO_MATCH, viewModel.uiState.value.message)
+
+            viewModel.onReadyProfileChanged(
+                original.copy(audienceType = AudienceType.CLINICIAN)
+            )
+
+            assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+            assertNull(viewModel.uiState.value.message)
+            assertEquals("90210", viewModel.uiState.value.zipDraft)
+        }
+
+    @Test
+    fun exactRepeatedReadyProfileDoesNotInvalidateLookup() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val pending = CompletableDeferred<RegionalCenterLookup>()
+            val source = ControlledLookupCenterSource(ArrayDeque(listOf(pending)))
+            val ready = profile(zip = "90001", identity = null)
+            val viewModel = HomeViewModel(
+                RecordingProfileRepository(ready),
+                source,
+                FakeDiscoveryController()
+            )
+            viewModel.onReadyProfileChanged(ready)
+            viewModel.onZipChanged("90210")
+            viewModel.submitZip(ready, viewModel.uiState.value.displayedZip(ready))
+            runCurrent()
+
+            viewModel.onReadyProfileChanged(ready)
+            pending.complete(RegionalCenterLookup.Unmatched)
+            runCurrent()
+
+            assertEquals(HomeLookupState.UNMATCHED, viewModel.uiState.value.lookupState)
+            assertEquals(HomeMessage.NO_MATCH, viewModel.uiState.value.message)
+        }
+
+    @Test
     fun readyProfileHydratesCenterByDeployedId_withoutOwningProfilePresentation() =
         runTest(mainDispatcherRule.testDispatcher) {
             val details = center(id = 41, name = "Current deployed name", phone = "(213) 555-1212")
