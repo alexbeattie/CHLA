@@ -90,6 +90,16 @@ class MapViewModelTest {
     }
 
     @Test
+    fun `map refresh delegates to the shared discovery refresh operation`() {
+        val controller = FakeDiscoveryController(stateWithResults())
+        val map = MapViewModel(controller, FakeUserLocationSource())
+
+        map.refresh()
+
+        assertEquals(listOf(PresenterCall.Refresh), controller.calls)
+    }
+
+    @Test
     fun `location success changes discovery origin to device coordinates`() = runTest {
         val controller = FakeDiscoveryController(stateWithResults())
         val location = FakeUserLocationSource(
@@ -261,6 +271,7 @@ internal sealed interface PresenterCall {
     ) : PresenterCall
     data class UseDeviceLocation(val latitude: Double, val longitude: Double) : PresenterCall
     data object UseLosAngelesCatalog : PresenterCall
+    data object Refresh : PresenterCall
     data object Retry : PresenterCall
     data object ClearAllFilters : PresenterCall
 }
@@ -328,7 +339,9 @@ internal class FakeDiscoveryController(
         )
     }
 
-    override fun refresh() = Unit
+    override fun refresh() {
+        calls += PresenterCall.Refresh
+    }
 
     override fun retry() {
         calls += PresenterCall.Retry

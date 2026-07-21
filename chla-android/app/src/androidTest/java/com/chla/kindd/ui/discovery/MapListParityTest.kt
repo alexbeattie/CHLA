@@ -1,7 +1,9 @@
 package com.chla.kindd.ui.discovery
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,6 +38,7 @@ import com.chla.kindd.data.models.Provider
 import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.data.profile.JourneyStage
+import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import com.chla.kindd.ui.navigation.KINDDMainNavHost
@@ -161,6 +164,108 @@ class MapListParityTest {
         }
 
         composeRule.onNodeWithTag("map_use_location").assertIsNotEnabled()
+    }
+
+    @Test
+    fun map_retainsImmersiveSurfaceAndCompactChromeAcrossEveryDiscoveryState() {
+        val retainedProvider = provider("kept", 34.0, -118.0)
+        var state by mutableStateOf(
+            DiscoveryState(
+                profile = completeProfile().copy(
+                    regionalCenter = RegionalCenterIdentity(
+                        id = 1,
+                        name = "North Los Angeles County Regional Center",
+                        shortName = "NLACRC"
+                    )
+                ),
+                isLoading = true
+            )
+        )
+        var locationState by mutableStateOf(MapLocationState())
+
+        composeRule.setContent {
+            KINDDTheme {
+                MapContent(
+                    state = state,
+                    locationState = locationState,
+                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
+                    onUseMyLocation = {},
+                    onProviderClick = {},
+                    markerContent = { _, _ ->
+                        Box(Modifier.fillMaxSize().testTag("fake_map_surface"))
+                    }
+                )
+            }
+        }
+
+        assertImmersiveMapChrome()
+        composeRule.onNodeWithTag("map_loading_overlay").assertIsDisplayed()
+        composeRule.onNodeWithTag("map_regional_center_badge").assertTextContains("NLACRC")
+
+        composeRule.runOnIdle {
+            state = state.copy(isLoading = false, hasLoadedOnce = true)
+        }
+        assertImmersiveMapChrome()
+        composeRule.onNodeWithTag("discovery_empty").assertIsDisplayed()
+
+        composeRule.runOnIdle {
+            state = state.copy(
+                providers = listOf(retainedProvider),
+                isLoading = true,
+                error = null
+            )
+        }
+        assertImmersiveMapChrome()
+        composeRule.onNodeWithTag("map_refresh_progress").assertIsDisplayed()
+        composeRule.onNodeWithTag("map_result_count").assertTextContains("1")
+
+        composeRule.runOnIdle {
+            state = state.copy(isLoading = false, error = DiscoveryError.NETWORK)
+        }
+        assertImmersiveMapChrome()
+        composeRule.onNodeWithTag("map_error_overlay").assertIsDisplayed()
+
+        composeRule.runOnIdle {
+            locationState = MapLocationState(status = MapLocationStatus.PERMISSION_DENIED)
+        }
+        assertImmersiveMapChrome()
+        composeRule.onNodeWithTag("map_location_status").assertIsDisplayed()
+    }
+
+    @Test
+    fun map_compactControlsFireOnceAndExposeActiveFilterCount() {
+        var locationClicks = 0
+        var refreshClicks = 0
+        val controller = FakeDiscoveryController(DiscoveryState())
+        val actions = discoveryActions(controller).copy(onRefresh = { refreshClicks += 1 })
+
+        composeRule.setContent {
+            KINDDTheme {
+                MapContent(
+                    state = DiscoveryState(
+                        criteria = DiscoveryCriteria(
+                            therapyTypes = setOf(TherapyType.ABA),
+                            ageGroup = AgeGroup.SCHOOL_AGE
+                        ),
+                        hasLoadedOnce = true
+                    ),
+                    locationState = MapLocationState(),
+                    actions = actions,
+                    onUseMyLocation = { locationClicks += 1 },
+                    onProviderClick = {},
+                    markerContent = { _, _ -> Unit }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("map_title").assertDoesNotExist()
+        composeRule.onNodeWithTag("map_filter_badge").assertTextContains("2")
+        composeRule.onNodeWithTag("map_use_location").performClick()
+        composeRule.onNodeWithTag("map_refresh").performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, locationClicks)
+            assertEquals(1, refreshClicks)
+        }
     }
 
     @Test
@@ -375,6 +480,15 @@ class MapListParityTest {
         composeRule.onNodeWithContentDescription("Filters").assertIsDisplayed()
     }
 
+    private fun assertImmersiveMapChrome() {
+        composeRule.onNodeWithTag("fake_map_surface").assertIsDisplayed()
+        composeRule.onNodeWithTag("map_search_chrome").assertIsDisplayed()
+        composeRule.onNodeWithTag("discovery_search_field").assertIsDisplayed()
+        composeRule.onNodeWithTag("map_top_filter").assertIsDisplayed()
+        composeRule.onNodeWithTag("map_control_rail").assertIsDisplayed()
+        composeRule.onNodeWithTag("map_title").assertDoesNotExist()
+    }
+
     @Composable
     private fun testNavController(): TestNavHostController {
         val context = LocalContext.current
@@ -439,6 +553,9 @@ class MapListParityTest {
 
         @Composable
         override fun settings(actions: MainNavActions) = Unit
+
+        @Composable
+        override fun more(actions: MainNavActions) = Unit
 
         @Composable
         override fun providerDetail(providerId: String, actions: MainNavActions) = Unit
@@ -531,7 +648,8 @@ class MapListParityTest {
             onRemoveInsurance = {},
             onRemoveRadius = {},
             onClearAll = controller::clearAllFilters,
-            onRetry = controller::retry
+            onRetry = controller::retry,
+            onRefresh = controller::refresh
         )
     }
 }

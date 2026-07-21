@@ -3,49 +3,31 @@ package com.chla.kindd.ui.screens
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.chla.kindd.R
 import com.chla.kindd.data.discovery.DiscoveryState
 import com.chla.kindd.data.models.Provider
-import com.chla.kindd.ui.discovery.ActiveFilterChips
 import com.chla.kindd.ui.discovery.DiscoveryFilterSheet
-import com.chla.kindd.ui.discovery.DiscoverySearchField
-import com.chla.kindd.ui.discovery.DiscoveryStateContent
 import com.chla.kindd.ui.discovery.DiscoveryUiActions
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.chla.kindd.ui.map.ProviderResourceMap
+import com.chla.kindd.ui.map.ResourceMapContextBadges
+import com.chla.kindd.ui.map.ResourceMapControlRail
+import com.chla.kindd.ui.map.ResourceMapRetainedContextOverlays
+import com.chla.kindd.ui.map.ResourceMapSearchChrome
+import com.chla.kindd.ui.map.activeMapFilterCount
 
 data class MapMarkerModel(
     val providerId: String,
@@ -101,7 +83,8 @@ fun MapScreen(
             onRemoveInsurance = viewModel::removeInsurance,
             onRemoveRadius = viewModel::removeRadius,
             onClearAll = viewModel::clearAllFilters,
-            onRetry = viewModel::retry
+            onRetry = viewModel::retry,
+            onRefresh = viewModel::refresh
         ),
         onUseMyLocation = {
             if (locationState.hasPermission) {
@@ -114,7 +97,6 @@ fun MapScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapContent(
     state: DiscoveryState,
@@ -125,95 +107,62 @@ fun MapContent(
     markerContent: (@Composable (List<MapMarkerModel>, (String) -> Unit) -> Unit)? = null
 ) {
     var showFilters by remember { mutableStateOf(false) }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.map_title),
-                        Modifier.testTag("map_title").semantics { heading() }
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
-    ) { paddingValues ->
-        Column(
+    val markers = providerMarkerModels(state.mapProviders)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("map_immersive_root")
+    ) {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .testTag("map_surface")
         ) {
-            DiscoverySearchField(
-                query = state.criteria.query,
-                onQueryChange = actions.onQueryChange,
-                onFilterClick = { showFilters = true },
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
-            )
-            ActiveFilterChips(
-                criteria = state.criteria,
-                onRemoveTherapy = actions.onRemoveTherapy,
-                onRemoveAge = actions.onRemoveAge,
-                onRemoveDiagnosis = actions.onRemoveDiagnosis,
-                onRemoveInsurance = actions.onRemoveInsurance,
-                onRemoveRadius = actions.onRemoveRadius,
-                onClearAll = actions.onClearAll,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Button(
-                onClick = onUseMyLocation,
-                enabled = locationState.status != MapLocationStatus.LOCATING,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-                    .testTag("map_use_location")
-            ) {
-                Text(stringResource(R.string.discovery_use_my_location))
-            }
-            when (locationState.status) {
-                MapLocationStatus.LOCATING -> Text(
-                    stringResource(R.string.discovery_location_locating),
-                    Modifier
-                        .padding(horizontal = 16.dp)
-                        .testTag("map_location_status")
-                        .semantics { liveRegion = LiveRegionMode.Polite }
+            if (markerContent == null) {
+                ProviderResourceMap(
+                    markers = markers,
+                    origin = state.criteria.origin,
+                    hasLocationPermission = locationState.hasPermission,
+                    onProviderClick = onProviderClick,
+                    modifier = Modifier.fillMaxSize()
                 )
-                MapLocationStatus.PERMISSION_DENIED -> Text(
-                    stringResource(R.string.discovery_location_denied),
-                    Modifier
-                        .padding(horizontal = 16.dp)
-                        .testTag("map_location_status")
-                        .semantics { liveRegion = LiveRegionMode.Polite },
-                    color = MaterialTheme.colorScheme.error
-                )
-                MapLocationStatus.FAILED -> Text(
-                    stringResource(R.string.discovery_location_failed),
-                    Modifier
-                        .padding(horizontal = 16.dp)
-                        .testTag("map_location_status")
-                        .semantics { liveRegion = LiveRegionMode.Polite },
-                    color = MaterialTheme.colorScheme.error
-                )
-                MapLocationStatus.IDLE -> Unit
-            }
-            DiscoveryStateContent(
-                state = state,
-                onRetry = actions.onRetry,
-                modifier = Modifier.weight(1f)
-            ) {
-                val markers = providerMarkerModels(state.mapProviders)
-                if (markerContent == null) {
-                    ProviderGoogleMap(
-                        markers = markers,
-                        hasLocationPermission = locationState.hasPermission,
-                        onProviderClick = onProviderClick
-                    )
-                } else {
-                    markerContent(markers, onProviderClick)
-                }
+            } else {
+                markerContent(markers, onProviderClick)
             }
         }
+
+        ResourceMapSearchChrome(
+            criteria = state.criteria,
+            actions = actions,
+            onShowFilters = { showFilters = true },
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+
+        ResourceMapControlRail(
+            activeFilterCount = state.criteria.activeMapFilterCount(),
+            locationState = locationState,
+            isRefreshing = state.isLoading,
+            onShowFilters = { showFilters = true },
+            onUseMyLocation = onUseMyLocation,
+            onRefresh = actions.onRefresh,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 18.dp)
+        )
+
+        ResourceMapRetainedContextOverlays(
+            state = state,
+            locationState = locationState,
+            onRetry = actions.onRetry,
+            onShowFilters = { showFilters = true },
+            modifier = Modifier.align(Alignment.Center)
+        )
+
+        ResourceMapContextBadges(
+            state = state,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 
     if (showFilters) {
@@ -225,37 +174,5 @@ fun MapContent(
                 showFilters = false
             }
         )
-    }
-}
-
-@Composable
-private fun ProviderGoogleMap(
-    markers: List<MapMarkerModel>,
-    hasLocationPermission: Boolean,
-    onProviderClick: (String) -> Unit
-) {
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(34.0522, -118.2437), 10f)
-    }
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
-        uiSettings = MapUiSettings(
-            zoomControlsEnabled = true,
-            myLocationButtonEnabled = hasLocationPermission
-        )
-    ) {
-        markers.forEach { marker ->
-            Marker(
-                state = MarkerState(LatLng(marker.latitude, marker.longitude)),
-                title = marker.title,
-                snippet = marker.snippet,
-                onClick = {
-                    onProviderClick(marker.providerId)
-                    true
-                }
-            )
-        }
     }
 }

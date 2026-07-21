@@ -291,7 +291,7 @@ class TouchedSurfaceAccessibilityTest {
     }
 
     @Test
-    fun map_spanishNarrowWidthExposesHeadingLocationAndClearFilterTargets() {
+    fun map_spanishNarrowWidthExposesImmersiveLocationSearchAndFilterTargets() {
         setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = false, fontScale = 1f) {
             MapContent(
                 state = DiscoveryState(
@@ -304,12 +304,16 @@ class TouchedSurfaceAccessibilityTest {
             )
         }
 
-        composeRule.onNodeWithTag("map_title").assert(hasHeading())
+        composeRule.onNodeWithTag("map_title").assertDoesNotExist()
+        composeRule.onNodeWithTag("map_search_chrome").assertIsDisplayed()
+        composeRule.onNodeWithTag("map_control_rail").assertIsDisplayed()
         composeRule.onNodeWithTag("map_location_status")
             .assert(hasLiveRegion(LiveRegionMode.Polite))
         composeRule.onNodeWithContentDescription("Borrar búsqueda").assertIsDisplayed()
         assertFixedTargetAtLeast48Dp("discovery_clear_query", "Borrar búsqueda")
-        assertFixedTargetAtLeast48Dp("discovery_filter_button", "Filtros")
+        assertFixedTargetAtLeast48Dp("map_top_filter", "Filtros")
+        assertFixedTargetAtLeast48Dp("map_use_location", "Usar mi ubicación")
+        assertFixedTargetAtLeast48Dp("map_refresh", "Actualizar mapa")
     }
 
     @Test

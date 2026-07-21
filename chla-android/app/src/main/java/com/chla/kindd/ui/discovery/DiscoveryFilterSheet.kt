@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -43,6 +44,7 @@ import com.chla.kindd.data.discovery.DiscoveryCriteria
 import com.chla.kindd.data.discovery.DiscoveryOrigin
 import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.profile.AgeGroup
+import com.chla.kindd.ui.theme.KiNDDShapeTokens
 
 data class DiscoveryFilterSelection(
     val therapyTypes: Set<TherapyType>,
@@ -59,7 +61,13 @@ fun DiscoveryFilterSheet(
     onDismissRequest: () -> Unit,
     onApply: (DiscoveryFilterSelection) -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = onDismissRequest) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        shape = RoundedCornerShape(
+            topStart = KiNDDShapeTokens.Sheet,
+            topEnd = KiNDDShapeTokens.Sheet
+        )
+    ) {
         DiscoveryFilterContent(
             criteria = criteria,
             onDismissRequest = onDismissRequest,

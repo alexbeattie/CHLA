@@ -30,7 +30,8 @@ data class DiscoveryUiActions(
     val onRemoveInsurance: () -> Unit,
     val onRemoveRadius: () -> Unit,
     val onClearAll: () -> Unit,
-    val onRetry: () -> Unit
+    val onRetry: () -> Unit,
+    val onRefresh: () -> Unit = onRetry
 )
 
 @Composable

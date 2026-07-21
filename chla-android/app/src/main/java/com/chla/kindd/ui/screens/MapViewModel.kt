@@ -84,6 +84,8 @@ class MapViewModel @Inject constructor(
 
     fun retry() = discoveryController.retry()
 
+    fun refresh() = discoveryController.refresh()
+
     fun onLocationPermissionResult(granted: Boolean) {
         val requestGeneration = locationGeneration.incrementAndGet()
         locationJob?.cancel()

@@ -37,6 +37,7 @@
 
     <!-- Map Screen -->
     <string name="map_title">Mapa de Recursos</string>
+    <string name="map_refresh">Actualizar mapa</string>
     <string name="search_resources">Buscar recursos</string>
     <string name="filter">Filtrar</string>
     <string name="filters">Filtros</string>

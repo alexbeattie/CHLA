@@ -1,6 +1,5 @@
 package com.chla.kindd.ui.discovery
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.ui.theme.KiNDDIndigo
+import com.chla.kindd.ui.theme.KiNDDGlassSurface
 import com.chla.kindd.ui.theme.KiNDDShapeTokens
 
 /** Compact discovery search surface shared by List and the immersive Map chrome. */
@@ -37,63 +37,64 @@ fun KiNDDSearchOverlay(
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(KiNDDShapeTokens.Compact)
-    BasicTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f),
-                shape = shape
-            )
-            .testTag("discovery_search_field"),
-        textStyle = MaterialTheme.typography.bodyLarge.copy(
-            color = MaterialTheme.colorScheme.onSurface
-        ),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        cursorBrush = SolidColor(KiNDDIndigo),
-        decorationBox = { innerTextField ->
-            Row(
-                modifier = Modifier.padding(start = 14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 10.dp),
-                    contentAlignment = Alignment.CenterStart
+    KiNDDGlassSurface(
+        modifier = modifier.fillMaxWidth(),
+        shape = shape
+    ) {
+        BasicTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .testTag("discovery_search_field"),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            cursorBrush = SolidColor(KiNDDIndigo),
+            decorationBox = { innerTextField ->
+                Row(
+                    modifier = Modifier.padding(start = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (query.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.search_placeholder),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1
-                        )
-                    }
-                    innerTextField()
-                }
-                if (query.isNotEmpty()) {
-                    IconButton(
-                        onClick = { onQueryChange("") },
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Box(
                         modifier = Modifier
-                            .requiredSize(48.dp)
-                            .testTag("discovery_clear_query")
+                            .weight(1f)
+                            .padding(horizontal = 10.dp),
+                        contentAlignment = Alignment.CenterStart
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.discovery_clear_search)
-                        )
+                        if (query.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.search_placeholder),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1
+                            )
+                        }
+                        innerTextField()
+                    }
+                    if (query.isNotEmpty()) {
+                        IconButton(
+                            onClick = { onQueryChange("") },
+                            modifier = Modifier
+                                .requiredSize(48.dp)
+                                .testTag("discovery_clear_query")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(R.string.discovery_clear_search)
+                            )
+                        }
                     }
                 }
             }
-        }
-    )
+        )
+    }
 }

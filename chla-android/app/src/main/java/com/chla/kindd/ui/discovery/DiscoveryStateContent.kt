@@ -164,7 +164,7 @@ private fun RefreshErrorBanner(error: DiscoveryError, onRetry: () -> Unit) {
 }
 
 @Composable
-private fun discoveryErrorText(error: DiscoveryError): String = stringResource(
+internal fun discoveryErrorText(error: DiscoveryError): String = stringResource(
     when (error) {
         DiscoveryError.NETWORK -> R.string.discovery_error_network
         DiscoveryError.TIMEOUT -> R.string.discovery_error_timeout
