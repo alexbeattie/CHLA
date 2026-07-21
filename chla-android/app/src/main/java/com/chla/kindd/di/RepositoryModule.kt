@@ -6,6 +6,8 @@ import com.chla.kindd.data.discovery.DiscoveryController
 import com.chla.kindd.data.discovery.DiscoveryStore
 import com.chla.kindd.data.repository.ProviderRepository
 import com.chla.kindd.data.repository.RegionalCenterRepository
+import com.chla.kindd.data.servicearea.BundledServiceAreaDataSource
+import com.chla.kindd.data.servicearea.ServiceAreaDataSource
 import com.chla.kindd.data.source.ProviderDiscoveryDataSource
 import com.chla.kindd.data.source.RegionalCenterDataSource
 import com.chla.kindd.data.source.UserLocationSource
@@ -84,4 +86,18 @@ object RepositoryModule {
     fun provideRegionalCenterDataSource(
         repository: RegionalCenterRepository
     ): RegionalCenterDataSource = repository
+
+    @Provides
+    @Singleton
+    fun provideServiceAreaDataSource(
+        @ApplicationContext context: Context,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
+    ): ServiceAreaDataSource = BundledServiceAreaDataSource(
+        resourceReader = {
+            context.resources.openRawResource(
+                com.chla.kindd.R.raw.la_regional_centers
+            ).reader()
+        },
+        ioDispatcher = ioDispatcher
+    )
 }
