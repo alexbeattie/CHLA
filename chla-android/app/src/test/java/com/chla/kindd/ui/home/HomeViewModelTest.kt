@@ -700,7 +700,10 @@ class HomeViewModelTest {
             runCurrent()
             assertEquals(failedProfile.regionalCenter, failed.viewModel.uiState.value.hydratedIdentity)
             assertNull(failed.viewModel.uiState.value.hydratedCenter)
-            assertNull(failed.viewModel.uiState.value.dialDigitsFor(failedProfile))
+            assertEquals(
+                "3102584000",
+                failed.viewModel.uiState.value.dialDigitsFor(failedProfile)
+            )
         }
 
     @Test

@@ -115,6 +115,37 @@ class HomeContentTest {
     }
 
     @Test
+    fun homeMountsBaseMapWhenServiceAreaOverlaysAreUnavailable() {
+        setHome(
+            state = matchedState().copy(
+                serviceAreas = emptyList(),
+                serviceAreaLoadState = ServiceAreaLoadState.FAILED
+            ),
+            profile = matchedProfile(),
+            mapContent = { model, _ ->
+                assertTrue(model.areas.isEmpty())
+                Box(Modifier.testTag("home_test_base_map"))
+            }
+        )
+
+        composeRule.onNodeWithTag("home_test_base_map", useUnmergedTree = true)
+            .assertExists()
+    }
+
+    @Test
+    fun matchedCenterShowsCanonicalPhoneWhileHydrationIsPending() {
+        val dialed = mutableListOf<String>()
+        setHome(
+            state = HomeUiState(hydratedIdentity = matchedProfile().regionalCenter),
+            profile = matchedProfile(),
+            onCall = dialed::add
+        )
+
+        composeRule.onNodeWithText("(213) 744-7000").performClick()
+        composeRule.runOnIdle { assertEquals(listOf("2137447000"), dialed) }
+    }
+
+    @Test
     fun completeReadyProfilesRenderTheirAuthoritativeIdentityOnTheFirstFrame() {
         val profile = mutableStateOf(matchedProfile())
         composeRule.setContent {
@@ -184,7 +215,7 @@ class HomeContentTest {
             .performScrollTo()
             .assertIsDisplayed()
         composeRule.onNodeWithText("SCLARC").assertDoesNotExist()
-        composeRule.onNodeWithText("Call now").assertDoesNotExist()
+        composeRule.onNodeWithText("(310) 258-4000").assertIsDisplayed()
     }
 
     @Test
@@ -242,7 +273,7 @@ class HomeContentTest {
     }
 
     @Test
-    fun callNowSuppliesOnlyNormalizedDigits_andIsAbsentWithoutPhone() {
+    fun callNowSuppliesOnlyNormalizedDigits_andFallsBackWhenApiPhoneIsBlank() {
         val dialed = mutableListOf<String>()
         val state = mutableStateOf(matchedState())
         composeRule.setContent {
@@ -268,7 +299,7 @@ class HomeContentTest {
         composeRule.runOnIdle {
             state.value = matchedState().copy(hydratedCenter = center(phone = null))
         }
-        composeRule.onNodeWithText("Call now").assertDoesNotExist()
+        composeRule.onNodeWithText("(213) 744-7000").assertIsDisplayed()
     }
 
     @Test

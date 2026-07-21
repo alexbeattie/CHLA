@@ -107,18 +107,17 @@ fun HomeMapHero(
             .testTag("home_map_hero")
             .semantics { contentDescription = summary }
     ) {
-        if (uiState.serviceAreas.isNotEmpty()) {
-            RegionalCenterMapSurface(
-                areas = uiState.serviceAreas,
-                highlightedAcronym = identity?.shortName,
-                interactive = false,
-                onAreaClick = {},
-                mapContent = mapContent,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clearAndSetSemantics { }
-            )
-        } else if (uiState.serviceAreaLoadState == com.chla.kindd.ui.home.ServiceAreaLoadState.LOADING) {
+        RegionalCenterMapSurface(
+            areas = uiState.serviceAreas,
+            highlightedAcronym = identity?.shortName,
+            interactive = false,
+            onAreaClick = {},
+            mapContent = mapContent,
+            modifier = Modifier
+                .fillMaxSize()
+                .clearAndSetSemantics { }
+        )
+        if (uiState.serviceAreaLoadState == com.chla.kindd.ui.home.ServiceAreaLoadState.LOADING) {
             CircularProgressIndicator(
                 color = Color.White,
                 modifier = Modifier.align(Alignment.Center)
@@ -181,7 +180,7 @@ private fun HomeMatchedCenterOverlayCard(
     val identity = profile.regionalCenter ?: return
     val roleColor = regionalCenterRoleColor(identity.shortName)
     val cardShape = RoundedCornerShape(KiNDDShapeTokens.Card)
-    val formattedPhone = uiState.centerDetailsFor(profile)?.formattedPhone
+    val formattedPhone = uiState.formattedPhoneFor(profile)
     val dialDigits = uiState.dialDigitsFor(profile)
 
     BoxWithConstraints(
