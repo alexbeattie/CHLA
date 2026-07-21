@@ -1,13 +1,14 @@
 package com.chla.kindd.ui.discovery
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -17,8 +18,11 @@ import com.chla.kindd.data.discovery.DiscoveryCriteria
 import com.chla.kindd.data.discovery.DiscoveryOrigin
 import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.profile.AgeGroup
+import com.chla.kindd.ui.theme.KiNDDIndigo
+import com.chla.kindd.ui.theme.KiNDDPink
+import com.chla.kindd.ui.theme.KiNDDPurple
+import com.chla.kindd.ui.theme.KiNDDViolet
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ActiveFilterChips(
     criteria: DiscoveryCriteria,
@@ -38,71 +42,105 @@ fun ActiveFilterChips(
         hasRadius
     if (!hasFilters) return
 
-    FlowRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
+    val chips = buildList {
         criteria.therapyTypes.sortedBy(TherapyType::ordinal).forEach { therapy ->
-            RemovableFilterChip(
-                label = stringResource(therapy.displayResId),
-                tag = "filter_chip_therapy_${therapy.name}",
-                onRemove = { onRemoveTherapy(therapy) }
+            add(
+                ActiveFilterChipModel(
+                    key = "therapy_${therapy.name}",
+                    label = stringResource(therapy.displayResId),
+                    tag = "filter_chip_therapy_${therapy.name}",
+                    color = activeTherapyColor(therapy),
+                    onRemove = { onRemoveTherapy(therapy) }
+                )
             )
         }
         criteria.ageGroup?.let {
-            RemovableFilterChip(
-                label = stringResource(
-                    R.string.discovery_age_chip,
-                    ageGroupLabel(it)
-                ),
-                tag = "filter_chip_age",
-                onRemove = onRemoveAge
+            add(
+                ActiveFilterChipModel(
+                    key = "age",
+                    label = stringResource(R.string.discovery_age_chip, ageGroupLabel(it)),
+                    tag = "filter_chip_age",
+                    onRemove = onRemoveAge
+                )
             )
         }
         criteria.diagnosis?.let {
-            RemovableFilterChip(
-                label = stringResource(
-                    R.string.discovery_diagnosis_chip,
-                    diagnosisLabel(it)
-                ),
-                tag = "filter_chip_diagnosis",
-                onRemove = onRemoveDiagnosis
+            add(
+                ActiveFilterChipModel(
+                    key = "diagnosis",
+                    label = stringResource(
+                        R.string.discovery_diagnosis_chip,
+                        diagnosisLabel(it)
+                    ),
+                    tag = "filter_chip_diagnosis",
+                    onRemove = onRemoveDiagnosis
+                )
             )
         }
         criteria.insurance?.let {
-            RemovableFilterChip(
-                label = stringResource(
-                    R.string.discovery_insurance_chip,
-                    insuranceLabel(it)
-                ),
-                tag = "filter_chip_insurance",
-                onRemove = onRemoveInsurance
+            add(
+                ActiveFilterChipModel(
+                    key = "insurance",
+                    label = stringResource(
+                        R.string.discovery_insurance_chip,
+                        insuranceLabel(it)
+                    ),
+                    tag = "filter_chip_insurance",
+                    onRemove = onRemoveInsurance
+                )
             )
         }
         if (hasRadius) {
-            RemovableFilterChip(
-                label = pluralStringResource(
-                    R.plurals.discovery_radius_chip,
-                    criteria.radiusMiles,
-                    criteria.radiusMiles
-                ),
-                tag = "filter_chip_radius",
-                onRemove = onRemoveRadius
+            add(
+                ActiveFilterChipModel(
+                    key = "radius",
+                    label = pluralStringResource(
+                        R.plurals.discovery_radius_chip,
+                        criteria.radiusMiles,
+                        criteria.radiusMiles
+                    ),
+                    tag = "filter_chip_radius",
+                    onRemove = onRemoveRadius
+                )
             )
         }
-        AssistChip(
-            onClick = onClearAll,
-            label = { Text(stringResource(R.string.discovery_clear_all)) },
-            modifier = Modifier.testTag("discovery_clear_all")
-        )
+    }
+
+    LazyRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(chips, key = ActiveFilterChipModel::key) { chip ->
+            RemovableFilterChip(
+                label = chip.label,
+                tag = chip.tag,
+                color = chip.color,
+                onRemove = chip.onRemove
+            )
+        }
+        item(key = "clear_all") {
+            AssistChip(
+                onClick = onClearAll,
+                label = { Text(stringResource(R.string.discovery_clear_all)) },
+                modifier = Modifier.testTag("discovery_clear_all")
+            )
+        }
     }
 }
+
+private data class ActiveFilterChipModel(
+    val key: String,
+    val label: String,
+    val tag: String,
+    val color: Color? = null,
+    val onRemove: () -> Unit
+)
 
 @Composable
 private fun RemovableFilterChip(
     label: String,
     tag: String,
+    color: Color? = null,
     onRemove: () -> Unit
 ) {
     AssistChip(
@@ -110,8 +148,24 @@ private fun RemovableFilterChip(
         label = {
             Text(stringResource(R.string.discovery_remove_filter, label))
         },
-        modifier = Modifier.testTag(tag)
+        modifier = Modifier.testTag(tag),
+        colors = if (color == null) {
+            AssistChipDefaults.assistChipColors()
+        } else {
+            AssistChipDefaults.assistChipColors(
+                containerColor = color.copy(alpha = 0.12f),
+                labelColor = color
+            )
+        }
     )
+}
+
+private fun activeTherapyColor(therapy: TherapyType): Color = when (therapy) {
+    TherapyType.ABA -> KiNDDIndigo
+    TherapyType.SPEECH -> KiNDDPink
+    TherapyType.OCCUPATIONAL -> KiNDDViolet
+    TherapyType.PHYSICAL -> KiNDDPurple
+    else -> Color(0xFF667085)
 }
 
 @Composable

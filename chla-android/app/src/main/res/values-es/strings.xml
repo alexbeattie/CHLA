@@ -47,7 +47,7 @@
     <string name="my_location">Mi Ubicación</string>
 
     <!-- Provider List -->
-    <string name="list_title">Lista</string>
+    <string name="list_title">Recursos</string>
     <string name="resources_found">%d recursos encontrados</string>
     <string name="resource_found">%d recurso encontrado</string>
     <string name="search_placeholder">Buscar por nombre, servicio o ubicación</string>
@@ -256,6 +256,8 @@
     <string name="discovery_apply">Aplicar</string>
     <string name="discovery_sort_name">Nombre</string>
     <string name="discovery_sort_distance">Distancia</string>
+    <string name="discovery_sort_action">Ordenar recursos</string>
+    <string name="provider_more_services">+%1$d más</string>
     <string name="discovery_use_my_location">Usar mi ubicación</string>
     <string name="discovery_location_locating">Buscando tu ubicación…</string>
     <string name="discovery_location_denied">No se permitió el acceso a la ubicación. Tus resultados actuales siguen disponibles.</string>

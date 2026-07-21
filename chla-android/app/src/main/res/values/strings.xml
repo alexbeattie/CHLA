@@ -47,7 +47,7 @@
     <string name="my_location">My Location</string>
 
     <!-- Provider List -->
-    <string name="list_title">List</string>
+    <string name="list_title">Resources</string>
     <string name="resources_found">%d resources found</string>
     <string name="resource_found">%d resource found</string>
     <string name="search_placeholder">Search by name, service, or location</string>
@@ -254,6 +254,8 @@
     <string name="discovery_apply">Apply</string>
     <string name="discovery_sort_name">Name</string>
     <string name="discovery_sort_distance">Distance</string>
+    <string name="discovery_sort_action">Sort resources</string>
+    <string name="provider_more_services">+%1$d more</string>
     <string name="discovery_use_my_location">Use my location</string>
     <string name="discovery_location_locating">Finding your location…</string>
     <string name="discovery_location_denied">Location access wasn\'t allowed. Your current results are still available.</string>

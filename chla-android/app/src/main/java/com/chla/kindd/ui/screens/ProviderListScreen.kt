@@ -1,9 +1,9 @@
 package com.chla.kindd.ui.screens
 
-import androidx.compose.foundation.clickable
+import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,23 +13,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,24 +29,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.R
+import com.chla.kindd.data.discovery.DiscoveryCriteria
+import com.chla.kindd.data.discovery.DiscoveryOrigin
 import com.chla.kindd.data.discovery.DiscoveryState
-import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.models.Provider
 import com.chla.kindd.ui.discovery.ActiveFilterChips
 import com.chla.kindd.ui.discovery.DiscoveryFilterSheet
-import com.chla.kindd.ui.discovery.DiscoverySearchField
 import com.chla.kindd.ui.discovery.DiscoveryStateContent
 import com.chla.kindd.ui.discovery.DiscoveryUiActions
+import com.chla.kindd.ui.discovery.KiNDDSearchOverlay
+import com.chla.kindd.ui.providers.ProviderCard
+import com.chla.kindd.ui.theme.KiNDDCompactIconAction
+import com.chla.kindd.ui.theme.KiNDDIndigo
+import com.chla.kindd.ui.theme.KiNDDSpacingTokens
+import com.chla.kindd.ui.theme.kinddTopWash
 
 @Composable
 fun ProviderListScreen(
@@ -94,7 +91,6 @@ fun ProviderListScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProviderListContent(
     state: DiscoveryState,
@@ -105,32 +101,37 @@ fun ProviderListContent(
     onProviderClick: (String) -> Unit
 ) {
     var showFilters by remember { mutableStateOf(false) }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.list_title),
-                        Modifier.testTag("list_title").semantics { heading() }
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
-    ) { paddingValues ->
+    val uriHandler = LocalUriHandler.current
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(270.dp)
+                .background(kinddTopWash())
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .statusBarsPadding()
         ) {
-            DiscoverySearchField(
+            ProviderListHeader(
+                criteria = state.criteria,
+                sort = sort,
+                onSortChange = onSortChange,
+                onFilterClick = { showFilters = true }
+            )
+            KiNDDSearchOverlay(
                 query = state.criteria.query,
                 onQueryChange = actions.onQueryChange,
-                onFilterClick = { showFilters = true },
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
+                modifier = Modifier.padding(
+                    horizontal = KiNDDSpacingTokens.PageInset,
+                    vertical = 8.dp
+                )
             )
             ActiveFilterChips(
                 criteria = state.criteria,
@@ -140,23 +141,10 @@ fun ProviderListContent(
                 onRemoveInsurance = actions.onRemoveInsurance,
                 onRemoveRadius = actions.onRemoveRadius,
                 onClearAll = actions.onClearAll,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = KiNDDSpacingTokens.PageInset)
             )
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(
-                    selected = sort == ProviderListSort.NAME,
-                    onClick = { onSortChange(ProviderListSort.NAME) },
-                    label = { Text(stringResource(R.string.discovery_sort_name)) }
-                )
-                FilterChip(
-                    selected = sort == ProviderListSort.DISTANCE,
-                    onClick = { onSortChange(ProviderListSort.DISTANCE) },
-                    label = { Text(stringResource(R.string.discovery_sort_distance)) }
-                )
-            }
             DiscoveryStateContent(
                 state = state,
                 onRetry = actions.onRetry,
@@ -164,7 +152,14 @@ fun ProviderListContent(
             ) {
                 ProviderCards(
                     providers = providers,
-                    onProviderClick = onProviderClick
+                    onProviderClick = onProviderClick,
+                    onPhoneClick = { provider ->
+                        provider.phone?.takeIf(String::isNotBlank)?.let { phone ->
+                            runCatching {
+                                uriHandler.openUri("tel:${Uri.encode(phone)}")
+                            }
+                        }
+                    }
                 )
             }
         }
@@ -183,105 +178,108 @@ fun ProviderListContent(
 }
 
 @Composable
+private fun ProviderListHeader(
+    criteria: DiscoveryCriteria,
+    sort: ProviderListSort,
+    onSortChange: (ProviderListSort) -> Unit,
+    onFilterClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                start = KiNDDSpacingTokens.PageInset,
+                end = KiNDDSpacingTokens.PageInset,
+                top = 10.dp,
+                bottom = 2.dp
+            )
+            .testTag("list_compact_header"),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.list_title),
+            modifier = Modifier
+                .weight(1f)
+                .testTag("list_title")
+                .semantics { heading() },
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold
+        )
+        KiNDDCompactIconAction(
+            icon = Icons.Default.SwapVert,
+            contentDescription = stringResource(R.string.discovery_sort_action),
+            onClick = {
+                onSortChange(
+                    if (sort == ProviderListSort.NAME) {
+                        ProviderListSort.DISTANCE
+                    } else {
+                        ProviderListSort.NAME
+                    }
+                )
+            },
+            tint = KiNDDIndigo,
+            modifier = Modifier.testTag("list_sort_button")
+        )
+        Box {
+            KiNDDCompactIconAction(
+                icon = Icons.Default.FilterList,
+                contentDescription = stringResource(R.string.filters),
+                onClick = onFilterClick,
+                tint = KiNDDIndigo,
+                modifier = Modifier.testTag("list_filter_button")
+            )
+            if (criteria.activeFilterCount() > 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 7.dp, end = 7.dp)
+                        .size(7.dp)
+                        .background(KiNDDIndigo, androidx.compose.foundation.shape.CircleShape)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun ProviderCards(
     providers: List<Provider>,
-    onProviderClick: (String) -> Unit
+    onProviderClick: (String) -> Unit,
+    onPhoneClick: (Provider) -> Unit
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.testTag("provider_list"),
+        contentPadding = PaddingValues(
+            start = KiNDDSpacingTokens.PageInset,
+            top = 4.dp,
+            end = KiNDDSpacingTokens.PageInset
+        ),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(providers, key = Provider::id) { provider ->
             ProviderCard(
                 provider = provider,
-                onClick = { onProviderClick(provider.id) }
+                onClick = { onProviderClick(provider.id) },
+                onPhoneClick = provider.phone?.takeIf(String::isNotBlank)?.let {
+                    { onPhoneClick(provider) }
+                }
+            )
+        }
+        item(key = "bottom_clearance") {
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(KiNDDSpacingTokens.Section)
+                    .testTag("provider_list_bottom_clearance")
             )
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ProviderCard(provider: Provider, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("provider_${provider.id}")
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Text(
-                    text = provider.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
-                if (provider.distance != null) {
-                    Text(
-                        text = provider.formattedDistance,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            if (!provider.therapyTypes.isNullOrEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    provider.therapyTypes.forEachIndexed { index, therapy ->
-                        Surface(
-                            modifier = Modifier.testTag(
-                                "provider_therapy_${provider.id}_$index"
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ) {
-                            Text(
-                                text = localizedTherapyLabel(therapy),
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                            )
-                        }
-                    }
-                }
-            }
-            if (provider.fullAddress.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = provider.fullAddress,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun localizedTherapyLabel(apiValue: String): String {
-    val therapy = TherapyType.entries.firstOrNull {
-        it.apiValue.equals(apiValue.trim(), ignoreCase = true)
-    }
-    return therapy?.let { stringResource(it.displayResId) } ?: apiValue
-}
+private fun DiscoveryCriteria.activeFilterCount(): Int =
+    therapyTypes.size +
+        (if (ageGroup != null) 1 else 0) +
+        (if (diagnosis != null) 1 else 0) +
+        (if (insurance != null) 1 else 0) +
+        (if (origin is DiscoveryOrigin.DeviceLocation) 1 else 0)

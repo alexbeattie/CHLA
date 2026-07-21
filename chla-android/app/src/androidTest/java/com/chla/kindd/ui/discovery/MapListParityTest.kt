@@ -6,20 +6,29 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTextReplacement
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
 import com.chla.kindd.data.discovery.DiscoveryController
 import com.chla.kindd.data.discovery.DiscoveryCriteria
+import com.chla.kindd.data.discovery.DiscoveryError
 import com.chla.kindd.data.discovery.DiscoveryOrigin
 import com.chla.kindd.data.discovery.DiscoveryState
 import com.chla.kindd.data.discovery.TherapyType
@@ -152,6 +161,218 @@ class MapListParityTest {
         }
 
         composeRule.onNodeWithTag("map_use_location").assertIsNotEnabled()
+    }
+
+    @Test
+    fun providerList_usesCompactHeaderAndRendersRealProviderMetadata() {
+        val provider = Provider(
+            id = "rich",
+            name = "A very helpful developmental resource with a long name",
+            type = "Therapy clinic",
+            phone = "3235551212",
+            address = "123 Main Street",
+            city = "Los Angeles",
+            state = "CA",
+            zipCode = "90001",
+            therapyTypes = listOf(
+                "ABA therapy",
+                "Speech Therapy",
+                "Occupational Therapy",
+                "Physical Therapy"
+            ),
+            regionalCenter = "Eastern Los Angeles Regional Center",
+            distance = 2.4
+        )
+
+        composeRule.setContent {
+            KINDDTheme {
+                ProviderListContent(
+                    state = DiscoveryState(
+                        providers = listOf(provider),
+                        hasLoadedOnce = true
+                    ),
+                    providers = listOf(provider),
+                    sort = ProviderListSort.NAME,
+                    onSortChange = {},
+                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
+                    onProviderClick = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("list_compact_header").assertIsDisplayed()
+        composeRule.onNodeWithTag("list_solid_top_app_bar").assertDoesNotExist()
+        composeRule.onNodeWithTag("list_title").assertTextContains("Resources")
+        composeRule.onNodeWithTag("discovery_search_field").assertIsDisplayed()
+        composeRule.onNodeWithTag("list_sort_button").assertIsDisplayed()
+        composeRule.onNodeWithTag("list_filter_button").assertIsDisplayed()
+        composeRule.onNodeWithTag("provider_type_rich", useUnmergedTree = true)
+            .assertExists()
+        composeRule.onNodeWithText("Therapy clinic", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("provider_distance_rich", useUnmergedTree = true)
+            .assertExists()
+        composeRule.onNodeWithText("2.4 mi", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("provider_address_rich_0", useUnmergedTree = true)
+            .assertTextContains("123 Main Street")
+        composeRule.onNodeWithTag("provider_address_rich_1", useUnmergedTree = true)
+            .assertTextContains("Los Angeles, CA 90001")
+        composeRule.onNodeWithTag("provider_therapy_rich_0", useUnmergedTree = true)
+            .assertExists()
+        composeRule.onNodeWithText("ABA Therapy", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("provider_therapy_rich_1", useUnmergedTree = true)
+            .assertExists()
+        composeRule.onNodeWithText("Speech Therapy", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("provider_therapy_rich_2", useUnmergedTree = true)
+            .assertExists()
+        composeRule.onNodeWithText("Occupational Therapy", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("provider_therapy_rich_3", useUnmergedTree = true)
+            .assertDoesNotExist()
+        composeRule.onNodeWithTag("provider_therapy_overflow_rich", useUnmergedTree = true)
+            .assertExists()
+        composeRule.onNodeWithText("+1 more", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("provider_phone_rich", useUnmergedTree = true)
+            .assertExists()
+        composeRule.onNodeWithText("(323) 555-1212", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("provider_regional_center_rich", useUnmergedTree = true)
+            .assertExists()
+        composeRule.onNodeWithText(
+            "Eastern Los Angeles Regional Center",
+            useUnmergedTree = true
+        ).assertExists()
+    }
+
+    @Test
+    fun providerList_hidesPhoneAndRegionalCenterWithoutRealValues() {
+        val provider = Provider(
+            id = "minimal",
+            name = "Community resource",
+            phone = "  ",
+            regionalCenter = null,
+            therapyTypes = listOf("Physical Therapy")
+        )
+
+        composeRule.setContent {
+            KINDDTheme {
+                ProviderListContent(
+                    state = DiscoveryState(
+                        providers = listOf(provider),
+                        hasLoadedOnce = true
+                    ),
+                    providers = listOf(provider),
+                    sort = ProviderListSort.DISTANCE,
+                    onSortChange = {},
+                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
+                    onProviderClick = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("provider_phone_minimal").assertDoesNotExist()
+        composeRule.onNodeWithTag("provider_regional_center_minimal").assertDoesNotExist()
+    }
+
+    @Test
+    fun providerList_querySortAndFilterActionsFireExactlyOnce() {
+        var query by mutableStateOf("")
+        var queryChanges = 0
+        var sortChanges = 0
+        val actions = discoveryActions(FakeDiscoveryController(DiscoveryState())).copy(
+            onQueryChange = {
+                query = it
+                queryChanges += 1
+            }
+        )
+
+        composeRule.setContent {
+            KINDDTheme {
+                ProviderListContent(
+                    state = DiscoveryState(
+                        criteria = DiscoveryCriteria(query = query),
+                        hasLoadedOnce = true
+                    ),
+                    providers = emptyList(),
+                    sort = ProviderListSort.NAME,
+                    onSortChange = { sortChanges += 1 },
+                    actions = actions,
+                    onProviderClick = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("discovery_search_field").performTextReplacement("speech")
+        composeRule.onNodeWithTag("list_sort_button").performClick()
+        composeRule.onNodeWithTag("list_filter_button").performClick()
+        composeRule.onNodeWithTag("discovery_filter_title").assertIsDisplayed()
+        composeRule.runOnIdle {
+            assertEquals("speech", query)
+            assertEquals(1, queryChanges)
+            assertEquals(1, sortChanges)
+        }
+    }
+
+    @Test
+    fun providerList_loadingErrorAndEmptyStatesRetainCompactDiscoveryChrome() {
+        var state by mutableStateOf(DiscoveryState(isLoading = true))
+
+        composeRule.setContent {
+            KINDDTheme {
+                ProviderListContent(
+                    state = state,
+                    providers = state.providers,
+                    sort = ProviderListSort.NAME,
+                    onSortChange = {},
+                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
+                    onProviderClick = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("discovery_initial_loading").assertIsDisplayed()
+        assertListChromeIsDisplayed()
+        composeRule.runOnIdle { state = DiscoveryState(error = DiscoveryError.NETWORK) }
+        composeRule.onNodeWithTag("discovery_initial_error").assertIsDisplayed()
+        assertListChromeIsDisplayed()
+        composeRule.runOnIdle { state = DiscoveryState(hasLoadedOnce = true) }
+        composeRule.onNodeWithTag("discovery_empty").assertIsDisplayed()
+        assertListChromeIsDisplayed()
+    }
+
+    @Test
+    fun providerList_lastCardScrollsFullyIntoViewAboveItsClearanceItem() {
+        val providers = (1..18).map { index ->
+            Provider(
+                id = "provider-$index",
+                name = "Provider $index",
+                therapyTypes = listOf("ABA therapy")
+            )
+        }
+
+        composeRule.setContent {
+            KINDDTheme {
+                ProviderListContent(
+                    state = DiscoveryState(providers = providers, hasLoadedOnce = true),
+                    providers = providers,
+                    sort = ProviderListSort.NAME,
+                    onSortChange = {},
+                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
+                    onProviderClick = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("provider_list")
+            .performScrollToNode(hasTestTag("provider_provider-18"))
+        composeRule.onNodeWithTag("provider_provider-18").assertIsDisplayed()
+        composeRule.onNodeWithTag("provider_list")
+            .performScrollToNode(hasTestTag("provider_list_bottom_clearance"))
+        composeRule.onNodeWithTag("provider_list_bottom_clearance").assertIsDisplayed()
+    }
+
+    private fun assertListChromeIsDisplayed() {
+        composeRule.onNodeWithTag("list_compact_header").assertIsDisplayed()
+        composeRule.onNodeWithTag("discovery_search_field").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Sort resources").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Filters").assertIsDisplayed()
     }
 
     @Composable
