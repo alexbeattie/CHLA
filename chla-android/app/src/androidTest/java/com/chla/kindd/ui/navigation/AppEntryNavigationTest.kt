@@ -613,6 +613,7 @@ class AppEntryNavigationTest {
     fun promptResourcesResolveToExactEnglish_andNaturalSpanishCounterparts() {
         val expectedEnglish = listOf(
             "We just got a diagnosis. What do I say when I call my regional center to request an intake evaluation for my child?",
+            "We just got a diagnosis. What do we do first?",
             "How do we prepare for our regional center intake appointment? What documents and information should we bring?",
             "My child already receives regional center services. How do I prepare for an IPP meeting, and what services can I ask for?",
             "Find ABA therapy near me. Help me understand what to compare and what to ask providers.",
@@ -621,6 +622,7 @@ class AppEntryNavigationTest {
         )
         val expectedSpanish = listOf(
             "Acabamos de recibir un diagnóstico. ¿Qué debo decir cuando llame a mi centro regional para solicitar una evaluación inicial para mi hijo?",
+            "Acabamos de recibir un diagnóstico. ¿Qué hacemos primero?",
             "¿Cómo nos preparamos para la cita de evaluación inicial del centro regional? ¿Qué documentos e información debemos llevar?",
             "Mi hijo ya recibe servicios del centro regional. ¿Cómo me preparo para una reunión del IPP y qué servicios puedo solicitar?",
             "Encuentra terapia ABA cerca de mí. Ayúdame a saber qué comparar y qué preguntar a los proveedores.",
@@ -643,6 +645,7 @@ class AppEntryNavigationTest {
         assertEquals(
             listOf(
                 R.string.chat_prompt_just_diagnosed,
+                R.string.chat_prompt_first_steps,
                 R.string.chat_prompt_waiting_intake,
                 R.string.chat_prompt_receiving_services,
                 R.string.chat_prompt_find_aba_nearby,

@@ -34,6 +34,7 @@ import com.chla.kindd.ui.home.components.HomeMapHero
 import com.chla.kindd.ui.home.components.HomeNextStepCard
 import com.chla.kindd.ui.home.components.HomeQuestionSection
 import com.chla.kindd.ui.home.components.HomeServiceTiles
+import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
 import com.chla.kindd.ui.theme.KiNDDSpacingTokens
 import com.chla.kindd.ui.theme.kinddTopWash
 
@@ -112,7 +113,11 @@ fun HomeContent(
     onNavigateToAbout: () -> Unit = {},
     onNavigateToFaq: () -> Unit = {},
     onNavigateToEditProfile: () -> Unit = {},
-    onNavigateToSettings: () -> Unit = {}
+    onNavigateToSettings: () -> Unit = {},
+    regionalCenterMapContent: (@Composable (
+        RegionalCenterMapRenderModel,
+        (String) -> Unit
+    ) -> Unit)? = null
 ) {
     Box(
         modifier = Modifier
@@ -140,7 +145,8 @@ fun HomeContent(
                 onSubmitZip = onSubmitZip,
                 onExplore = onNavigateToRegionalCenters,
                 onDetails = onNavigateToRegionalCenters,
-                onCall = onCall
+                onCall = onCall,
+                mapContent = regionalCenterMapContent
             )
 
             HomeServiceTiles(onTherapySelected = onTherapySelected)

@@ -1,5 +1,10 @@
 package com.chla.kindd.ui.home
 
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
@@ -15,12 +20,22 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import androidx.test.platform.app.InstrumentationRegistry
 import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.data.servicearea.ServiceAreaCoordinate
+import com.chla.kindd.data.servicearea.ServiceAreaFeature
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import com.chla.kindd.ui.screens.HomeContent
 import com.chla.kindd.ui.theme.KINDDTheme
@@ -28,6 +43,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.util.Locale
 
 class HomeContentTest {
 
@@ -72,9 +88,28 @@ class HomeContentTest {
         setHome(matchedState(), profile = matchedProfile())
         composeRule.onNodeWithText("YOUR REGIONAL CENTER").assertIsDisplayed()
         composeRule.onNodeWithText("Matched").assertIsDisplayed()
-        composeRule.onNodeWithTag("home_map_highlight_SCLARC").assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("Call now").fetchSemanticsNodes().isNotEmpty())
         composeRule.onNodeWithText("Details").assertIsDisplayed()
+    }
+
+    @Test
+    fun homeSuppliesSclarcAsTheHighlightedMapArea() {
+        setHome(
+            state = matchedState().copy(
+                serviceAreas = listOf(serviceArea("SCLARC"), serviceArea("WRC")),
+                serviceAreaLoadState = ServiceAreaLoadState.READY
+            ),
+            profile = matchedProfile(),
+            mapContent = { model, _ ->
+                val highlighted = model.areas.single { area -> area.highlighted }
+                Box(Modifier.testTag("home_test_map_highlight_${highlighted.sourceAcronym}"))
+            }
+        )
+
+        composeRule.onNodeWithTag(
+            "home_test_map_highlight_SCLARC",
+            useUnmergedTree = true
+        ).assertExists()
     }
 
     @Test
@@ -302,7 +337,7 @@ class HomeContentTest {
         setHome(matchedState(), profile = matchedProfile(), onChat = prompts::add)
 
         listOf(
-            "We just got a diagnosis. What do we do first?" to ChatLaunchPrompt.JUST_DIAGNOSED,
+            "We just got a diagnosis. What do we do first?" to ChatLaunchPrompt.FIRST_STEPS,
             "Find ABA therapy near me" to ChatLaunchPrompt.FIND_ABA_NEARBY,
             "What services can SCLARC help fund?" to ChatLaunchPrompt.CENTER_FUNDING
         ).forEach { (question, expected) ->
@@ -310,6 +345,52 @@ class HomeContentTest {
             composeRule.runOnIdle { assertEquals(expected, prompts.removeLast()) }
         }
 
+    }
+
+    @Test
+    fun unmatchedNextStepUsesYourRegionalCenterInsteadOfAPluralScreenTitle() {
+        setHome(
+            state = HomeUiState(),
+            profile = unmatchedProfile("90001").copy(journeyStage = JourneyStage.JUST_DIAGNOSED)
+        )
+
+        composeRule.onNodeWithText(
+            "One call to your regional center starts everything - eligibility, evaluations, and services. No referral needed."
+        ).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun matchedHeroActionsFitAt320DpAndOnePointThreeFontScale() {
+        assertMatchedHeroActionsFit(widthDp = 320)
+    }
+
+    @Test
+    fun matchedHeroActionsFitAt340DpAndOnePointThreeFontScale() {
+        assertMatchedHeroActionsFit(widthDp = 340)
+    }
+
+    @Test
+    fun compactHeaderFitsSpanishAt320DpAndOnePointThreeFontScale() {
+        setNarrowHome(
+            widthDp = 320,
+            locale = Locale.forLanguageTag("es"),
+            fontScale = 1.3f,
+            state = matchedState(),
+            profile = matchedProfile()
+        )
+
+        val root = composeRule.onNodeWithTag("narrow_home_root").fetchSemanticsNode().boundsInRoot
+        val logo = composeRule.onNodeWithTag("home_compact_logo").fetchSemanticsNode().boundsInRoot
+        val county = composeRule.onNodeWithTag("home_county_pill").fetchSemanticsNode().boundsInRoot
+        val overflow = composeRule.onNodeWithTag("home_header_overflow").fetchSemanticsNode().boundsInRoot
+
+        composeRule.onNodeWithText("Condado de LA").assertIsDisplayed()
+        listOf("logo" to logo, "county" to county, "overflow" to overflow).forEach { (label, bounds) ->
+            assertTrue("$label starts outside narrow root", bounds.left >= root.left)
+            assertTrue("$label ends outside narrow root", bounds.right <= root.right)
+        }
+        assertTrue("logo overlaps county", logo.right <= county.left)
+        assertTrue("county overlaps overflow", county.right <= overflow.left)
     }
 
     @Test
@@ -392,7 +473,11 @@ class HomeContentTest {
         onSubmit: () -> Unit = {},
         onTherapy: (TherapyType) -> Unit = {},
         onChat: (ChatLaunchPrompt) -> Unit = {},
-        onCall: (String) -> Unit = {}
+        onCall: (String) -> Unit = {},
+        mapContent: (@androidx.compose.runtime.Composable (
+            com.chla.kindd.ui.map.RegionalCenterMapRenderModel,
+            (String) -> Unit
+        ) -> Unit)? = null
     ) {
         composeRule.setContent {
             KINDDTheme {
@@ -407,8 +492,80 @@ class HomeContentTest {
                     onNavigateToChat = onChat,
                     onOpenChat = {},
                     onTherapySelected = onTherapy,
-                    onCall = onCall
+                    onCall = onCall,
+                    regionalCenterMapContent = mapContent
                 )
+            }
+        }
+    }
+
+    private fun assertMatchedHeroActionsFit(widthDp: Int) {
+        setNarrowHome(
+            widthDp = widthDp,
+            locale = Locale.US,
+            fontScale = 1.3f,
+            state = matchedState(),
+            profile = matchedProfile()
+        )
+
+        val root = composeRule.onNodeWithTag("narrow_home_root").fetchSemanticsNode().boundsInRoot
+        val minimumPixels = 48f * composeRule.density.density
+        listOf("+1 (213) 555-1212", "Details").forEach { label ->
+            val bounds = composeRule.onNode(hasClickAction() and hasText(label))
+                .performScrollTo()
+                .assertIsDisplayed()
+                .fetchSemanticsNode()
+                .boundsInRoot
+            assertTrue("$label starts outside narrow root", bounds.left >= root.left)
+            assertTrue("$label ends outside narrow root", bounds.right <= root.right)
+            assertTrue("$label target is shorter than 48dp", bounds.height >= minimumPixels)
+            assertTrue("$label target is narrower than 48dp", bounds.width >= minimumPixels)
+        }
+    }
+
+    private fun setNarrowHome(
+        widthDp: Int,
+        locale: Locale,
+        fontScale: Float,
+        state: HomeUiState,
+        profile: UserProfile
+    ) {
+        val baseContext = InstrumentationRegistry.getInstrumentation().targetContext
+        val configuration = Configuration(baseContext.resources.configuration).apply {
+            setLocale(locale)
+            screenWidthDp = widthDp
+            this.fontScale = fontScale
+        }
+        val localizedContext = baseContext.createConfigurationContext(configuration)
+        composeRule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(
+                LocalContext provides localizedContext,
+                LocalConfiguration provides configuration,
+                LocalDensity provides Density(density.density, fontScale)
+            ) {
+                KINDDTheme {
+                    Box(
+                        Modifier
+                            .width(widthDp.dp)
+                            .height(800.dp)
+                            .testTag("narrow_home_root")
+                    ) {
+                        HomeContent(
+                            profile = profile,
+                            uiState = state,
+                            onZipChanged = {},
+                            onSubmitZip = {},
+                            onNavigateToMap = {},
+                            onNavigateToList = {},
+                            onNavigateToRegionalCenters = {},
+                            onNavigateToChat = {},
+                            onOpenChat = {},
+                            onTherapySelected = {},
+                            onCall = {}
+                        )
+                    }
+                }
             }
         }
     }
@@ -444,5 +601,19 @@ class HomeContentTest {
         name = "South Central Los Angeles Regional Center",
         telephone = phone,
         countyServed = "Los Angeles"
+    )
+
+    private fun serviceArea(acronym: String) = ServiceAreaFeature(
+        id = acronym.hashCode(),
+        name = acronym,
+        acronym = acronym,
+        description = "",
+        polygons = listOf(
+            listOf(
+                ServiceAreaCoordinate(33.8, -118.3),
+                ServiceAreaCoordinate(33.9, -118.2),
+                ServiceAreaCoordinate(33.7, -118.1)
+            )
+        )
     )
 }

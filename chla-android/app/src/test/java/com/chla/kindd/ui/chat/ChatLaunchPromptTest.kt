@@ -14,6 +14,7 @@ class ChatLaunchPromptTest {
         assertEquals(
             listOf(
                 "JUST_DIAGNOSED",
+                "FIRST_STEPS",
                 "WAITING_INTAKE",
                 "RECEIVING_SERVICES",
                 "FIND_ABA_NEARBY",
@@ -25,6 +26,7 @@ class ChatLaunchPromptTest {
         assertEquals(
             listOf(
                 R.string.chat_prompt_just_diagnosed,
+                R.string.chat_prompt_first_steps,
                 R.string.chat_prompt_waiting_intake,
                 R.string.chat_prompt_receiving_services,
                 R.string.chat_prompt_find_aba_nearby,

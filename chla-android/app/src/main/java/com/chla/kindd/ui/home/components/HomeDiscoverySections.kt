@@ -160,7 +160,8 @@ fun HomeNextStepCard(
 ) {
     val stage = profile.journeyStage ?: return
     if (stage == JourneyStage.EXPLORING) return
-    val centerName = profile.regionalCenter?.name ?: stringResource(R.string.regional_centers)
+    val centerName = profile.regionalCenter?.name
+        ?: stringResource(R.string.home_parity_your_regional_center)
     val step = when (stage) {
         JourneyStage.JUST_DIAGNOSED -> HomeStep(
             titleRes = R.string.home_journey_just_diagnosed_title,
@@ -291,8 +292,8 @@ fun HomeQuestionSection(
             QuestionRow(
                 icon = Icons.Default.AutoAwesome,
                 tint = KiNDDViolet,
-                text = stringResource(R.string.home_parity_question_first_steps),
-                onClick = { onChat(ChatLaunchPrompt.JUST_DIAGNOSED) }
+                text = stringResource(R.string.chat_prompt_first_steps),
+                onClick = { onChat(ChatLaunchPrompt.FIRST_STEPS) }
             )
             QuestionRow(
                 icon = Icons.Default.Psychology,

@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -56,6 +58,7 @@ import com.chla.kindd.ui.home.HomeLookupState
 import com.chla.kindd.ui.home.HomeMessage
 import com.chla.kindd.ui.home.HomeUiState
 import com.chla.kindd.ui.map.RegionalCenterMapSurface
+import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
 import com.chla.kindd.ui.theme.KiNDDIndigo
 import com.chla.kindd.ui.theme.KiNDDPink
 import com.chla.kindd.ui.theme.KiNDDShapeTokens
@@ -70,7 +73,8 @@ fun HomeMapHero(
     onExplore: () -> Unit,
     onDetails: () -> Unit,
     onCall: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
     val identity = profile.regionalCenter
     val summary = identity?.let {
@@ -102,6 +106,7 @@ fun HomeMapHero(
                 highlightedAcronym = identity?.shortName,
                 interactive = false,
                 onAreaClick = {},
+                mapContent = mapContent,
                 modifier = Modifier
                     .fillMaxSize()
                     .clearAndSetSemantics { }
@@ -170,7 +175,7 @@ private fun HomeMatchedCenterOverlayCard(
     val formattedPhone = uiState.centerDetailsFor(profile)?.formattedPhone
     val dialDigits = uiState.dialDigitsFor(profile)
 
-    Column(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .shadow(16.dp, cardShape, ambientColor = roleColor.copy(alpha = 0.16f))
@@ -182,74 +187,132 @@ private fun HomeMatchedCenterOverlayCard(
                 )
             )
             .border(1.dp, roleColor.copy(alpha = 0.22f), cardShape)
-            .padding(18.dp)
-            .testTag("home_matched_center_card"),
-        verticalArrangement = Arrangement.spacedBy(9.dp)
+            .testTag("home_matched_center_card")
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.home_your_regional_center).uppercase(),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = androidx.compose.ui.unit.TextUnit(0.8f, androidx.compose.ui.unit.TextUnitType.Sp)
-            )
-            Spacer(Modifier.weight(1f))
-            Box(
-                Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF10B981))
-            )
-            Spacer(Modifier.width(5.dp))
-            Text(
-                stringResource(R.string.home_matched),
-                color = Color(0xFF10B981),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.testTag("home_map_highlight_${identity.shortName}")
-            )
-        }
-        Text(
-            text = identity.name,
-            modifier = Modifier.semantics { heading() },
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = stringResource(R.string.home_parity_center_role),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (dialDigits != null && !formattedPhone.isNullOrBlank()) {
-                Button(
-                    onClick = { onCall(dialDigits) },
-                    shape = RoundedCornerShape(percent = 50),
-                    colors = ButtonDefaults.buttonColors(containerColor = roleColor),
-                    modifier = Modifier.heightIn(min = 48.dp)
-                ) {
-                    Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(7.dp))
-                    Text(formattedPhone, fontWeight = FontWeight.SemiBold)
-                }
+        val fontScale = LocalDensity.current.fontScale
+        val stackActions = shouldStackMatchedCenterActions(maxWidth.value.toInt(), fontScale)
+        val cardPadding = if (stackActions) 12.dp else 18.dp
+        val contentSpacing = if (stackActions) 6.dp else 9.dp
+
+        Column(
+            modifier = Modifier.padding(cardPadding),
+            verticalArrangement = Arrangement.spacedBy(contentSpacing)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.home_your_regional_center).uppercase(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = androidx.compose.ui.unit.TextUnit(0.8f, androidx.compose.ui.unit.TextUnitType.Sp)
+                )
+                Spacer(Modifier.weight(1f))
+                Box(
+                    Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF10B981))
+                )
+                Spacer(Modifier.width(5.dp))
+                Text(
+                    stringResource(R.string.home_matched),
+                    color = Color(0xFF10B981),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Medium
+                )
             }
-            OutlinedButton(
-                onClick = onDetails,
-                shape = RoundedCornerShape(percent = 50),
-                border = BorderStroke(1.dp, roleColor.copy(alpha = 0.45f)),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = roleColor),
-                modifier = Modifier.heightIn(min = 48.dp)
-            ) {
-                Text(stringResource(R.string.home_details), fontWeight = FontWeight.SemiBold)
+            Text(
+                text = identity.name,
+                modifier = Modifier.semantics { heading() },
+                style = if (stackActions) {
+                    MaterialTheme.typography.titleMedium
+                } else {
+                    MaterialTheme.typography.titleLarge
+                },
+                fontWeight = FontWeight.Bold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = stringResource(R.string.home_parity_center_role),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = if (stackActions) 1 else 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (stackActions) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    if (dialDigits != null && !formattedPhone.isNullOrBlank()) {
+                        MatchedCenterPhoneAction(
+                            formattedPhone = formattedPhone,
+                            roleColor = roleColor,
+                            onClick = { onCall(dialDigits) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    MatchedCenterDetailsAction(
+                        roleColor = roleColor,
+                        onClick = onDetails,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (dialDigits != null && !formattedPhone.isNullOrBlank()) {
+                        MatchedCenterPhoneAction(
+                            formattedPhone = formattedPhone,
+                            roleColor = roleColor,
+                            onClick = { onCall(dialDigits) }
+                        )
+                    }
+                    MatchedCenterDetailsAction(roleColor = roleColor, onClick = onDetails)
+                }
             }
         }
     }
 }
+
+@Composable
+private fun MatchedCenterPhoneAction(
+    formattedPhone: String,
+    roleColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(percent = 50),
+        colors = ButtonDefaults.buttonColors(containerColor = roleColor),
+        modifier = modifier.heightIn(min = 48.dp)
+    ) {
+        Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(7.dp))
+        Text(formattedPhone, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+private fun MatchedCenterDetailsAction(
+    roleColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(percent = 50),
+        border = BorderStroke(1.dp, roleColor.copy(alpha = 0.45f)),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = roleColor),
+        modifier = modifier.heightIn(min = 48.dp)
+    ) {
+        Text(stringResource(R.string.home_details), fontWeight = FontWeight.SemiBold)
+    }
+}
+
+internal fun shouldStackMatchedCenterActions(availableWidthDp: Int, fontScale: Float): Boolean =
+    availableWidthDp <= 340 || fontScale >= 1.3f
 
 @Composable
 private fun HomeZipOverlayCard(
