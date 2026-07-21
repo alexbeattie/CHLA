@@ -127,6 +127,8 @@ object ProductionMainDestinationContent : MainDestinationContent {
     override fun more(actions: MainNavActions) {
         MoreScreen(
             onNavigateToFAQ = actions.navigateToFaq,
+            onNavigateToAbout = actions.navigateToAbout,
+            onNavigateToRegions = actions.navigateToRegions,
             onNavigateToEditProfile = actions.navigateToEditProfile,
             onNavigateToSettings = actions.navigateToSettings
         )

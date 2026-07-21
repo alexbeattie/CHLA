@@ -1,7 +1,10 @@
 package com.chla.kindd.ui.settings
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -16,7 +19,11 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
+import com.chla.kindd.data.discovery.DiscoveryCriteria
+import com.chla.kindd.data.profile.AudienceType
+import com.chla.kindd.ui.discovery.DiscoveryFilterSelection
 import com.chla.kindd.ui.screens.SettingsContent
 import com.chla.kindd.ui.theme.KINDDTheme
 import org.junit.Assert.assertEquals
@@ -45,7 +52,7 @@ class SettingsContentTest {
             }
         }
 
-        composeRule.onNodeWithText("Edit Profile & Onboarding")
+        composeRule.onNodeWithText("Edit Setup Answers")
             .assertIsDisplayed()
             .performClick()
         composeRule.runOnIdle { assertEquals(1, editCount) }
@@ -89,6 +96,25 @@ class SettingsContentTest {
             ))
         composeRule.onNodeWithTag("settings_clear_profile_error").assertIsDisplayed()
         composeRule.onNodeWithText("We couldn't clear your profile. Please try again.")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun preferenceFailure_showsSanitizedLocalizedRetryMessage() {
+        composeRule.setContent {
+            KINDDTheme {
+                SettingsContent(
+                    onNavigateToFAQ = {},
+                    onNavigateToAbout = {},
+                    onEditProfile = {},
+                    onClearProfile = {},
+                    preferenceUpdateFailed = true
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("settings_preference_update_error").assertIsDisplayed()
+        composeRule.onNodeWithText("We couldn't update that preference. Please try again.")
             .assertIsDisplayed()
     }
 
@@ -215,6 +241,54 @@ class SettingsContentTest {
     }
 
     @Test
+    fun firstViewport_preferencesAreVisible_andInvokeRealSelections() {
+        var editCount = 0
+        var selectedMode: AudienceType? = null
+        var appliedFilters: DiscoveryFilterSelection? = null
+        var selectedRadius: Int? = null
+        val criteria = DiscoveryCriteria(radiusMiles = 15)
+        composeRule.setContent {
+            KINDDTheme {
+                SettingsContent(
+                    onNavigateToFAQ = {},
+                    onNavigateToAbout = {},
+                    onEditProfile = { editCount += 1 },
+                    onClearProfile = {},
+                    onOpenLanguageSettings = {},
+                    appMode = AudienceType.FAMILY,
+                    criteria = criteria,
+                    onAppModeChange = { selectedMode = it },
+                    onApplySearchFilters = { appliedFilters = it },
+                    onDefaultRadiusChange = { selectedRadius = it },
+                    modifier = Modifier.width(390.dp).height(800.dp)
+                )
+            }
+        }
+
+        listOf(
+            "settings_app_mode",
+            "settings_edit_profile",
+            "settings_search_filters",
+            "settings_default_radius"
+        ).forEach { tag -> composeRule.onNodeWithTag(tag).assertIsDisplayed() }
+
+        composeRule.onNodeWithTag("settings_app_mode").performClick()
+        composeRule.onNodeWithTag("settings_app_mode_clinician").performClick()
+        composeRule.onNodeWithTag("settings_edit_profile").performClick()
+        composeRule.onNodeWithTag("settings_search_filters").performClick()
+        composeRule.onNodeWithTag("discovery_filter_apply").performScrollTo().performClick()
+        composeRule.onNodeWithTag("settings_default_radius").performClick()
+        composeRule.onNodeWithTag("settings_default_radius_25").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(AudienceType.CLINICIAN, selectedMode)
+            assertEquals(1, editCount)
+            assertEquals(15, appliedFilters?.radiusMiles)
+            assertEquals(25, selectedRadius)
+        }
+    }
+
+    @Test
     fun preAndroid13Contract_canHonestlyOmitLanguageSettings() {
         composeRule.setContent {
             KINDDTheme {
@@ -257,6 +331,11 @@ class SettingsContentTest {
                         onNavigateBack = {},
                         onOpenLanguageSettings = {},
                         onOpenLocationSettings = {},
+                        appMode = AudienceType.FAMILY,
+                        criteria = DiscoveryCriteria(),
+                        onAppModeChange = {},
+                        onApplySearchFilters = {},
+                        onDefaultRadiusChange = {},
                         locationStatus = "No permitido"
                     )
                 }
@@ -269,7 +348,10 @@ class SettingsContentTest {
             "settings_back_to_more",
             "settings_language",
             "settings_restart_setup",
+            "settings_app_mode",
             "settings_edit_profile",
+            "settings_search_filters",
+            "settings_default_radius",
             "settings_location"
         ).forEach { tag ->
             val node = composeRule.onNodeWithTag(tag).performScrollTo().assertIsDisplayed()

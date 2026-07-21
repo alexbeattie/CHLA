@@ -17,9 +17,15 @@
     <string name="more_title">Más</string>
     <string name="more_help">Ayuda</string>
     <string name="more_faq_description">Respuestas a preguntas frecuentes</string>
+    <string name="more_about_description">Conoce KiNDD y su misión</string>
+    <string name="more_explore">Explorar</string>
+    <string name="more_regions_description">Consulta los 7 centros del condado de LA</string>
     <string name="more_links">Enlaces</string>
     <string name="more_website">Sitio web de KiNDD</string>
-    <string name="more_website_description">kinddhelp.com</string>
+    <string name="more_website_description">kinddhelp.org</string>
+    <string name="more_legal">Información legal</string>
+    <string name="more_privacy_description">Lee la política vigente en kinddhelp.org</string>
+    <string name="more_terms_description">Lee los términos vigentes en kinddhelp.org</string>
     <string name="more_profile">Perfil</string>
     <string name="more_restart_setup">Reiniciar la configuración de bienvenida</string>
     <string name="more_restart_setup_description">Actualiza el código postal, el contexto de atención y las preferencias</string>

@@ -10,6 +10,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,19 +31,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,6 +68,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -74,8 +81,13 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.BuildConfig
 import com.chla.kindd.R
+import com.chla.kindd.data.discovery.DiscoveryCriteria
+import com.chla.kindd.data.profile.AudienceType
+import com.chla.kindd.ui.discovery.DiscoveryFilterSelection
+import com.chla.kindd.ui.discovery.DiscoveryFilterSheet
 import com.chla.kindd.ui.settings.SettingsEvent
 import com.chla.kindd.ui.settings.SettingsLocationPermissionStatus
 import com.chla.kindd.ui.settings.SettingsViewModel
@@ -98,6 +110,9 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     var clearFailed by rememberSaveable { mutableStateOf(false) }
+    var preferenceUpdateFailed by rememberSaveable { mutableStateOf(false) }
+    val profile by viewModel.profile.collectAsStateWithLifecycle()
+    val discoveryState by viewModel.discoveryState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val editNavigator = remember(onNavigateToEditProfile) { onNavigateToEditProfile }
@@ -106,6 +121,7 @@ fun SettingsScreen(
             when (event) {
                 SettingsEvent.NavigateToEditProfile -> editNavigator()
                 SettingsEvent.ClearFailed -> clearFailed = true
+                SettingsEvent.PreferenceUpdateFailed -> preferenceUpdateFailed = true
             }
         }
     }
@@ -160,8 +176,17 @@ fun SettingsScreen(
             )
         },
         onOpenWebsite = {
-            context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse("https://kinddhelp.com")))
+            context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(KINDD_WEBSITE_URL)))
         },
+        appMode = profile.audienceType,
+        criteria = discoveryState.criteria,
+        onAppModeChange = { audienceType ->
+            preferenceUpdateFailed = false
+            viewModel.updateAppMode(audienceType)
+        },
+        onApplySearchFilters = viewModel::applySearchFilters,
+        onDefaultRadiusChange = viewModel::updateDefaultRadius,
+        preferenceUpdateFailed = preferenceUpdateFailed,
         locationStatus = stringResource(
             if (locationPermissionStatus.isAllowed) R.string.settings_location_allowed
             else R.string.settings_location_not_allowed
@@ -176,16 +201,25 @@ fun SettingsContent(
     onNavigateToAbout: () -> Unit,
     onEditProfile: () -> Unit,
     onClearProfile: () -> Unit,
-    clearFailed: Boolean = false,
     modifier: Modifier = Modifier,
+    clearFailed: Boolean = false,
     onNavigateBack: (() -> Unit)? = null,
     onOpenLanguageSettings: (() -> Unit)? = null,
     onOpenLocationSettings: (() -> Unit)? = null,
     onOpenWebsite: (() -> Unit)? = null,
+    appMode: AudienceType? = null,
+    criteria: DiscoveryCriteria? = null,
+    onAppModeChange: ((AudienceType) -> Unit)? = null,
+    onApplySearchFilters: ((DiscoveryFilterSelection) -> Unit)? = null,
+    onDefaultRadiusChange: ((Int) -> Unit)? = null,
+    preferenceUpdateFailed: Boolean = false,
     locationStatus: String? = null,
     appVersion: String = formatSettingsAppVersion(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
 ) {
     var showClearConfirmation by rememberSaveable { mutableStateOf(false) }
+    var showAppModeSelection by rememberSaveable { mutableStateOf(false) }
+    var showSearchFilters by rememberSaveable { mutableStateOf(false) }
+    var showRadiusSelection by rememberSaveable { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -231,7 +265,7 @@ fun SettingsContent(
                             iconTint = KiNDDIndigo,
                             title = stringResource(R.string.language),
                             subtitle = stringResource(R.string.settings_language_description),
-                            trailingText = stringResource(R.string.settings_open),
+                            trailingText = stringResource(R.string.settings_language_system_default),
                             onClick = onOpenLanguageSettings,
                             modifier = Modifier.testTag("settings_language")
                         )
@@ -268,13 +302,76 @@ fun SettingsContent(
             }
             item {
                 SettingsGroup(modifier = Modifier.testTag("settings_preferences_group")) {
+                    if (appMode != null && onAppModeChange != null) {
+                        SettingsRow(
+                            icon = Icons.Default.Groups,
+                            iconTint = KiNDDIndigo,
+                            title = stringResource(R.string.settings_app_mode),
+                            trailingText = stringResource(
+                                when (appMode) {
+                                    AudienceType.FAMILY -> R.string.settings_app_mode_family
+                                    AudienceType.CLINICIAN -> R.string.settings_app_mode_clinician
+                                }
+                            ),
+                            onClick = { showAppModeSelection = true },
+                            modifier = Modifier.testTag("settings_app_mode")
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
+                    }
                     SettingsRow(
-                        icon = Icons.Default.RestartAlt,
+                        icon = Icons.Default.AccountBox,
                         iconTint = KiNDDPurple,
                         title = stringResource(R.string.settings_edit_profile),
                         subtitle = stringResource(R.string.settings_edit_profile_description),
                         onClick = onEditProfile,
                         modifier = Modifier.testTag("settings_edit_profile")
+                    )
+                    if (criteria != null && onApplySearchFilters != null) {
+                        HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
+                        SettingsRow(
+                            icon = Icons.Default.Tune,
+                            iconTint = KiNDDIndigo,
+                            title = stringResource(R.string.settings_search_filters),
+                            trailingText = criteria.activeFilterCount()
+                                .takeIf { it > 0 }
+                                ?.let {
+                                    pluralStringResource(
+                                        R.plurals.settings_active_filter_count,
+                                        it,
+                                        it
+                                    )
+                                },
+                            onClick = { showSearchFilters = true },
+                            modifier = Modifier.testTag("settings_search_filters")
+                        )
+                    }
+                    if (criteria != null && onDefaultRadiusChange != null) {
+                        HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
+                        SettingsRow(
+                            icon = Icons.Default.MyLocation,
+                            iconTint = KiNDDViolet,
+                            title = stringResource(R.string.settings_default_radius),
+                            trailingText = pluralStringResource(
+                                R.plurals.discovery_radius_option,
+                                criteria.radiusMiles,
+                                criteria.radiusMiles
+                            ),
+                            onClick = { showRadiusSelection = true },
+                            modifier = Modifier.testTag("settings_default_radius")
+                        )
+                    }
+                }
+            }
+            if (preferenceUpdateFailed) {
+                item {
+                    Text(
+                        text = stringResource(R.string.settings_preference_update_failed),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("settings_preference_update_error")
+                            .semantics { liveRegion = LiveRegionMode.Polite }
                     )
                 }
             }
@@ -412,6 +509,39 @@ fun SettingsContent(
         }
     }
 
+    if (showAppModeSelection && appMode != null && onAppModeChange != null) {
+        SettingsAppModeDialog(
+            selected = appMode,
+            onSelect = { selected ->
+                showAppModeSelection = false
+                onAppModeChange(selected)
+            },
+            onDismiss = { showAppModeSelection = false }
+        )
+    }
+
+    if (showRadiusSelection && criteria != null && onDefaultRadiusChange != null) {
+        SettingsRadiusDialog(
+            selectedRadius = criteria.radiusMiles,
+            onSelect = { selected ->
+                showRadiusSelection = false
+                onDefaultRadiusChange(selected)
+            },
+            onDismiss = { showRadiusSelection = false }
+        )
+    }
+
+    if (showSearchFilters && criteria != null && onApplySearchFilters != null) {
+        DiscoveryFilterSheet(
+            criteria = criteria,
+            onDismissRequest = { showSearchFilters = false },
+            onApply = { selection ->
+                showSearchFilters = false
+                onApplySearchFilters(selection)
+            }
+        )
+    }
+
     if (showClearConfirmation) {
         AlertDialog(
             onDismissRequest = { showClearConfirmation = false },
@@ -440,6 +570,93 @@ fun SettingsContent(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun SettingsAppModeDialog(
+    selected: AudienceType,
+    onSelect: (AudienceType) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_app_mode)) },
+        text = {
+            Column {
+                SettingsChoiceRow(
+                    label = stringResource(R.string.settings_app_mode_family),
+                    selected = selected == AudienceType.FAMILY,
+                    onClick = { onSelect(AudienceType.FAMILY) },
+                    modifier = Modifier.testTag("settings_app_mode_family")
+                )
+                SettingsChoiceRow(
+                    label = stringResource(R.string.settings_app_mode_clinician),
+                    selected = selected == AudienceType.CLINICIAN,
+                    onClick = { onSelect(AudienceType.CLINICIAN) },
+                    modifier = Modifier.testTag("settings_app_mode_clinician")
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        }
+    )
+}
+
+@Composable
+private fun SettingsRadiusDialog(
+    selectedRadius: Int,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_default_radius)) },
+        text = {
+            Column {
+                listOf(5, 10, 15, 25, 50).forEach { radius ->
+                    SettingsChoiceRow(
+                        label = pluralStringResource(
+                            R.plurals.discovery_radius_option,
+                            radius,
+                            radius
+                        ),
+                        selected = selectedRadius == radius,
+                        onClick = { onSelect(radius) },
+                        modifier = Modifier.testTag("settings_default_radius_$radius")
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        }
+    )
+}
+
+@Composable
+private fun SettingsChoiceRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .selectable(
+                selected = selected,
+                role = Role.RadioButton,
+                onClick = onClick
+            )
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Spacer(Modifier.width(8.dp))
+        Text(text = label, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
@@ -591,3 +808,7 @@ private fun SettingsRow(
 private fun Context.launchSafely(intent: Intent) {
     runCatching { startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
 }
+
+private fun DiscoveryCriteria.activeFilterCount(): Int =
+    therapyTypes.size +
+        listOfNotNull(ageGroup, diagnosis, insurance).size

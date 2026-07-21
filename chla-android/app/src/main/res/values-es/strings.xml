@@ -116,8 +116,8 @@
     <string name="version">Versión</string>
     <string name="reset_onboarding">Reiniciar Introducción</string>
     <string name="settings_profile">Perfil</string>
-    <string name="settings_edit_profile">Editar perfil e introducción</string>
-    <string name="settings_edit_profile_description">Revisa tus respuestas y actualiza tu perfil guardado.</string>
+    <string name="settings_edit_profile">Editar respuestas de configuración</string>
+    <string name="settings_edit_profile_description">Revisa las preguntas de introducción y el contexto de atención.</string>
     <string name="settings_clear_profile">Borrar perfil y reiniciar</string>
     <string name="settings_clear_profile_description">Elimina tu perfil guardado y vuelve a completar la introducción.</string>
     <string name="settings_clear_profile_dialog_title">¿Borrar el perfil?</string>

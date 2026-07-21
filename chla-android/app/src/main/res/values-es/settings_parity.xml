@@ -6,6 +6,16 @@
     <string name="settings_restart_welcome_setup_description">Actualiza tu código postal, contexto de atención y preferencias de la aplicación.</string>
     <string name="settings_search_preferences">Preferencias de búsqueda</string>
     <string name="settings_preferences">Preferencias</string>
+    <string name="settings_app_mode">Modo de la aplicación</string>
+    <string name="settings_app_mode_family">Familia</string>
+    <string name="settings_app_mode_clinician">Profesional clínico</string>
+    <string name="settings_search_filters">Filtros de búsqueda</string>
+    <string name="settings_default_radius">Radio predeterminado</string>
+    <string name="settings_preference_update_failed">No pudimos actualizar esa preferencia. Inténtalo de nuevo.</string>
+    <plurals name="settings_active_filter_count">
+        <item quantity="one">%d filtro</item>
+        <item quantity="other">%d filtros</item>
+    </plurals>
     <string name="settings_information">Información</string>
     <string name="settings_reset">Restablecer</string>
     <string name="settings_open">Abrir</string>
@@ -20,5 +30,5 @@
     <string name="settings_about_description">Información sobre el Navegador de Recursos NDD</string>
     <string name="settings_faq_description">Respuestas a preguntas frecuentes</string>
     <string name="settings_website">Sitio web de KiNDD</string>
-    <string name="settings_website_description">kinddhelp.com</string>
+    <string name="settings_website_description">kinddhelp.org</string>
 </resources>

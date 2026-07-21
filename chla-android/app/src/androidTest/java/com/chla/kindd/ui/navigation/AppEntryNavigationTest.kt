@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.captureToImage
@@ -530,6 +531,33 @@ class AppEntryNavigationTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithTag(MORE_TAG).assertExists()
         composeRule.onNodeWithTag(BOTTOM_MORE_TAG).assertIsSelected()
+    }
+
+    @Test
+    fun moreSelection_coversFaqAboutAndSettings_butRegionsKeepsItsOwnSelection() {
+        lateinit var navController: TestNavHostController
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDMainNavHost(
+                    profile = completeProfile(),
+                    navController = navController,
+                    destinationContent = TaggedMainDestinationContent
+                )
+            }
+        }
+
+        listOf(Screen.FAQ.route, Screen.About.route, Screen.Settings.route).forEach { route ->
+            composeRule.runOnIdle { navController.navigate(route) }
+            composeRule.waitForIdle()
+            composeRule.onNodeWithTag(BOTTOM_MORE_TAG).assertIsSelected()
+        }
+
+        composeRule.runOnIdle { navController.navigate(Screen.RegionalCenters.route) }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(BOTTOM_MORE_TAG).assertIsNotSelected()
+        composeRule.onNodeWithTag(BOTTOM_REGIONS_TAG).assertIsSelected()
     }
 
     @Test

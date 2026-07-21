@@ -89,6 +89,14 @@ private val floatingDestinations = listOf(
     )
 )
 
+internal fun isMoreRoute(currentRoute: String?): Boolean = when (currentRoute) {
+    Screen.More.route,
+    Screen.Settings.route,
+    Screen.FAQ.route,
+    Screen.About.route -> true
+    else -> false
+}
+
 @Composable
 internal fun KiNDDFloatingNavigation(
     currentRoute: String?,
@@ -135,7 +143,7 @@ private fun FloatingDestinationAction(
 ) {
     val selected = currentRoute == destination.screen.destinationRoute ||
         currentRoute == destination.screen.route ||
-        (destination.screen == Screen.More && currentRoute == Screen.Settings.route)
+        (destination.screen == Screen.More && isMoreRoute(currentRoute))
     val label = stringResource(destination.labelRes)
     KiNDDCompactIconAction(
         icon = if (selected) destination.selectedIcon else destination.unselectedIcon,

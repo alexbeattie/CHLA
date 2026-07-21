@@ -115,8 +115,8 @@
     <string name="version">Version</string>
     <string name="reset_onboarding">Reset Onboarding</string>
     <string name="settings_profile">Profile</string>
-    <string name="settings_edit_profile">Edit Profile &amp; Onboarding</string>
-    <string name="settings_edit_profile_description">Review your answers and update your saved profile.</string>
+    <string name="settings_edit_profile">Edit Setup Answers</string>
+    <string name="settings_edit_profile_description">Revisit onboarding questions and care context.</string>
     <string name="settings_clear_profile">Clear Profile &amp; Restart</string>
     <string name="settings_clear_profile_description">Remove your saved profile and begin onboarding again.</string>
     <string name="settings_clear_profile_dialog_title">Clear profile?</string>

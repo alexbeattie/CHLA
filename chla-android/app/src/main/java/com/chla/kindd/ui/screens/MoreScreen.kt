@@ -24,13 +24,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -59,16 +63,26 @@ import com.chla.kindd.ui.theme.KiNDDSpacingTokens
 import com.chla.kindd.ui.theme.KiNDDViolet
 import com.chla.kindd.ui.theme.kinddTopWash
 
+internal const val KINDD_WEBSITE_URL = "https://kinddhelp.org"
+internal const val KINDD_PRIVACY_URL = "$KINDD_WEBSITE_URL/privacy"
+internal const val KINDD_TERMS_URL = "$KINDD_WEBSITE_URL/terms"
+
 @Composable
 fun MoreScreen(
     onNavigateToFAQ: () -> Unit,
+    onNavigateToAbout: () -> Unit,
+    onNavigateToRegions: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     val context = LocalContext.current
     MoreContent(
         onNavigateToFAQ = onNavigateToFAQ,
-        onOpenWebsite = { context.openWebsite("https://kinddhelp.com") },
+        onNavigateToAbout = onNavigateToAbout,
+        onNavigateToRegions = onNavigateToRegions,
+        onOpenWebsite = { context.openWebsite(KINDD_WEBSITE_URL) },
+        onOpenPrivacy = { context.openWebsite(KINDD_PRIVACY_URL) },
+        onOpenTerms = { context.openWebsite(KINDD_TERMS_URL) },
         onNavigateToEditProfile = onNavigateToEditProfile,
         onNavigateToSettings = onNavigateToSettings
     )
@@ -77,7 +91,11 @@ fun MoreScreen(
 @Composable
 fun MoreContent(
     onNavigateToFAQ: () -> Unit,
+    onNavigateToAbout: () -> Unit,
+    onNavigateToRegions: () -> Unit,
     onOpenWebsite: () -> Unit,
+    onOpenPrivacy: () -> Unit,
+    onOpenTerms: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier,
@@ -130,6 +148,28 @@ fun MoreContent(
                         onClick = onNavigateToFAQ,
                         modifier = Modifier.testTag("more_faq")
                     )
+                    HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
+                    MoreRow(
+                        icon = Icons.Default.Info,
+                        iconTint = KiNDDPurple,
+                        title = stringResource(R.string.settings_about_kindd),
+                        subtitle = stringResource(R.string.more_about_description),
+                        onClick = onNavigateToAbout,
+                        modifier = Modifier.testTag("more_about")
+                    )
+                }
+            }
+            item { MoreSectionLabel(stringResource(R.string.more_explore)) }
+            item {
+                MoreGroup {
+                    MoreRow(
+                        icon = Icons.Default.Apartment,
+                        iconTint = KiNDDPurple,
+                        title = stringResource(R.string.regional_centers),
+                        subtitle = stringResource(R.string.more_regions_description),
+                        onClick = onNavigateToRegions,
+                        modifier = Modifier.testTag("more_regions")
+                    )
                 }
             }
             item { MoreSectionLabel(stringResource(R.string.more_links)) }
@@ -145,6 +185,28 @@ fun MoreContent(
                     )
                 }
             }
+            item { MoreSectionLabel(stringResource(R.string.more_legal)) }
+            item {
+                MoreGroup {
+                    MoreRow(
+                        icon = Icons.Default.PrivacyTip,
+                        iconTint = KiNDDIndigo,
+                        title = stringResource(R.string.privacy_policy),
+                        subtitle = stringResource(R.string.more_privacy_description),
+                        onClick = onOpenPrivacy,
+                        modifier = Modifier.testTag("more_privacy")
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
+                    MoreRow(
+                        icon = Icons.Default.Description,
+                        iconTint = KiNDDViolet,
+                        title = stringResource(R.string.terms_of_service),
+                        subtitle = stringResource(R.string.more_terms_description),
+                        onClick = onOpenTerms,
+                        modifier = Modifier.testTag("more_terms")
+                    )
+                }
+            }
             item { MoreSectionLabel(stringResource(R.string.more_profile)) }
             item {
                 MoreGroup {
@@ -156,10 +218,7 @@ fun MoreContent(
                         onClick = onNavigateToEditProfile,
                         modifier = Modifier.testTag("more_edit_profile")
                     )
-                }
-            }
-            item {
-                MoreGroup {
+                    HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
                     MoreRow(
                         icon = Icons.Default.Settings,
                         iconTint = KiNDDPurple,
