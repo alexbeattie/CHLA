@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_prompt_near_me">Near Me</string>
+    <string name="chat_prompt_research">Research</string>
+    <string name="chat_prompt_research_query">Which genes have the strongest SFARI evidence for autism?</string>
+    <string name="chat_prompt_assessment">Assessment</string>
+    <string name="chat_prompt_centers">Centers</string>
+    <string name="chat_welcome_heading">How can KiNDD help?</string>
+    <string name="chat_welcome_description">Ask about developmental services, regional centers, or what to do next.</string>
+    <string name="chat_composer_placeholder">Ask about services…</string>
+    <string name="chat_more_actions">Chat options</string>
+    <string name="chat_open_link_action">Open</string>
+    <string name="chat_clear_title">Clear this chat?</string>
+    <string name="chat_clear_body">This removes the messages in this conversation.</string>
+    <string name="chat_clear_confirm">Clear chat</string>
+    <string name="chat_assistant_message">KiNDD response</string>
+
+    <string name="more_title">More</string>
+    <string name="more_help">Help</string>
+    <string name="more_faq_description">Common questions answered</string>
+    <string name="more_about_description">Learn about KiNDD and its mission</string>
+    <string name="more_explore">Explore</string>
+    <string name="more_regions_description">View all 7 LA County centers</string>
+    <string name="more_links">Links</string>
+    <string name="more_website">KiNDD Website</string>
+    <string name="more_website_description">kinddhelp.org</string>
+    <string name="more_legal">Legal</string>
+    <string name="more_privacy_description">Read the current policy on kinddhelp.org</string>
+    <string name="more_terms_description">Read the current terms on kinddhelp.org</string>
+    <string name="more_profile">Profile</string>
+    <string name="more_restart_setup">Restart Welcome Setup</string>
+    <string name="more_restart_setup_description">Update ZIP code, care context, and preferences</string>
+    <string name="more_settings_description">Language, location, profile, and app information</string>
+    <string name="more_app_info">App Info</string>
+    <string name="more_footer">KiNDD - NDD Resource Navigator</string>
+</resources>

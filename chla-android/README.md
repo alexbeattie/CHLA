@@ -1,6 +1,6 @@
-# KINDD Android App
+# KiNDD Android app
 
-Native Android app for the KINDD (Kids in Need of Developmental Disabilities) Resource Navigator.
+Native Android client for KiNDD - NDD Resource Navigator.
 
 ## Overview
 
@@ -26,9 +26,9 @@ KiNDD - NDD Resource Navigator is a free resource map helping families find ABA 
 
 ## Requirements
 
-- Android Studio Hedgehog (2023.1.1) or newer
+- Android Studio Meerkat 2024.3.1 Patch 1 or newer
 - JDK 17
-- Android SDK 34 (Android 14)
+- Android SDK 36 (Android 16)
 - Google Maps API Key
 
 ## Setup
@@ -71,9 +71,18 @@ The app connects to the Django backend at:
 # Debug build
 ./gradlew assembleDebug
 
-# Release build
+# Unsigned release build for local inspection
 ./gradlew assembleRelease
+
+# Signed Google Play App Bundle (uses the macOS Keychain upload credential)
+./scripts/build-play-bundle.sh
+
+# Confirm launcher artwork still matches the iPhone app
+./scripts/verify-launcher-icon-parity.sh
 ```
+
+See [`PLAY_STORE_RELEASE.md`](PLAY_STORE_RELEASE.md) for the one-time upload-key,
+Play Console, policy, and release workflow.
 
 ## Testing
 

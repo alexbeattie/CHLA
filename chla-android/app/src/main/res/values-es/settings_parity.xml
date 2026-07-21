@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_back_to_more">Más</string>
+    <string name="settings_setup">Configuración</string>
+    <string name="settings_restart_welcome_setup">Reiniciar la configuración de bienvenida</string>
+    <string name="settings_restart_welcome_setup_description">Actualiza tu código postal, contexto de atención y preferencias de la aplicación.</string>
+    <string name="settings_search_preferences">Preferencias de búsqueda</string>
+    <string name="settings_preferences">Preferencias</string>
+    <string name="settings_app_mode">Modo de la aplicación</string>
+    <string name="settings_app_mode_family">Familia</string>
+    <string name="settings_app_mode_clinician">Profesional clínico</string>
+    <string name="settings_search_filters">Filtros de búsqueda</string>
+    <string name="settings_default_radius">Radio predeterminado</string>
+    <string name="settings_preference_update_failed">No pudimos actualizar esa preferencia. Inténtalo de nuevo.</string>
+    <plurals name="settings_active_filter_count">
+        <item quantity="one">%d filtro</item>
+        <item quantity="other">%d filtros</item>
+    </plurals>
+    <string name="settings_information">Información</string>
+    <string name="settings_reset">Restablecer</string>
+    <string name="settings_open">Abrir</string>
+    <string name="settings_language_system_default">Predeterminado del sistema</string>
+    <string name="settings_language_description">Elige el idioma que prefieres para la aplicación</string>
+    <string name="settings_location">Ubicación</string>
+    <string name="settings_location_access">Acceso a la ubicación</string>
+    <string name="settings_location_allowed">Permitido mientras usas KiNDD</string>
+    <string name="settings_location_not_allowed">No permitido</string>
+    <string name="settings_location_unavailable">Los ajustes de ubicación no están disponibles en este dispositivo.</string>
+    <string name="settings_about_kindd">Acerca de KiNDD</string>
+    <string name="settings_about_description">Información sobre el Navegador de Recursos NDD</string>
+    <string name="settings_faq_description">Respuestas a preguntas frecuentes</string>
+    <string name="settings_website">Sitio web de KiNDD</string>
+    <string name="settings_website_description">kinddhelp.org</string>
+</resources>

@@ -21,27 +21,25 @@ interface KINDDApi {
         @Query("page_size") pageSize: Int = 50
     ): PaginatedResponse<Provider>
 
-    @GET("providers-v2/nearby/")
-    suspend fun getProvidersNearby(
-        @Query("lat") latitude: Double,
-        @Query("lon") longitude: Double,
-        @Query("radius") radiusMiles: Int = 25,
-        @Query("limit") limit: Int = 50
+    @GET("providers-v2/comprehensive_search/")
+    suspend fun searchProviders(
+        @Query("q") query: String? = null,
+        @Query("lat") latitude: Double? = null,
+        @Query("lng") longitude: Double? = null,
+        @Query("radius") radiusMiles: Int? = null,
+        @Query("therapy") therapyTypes: List<String>? = null,
+        @Query("age") ageGroup: String? = null,
+        @Query("diagnosis") diagnosis: String? = null,
+        @Query("insurance") insurance: String? = null
     ): List<Provider>
 
     @GET("providers-v2/by_regional_center/")
     suspend fun getProvidersByRegionalCenter(
         @Query("zip_code") zipCode: String,
-        @Query("therapy") therapyTypes: List<String>? = null,
         @Query("insurance") insurance: String? = null,
-        @Query("age_group") ageGroup: String? = null
-    ): List<Provider>
-
-    @GET("providers-v2/search/")
-    suspend fun searchProviders(
-        @Query("q") query: String,
-        @Query("limit") limit: Int = 50
-    ): List<Provider>
+        @Query("age") ageGroup: String? = null,
+        @Query("diagnosis") diagnosis: String? = null
+    ): RegionalCenterProvidersResponse
 
     @GET("providers-v2/{id}/")
     suspend fun getProvider(
@@ -52,7 +50,7 @@ interface KINDDApi {
     @GET("regional-centers/")
     suspend fun getRegionalCenters(): PaginatedResponse<RegionalCenter>
 
-    @GET("regional-centers/by_zip/")
+    @GET("regional-centers/by_zip_code/")
     suspend fun getRegionalCenterByZip(
         @Query("zip_code") zipCode: String
     ): RegionalCenter
@@ -60,7 +58,7 @@ interface KINDDApi {
     @GET("regional-centers/nearby/")
     suspend fun getRegionalCentersNearby(
         @Query("lat") latitude: Double,
-        @Query("lon") longitude: Double
+        @Query("lng") longitude: Double
     ): List<RegionalCenter>
 
     // LLM
@@ -73,7 +71,17 @@ interface KINDDApi {
     suspend fun streamLLM(
         @Body request: LLMRequest
     ): okhttp3.ResponseBody
+
+    @POST("llm/response-reports/")
+    suspend fun reportAssistantResponse(
+        @Body request: AssistantResponseReportRequest
+    ): AssistantResponseReportResponse
 }
+
+data class RegionalCenterProvidersResponse(
+    val count: Int,
+    val results: List<Provider>
+)
 
 data class HealthCheckResponse(
     val status: String,
@@ -93,5 +101,35 @@ data class LLMResponse(
     @com.google.gson.annotations.SerializedName("providers_referenced")
     val providersReferenced: List<String>? = null,  // UUIDs from backend
     @com.google.gson.annotations.SerializedName("regional_center")
-    val regionalCenter: String? = null
+    val regionalCenter: String? = null,
+    @com.google.gson.annotations.SerializedName("response_fingerprint")
+    val responseFingerprint: String? = null
+)
+
+enum class AssistantResponseReportReason {
+    @com.google.gson.annotations.SerializedName("unsafe_or_inappropriate")
+    UNSAFE_OR_INAPPROPRIATE,
+
+    @com.google.gson.annotations.SerializedName("inaccurate_or_misleading")
+    INACCURATE_OR_MISLEADING,
+
+    @com.google.gson.annotations.SerializedName("other")
+    OTHER
+}
+
+data class AssistantResponseReportRequest(
+    val reason: AssistantResponseReportReason,
+    @com.google.gson.annotations.SerializedName("reported_response")
+    val reportedResponse: String,
+    val locale: String,
+    val platform: String = "android",
+    @com.google.gson.annotations.SerializedName("app_version")
+    val appVersion: String,
+    @com.google.gson.annotations.SerializedName("response_fingerprint")
+    val responseFingerprint: String
+)
+
+data class AssistantResponseReportResponse(
+    val id: Long,
+    val status: String
 )

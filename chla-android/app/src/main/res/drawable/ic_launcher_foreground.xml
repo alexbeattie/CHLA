@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- K letter for KINDD -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M38,30 L38,78 L48,78 L48,58 L62,78 L75,78 L58,54 L73,30 L60,30 L48,50 L48,30 Z"/>
-</vector>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+      Adaptive-icon layers are 108dp with a centered 72dp masked viewport.
+      Insetting the complete iPhone artwork by 18dp preserves its exact
+      proportions while Android applies the device's launcher mask.
+    -->
+    <item
+        android:bottom="18dp"
+        android:left="18dp"
+        android:right="18dp"
+        android:top="18dp">
+        <bitmap
+            android:gravity="fill"
+            android:src="@drawable/kindd_app_icon" />
+    </item>
+</layer-list>

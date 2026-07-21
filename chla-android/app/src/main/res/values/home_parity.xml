@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_parity_county">Los Angeles County</string>
+    <string name="home_parity_county_compact">LA County</string>
+    <string name="home_parity_change_preferences">Change Preferences</string>
+    <string name="home_parity_more_actions">Home options</string>
+    <string name="home_parity_map_summary">Map of LA County regional center areas. Yours is %1$s.</string>
+    <string name="home_parity_map_summary_unmatched">Map of LA County regional center service areas.</string>
+    <string name="home_parity_center_role">Regional centers coordinate evaluations, services, and funding for your family.</string>
+    <string name="home_parity_zip_explanation">Every family in LA County is assigned a regional center by ZIP code. Enter yours to see who to contact.</string>
+    <string name="home_parity_service_aba">ABA Therapy</string>
+    <string name="home_parity_service_speech">Speech</string>
+    <string name="home_parity_service_occupational">Occupational</string>
+    <string name="home_parity_service_physical">Physical</string>
+    <string name="home_parity_next_step_just_diagnosed_detail">One call to %1$s starts everything - eligibility, evaluations, and services. No referral needed.</string>
+    <string name="home_parity_next_step_waiting_detail">Gathering records now - evaluations, medical notes, your own observations - makes the appointment count.</string>
+    <string name="home_parity_next_step_receiving_detail">Your Individual Program Plan is renegotiable. Many families don\'t know what they can ask for.</string>
+    <string name="home_parity_your_regional_center">your regional center</string>
+    <string name="home_parity_how_help">How can we help?</string>
+    <string name="home_parity_how_help_support">Tap a question, or ask your own anytime below.</string>
+    <string name="home_parity_question_first_steps">We just got a diagnosis. What do we do first?</string>
+    <string name="home_parity_question_aba">Find ABA therapy near me</string>
+    <string name="home_parity_question_funding">What services can %1$s help fund?</string>
+    <string name="home_parity_question_center_zip">Which regional center serves my ZIP?</string>
+    <string name="home_parity_ask_anything">Ask KiNDD anything…</string>
+    <string name="home_parity_ask_accessibility">Ask KiNDD anything</string>
+    <string name="home_parity_send">Open Ask KiNDD</string>
+    <string name="chat_prompt_find_aba_nearby">Find ABA therapy near me. Help me understand what to compare and what to ask providers.</string>
+    <string name="chat_prompt_first_steps">We just got a diagnosis. What do we do first?</string>
+    <string name="chat_prompt_center_funding">What services can my regional center help fund, and how do I ask for them?</string>
+    <string name="chat_prompt_find_regional_center">Which regional center serves my ZIP code, and what should I do next?</string>
+</resources>

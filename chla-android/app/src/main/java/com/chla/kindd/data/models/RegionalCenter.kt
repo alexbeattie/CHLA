@@ -2,6 +2,7 @@ package com.chla.kindd.data.models
 
 import androidx.compose.ui.graphics.Color
 import com.chla.kindd.ui.theme.*
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 
 data class RegionalCenter(
@@ -18,6 +19,7 @@ data class RegionalCenter(
     val latitude: Double? = null,
     val longitude: Double? = null,
     @SerializedName("zip_codes")
+    @JsonAdapter(StringListJsonAdapter::class)
     val zipCodes: List<String>? = null,
     @SerializedName("service_areas")
     val serviceAreas: List<String>? = null,
@@ -72,13 +74,15 @@ data class RegionalCenter(
 
     val shortName: String
         get() = when {
+            name.contains("North Los Angeles", ignoreCase = true) -> "NLACRC"
             name.contains("Westside", ignoreCase = true) -> "WRC"
-            name.contains("Harbor", ignoreCase = true) -> "HRC"
             name.contains("South Central", ignoreCase = true) -> "SCLARC"
-            name.contains("Eastern", ignoreCase = true) -> "ELARC"
-            name.contains("North", ignoreCase = true) -> "NLACRC"
-            name.contains("Lanterman", ignoreCase = true) -> "Lanterman"
-            name.contains("San Gabriel", ignoreCase = true) || name.contains("Pomona", ignoreCase = true) -> "SGPRC"
+            name.contains("Eastern Los Angeles", ignoreCase = true) -> "ELARC"
+            name.contains("Harbor", ignoreCase = true) -> "HRC"
+            name.contains("Lanterman", ignoreCase = true) -> "FDLRC"
+            name.equals("SG/PRC", ignoreCase = true) ||
+                name.contains("San Gabriel", ignoreCase = true) ||
+                name.contains("Pomona", ignoreCase = true) -> "SGPRC"
             else -> name
         }
 }

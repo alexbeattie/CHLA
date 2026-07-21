@@ -8,7 +8,8 @@ data class ChatMessage(
     val content: String,
     val timestamp: Long = System.currentTimeMillis(),
     val isStreaming: Boolean = false,
-    val feedback: Feedback? = null
+    val feedback: Feedback? = null,
+    val responseFingerprint: String? = null
 ) {
     enum class Role {
         USER,

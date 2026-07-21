@@ -1,113 +1,155 @@
 package com.chla.kindd.ui.screens
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.chla.kindd.data.discovery.DiscoveryController
+import com.chla.kindd.data.discovery.DiscoveryState
+import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.models.Provider
-import com.chla.kindd.data.repository.ProviderRepository
-import com.chla.kindd.services.LocationService
+import com.chla.kindd.data.profile.AgeGroup
+import com.chla.kindd.data.source.UserLocationSource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.AtomicLong
+import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-private const val TAG = "MapViewModel"
+enum class MapLocationStatus {
+    IDLE,
+    LOCATING,
+    PERMISSION_DENIED,
+    FAILED
+}
 
-data class MapUiState(
-    val providers: List<Provider> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val hasLocationPermission: Boolean = false,
-    val userLatitude: Double? = null,
-    val userLongitude: Double? = null,
-    val searchQuery: String = ""
+data class MapLocationState(
+    val hasPermission: Boolean = false,
+    val status: MapLocationStatus = MapLocationStatus.IDLE
 )
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val providerRepository: ProviderRepository,
-    private val locationService: LocationService
+    private val discoveryController: DiscoveryController,
+    private val userLocationSource: UserLocationSource
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(MapUiState())
-    val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
+    val state: StateFlow<DiscoveryState> = discoveryController.state
 
-    init {
-        checkLocationPermission()
-        loadProviders()
+    private val mutableLocationState = MutableStateFlow(
+        MapLocationState(hasPermission = userLocationSource.hasLocationPermission())
+    )
+    val locationState: StateFlow<MapLocationState> = mutableLocationState.asStateFlow()
+
+    val mapProviders: List<Provider>
+        get() = state.value.mapProviders
+
+    private val locationGeneration = AtomicLong(0)
+    private var locationJob: Job? = null
+
+    fun onFirstAppearance() = discoveryController.ensureLoaded()
+
+    fun setQuery(query: String) = discoveryController.setQuery(query)
+
+    fun applyFilters(
+        therapyTypes: Set<TherapyType>,
+        ageGroup: AgeGroup?,
+        diagnosis: String?,
+        insurance: String?,
+        radiusMiles: Int
+    ) = discoveryController.applyFilters(
+        therapyTypes = therapyTypes,
+        ageGroup = ageGroup,
+        diagnosis = diagnosis,
+        insurance = insurance,
+        radiusMiles = radiusMiles
+    )
+
+    fun removeTherapy(therapyType: TherapyType) = updateFilters {
+        copy(therapyTypes = therapyTypes - therapyType)
     }
 
-    private fun checkLocationPermission() {
-        _uiState.update { it.copy(hasLocationPermission = locationService.hasLocationPermission()) }
-    }
+    fun removeAge() = updateFilters { copy(ageGroup = null) }
 
-    fun loadProviders() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+    fun removeDiagnosis() = updateFilters { copy(diagnosis = null) }
 
-            val result = if (_uiState.value.userLatitude != null && _uiState.value.userLongitude != null) {
-                providerRepository.getProvidersNearby(
-                    latitude = _uiState.value.userLatitude!!,
-                    longitude = _uiState.value.userLongitude!!
-                )
-            } else {
-                providerRepository.getProviders()
-            }
+    fun removeInsurance() = updateFilters { copy(insurance = null) }
 
-            result.fold(
-                onSuccess = { providers ->
-                    Log.d(TAG, "Loaded ${providers.size} providers")
-                    val withCoords = providers.filter { it.hasCoordinates }
-                    Log.d(TAG, "Providers with coordinates: ${withCoords.size}")
-                    // Log first 3 providers for debugging
-                    providers.take(3).forEach { p ->
-                        Log.d(TAG, "Provider: ${p.name}, lat=${p.latitude}, lng=${p.longitude}, hasCoords=${p.hasCoordinates}")
+    fun removeRadius() = discoveryController.useLosAngelesCatalog()
+
+    fun clearAllFilters() = discoveryController.clearAllFilters()
+
+    fun retry() = discoveryController.retry()
+
+    fun refresh() = discoveryController.refresh()
+
+    fun onLocationPermissionResult(granted: Boolean) {
+        val requestGeneration = locationGeneration.incrementAndGet()
+        locationJob?.cancel()
+        locationJob = null
+
+        if (!granted) {
+            mutableLocationState.value = MapLocationState(
+                hasPermission = false,
+                status = MapLocationStatus.PERMISSION_DENIED
+            )
+            return
+        }
+
+        mutableLocationState.value = MapLocationState(
+            hasPermission = true,
+            status = MapLocationStatus.LOCATING
+        )
+        locationJob = viewModelScope.launch {
+            try {
+                val coordinates = userLocationSource.currentCoordinates()
+                if (coordinates == null) {
+                    updateLocationIfCurrent(requestGeneration) {
+                        it.copy(status = MapLocationStatus.FAILED)
                     }
-                    _uiState.update { it.copy(providers = providers, isLoading = false) }
-                },
-                onFailure = { error ->
-                    Log.e(TAG, "Failed to load providers: ${error.message}", error)
-                    _uiState.update { it.copy(error = error.message, isLoading = false) }
+                    return@launch
                 }
-            )
-        }
-    }
-
-    fun search(query: String) {
-        if (query.length < 2) return
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, searchQuery = query) }
-
-            providerRepository.searchProviders(query).fold(
-                onSuccess = { providers ->
-                    _uiState.update { it.copy(providers = providers, isLoading = false) }
-                },
-                onFailure = { error ->
-                    _uiState.update { it.copy(error = error.message, isLoading = false) }
+                if (locationGeneration.get() != requestGeneration) return@launch
+                discoveryController.useDeviceLocation(
+                    latitude = coordinates.latitude,
+                    longitude = coordinates.longitude
+                )
+                updateLocationIfCurrent(requestGeneration) {
+                    it.copy(status = MapLocationStatus.IDLE)
                 }
-            )
-        }
-    }
-
-    fun clearSearch() {
-        _uiState.update { it.copy(searchQuery = "") }
-        loadProviders()
-    }
-
-    fun updateLocation(latitude: Double, longitude: Double) {
-        _uiState.update { it.copy(userLatitude = latitude, userLongitude = longitude) }
-        loadProviders()
-    }
-
-    fun requestLocationUpdate() {
-        viewModelScope.launch {
-            locationService.getCurrentLocation()?.let { location ->
-                updateLocation(location.latitude, location.longitude)
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                updateLocationIfCurrent(requestGeneration) {
+                    it.copy(status = MapLocationStatus.FAILED)
+                }
             }
         }
+    }
+
+    private inline fun updateLocationIfCurrent(
+        requestGeneration: Long,
+        transform: (MapLocationState) -> MapLocationState
+    ) {
+        if (locationGeneration.get() == requestGeneration) {
+            mutableLocationState.update(transform)
+        }
+    }
+
+    private inline fun updateFilters(
+        transform: com.chla.kindd.data.discovery.DiscoveryCriteria.() ->
+            com.chla.kindd.data.discovery.DiscoveryCriteria
+    ) {
+        val criteria = state.value.criteria.transform()
+        applyFilters(
+            therapyTypes = criteria.therapyTypes,
+            ageGroup = criteria.ageGroup,
+            diagnosis = criteria.diagnosis,
+            insurance = criteria.insurance,
+            radiusMiles = criteria.radiusMiles
+        )
     }
 }

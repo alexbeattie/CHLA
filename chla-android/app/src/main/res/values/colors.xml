@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="kindd_indigo">#FF6366F1</color>
+    <color name="kindd_deep_indigo">#FF4F46E5</color>
+    <color name="kindd_violet">#FF8B5CF6</color>
+    <color name="kindd_purple">#FFA855F7</color>
+    <color name="kindd_pink">#FFEC4899</color>
+    <color name="kindd_matched_green">#FF10B981</color>
     <color name="chla_blue">#FF004877</color>
     <color name="chla_blue_dark">#FF003355</color>
     <color name="chla_blue_light">#FF0D9DDB</color>
