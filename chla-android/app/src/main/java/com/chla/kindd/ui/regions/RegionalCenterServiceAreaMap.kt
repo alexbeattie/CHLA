@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -39,14 +40,18 @@ internal fun RegionalCenterServiceAreaMap(
     mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
     when (state) {
-        is RegionalCenterServiceAreaState.Success -> RegionalCenterMapSurface(
-            areas = state.areas,
-            highlightedAcronym = highlightedAcronym,
-            interactive = interactive,
-            onAreaClick = onAreaClick,
-            modifier = modifier.testTag("regions_boundaries_${state.areas.size}"),
-            mapContent = mapContent
-        )
+        is RegionalCenterServiceAreaState.Success -> Box(
+            modifier = modifier.testTag("regions_boundaries_${state.areas.size}")
+        ) {
+            RegionalCenterMapSurface(
+                areas = state.areas,
+                highlightedAcronym = highlightedAcronym,
+                interactive = interactive,
+                onAreaClick = onAreaClick,
+                modifier = Modifier.fillMaxSize(),
+                mapContent = mapContent
+            )
+        }
         RegionalCenterServiceAreaState.Loading -> ServiceAreaFallback(
             isLoading = true,
             modifier = modifier.testTag("regional_center_service_areas_loading")

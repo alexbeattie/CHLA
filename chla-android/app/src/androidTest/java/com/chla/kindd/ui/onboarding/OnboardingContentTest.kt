@@ -75,7 +75,9 @@ class OnboardingContentTest {
 
     @Test
     fun edgeToEdge_progressChromeStartsBelowTheStatusBar() {
-        composeRule.activity.enableEdgeToEdge()
+        composeRule.activityRule.scenario.onActivity { activity ->
+            activity.enableEdgeToEdge()
+        }
         compose(state(step = OnboardingStep.AUDIENCE))
 
         val statusBarBottom = ViewCompat.getRootWindowInsets(
