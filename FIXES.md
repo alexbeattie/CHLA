@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-07-21 — Render unexpected chat headings safely
+- **Branch:** feature/android-persistent-discovery
+- **Files:** chla-android/app/src/main/java/com/chla/kindd/ui/chat/SafeMarkdown.kt, chla-android/app/src/test/java/com/chla/kindd/ui/chat/SafeMarkdownTest.kt
+- **Problem:** A live Ask KiNDD response used an unsupported Markdown heading, leaving the raw `#` marker visible in Android chat.
+- **Fix:** Degrade level-one through level-six headings to clean bold labels while preserving the renderer's intentionally small Markdown surface.
+
 ### 2026-07-21 — Stabilize virtualized Android UI device tests
 - **Branch:** feature/android-persistent-discovery
 - **Files:** chla-android/app/src/androidTest/java/com/chla/kindd/ui/accessibility/TouchedSurfaceAccessibilityTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/discovery/DiscoveryControlsTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/more/MoreContentTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/settings/SettingsContentTest.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/MoreScreen.kt

@@ -57,6 +57,27 @@ class SafeMarkdownTest {
         assertTrue(rendered.text.contains("<b>Plain</b>"))
     }
 
+    @Test
+    fun parserDegradesUnsupportedHeadingsToBoldLabelsWithoutRawMarkers() {
+        val rendered = parse(
+            """
+            # What to Bring
+
+            ## Documents to bring
+            Details follow.
+            """.trimIndent()
+        )
+
+        assertEquals(
+            "What to Bring\n\nDocuments to bring\nDetails follow.",
+            rendered.text
+        )
+        val boldText = rendered.spanStyles
+            .filter { it.item.fontWeight == FontWeight.Bold }
+            .map { rendered.text.substring(it.start, it.end) }
+        assertEquals(listOf("What to Bring", "Documents to bring"), boldText)
+    }
+
     private fun parse(source: String): AnnotatedString {
         return parseSafeMarkdown(source)
     }

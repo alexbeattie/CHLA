@@ -82,6 +82,16 @@ internal fun parseSafeMarkdown(source: String): AnnotatedString {
         val line = rawLine.trimEnd()
         val content = line.trimStart()
         when {
+            SAFE_HEADING.matches(content) -> {
+                val match = requireNotNull(SAFE_HEADING.matchEntire(content))
+                val start = builder.length
+                builder.appendSafeInlineMarkdown(match.groupValues[1])
+                builder.addStyle(
+                    style = SpanStyle(fontWeight = FontWeight.Bold),
+                    start = start,
+                    end = builder.length
+                )
+            }
             content.startsWith("- ") -> {
                 builder.append("• ")
                 builder.appendSafeInlineMarkdown(content.removePrefix("- "))
@@ -171,3 +181,4 @@ private fun String.findClosingLinkParenthesis(startIndex: Int): Int {
 }
 
 private val ORDERED_STEP = Regex("^(\\d+)\\.\\s+(.+)$")
+private val SAFE_HEADING = Regex("^#{1,6}\\s+(.+)$")
