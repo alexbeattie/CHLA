@@ -227,6 +227,16 @@
     <string name="chat_welcome_body">Ayuda con IA para encontrar servicios para el desarrollo</string>
     <string name="chat_try_asking">Puedes preguntar:</string>
     <string name="chat_request_failed">No pude comunicarme con KiNDD en este momento. Es posible que se haya interrumpido tu conexión o que el servicio no esté disponible temporalmente. Tu pregunta no se perdió; toca Reintentar para intentarlo de nuevo.</string>
+    <string name="chat_report_response">Reportar respuesta</string>
+    <string name="chat_report_title">Reportar respuesta</string>
+    <string name="chat_report_prompt">¿Por qué reportas esta respuesta?</string>
+    <string name="chat_report_reason_unsafe">Insegura o inapropiada</string>
+    <string name="chat_report_reason_inaccurate">Inexacta o engañosa</string>
+    <string name="chat_report_reason_other">Otro motivo</string>
+    <string name="chat_report_submit">Enviar reporte</string>
+    <string name="chat_report_submitting">Enviando…</string>
+    <string name="chat_report_success">Gracias. Tu reporte fue enviado para revisión.</string>
+    <string name="chat_report_failure">No se pudo enviar el reporte. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="chat_prompt_just_diagnosed">Acabamos de recibir un diagnóstico. ¿Qué debo decir cuando llame a mi centro regional para solicitar una evaluación inicial para mi hijo?</string>
     <string name="chat_prompt_waiting_intake">¿Cómo nos preparamos para la cita de evaluación inicial del centro regional? ¿Qué documentos e información debemos llevar?</string>
     <string name="chat_prompt_receiving_services">Mi hijo ya recibe servicios del centro regional. ¿Cómo me preparo para una reunión del IPP y qué servicios puedo solicitar?</string>
@@ -302,6 +312,7 @@
 
     <!-- Common -->
     <string name="cancel">Cancelar</string>
+    <string name="done">Listo</string>
     <string name="close">Cerrar</string>
     <string name="save">Guardar</string>
     <string name="ok">OK</string>

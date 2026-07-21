@@ -33,6 +33,7 @@ from .langgraph_agent import (
     stream_chat_with_langgraph_agent,
 )
 from .observability import llm_monitor_snapshot
+from .serializers import AssistantResponseReportSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,26 @@ class LLMBurstThrottle(AnonRateThrottle):
 class LLMSensitiveThrottle(AnonRateThrottle):
     """Stricter limit for endpoints that handle uploaded images/documents."""
     rate = "10/minute"
+
+
+class ResponseReportThrottle(AnonRateThrottle):
+    rate = "5/hour"
+
+
+class AssistantResponseReportView(APIView):
+    """Accept a minimal anonymous report about one Android assistant response."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [ResponseReportThrottle]
+
+    def post(self, request):
+        serializer = AssistantResponseReportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        report = serializer.save()
+        return Response(
+            {"id": report.pk, "status": "received"},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 def _request_trace_ids(request):

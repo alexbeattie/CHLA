@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -74,8 +76,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
+import com.chla.kindd.data.api.AssistantResponseReportReason
 import com.chla.kindd.data.models.ChatMessage
 import com.chla.kindd.ui.screens.ChatUiState
+import com.chla.kindd.ui.screens.ResponseReportStatus
+import com.chla.kindd.ui.screens.ResponseReportUiState
 import com.chla.kindd.ui.theme.KiNDDAiGradient
 import com.chla.kindd.ui.theme.KiNDDCardSurface
 import com.chla.kindd.ui.theme.KiNDDIndigo
@@ -89,6 +94,27 @@ private data class PromptCapsule(
     val icon: ImageVector,
     val tag: String
 )
+
+private data class ResponseReportStrings(
+    val title: String,
+    val prompt: String,
+    val unsafeReason: String,
+    val inaccurateReason: String,
+    val otherReason: String,
+    val submit: String,
+    val submitting: String,
+    val success: String,
+    val failure: String,
+    val retry: String,
+    val done: String,
+    val cancel: String
+) {
+    fun labelFor(reason: AssistantResponseReportReason) = when (reason) {
+        AssistantResponseReportReason.UNSAFE_OR_INAPPROPRIATE -> unsafeReason
+        AssistantResponseReportReason.INACCURATE_OR_MISLEADING -> inaccurateReason
+        AssistantResponseReportReason.OTHER -> otherReason
+    }
+}
 
 private val promptCapsules = listOf(
     PromptCapsule(
@@ -123,11 +149,15 @@ fun ChatContent(
     onSend: (String) -> Unit,
     onRetry: () -> Unit,
     onClear: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onReportResponse: (String, AssistantResponseReportReason) -> Unit = { _, _ -> },
+    onDismissResponseReport: () -> Unit = {}
 ) {
     var inputText by rememberSaveable { mutableStateOf("") }
     var showClearConfirmation by rememberSaveable { mutableStateOf(false) }
+    var reportMessage by remember { mutableStateOf<ChatMessage?>(null) }
     val listState = rememberLazyListState()
+    val responseReportStrings = responseReportStrings()
 
     LaunchedEffect(uiState.messages.size, uiState.error, uiState.isLoading) {
         val target = uiState.messages.size +
@@ -169,7 +199,11 @@ fun ChatContent(
                     item { ChatWelcomeCard() }
                 } else {
                     itemsIndexed(uiState.messages) { index, message ->
-                        ChatMessageCard(message = message, index = index)
+                        ChatMessageCard(
+                            message = message,
+                            index = index,
+                            onReport = { reportMessage = message }
+                        )
                     }
                 }
                 if (uiState.isLoading) {
@@ -217,6 +251,25 @@ fun ChatContent(
             dismissButton = {
                 TextButton(onClick = { showClearConfirmation = false }) {
                     Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    reportMessage?.let { message ->
+        val reportState = if (uiState.responseReport.messageId == message.id) {
+            uiState.responseReport
+        } else {
+            ResponseReportUiState()
+        }
+        ChatResponseReportDialog(
+            state = reportState,
+            strings = responseReportStrings,
+            onSubmit = { reason -> onReportResponse(message.id, reason) },
+            onDismiss = {
+                if (reportState.status != ResponseReportStatus.SUBMITTING) {
+                    reportMessage = null
+                    onDismissResponseReport()
                 }
             }
         )
@@ -392,7 +445,11 @@ private fun ChatWelcomeCard() {
 }
 
 @Composable
-private fun ChatMessageCard(message: ChatMessage, index: Int) {
+private fun ChatMessageCard(
+    message: ChatMessage,
+    index: Int,
+    onReport: () -> Unit
+) {
     val isUser = message.isUser
     val bubbleShape = RoundedCornerShape(20.dp)
     Row(
@@ -457,17 +514,159 @@ private fun ChatMessageCard(message: ChatMessage, index: Int) {
                     color = Color.White
                 )
             } else {
-                SafeMarkdownText(
-                    markdown = message.content,
-                    modifier = Modifier.testTag("chat_assistant_markdown_$index"),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface
+                val reportLabel = stringResource(R.string.chat_report_response)
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    SafeMarkdownText(
+                        markdown = message.content,
+                        modifier = Modifier.testTag("chat_assistant_markdown_$index"),
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
-                )
+                    TextButton(
+                        onClick = onReport,
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .heightIn(min = 48.dp)
+                            .testTag("chat_report_response_$index")
+                    ) {
+                        Text(reportLabel)
+                    }
+                }
             }
         }
     }
 }
+
+@Composable
+private fun ChatResponseReportDialog(
+    state: ResponseReportUiState,
+    strings: ResponseReportStrings,
+    onSubmit: (AssistantResponseReportReason) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var selectedReason by remember { mutableStateOf<AssistantResponseReportReason?>(null) }
+    val isSubmitting = state.status == ResponseReportStatus.SUBMITTING
+    val isSuccess = state.status == ResponseReportStatus.SUCCESS
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.testTag("chat_report_dialog"),
+        title = { Text(strings.title) },
+        text = {
+            if (isSuccess) {
+                Text(
+                    text = strings.success,
+                    modifier = Modifier
+                        .testTag("chat_report_success")
+                        .semantics { liveRegion = LiveRegionMode.Polite }
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(strings.prompt)
+                    AssistantResponseReportReason.entries.forEach { reason ->
+                        val selected = reason == selectedReason
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp)
+                                .selectable(
+                                    selected = selected,
+                                    enabled = !isSubmitting,
+                                    role = Role.RadioButton,
+                                    onClick = { selectedReason = reason }
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = selected,
+                                onClick = null,
+                                enabled = !isSubmitting
+                            )
+                            Text(
+                                text = strings.labelFor(reason),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
+                    when (state.status) {
+                        ResponseReportStatus.SUBMITTING -> ReportStatusText(
+                            text = strings.submitting,
+                            tag = "chat_report_submitting"
+                        )
+                        ResponseReportStatus.FAILURE -> ReportStatusText(
+                            text = strings.failure,
+                            tag = "chat_report_failure"
+                        )
+                        else -> Unit
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (isSuccess) {
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.heightIn(min = 48.dp)
+                ) {
+                    Text(strings.done)
+                }
+            } else {
+                TextButton(
+                    onClick = { selectedReason?.let(onSubmit) },
+                    enabled = selectedReason != null && !isSubmitting,
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .testTag("chat_submit_report")
+                ) {
+                    Text(
+                        if (state.status == ResponseReportStatus.FAILURE) strings.retry
+                        else if (isSubmitting) strings.submitting
+                        else strings.submit
+                    )
+                }
+            }
+        },
+        dismissButton = {
+            if (!isSuccess) {
+                TextButton(
+                    onClick = onDismiss,
+                    enabled = !isSubmitting,
+                    modifier = Modifier.heightIn(min = 48.dp)
+                ) {
+                    Text(strings.cancel)
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun ReportStatusText(text: String, tag: String) {
+    Text(
+        text = text,
+        modifier = Modifier
+            .testTag(tag)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
+
+@Composable
+private fun responseReportStrings() = ResponseReportStrings(
+    title = stringResource(R.string.chat_report_title),
+    prompt = stringResource(R.string.chat_report_prompt),
+    unsafeReason = stringResource(R.string.chat_report_reason_unsafe),
+    inaccurateReason = stringResource(R.string.chat_report_reason_inaccurate),
+    otherReason = stringResource(R.string.chat_report_reason_other),
+    submit = stringResource(R.string.chat_report_submit),
+    submitting = stringResource(R.string.chat_report_submitting),
+    success = stringResource(R.string.chat_report_success),
+    failure = stringResource(R.string.chat_report_failure),
+    retry = stringResource(R.string.retry),
+    done = stringResource(R.string.done),
+    cancel = stringResource(R.string.cancel)
+)
 
 @Composable
 private fun ChatLoadingCard() {

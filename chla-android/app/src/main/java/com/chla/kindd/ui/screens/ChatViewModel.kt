@@ -2,7 +2,10 @@ package com.chla.kindd.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.chla.kindd.BuildConfig
 import com.chla.kindd.data.api.KINDDApi
+import com.chla.kindd.data.api.AssistantResponseReportReason
+import com.chla.kindd.data.api.AssistantResponseReportRequest
 import com.chla.kindd.data.api.LLMRequest
 import com.chla.kindd.data.models.ChatMessage
 import com.chla.kindd.di.IoDispatcher
@@ -22,8 +25,21 @@ import javax.inject.Inject
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
     val isLoading: Boolean = false,
-    val error: ChatFailure? = null
+    val error: ChatFailure? = null,
+    val responseReport: ResponseReportUiState = ResponseReportUiState()
 )
+
+data class ResponseReportUiState(
+    val messageId: String? = null,
+    val status: ResponseReportStatus = ResponseReportStatus.IDLE
+)
+
+enum class ResponseReportStatus {
+    IDLE,
+    SUBMITTING,
+    SUCCESS,
+    FAILURE
+}
 
 enum class ChatFailure {
     REQUEST_FAILED
@@ -39,6 +55,8 @@ class ChatViewModel @Inject constructor(
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
     private var requestJob: Job? = null
     private var requestGeneration = 0L
+    private var reportJob: Job? = null
+    private var reportGeneration = 0L
 
     fun sendInitialPrompt(key: String, resolvedText: String) {
         if (com.chla.kindd.ui.chat.ChatLaunchPrompt.fromRouteValue(key) == null) return
@@ -114,10 +132,71 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    fun reportResponse(messageId: String, reason: AssistantResponseReportReason) {
+        if (_uiState.value.responseReport.status == ResponseReportStatus.SUBMITTING) return
+        val response = _uiState.value.messages
+            .firstOrNull { it.id == messageId && it.isAssistant }
+            ?: return
+        val generation = ++reportGeneration
+        _uiState.update {
+            it.copy(
+                responseReport = ResponseReportUiState(
+                    messageId = messageId,
+                    status = ResponseReportStatus.SUBMITTING
+                )
+            )
+        }
+        reportJob = viewModelScope.launch {
+            try {
+                withContext(ioDispatcher) {
+                    api.reportAssistantResponse(
+                        AssistantResponseReportRequest(
+                            reason = reason,
+                            reportedResponse = response.content,
+                            locale = Locale.getDefault().language.ifBlank { "und" },
+                            appVersion = BuildConfig.VERSION_NAME
+                        )
+                    )
+                }
+                if (generation == reportGeneration) {
+                    _uiState.update {
+                        it.copy(
+                            responseReport = ResponseReportUiState(
+                                messageId = messageId,
+                                status = ResponseReportStatus.SUCCESS
+                            )
+                        )
+                    }
+                }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                if (generation == reportGeneration) {
+                    _uiState.update {
+                        it.copy(
+                            responseReport = ResponseReportUiState(
+                                messageId = messageId,
+                                status = ResponseReportStatus.FAILURE
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun dismissResponseReport() {
+        if (_uiState.value.responseReport.status == ResponseReportStatus.SUBMITTING) return
+        _uiState.update { it.copy(responseReport = ResponseReportUiState()) }
+    }
+
     fun clearChat() {
         requestGeneration += 1
         requestJob?.cancel()
         requestJob = null
+        reportGeneration += 1
+        reportJob?.cancel()
+        reportJob = null
         _uiState.value = ChatUiState()
     }
 }

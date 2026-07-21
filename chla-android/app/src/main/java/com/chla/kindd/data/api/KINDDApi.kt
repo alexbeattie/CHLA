@@ -71,6 +71,11 @@ interface KINDDApi {
     suspend fun streamLLM(
         @Body request: LLMRequest
     ): okhttp3.ResponseBody
+
+    @POST("llm/response-reports/")
+    suspend fun reportAssistantResponse(
+        @Body request: AssistantResponseReportRequest
+    ): AssistantResponseReportResponse
 }
 
 data class RegionalCenterProvidersResponse(
@@ -97,4 +102,30 @@ data class LLMResponse(
     val providersReferenced: List<String>? = null,  // UUIDs from backend
     @com.google.gson.annotations.SerializedName("regional_center")
     val regionalCenter: String? = null
+)
+
+enum class AssistantResponseReportReason {
+    @com.google.gson.annotations.SerializedName("unsafe_or_inappropriate")
+    UNSAFE_OR_INAPPROPRIATE,
+
+    @com.google.gson.annotations.SerializedName("inaccurate_or_misleading")
+    INACCURATE_OR_MISLEADING,
+
+    @com.google.gson.annotations.SerializedName("other")
+    OTHER
+}
+
+data class AssistantResponseReportRequest(
+    val reason: AssistantResponseReportReason,
+    @com.google.gson.annotations.SerializedName("reported_response")
+    val reportedResponse: String,
+    val locale: String,
+    val platform: String = "android",
+    @com.google.gson.annotations.SerializedName("app_version")
+    val appVersion: String
+)
+
+data class AssistantResponseReportResponse(
+    val id: Long,
+    val status: String
 )

@@ -1,5 +1,6 @@
 package com.chla.kindd.data.api
 
+import com.google.gson.JsonParser
 import com.chla.kindd.data.discovery.ComprehensiveProviderRequest
 import com.chla.kindd.data.discovery.RegionalCenterProviderRequest
 import com.chla.kindd.data.repository.ProviderRepository
@@ -30,6 +31,36 @@ class KINDDApiContractTest {
     @After
     fun tearDown() {
         server.shutdown()
+    }
+
+    @Test
+    fun `response report posts the exact fixed JSON to the LLM endpoint`() = runBlocking {
+        server.enqueue(jsonResponse("""{"id":17,"status":"received"}"""))
+
+        val response = api.reportAssistantResponse(
+            AssistantResponseReportRequest(
+                reason = AssistantResponseReportReason.INACCURATE_OR_MISLEADING,
+                reportedResponse = "An assistant answer",
+                locale = "es-US",
+                appVersion = "1.4.1"
+            )
+        )
+        val recorded = server.takeRequest()
+        val json = JsonParser().parse(recorded.body.readUtf8()).asJsonObject
+
+        assertEquals("POST", recorded.method)
+        assertEquals("/api/llm/response-reports/", recorded.path)
+        assertEquals(17L, response.id)
+        assertEquals("received", response.status)
+        assertEquals(
+            setOf("reason", "reported_response", "locale", "platform", "app_version"),
+            json.keySet()
+        )
+        assertEquals("inaccurate_or_misleading", json["reason"].asString)
+        assertEquals("An assistant answer", json["reported_response"].asString)
+        assertEquals("es-US", json["locale"].asString)
+        assertEquals("android", json["platform"].asString)
+        assertEquals("1.4.1", json["app_version"].asString)
     }
 
     @Test
