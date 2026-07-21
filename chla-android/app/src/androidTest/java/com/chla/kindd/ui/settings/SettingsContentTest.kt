@@ -12,6 +12,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -349,7 +350,8 @@ class SettingsContentTest {
             "settings_default_radius",
             "settings_location"
         ).forEach { tag ->
-            val node = composeRule.onNodeWithTag(tag).performScrollTo().assertIsDisplayed()
+            composeRule.onNodeWithTag("settings_list").performScrollToNode(hasTestTag(tag))
+            val node = composeRule.onNodeWithTag(tag).assertIsDisplayed()
             assertTrue(
                 "$tag must remain a button under Spanish large text",
                 hasClickAction().matches(node.fetchSemanticsNode())

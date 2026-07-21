@@ -117,7 +117,8 @@ fun MoreContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding(),
+                .statusBarsPadding()
+                .testTag("more_list"),
             contentPadding = PaddingValues(
                 start = KiNDDSpacingTokens.PageInset,
                 top = 20.dp,

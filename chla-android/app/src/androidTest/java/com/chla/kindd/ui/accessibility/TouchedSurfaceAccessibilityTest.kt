@@ -30,6 +30,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -37,6 +38,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
@@ -132,7 +134,9 @@ class TouchedSurfaceAccessibilityTest {
             )
         }
 
-        composeRule.onNodeWithTag("settings_clear_profile").performScrollTo().performClick()
+        composeRule.onNodeWithTag("settings_list")
+            .performScrollToNode(hasTestTag("settings_clear_profile"))
+        composeRule.onNodeWithTag("settings_clear_profile").performClick()
         composeRule.onNodeWithTag("settings_clear_confirmation")
             .assert(hasLiveRegion(LiveRegionMode.Polite))
     }
@@ -449,7 +453,6 @@ class TouchedSurfaceAccessibilityTest {
 
     private fun assertNodeInsideRoot(tag: String, useUnmergedTree: Boolean = false) {
         val node = composeRule.onNodeWithTag(tag, useUnmergedTree = useUnmergedTree)
-            .performScrollTo()
             .assertIsDisplayed()
             .fetchSemanticsNode().boundsInRoot
         val root = composeRule.onNodeWithTag("narrow_test_root")

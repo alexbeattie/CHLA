@@ -4,14 +4,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextReplacement
 import com.chla.kindd.data.discovery.DiscoveryCatalog
 import com.chla.kindd.data.discovery.DiscoveryCriteria
@@ -214,7 +218,8 @@ class DiscoveryControlsTest {
                     onRemoveDiagnosis = {},
                     onRemoveInsurance = {},
                     onRemoveRadius = { removedRadius = true },
-                    onClearAll = { clearCount += 1 }
+                    onClearAll = { clearCount += 1 },
+                    modifier = Modifier.testTag("active_filter_chips")
                 )
             }
         }
@@ -225,7 +230,9 @@ class DiscoveryControlsTest {
         composeRule.onNodeWithContentDescription("Remove ABA Therapy").assertIsDisplayed()
         composeRule.onNodeWithTag("filter_chip_age").performClick()
         composeRule.onNodeWithTag("filter_chip_radius").assertDoesNotExist()
-        composeRule.onNodeWithTag("discovery_clear_all").performScrollTo().performClick()
+        composeRule.onNodeWithTag("active_filter_chips")
+            .performScrollToNode(hasTestTag("discovery_clear_all"))
+        composeRule.onNodeWithTag("discovery_clear_all").performClick()
         composeRule.runOnIdle {
             assertTrue(removedAge)
             assertFalse(removedRadius)
@@ -234,6 +241,8 @@ class DiscoveryControlsTest {
                 origin = DiscoveryOrigin.DeviceLocation(34.0, -118.0)
             )
         }
+        composeRule.onNodeWithTag("active_filter_chips")
+            .performScrollToNode(hasTestTag("filter_chip_radius"))
         composeRule.onNodeWithTag("filter_chip_radius").performClick()
         composeRule.runOnIdle { assertTrue(removedRadius) }
     }

@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-07-21 — Stabilize virtualized Android UI device tests
+- **Branch:** feature/android-persistent-discovery
+- **Files:** chla-android/app/src/androidTest/java/com/chla/kindd/ui/accessibility/TouchedSurfaceAccessibilityTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/discovery/DiscoveryControlsTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/more/MoreContentTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/settings/SettingsContentTest.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/MoreScreen.kt
+- **Problem:** Six emulator assertions queried off-screen LazyColumn or LazyRow children before Compose had created their semantics nodes, and one helper tried to scroll fixed list chrome.
+- **Fix:** Scroll tagged lazy parents to their target semantics before interaction, keep fixed-chrome assertions non-scrolling, and expose the More list as a stable test seam.
+
 ### 2026-07-21 — Bound fresh-device location and external app launches
 - **Branch:** feature/android-persistent-discovery
 - **Files:** chla-android/app/src/main/java/com/chla/kindd/services/LocationService.kt, chla-android/app/src/main/java/com/chla/kindd/services/CurrentLocationFallback.kt, chla-android/app/src/main/java/com/chla/kindd/platform/ExternalIntents.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/HomeScreen.kt, chla-android/app/src/main/java/com/chla/kindd/ui/regions/RegionalCentersContent.kt, chla-android/app/src/main/AndroidManifest.xml

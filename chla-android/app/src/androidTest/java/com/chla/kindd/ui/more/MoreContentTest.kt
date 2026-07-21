@@ -7,11 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.ui.screens.MoreContent
@@ -53,8 +54,8 @@ class MoreContentTest {
 
         composeRule.onNodeWithTag("more_grouped_canvas").assertIsDisplayed()
         composeRule.onNodeWithTag("more_title").assertIsDisplayed()
-        composeRule.onNodeWithTag("more_faq").performClick()
         listOf(
+            "more_faq",
             "more_about",
             "more_regions",
             "more_website",
@@ -63,7 +64,8 @@ class MoreContentTest {
             "more_edit_profile",
             "more_settings"
         ).forEach { tag ->
-            composeRule.onNodeWithTag(tag).performScrollTo().performClick()
+            composeRule.onNodeWithTag("more_list").performScrollToNode(hasTestTag(tag))
+            composeRule.onNodeWithTag(tag).performClick()
         }
         composeRule.runOnIdle {
             assertEquals(1, faqCount)
@@ -76,9 +78,15 @@ class MoreContentTest {
             assertEquals(1, settingsCount)
         }
 
-        composeRule.onNodeWithTag("more_privacy").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("more_terms").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("more_version").performScrollTo().assertHasNoClickAction()
+        composeRule.onNodeWithTag("more_list")
+            .performScrollToNode(hasTestTag("more_privacy"))
+        composeRule.onNodeWithTag("more_privacy").assertIsDisplayed()
+        composeRule.onNodeWithTag("more_list")
+            .performScrollToNode(hasTestTag("more_terms"))
+        composeRule.onNodeWithTag("more_terms").assertIsDisplayed()
+        composeRule.onNodeWithTag("more_list")
+            .performScrollToNode(hasTestTag("more_version"))
+        composeRule.onNodeWithTag("more_version").assertHasNoClickAction()
         composeRule.onNodeWithText("1.4.1").assertIsDisplayed()
         composeRule.onNodeWithText("Clinicians").assertDoesNotExist()
         composeRule.onNodeWithText("CHLA", substring = true).assertDoesNotExist()
@@ -117,7 +125,8 @@ class MoreContentTest {
             "more_edit_profile",
             "more_settings"
         ).forEach { tag ->
-            composeRule.onNodeWithTag(tag).performScrollTo().assertIsDisplayed()
+            composeRule.onNodeWithTag("more_list").performScrollToNode(hasTestTag(tag))
+            composeRule.onNodeWithTag(tag).assertIsDisplayed()
         }
     }
 }
