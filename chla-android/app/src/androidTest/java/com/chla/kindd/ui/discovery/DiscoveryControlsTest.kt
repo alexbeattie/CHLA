@@ -225,7 +225,7 @@ class DiscoveryControlsTest {
         composeRule.onNodeWithContentDescription("Remove ABA Therapy").assertIsDisplayed()
         composeRule.onNodeWithTag("filter_chip_age").performClick()
         composeRule.onNodeWithTag("filter_chip_radius").assertDoesNotExist()
-        composeRule.onNodeWithTag("discovery_clear_all").performClick()
+        composeRule.onNodeWithTag("discovery_clear_all").performScrollTo().performClick()
         composeRule.runOnIdle {
             assertTrue(removedAge)
             assertFalse(removedRadius)

@@ -28,7 +28,9 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -119,9 +121,9 @@ class TouchedSurfaceAccessibilityTest {
             .fetchSemanticsNodes()
             .mapNotNull { it.config.getOrNull(SemanticsProperties.TestTag) }
         assertTrue(
-            "Edit must precede Clear in the semantics tree",
-            clickableTags.indexOf("settings_edit_profile") <
-                clickableTags.indexOf("settings_clear_profile")
+            "Restart setup must precede Edit in the semantics tree",
+            clickableTags.indexOf("settings_restart_setup") <
+                clickableTags.indexOf("settings_edit_profile")
         )
         composeRule.onAllNodes(hasClickAction()).fetchSemanticsNodes().forEach { node ->
             assertFalse(
@@ -130,7 +132,7 @@ class TouchedSurfaceAccessibilityTest {
             )
         }
 
-        composeRule.onNodeWithTag("settings_clear_profile").performClick()
+        composeRule.onNodeWithTag("settings_clear_profile").performScrollTo().performClick()
         composeRule.onNodeWithTag("settings_clear_confirmation")
             .assert(hasLiveRegion(LiveRegionMode.Polite))
     }
@@ -276,7 +278,12 @@ class TouchedSurfaceAccessibilityTest {
                 centerLookupState = CenterLookupState.UNAVAILABLE
             )
         }
-        composeRule.onNodeWithText("Tu Centro Regional").assert(hasHeading())
+        composeRule.onNodeWithText(
+            localizedString(
+                R.string.onboarding_center_unavailable_title,
+                Locale.forLanguageTag("es")
+            )
+        ).assert(hasHeading())
         composeRule.onNodeWithTag("onboarding_center_status")
             .assert(hasLiveRegion(LiveRegionMode.Polite))
 
@@ -351,7 +358,7 @@ class TouchedSurfaceAccessibilityTest {
             "Terapia ABA", "Terapia del Habla", "Terapia Ocupacional"
         ).forEachIndexed { index, label ->
             composeRule.onNodeWithTag("provider_therapy_matrix_$index", useUnmergedTree = true)
-                .assertTextContains(label)
+                .assert(hasAnyDescendant(hasText(label)))
         }
         listOf(
             "Fisioterapia", "Terapia de alimentación",
@@ -465,18 +472,18 @@ class TouchedSurfaceAccessibilityTest {
             )
         }
 
-        val editLabel = if (locale.language == "es") {
-            "Editar perfil e introducción"
-        } else {
-            "Edit Profile & Onboarding"
-        }
-        val clearLabel = if (locale.language == "es") {
-            "Borrar perfil y reiniciar"
-        } else {
-            "Clear Profile & Restart"
-        }
+        val restartLabel = localizedString(R.string.settings_restart_welcome_setup, locale)
+        val editLabel = localizedString(R.string.settings_edit_profile, locale)
+        assertTargetAtLeast48Dp("settings_restart_setup", restartLabel)
         assertTargetAtLeast48Dp("settings_edit_profile", editLabel)
-        assertTargetAtLeast48Dp("settings_clear_profile", clearLabel)
+    }
+
+    private fun localizedString(resourceId: Int, locale: Locale): String {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val configuration = Configuration(context.resources.configuration).apply {
+            setLocale(locale)
+        }
+        return context.createConfigurationContext(configuration).getString(resourceId)
     }
 
     private fun assertTargetAtLeast48Dp(

@@ -182,11 +182,6 @@ class SettingsContentTest {
 
         assertEquals(topCoordinates.sorted(), topCoordinates)
         composeRule.onNodeWithText("1.4.1 (1)").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("settings_list")
-            .performScrollToNode(SemanticsMatcher.expectValue(
-                SemanticsProperties.TestTag,
-                "settings_bottom_navigation_clearance"
-            ))
         composeRule.onNodeWithTag("settings_bottom_navigation_clearance")
             .assertDoesNotExist()
     }
