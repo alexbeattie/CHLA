@@ -23,14 +23,14 @@ before submission.
 
 | Play data category | Collected | Shared | Optional | Purpose | Evidence / confirmation needed |
 | --- | --- | --- | --- | --- | --- |
-| Approximate location | Yes | Confirm | No | App functionality | A ZIP is required to complete the profile. Foreground coarse location is optional: onboarding converts a coarse fix to ZIP on device, while user-initiated nearby provider discovery sends coarse coordinates. |
+| Approximate location | Yes | Confirm | No | App functionality | A ZIP is required to complete the profile. Foreground coarse location is optional: onboarding passes a coarse fix to the device's geocoding service to derive a ZIP, which may use a network service depending on the device implementation; user-initiated nearby provider discovery sends coarse coordinates to the KiNDD API. |
 | Precise location | No | No | Not applicable | Not applicable | This release does not request fine or background location permission, and its fused-location requests use coarse-compatible accuracy. |
 | Health information | Yes | Confirm | Yes | App functionality | Age group, diagnosis, insurance, journey context, and health-related chat prompts may be submitted by a user. Confirm the exact Play classification for insurance and journey fields. |
 | In-app search history | Yes | Confirm | Yes | App functionality | Resource search text and filters are sent to KiNDD APIs. |
 | Other user-generated content | Yes | Confirm | Yes | App functionality; safety | Ask KiNDD prompts and AI-response reports are sent to KiNDD services. Reports use a fixed reason, the reported assistant response, and a one-way digest of a short-lived answer-bound fingerprint; they do not request free-text explanations or use a client IP/device identifier for report throttling. |
-| App interactions | Yes | Yes | No | App functionality; analytics | Google Maps SDK may collect map interactions and request metadata. Confirm current SDK configuration. |
-| Device or other IDs | Yes | Yes | No | App functionality; analytics | Google Maps SDK documents a pseudonymous SDK identifier and IP address processing for usage measurement and service improvement. |
-| Crash logs / diagnostics | Yes | Yes | No | App functionality; diagnostics | Google Maps SDK documents stack traces and crash metrics. No separate Firebase Crashlytics SDK is present. |
+| App interactions | Yes | Confirm | No | App functionality; analytics | Google Maps SDK may collect map interactions and request metadata. Confirm current SDK configuration and the applicable Play service-provider treatment. |
+| Device or other IDs | Yes | Confirm | No | App functionality; analytics | Google Maps SDK documents a pseudonymous SDK identifier and IP address processing for usage measurement and service improvement. Confirm the applicable Play service-provider treatment. |
+| Crash logs / diagnostics | Yes | Confirm | No | App functionality; diagnostics | Google Maps SDK documents stack traces and crash metrics. No separate Firebase Crashlytics SDK is present. Confirm the applicable Play service-provider treatment. |
 
 “Shared” above must be reconciled with Play's service-provider exceptions. Do not
 change an answer to “not shared” solely because a processor acts on KiNDD's
@@ -44,6 +44,8 @@ behalf; verify the applicable Play definition and contracts first.
   model-invocation logging, abuse monitoring, and retention configuration.
 - Google Maps Platform / Google Play services: current automatic collection and
   controller/service-provider role.
+- Device geocoding service: implementation/provider, whether coordinates leave
+  the device during ZIP lookup, retention, and controller/service-provider role.
 - Tavily: whether any Android-originated chat path sends user-entered text and
   what is retained.
 - Langfuse: whether production is enabled, which prompt/response fields are
@@ -54,8 +56,8 @@ behalf; verify the applicable Play definition and contracts first.
 - App category: health information / health-services navigation.
 - The app helps users find developmental services and obtain general educational
   information.
-- The app is not a regulated medical device and does not diagnose, treat, cure,
-  or prevent a medical condition.
+- Whether the app is a regulated medical device, and the related declaration
+  wording, require privacy-owner or counsel confirmation before submission.
 - The store description includes the required medical disclaimer and directs
   users to a qualified healthcare professional for medical advice.
 - Device location permission is optional. A ZIP is still required to complete
