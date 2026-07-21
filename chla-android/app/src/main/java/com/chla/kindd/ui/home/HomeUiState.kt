@@ -3,6 +3,7 @@ package com.chla.kindd.ui.home
 import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.data.servicearea.ServiceAreaFeature
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
 
 enum class HomeLookupState {
@@ -19,13 +20,21 @@ enum class HomeMessage {
     LOOKUP_UNAVAILABLE
 }
 
+enum class ServiceAreaLoadState {
+    LOADING,
+    READY,
+    FAILED
+}
+
 data class HomeUiState(
     val hydratedIdentity: RegionalCenterIdentity? = null,
     val hydratedCenter: RegionalCenter? = null,
     val zipDraft: String = "",
     val isZipDraftDirty: Boolean = false,
     val lookupState: HomeLookupState = HomeLookupState.IDLE,
-    val message: HomeMessage? = null
+    val message: HomeMessage? = null,
+    val serviceAreas: List<ServiceAreaFeature> = emptyList(),
+    val serviceAreaLoadState: ServiceAreaLoadState = ServiceAreaLoadState.LOADING
 ) {
     fun displayedZip(authoritativeProfile: UserProfile): String =
         if (isZipDraftDirty) zipDraft else authoritativeProfile.zipCode.orEmpty()

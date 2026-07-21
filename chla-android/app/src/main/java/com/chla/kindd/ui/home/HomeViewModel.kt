@@ -8,6 +8,8 @@ import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.data.profile.UserProfileRepository
+import com.chla.kindd.data.servicearea.ServiceAreaDataSource
+import com.chla.kindd.data.servicearea.ServiceAreaFeature
 import com.chla.kindd.data.source.RegionalCenterDataSource
 import com.chla.kindd.data.source.RegionalCenterLookup
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
@@ -27,7 +29,8 @@ import kotlinx.coroutines.launch
 class HomeViewModel @Inject constructor(
     private val profileRepository: UserProfileRepository,
     private val regionalCenterDataSource: RegionalCenterDataSource,
-    private val discoveryController: DiscoveryController
+    private val discoveryController: DiscoveryController,
+    private val serviceAreaDataSource: ServiceAreaDataSource = EmptyHomeServiceAreaDataSource
 ) : ViewModel() {
 
     private val mutableUiState = MutableStateFlow(HomeUiState())
@@ -42,6 +45,10 @@ class HomeViewModel @Inject constructor(
     private var lookupJob: Job? = null
     private var lastSynchronizedProfile: UserProfile? = null
     private var pendingSelfReplacement: PendingSelfReplacement? = null
+
+    init {
+        loadServiceAreas()
+    }
 
     fun onReadyProfileChanged(profile: UserProfile) {
         pendingSelfReplacement?.takeIf { pending ->
@@ -193,6 +200,34 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun loadServiceAreas() {
+        viewModelScope.launch {
+            val result = try {
+                serviceAreaDataSource.getServiceAreas()
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                Result.failure(IllegalStateException("Service areas unavailable"))
+            }
+            mutableUiState.update { state ->
+                result.fold(
+                    onSuccess = { areas ->
+                        state.copy(
+                            serviceAreas = areas,
+                            serviceAreaLoadState = ServiceAreaLoadState.READY
+                        )
+                    },
+                    onFailure = {
+                        state.copy(
+                            serviceAreas = emptyList(),
+                            serviceAreaLoadState = ServiceAreaLoadState.FAILED
+                        )
+                    }
+                )
+            }
+        }
+    }
+
     private fun invalidateLookup(): Long {
         lookupGeneration += 1
         lookupJob?.cancel()
@@ -274,4 +309,9 @@ class HomeViewModel @Inject constructor(
         var rootObserved: Boolean = false,
         var casSucceeded: Boolean = false
     )
+}
+
+private object EmptyHomeServiceAreaDataSource : ServiceAreaDataSource {
+    override suspend fun getServiceAreas(): Result<List<ServiceAreaFeature>> =
+        Result.success(emptyList())
 }

@@ -224,13 +224,15 @@ class TouchedSurfaceAccessibilityTest {
             )
         }
 
-        composeRule.onNodeWithTag("home_title").assert(hasHeading())
+        composeRule.onNodeWithTag("home_compact_logo").assertIsDisplayed()
         composeRule.onNodeWithText("¿Quién atiende a tu familia?").assert(hasHeading())
-        composeRule.onNodeWithText("Descubre servicios").assert(hasHeading())
+        composeRule.onNodeWithText("¿Cómo podemos ayudarte?")
+            .performScrollTo()
+            .assert(hasHeading())
         composeRule.onNodeWithTag("home_zip_lookup_message")
             .assert(hasLiveRegion(LiveRegionMode.Polite))
-        assertTargetAtLeast48Dp("home_map_action", "Mapa")
-        assertTargetAtLeast48Dp("home_list_action", "Lista")
+        assertTargetAtLeast48Dp("home_explore", "Explorar")
+        assertFixedTargetAtLeast48Dp("home_ask_capsule", "Pregúntale a KiNDD")
     }
 
     @Test

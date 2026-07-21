@@ -10,16 +10,26 @@ import org.junit.Test
 class ChatLaunchPromptTest {
 
     @Test
-    fun routeValues_areTheThreeFixedKeysOnly() {
+    fun routeValues_areFixedNonLocalizedKeysOnly() {
         assertEquals(
-            listOf("JUST_DIAGNOSED", "WAITING_INTAKE", "RECEIVING_SERVICES"),
+            listOf(
+                "JUST_DIAGNOSED",
+                "WAITING_INTAKE",
+                "RECEIVING_SERVICES",
+                "FIND_ABA_NEARBY",
+                "CENTER_FUNDING",
+                "FIND_REGIONAL_CENTER"
+            ),
             ChatLaunchPrompt.entries.map(ChatLaunchPrompt::routeValue)
         )
         assertEquals(
             listOf(
                 R.string.chat_prompt_just_diagnosed,
                 R.string.chat_prompt_waiting_intake,
-                R.string.chat_prompt_receiving_services
+                R.string.chat_prompt_receiving_services,
+                R.string.chat_prompt_find_aba_nearby,
+                R.string.chat_prompt_center_funding,
+                R.string.chat_prompt_find_regional_center
             ),
             ChatLaunchPrompt.entries.map(ChatLaunchPrompt::promptResId)
         )

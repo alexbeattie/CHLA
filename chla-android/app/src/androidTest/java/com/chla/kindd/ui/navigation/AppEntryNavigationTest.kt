@@ -495,6 +495,28 @@ class AppEntryNavigationTest {
     }
 
     @Test
+    fun homeSettingsAction_usesTheExistingSettingsDestination() {
+        lateinit var navController: TestNavHostController
+
+        composeRule.setContent {
+            navController = testNavController()
+            KINDDTheme {
+                KINDDMainNavHost(
+                    profile = completeProfile(),
+                    navController = navController,
+                    destinationContent = TaggedMainDestinationContent
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(HOME_SETTINGS_LAUNCH_TAG).performClick()
+        composeRule.onNodeWithTag(SETTINGS_TAG).assertExists()
+        composeRule.runOnIdle {
+            assertEquals(Screen.Settings.route, navController.currentDestination?.route)
+        }
+    }
+
+    @Test
     fun ask_opensDismissibleChatSheet_overCurrentDestination() {
         lateinit var navController: TestNavHostController
 
@@ -579,12 +601,18 @@ class AppEntryNavigationTest {
         val expectedEnglish = listOf(
             "We just got a diagnosis. What do I say when I call my regional center to request an intake evaluation for my child?",
             "How do we prepare for our regional center intake appointment? What documents and information should we bring?",
-            "My child already receives regional center services. How do I prepare for an IPP meeting, and what services can I ask for?"
+            "My child already receives regional center services. How do I prepare for an IPP meeting, and what services can I ask for?",
+            "Find ABA therapy near me. Help me understand what to compare and what to ask providers.",
+            "What services can my regional center help fund, and how do I ask for them?",
+            "Which regional center serves my ZIP code, and what should I do next?"
         )
         val expectedSpanish = listOf(
             "Acabamos de recibir un diagnóstico. ¿Qué debo decir cuando llame a mi centro regional para solicitar una evaluación inicial para mi hijo?",
             "¿Cómo nos preparamos para la cita de evaluación inicial del centro regional? ¿Qué documentos e información debemos llevar?",
-            "Mi hijo ya recibe servicios del centro regional. ¿Cómo me preparo para una reunión del IPP y qué servicios puedo solicitar?"
+            "Mi hijo ya recibe servicios del centro regional. ¿Cómo me preparo para una reunión del IPP y qué servicios puedo solicitar?",
+            "Encuentra terapia ABA cerca de mí. Ayúdame a saber qué comparar y qué preguntar a los proveedores.",
+            "¿Qué servicios puede financiar mi centro regional y cómo los solicito?",
+            "¿Qué centro regional atiende mi código postal y qué debo hacer después?"
         )
 
         assertEquals(
@@ -603,7 +631,10 @@ class AppEntryNavigationTest {
             listOf(
                 R.string.chat_prompt_just_diagnosed,
                 R.string.chat_prompt_waiting_intake,
-                R.string.chat_prompt_receiving_services
+                R.string.chat_prompt_receiving_services,
+                R.string.chat_prompt_find_aba_nearby,
+                R.string.chat_prompt_center_funding,
+                R.string.chat_prompt_find_regional_center
             ),
             ChatLaunchPrompt.entries.map(ChatLaunchPrompt::promptResId)
         )
@@ -658,6 +689,12 @@ class AppEntryNavigationTest {
                 modifier = Modifier.testTag(TYPED_CHAT_LAUNCH_TAG)
             ) {
                 Text("Open typed chat")
+            }
+            Button(
+                onClick = actions.navigateToSettings,
+                modifier = Modifier.testTag(HOME_SETTINGS_LAUNCH_TAG)
+            ) {
+                Text("Open settings from Home")
             }
             Text(
                 text = listOf(
@@ -740,6 +777,7 @@ class AppEntryNavigationTest {
         const val MAIN_NAV_ROOT_TAG = "main_nav_root"
         const val CHAT_SHEET_TAG = "chat_modal_sheet"
         const val TYPED_CHAT_LAUNCH_TAG = "launch_typed_chat"
+        const val HOME_SETTINGS_LAUNCH_TAG = "launch_home_settings"
         const val NO_PROMPT_TEXT = "no_prompt"
         const val HOME_BOTTOM_CONTROL_TAG = "home_bottom_control"
         const val LIST_BOTTOM_CONTROL_TAG = "list_bottom_control"

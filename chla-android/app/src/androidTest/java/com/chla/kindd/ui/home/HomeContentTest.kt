@@ -11,7 +11,9 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.runtime.mutableStateOf
 import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.models.RegionalCenter
@@ -33,6 +35,23 @@ class HomeContentTest {
     val composeRule = createComposeRule()
 
     @Test
+    fun homeUsesLiteralKiNDDHierarchyInsteadOfTheLegacyMaterialMasthead() {
+        setHome(matchedState(), profile = matchedProfile())
+
+        composeRule.onNodeWithTag("home_compact_logo").assertIsDisplayed()
+        composeRule.onNodeWithText("Los Angeles County").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_map_hero").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_matched_center_card").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_service_tiles").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("How can we help?").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("home_ask_capsule").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("home_title").assertDoesNotExist()
+        composeRule.onNodeWithText("Developmental services, made easier.").assertDoesNotExist()
+        composeRule.onNodeWithText("Discover services").assertDoesNotExist()
+    }
+
+    @Test
     fun unmatchedLayoutKeepsTheZipCard() {
         setHome(
             HomeUiState(
@@ -51,9 +70,9 @@ class HomeContentTest {
     @Test
     fun matchedLayoutShowsCenterActions() {
         setHome(matchedState(), profile = matchedProfile())
-        composeRule.onNodeWithText("Your Regional Center").assertIsDisplayed()
+        composeRule.onNodeWithText("YOUR REGIONAL CENTER").assertIsDisplayed()
         composeRule.onNodeWithText("Matched").assertIsDisplayed()
-        composeRule.onNodeWithText("SCLARC").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_map_highlight_SCLARC").assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("Call now").fetchSemanticsNodes().isNotEmpty())
         composeRule.onNodeWithText("Details").assertIsDisplayed()
     }
@@ -79,7 +98,7 @@ class HomeContentTest {
             }
         }
 
-        composeRule.onNodeWithText("SCLARC").assertIsDisplayed()
+        composeRule.onNodeWithText("South Central Los Angeles Regional Center").assertIsDisplayed()
         composeRule.onNodeWithText("Who serves your family?").assertDoesNotExist()
 
         composeRule.runOnIdle { profile.value = unmatchedProfile("91311") }
@@ -175,7 +194,9 @@ class HomeContentTest {
             JourneyStage.RECEIVING_SERVICES to ("What can I ask for?" to ChatLaunchPrompt.RECEIVING_SERVICES)
         ).forEach { (stage, expected) ->
             composeRule.runOnIdle { journey.value = stage }
-            composeRule.onNodeWithText(expected.first).performScrollTo().performClick()
+            composeRule.onNodeWithText(expected.first)
+                .performScrollTo()
+                .performSemanticsAction(SemanticsActions.OnClick)
             composeRule.runOnIdle { assertEquals(expected.second, prompts.removeLast()) }
         }
 
@@ -240,24 +261,67 @@ class HomeContentTest {
                     onNavigateToChat = {},
                     onOpenChat = { calls += "chat" },
                     onTherapySelected = {},
-                    onCall = {}
+                    onCall = {},
+                    onNavigateToAbout = { calls += "about" },
+                    onNavigateToFaq = { calls += "faq" },
+                    onNavigateToEditProfile = { calls += "edit" },
+                    onNavigateToSettings = { calls += "settings" }
                 )
             }
         }
 
         listOf(
-            "Map" to "map",
-            "List" to "list",
             "Explore" to "regions",
-            "Ask KiNDD" to "chat",
-            "Details" to "regions"
+            "Details" to "regions",
+            "Ask KiNDD anything…" to "chat",
+            "About" to "about",
+            "FAQ" to "faq"
         ).forEach { (label, expected) ->
-            composeRule.onNode(hasClickAction() and hasText(label)).performScrollTo().performClick()
+            val node = composeRule.onNode(hasClickAction() and hasText(label))
+            if (label != "Ask KiNDD anything…") node.performScrollTo()
+            node.performClick()
             composeRule.runOnIdle { assertEquals(expected, calls.last()) }
         }
 
+        composeRule.onNodeWithTag("home_header_overflow").performScrollTo().performClick()
+        composeRule.onNodeWithText("Change Preferences").performClick()
+        composeRule.onNodeWithTag("home_header_overflow").performScrollTo().performClick()
+        composeRule.onNodeWithText("Settings").performClick()
+
         composeRule.runOnIdle {
-            assertEquals(listOf("map", "list", "regions", "chat", "regions"), calls)
+            assertEquals(
+                listOf("regions", "regions", "chat", "about", "faq", "edit", "settings"),
+                calls
+            )
+        }
+    }
+
+    @Test
+    fun guidedQuestionsUseStableTypedPromptKeys() {
+        val prompts = mutableListOf<ChatLaunchPrompt>()
+        setHome(matchedState(), profile = matchedProfile(), onChat = prompts::add)
+
+        listOf(
+            "We just got a diagnosis. What do we do first?" to ChatLaunchPrompt.JUST_DIAGNOSED,
+            "Find ABA therapy near me" to ChatLaunchPrompt.FIND_ABA_NEARBY,
+            "What services can SCLARC help fund?" to ChatLaunchPrompt.CENTER_FUNDING
+        ).forEach { (question, expected) ->
+            composeRule.onNodeWithText(question).performScrollTo().performClick()
+            composeRule.runOnIdle { assertEquals(expected, prompts.removeLast()) }
+        }
+
+    }
+
+    @Test
+    fun unmatchedFundingQuestionUsesRegionalCenterLookupPromptKey() {
+        val prompts = mutableListOf<ChatLaunchPrompt>()
+        setHome(HomeUiState(zipDraft = "90001"), onChat = prompts::add)
+
+        composeRule.onNodeWithText("Which regional center serves my ZIP?")
+            .performScrollTo()
+            .performClick()
+        composeRule.runOnIdle {
+            assertEquals(ChatLaunchPrompt.FIND_REGIONAL_CENTER, prompts.single())
         }
     }
 
@@ -285,18 +349,17 @@ class HomeContentTest {
 
         val minimumPixels = 48f * composeRule.density.density
         listOf(
-            "Map",
-            "List",
             "ABA Therapy",
             "Speech",
             "Occupational",
             "Physical",
             "Explore",
-            "Ask KiNDD",
+            "Ask KiNDD anything…",
             "Details",
             "What do I say?"
         ).forEach { label ->
-            val node = composeRule.onNode(hasClickAction() and hasText(label)).performScrollTo()
+            val node = composeRule.onNode(hasClickAction() and hasText(label))
+            if (label != "Ask KiNDD anything…") node.performScrollTo()
             val bounds = node.fetchSemanticsNode().boundsInRoot
             assertTrue("$label width", bounds.width >= minimumPixels)
             assertTrue("$label height", bounds.height >= minimumPixels)

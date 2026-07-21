@@ -124,6 +124,7 @@ fun KINDDMainNavHost(
         navigateToFaq = { navController.navigate(Screen.FAQ.route) },
         navigateToAbout = { navController.navigate(Screen.About.route) },
         navigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
+        navigateToSettings = { navigateToPrimaryDestination(Screen.Settings) },
         navigateBack = {
             if (showChatSheet) dismissChat() else navController.popBackStack()
         }

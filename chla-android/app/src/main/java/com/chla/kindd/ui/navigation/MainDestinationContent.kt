@@ -24,7 +24,8 @@ data class MainNavActions(
     val navigateToFaq: () -> Unit,
     val navigateToAbout: () -> Unit,
     val navigateToEditProfile: () -> Unit,
-    val navigateBack: () -> Unit
+    val navigateBack: () -> Unit,
+    val navigateToSettings: () -> Unit = {}
 )
 
 interface MainDestinationContent {
@@ -67,7 +68,11 @@ object ProductionMainDestinationContent : MainDestinationContent {
             onNavigateToMap = actions.navigateToMap,
             onNavigateToProviders = actions.navigateToList,
             onNavigateToRegionalCenters = actions.navigateToRegions,
-            onNavigateToChat = actions.navigateToChat
+            onNavigateToChat = actions.navigateToChat,
+            onNavigateToAbout = actions.navigateToAbout,
+            onNavigateToFaq = actions.navigateToFaq,
+            onNavigateToEditProfile = actions.navigateToEditProfile,
+            onNavigateToSettings = actions.navigateToSettings
         )
     }
 

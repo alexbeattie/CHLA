@@ -9,6 +9,9 @@ import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.data.profile.UserProfileRepository
+import com.chla.kindd.data.servicearea.ServiceAreaCoordinate
+import com.chla.kindd.data.servicearea.ServiceAreaDataSource
+import com.chla.kindd.data.servicearea.ServiceAreaFeature
 import com.chla.kindd.data.source.LookupFailure
 import com.chla.kindd.data.source.RegionalCenterDataSource
 import com.chla.kindd.data.source.RegionalCenterLookup
@@ -37,6 +40,51 @@ class HomeViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
+
+    @Test
+    fun bundledServiceAreasLoadIntoHomeWithoutChangingTheAuthoritativeCenter() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val ready = profile(
+                zip = "90001",
+                identity = RegionalCenterIdentity(7, "South Central Los Angeles Regional Center", "SCLARC")
+            )
+            val area = serviceArea("SCLARC")
+            val viewModel = HomeViewModel(
+                RecordingProfileRepository(ready),
+                CenterSource(centers = Result.success(listOf(center(id = 7)))),
+                FakeDiscoveryController(),
+                FixedServiceAreaSource(Result.success(listOf(area)))
+            )
+
+            viewModel.onReadyProfileChanged(ready)
+            runCurrent()
+
+            assertEquals(ServiceAreaLoadState.READY, viewModel.uiState.value.serviceAreaLoadState)
+            assertEquals(listOf(area), viewModel.uiState.value.serviceAreas)
+            assertEquals(ready.regionalCenter, viewModel.uiState.value.hydratedIdentity)
+            assertEquals(7, viewModel.uiState.value.hydratedCenter?.id)
+        }
+
+    @Test
+    fun serviceAreaFailureLeavesProfileAndCenterHydrationIntact() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val identity = RegionalCenterIdentity(7, "South Central Los Angeles Regional Center", "SCLARC")
+            val ready = profile(zip = "90001", identity = identity)
+            val viewModel = HomeViewModel(
+                RecordingProfileRepository(ready),
+                CenterSource(centers = Result.success(listOf(center(id = 7)))),
+                FakeDiscoveryController(),
+                FixedServiceAreaSource(Result.failure(IllegalStateException("offline")))
+            )
+
+            viewModel.onReadyProfileChanged(ready)
+            runCurrent()
+
+            assertEquals(ServiceAreaLoadState.FAILED, viewModel.uiState.value.serviceAreaLoadState)
+            assertTrue(viewModel.uiState.value.serviceAreas.isEmpty())
+            assertEquals(identity, viewModel.uiState.value.hydratedIdentity)
+            assertEquals(7, viewModel.uiState.value.hydratedCenter?.id)
+        }
 
     @Test
     fun constructionDoesNotCollectASecondAuthoritativeProfileFlow() =
@@ -902,6 +950,26 @@ class HomeViewModelTest {
             return withContext(NonCancellable) { gates.removeFirst().await() }
         }
     }
+
+    private class FixedServiceAreaSource(
+        private val result: Result<List<ServiceAreaFeature>>
+    ) : ServiceAreaDataSource {
+        override suspend fun getServiceAreas(): Result<List<ServiceAreaFeature>> = result
+    }
+
+    private fun serviceArea(acronym: String) = ServiceAreaFeature(
+        id = 1,
+        name = "South Central Los Angeles Regional Center",
+        acronym = acronym,
+        description = "",
+        polygons = listOf(
+            listOf(
+                ServiceAreaCoordinate(33.8, -118.3),
+                ServiceAreaCoordinate(33.9, -118.2),
+                ServiceAreaCoordinate(33.7, -118.1)
+            )
+        )
+    )
 
     private fun profile(
         zip: String = "90001",
