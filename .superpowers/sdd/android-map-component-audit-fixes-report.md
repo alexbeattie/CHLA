@@ -28,3 +28,15 @@ ANDROID_HOME=/Users/alexbeattie/Library/Android/sdk ./gradlew :app:testDebugUnit
 Result: `BUILD SUCCESSFUL`; 182 unit tests, 0 failures, 0 errors; debug Android-test sources compiled; debug APK assembled; lint reported 0 errors and 87 pre-existing warnings.
 
 No APK was installed or removed and no connected test was run, so the requested post-integration screenshot smoke remains with the integration owner.
+
+## Reviewer follow-up
+
+The static-map interaction contract now also sets maps-compose's
+`scrollGesturesEnabledDuringRotateOrZoom` to `false` and sets it to `true` only
+for interactive maps. This avoids inheriting the library's enabled default on
+the static Home map.
+
+- RED: the focused test failed to compile because the contract omitted the field.
+- GREEN: `RegionalCenterMapModelsTest`: 7 tests, 0 failures.
+- Final command: focused test plus `compileDebugAndroidTestKotlin` and `assembleDebug`.
+- Final result: `BUILD SUCCESSFUL`; Android-test sources compiled and the debug APK assembled.

@@ -74,6 +74,8 @@ private fun RegionalCenterGoogleMap(
             myLocationButtonEnabled = interaction.myLocationButtonEnabled,
             rotationGesturesEnabled = interaction.rotationGesturesEnabled,
             scrollGesturesEnabled = interaction.scrollGesturesEnabled,
+            scrollGesturesEnabledDuringRotateOrZoom =
+                interaction.scrollGesturesEnabledDuringRotateOrZoom,
             tiltGesturesEnabled = interaction.tiltGesturesEnabled,
             zoomControlsEnabled = interaction.zoomControlsEnabled,
             zoomGesturesEnabled = interaction.zoomGesturesEnabled

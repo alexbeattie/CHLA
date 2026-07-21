@@ -61,6 +61,7 @@ internal data class RegionalCenterMapInteractionContract(
     val myLocationButtonEnabled: Boolean,
     val rotationGesturesEnabled: Boolean,
     val scrollGesturesEnabled: Boolean,
+    val scrollGesturesEnabledDuringRotateOrZoom: Boolean,
     val tiltGesturesEnabled: Boolean,
     val zoomControlsEnabled: Boolean,
     val zoomGesturesEnabled: Boolean
@@ -142,6 +143,7 @@ internal fun buildRegionalCenterMapInteractionContract(
     myLocationButtonEnabled = false,
     rotationGesturesEnabled = interactive,
     scrollGesturesEnabled = interactive,
+    scrollGesturesEnabledDuringRotateOrZoom = interactive,
     tiltGesturesEnabled = interactive,
     zoomControlsEnabled = false,
     zoomGesturesEnabled = interactive
