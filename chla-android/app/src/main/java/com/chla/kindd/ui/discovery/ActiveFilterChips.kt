@@ -3,8 +3,11 @@ package com.chla.kindd.ui.discovery
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,6 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.discovery.DiscoveryCriteria
@@ -143,12 +148,19 @@ private fun RemovableFilterChip(
     color: Color? = null,
     onRemove: () -> Unit
 ) {
+    val removeDescription = stringResource(R.string.discovery_remove_filter, label)
     AssistChip(
         onClick = onRemove,
-        label = {
-            Text(stringResource(R.string.discovery_remove_filter, label))
+        label = { Text(label) },
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = null
+            )
         },
-        modifier = Modifier.testTag(tag),
+        modifier = Modifier
+            .testTag(tag)
+            .semantics { contentDescription = removeDescription },
         colors = if (color == null) {
             AssistChipDefaults.assistChipColors()
         } else {

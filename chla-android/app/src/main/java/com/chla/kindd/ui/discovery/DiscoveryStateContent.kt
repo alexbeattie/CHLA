@@ -36,6 +36,7 @@ fun DiscoveryStateContent(
     state: DiscoveryState,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    emptyContent: (@Composable () -> Unit)? = null,
     content: @Composable (List<Provider>) -> Unit
 ) {
     when {
@@ -98,22 +99,27 @@ fun DiscoveryStateContent(
                             .semantics { liveRegion = LiveRegionMode.Polite },
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.SearchOff,
-                                contentDescription = null
-                            )
-                            Text(
-                                text = stringResource(R.string.no_resources_found),
-                                modifier = Modifier.semantics { heading() },
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(stringResource(R.string.try_adjusting_filters))
-                        }
+                        emptyContent?.invoke() ?: DefaultDiscoveryEmptyState()
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun DefaultDiscoveryEmptyState() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(
+            imageVector = Icons.Default.SearchOff,
+            contentDescription = null
+        )
+        Text(
+            text = stringResource(R.string.no_resources_found),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(stringResource(R.string.try_adjusting_filters))
     }
 }
 

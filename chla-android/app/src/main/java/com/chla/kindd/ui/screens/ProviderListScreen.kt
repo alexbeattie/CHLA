@@ -11,14 +11,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -148,7 +153,8 @@ fun ProviderListContent(
             DiscoveryStateContent(
                 state = state,
                 onRetry = actions.onRetry,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                emptyContent = { ProviderListEmptyState(onRefresh = actions.onRetry) }
             ) {
                 ProviderCards(
                     providers = providers,
@@ -174,6 +180,45 @@ fun ProviderListContent(
                 showFilters = false
             }
         )
+    }
+}
+
+@Composable
+private fun ProviderListEmptyState(onRefresh: () -> Unit) {
+    Column(
+        modifier = Modifier.padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Apartment,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .size(64.dp)
+                .testTag("provider_list_empty_icon")
+        )
+        Text(
+            text = stringResource(R.string.list_no_resources_found),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() }
+        )
+        Text(
+            text = stringResource(R.string.list_no_resources_description),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Button(
+            onClick = onRefresh,
+            modifier = Modifier
+                .heightIn(min = 48.dp)
+                .testTag("provider_list_empty_refresh")
+        ) {
+            Text(stringResource(R.string.list_refresh))
+        }
     }
 }
 

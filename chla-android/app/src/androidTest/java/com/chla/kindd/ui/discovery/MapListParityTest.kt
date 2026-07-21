@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasTestTag
@@ -55,6 +56,7 @@ import com.chla.kindd.ui.theme.KINDDTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -419,6 +421,7 @@ class MapListParityTest {
     @Test
     fun providerList_loadingErrorAndEmptyStatesRetainCompactDiscoveryChrome() {
         var state by mutableStateOf(DiscoveryState(isLoading = true))
+        var refreshClicks = 0
 
         composeRule.setContent {
             KINDDTheme {
@@ -427,7 +430,9 @@ class MapListParityTest {
                     providers = state.providers,
                     sort = ProviderListSort.NAME,
                     onSortChange = {},
-                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
+                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())).copy(
+                        onRetry = { refreshClicks += 1 }
+                    ),
                     onProviderClick = {}
                 )
             }
@@ -440,7 +445,51 @@ class MapListParityTest {
         assertListChromeIsDisplayed()
         composeRule.runOnIdle { state = DiscoveryState(hasLoadedOnce = true) }
         composeRule.onNodeWithTag("discovery_empty").assertIsDisplayed()
+        composeRule.onNodeWithTag("provider_list_empty_icon").assertIsDisplayed()
+        composeRule.onNodeWithText("No Resources Found").assertIsDisplayed()
+        composeRule.onNodeWithText(
+            "Try adjusting your search filters or expanding your search radius."
+        ).assertIsDisplayed()
+        val refreshNode = composeRule.onNodeWithTag("provider_list_empty_refresh")
+            .assertIsDisplayed()
+            .assertHasClickAction()
+        val minimumPixels = 48f * composeRule.density.density
+        assertTrue(
+            "Refresh target is shorter than 48dp",
+            refreshNode.fetchSemanticsNode().boundsInRoot.height >= minimumPixels
+        )
+        refreshNode.performClick()
+        composeRule.runOnIdle { assertEquals(1, refreshClicks) }
         assertListChromeIsDisplayed()
+    }
+
+    @Test
+    fun providerCard_phoneActionIsIndependentAndFiresExactlyOnce() {
+        var cardClicks = 0
+        var phoneClicks = 0
+        val provider = Provider(
+            id = "phone",
+            name = "Community resource",
+            phone = "3235551212"
+        )
+
+        composeRule.setContent {
+            KINDDTheme {
+                com.chla.kindd.ui.providers.ProviderCard(
+                    provider = provider,
+                    onClick = { cardClicks += 1 },
+                    onPhoneClick = { phoneClicks += 1 }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("provider_phone_phone", useUnmergedTree = true)
+            .assertHasClickAction()
+            .performClick()
+        composeRule.runOnIdle {
+            assertEquals(0, cardClicks)
+            assertEquals(1, phoneClicks)
+        }
     }
 
     @Test
@@ -477,6 +526,8 @@ class MapListParityTest {
     private fun assertListChromeIsDisplayed() {
         composeRule.onNodeWithTag("list_compact_header").assertIsDisplayed()
         composeRule.onNodeWithTag("discovery_search_field").assertIsDisplayed()
+        composeRule.onNodeWithText("Search resources, services, or ZIP code")
+            .assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Sort resources").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Filters").assertIsDisplayed()
     }

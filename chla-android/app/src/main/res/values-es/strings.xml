@@ -52,7 +52,10 @@
     <string name="list_title">Recursos</string>
     <string name="resources_found">%d recursos encontrados</string>
     <string name="resource_found">%d recurso encontrado</string>
-    <string name="search_placeholder">Buscar por nombre, servicio o ubicación</string>
+    <string name="search_placeholder">Buscar recursos, servicios o código postal</string>
+    <string name="list_no_resources_found">No Se Encontraron Recursos</string>
+    <string name="list_no_resources_description">Intente ajustar sus filtros de búsqueda o ampliar su radio de búsqueda.</string>
+    <string name="list_refresh">Actualizar</string>
     <string name="loading">Cargando…</string>
     <string name="app_entry_loading_content_description">Cargando KiNDD</string>
     <string name="error_loading">Error al cargar recursos</string>

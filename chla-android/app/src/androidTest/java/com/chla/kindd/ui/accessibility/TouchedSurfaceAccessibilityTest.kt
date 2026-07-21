@@ -27,6 +27,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -317,16 +318,21 @@ class TouchedSurfaceAccessibilityTest {
     }
 
     @Test
-    fun providerList_spanishLargeTextWrapsAndLocalizesEveryCanonicalTherapy() {
+    fun providerList_spanishNarrowLargeTextKeepsChromeMetadataAndActionsUsable() {
         val provider = Provider(
             id = "matrix",
             name = "Centro de desarrollo",
+            phone = "3235551212",
             therapyTypes = TherapyType.entries.map(TherapyType::apiValue),
             distance = 1.2
         )
-        setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = true, fontScale = 1.5f) {
+        setLocalizedContent(Locale.forLanguageTag("es"), darkTheme = true, fontScale = 1.3f) {
             ProviderListContent(
-                state = DiscoveryState(providers = listOf(provider), hasLoadedOnce = true),
+                state = DiscoveryState(
+                    criteria = DiscoveryCriteria(therapyTypes = setOf(TherapyType.ABA)),
+                    providers = listOf(provider),
+                    hasLoadedOnce = true
+                ),
                 providers = listOf(provider),
                 sort = ProviderListSort.NAME,
                 onSortChange = {}, actions = noOpDiscoveryActions(), onProviderClick = {}
@@ -334,14 +340,35 @@ class TouchedSurfaceAccessibilityTest {
         }
 
         composeRule.onNodeWithTag("list_title").assert(hasHeading())
+        composeRule.onNodeWithText("Buscar recursos, servicios o código postal")
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("filter_chip_therapy_ABA")
+            .assertTextContains("Terapia ABA")
+        composeRule.onNodeWithText("Quitar Terapia ABA").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Quitar Terapia ABA").assertIsDisplayed()
         listOf(
-            "Terapia ABA", "Terapia del Habla", "Terapia Ocupacional", "Fisioterapia",
-            "Terapia de alimentación", "Interacción padre-hijo y capacitación parental"
-        ).forEach { composeRule.onNodeWithText(it, useUnmergedTree = true).assertIsDisplayed() }
+            "Terapia ABA", "Terapia del Habla", "Terapia Ocupacional"
+        ).forEachIndexed { index, label ->
+            composeRule.onNodeWithTag("provider_therapy_matrix_$index", useUnmergedTree = true)
+                .assertTextContains(label)
+        }
+        listOf(
+            "Fisioterapia", "Terapia de alimentación",
+            "Interacción padre-hijo y capacitación parental"
+        ).forEach { composeRule.onNodeWithText(it, useUnmergedTree = true).assertDoesNotExist() }
+        composeRule.onNodeWithText("+3 más", useUnmergedTree = true).assertIsDisplayed()
         TherapyType.entries.forEach { therapy ->
             composeRule.onNodeWithText(therapy.apiValue, useUnmergedTree = true).assertDoesNotExist()
         }
-        assertNodeInsideRoot("provider_therapy_matrix_5", useUnmergedTree = true)
+        assertNodeInsideRoot("list_compact_header")
+        assertNodeInsideRoot("discovery_search_field")
+        assertFixedTargetAtLeast48Dp("list_sort_button", "Ordenar recursos")
+        assertFixedTargetAtLeast48Dp("list_filter_button", "Filtros")
+        assertTargetAtLeast48Dp(
+            "provider_phone_matrix",
+            "(323) 555-1212",
+            useUnmergedTree = true
+        )
     }
 
     @Test
@@ -451,8 +478,14 @@ class TouchedSurfaceAccessibilityTest {
         assertTargetAtLeast48Dp("settings_clear_profile", clearLabel)
     }
 
-    private fun assertTargetAtLeast48Dp(tag: String, label: String) {
-        val node = composeRule.onNodeWithTag(tag).performScrollTo().assertIsDisplayed()
+    private fun assertTargetAtLeast48Dp(
+        tag: String,
+        label: String,
+        useUnmergedTree: Boolean = false
+    ) {
+        val node = composeRule.onNodeWithTag(tag, useUnmergedTree = useUnmergedTree)
+            .performScrollTo()
+            .assertIsDisplayed()
         assertNodeAtLeast48Dp(node.fetchSemanticsNode().boundsInRoot, label)
     }
 
