@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName
 data class Provider(
     val id: String,  // UUID from backend
     val name: String,
+    val type: String? = null,
     val phone: String? = null,
     val email: String? = null,
     val website: String? = null,
@@ -44,22 +45,14 @@ data class Provider(
             }
         }
 
+    val displayAddressLines: List<String>
+        get() = formattedAddress.lines
+
     val fullAddress: String
-        get() = buildString {
-            address?.let { append(it) }
-            if (city != null || state != null || zipCode != null) {
-                if (isNotEmpty()) append(", ")
-                city?.let { append(it) }
-                state?.let {
-                    if (city != null) append(", ")
-                    append(it)
-                }
-                zipCode?.let {
-                    append(" ")
-                    append(it)
-                }
-            }
-        }
+        get() = formattedAddress.singleLine
+
+    private val formattedAddress: ProviderAddress
+        get() = ProviderAddressFormatter.format(address, city, state, zipCode)
 
     val formattedDistance: String
         get() = distance?.let { String.format("%.1f mi", it) } ?: ""

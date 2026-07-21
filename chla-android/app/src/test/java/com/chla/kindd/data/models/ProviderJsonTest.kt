@@ -8,6 +8,28 @@ class ProviderJsonTest {
     private val gson = Gson()
 
     @Test
+    fun `decodes provider type and normalized display address`() {
+        val provider = gson.fromJson(
+            """
+            {
+              "id": "00000000-0000-0000-0000-000000000005",
+              "name": "Typed Provider",
+              "type": "Speech Therapy",
+              "address": "100 Hope St",
+              "city": "Los Angeles",
+              "state": "CA",
+              "zip_code": "90001"
+            }
+            """.trimIndent(),
+            Provider::class.java
+        )
+
+        assertEquals("Speech Therapy", provider.type)
+        assertEquals(listOf("100 Hope St", "Los Angeles, CA 90001"), provider.displayAddressLines)
+        assertEquals("100 Hope St, Los Angeles, CA 90001", provider.fullAddress)
+    }
+
+    @Test
     fun `uses normalized insurance carriers when legacy insurance is text`() {
         val provider = gson.fromJson(
             """
