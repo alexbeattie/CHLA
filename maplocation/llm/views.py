@@ -6,11 +6,14 @@ Includes both regular and streaming (SSE) endpoints.
 
 import json
 import logging
+from collections.abc import Mapping
+
+from django.db import IntegrityError, transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle, BaseThrottle
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from django.http import StreamingHttpResponse
@@ -33,6 +36,12 @@ from .langgraph_agent import (
     stream_chat_with_langgraph_agent,
 )
 from .observability import llm_monitor_snapshot
+from .models import AssistantResponseReport
+from .response_fingerprints import (
+    issue_response_fingerprint,
+    response_fingerprint_digest,
+)
+from .serializers import AssistantResponseReportSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +53,49 @@ class LLMBurstThrottle(AnonRateThrottle):
 class LLMSensitiveThrottle(AnonRateThrottle):
     """Stricter limit for endpoints that handle uploaded images/documents."""
     rate = "10/minute"
+
+
+class ResponseFingerprintThrottle(BaseThrottle):
+    """Reject reused report tokens using only their one-way database digest."""
+
+    def allow_request(self, request, view):
+        if not isinstance(request.data, Mapping):
+            return True
+        token = request.data.get("response_fingerprint")
+        if not isinstance(token, str) or not token:
+            return True
+        digest = response_fingerprint_digest(token)
+        return not AssistantResponseReport.objects.filter(
+            response_fingerprint_digest=digest
+        ).exists()
+
+
+class AssistantResponseReportView(APIView):
+    """Accept a minimal anonymous report about one Android assistant response."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [ResponseFingerprintThrottle]
+
+    def post(self, request):
+        serializer = AssistantResponseReportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        fingerprint_digest = serializer.validated_data["response_fingerprint_digest"]
+        try:
+            with transaction.atomic():
+                report = serializer.save()
+        except IntegrityError:
+            if not AssistantResponseReport.objects.filter(
+                response_fingerprint_digest=fingerprint_digest
+            ).exists():
+                raise
+            return Response(
+                {"detail": "This assistant response has already been reported."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+        return Response(
+            {"id": report.pk, "status": "received"},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 def _request_trace_ids(request):
@@ -152,6 +204,9 @@ class AskKiNDDView(APIView):
                     "answer": result["answer"],
                     "providers_referenced": result["providers_referenced"],
                     "regional_center": result["regional_center"],
+                    "response_fingerprint": issue_response_fingerprint(
+                        result["answer"]
+                    ),
                 }
             )
 
