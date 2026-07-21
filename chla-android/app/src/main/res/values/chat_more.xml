@@ -9,6 +9,7 @@
     <string name="chat_welcome_description">Ask about developmental services, regional centers, or what to do next.</string>
     <string name="chat_composer_placeholder">Ask about services…</string>
     <string name="chat_more_actions">Chat options</string>
+    <string name="chat_open_link_action">Open</string>
     <string name="chat_clear_title">Clear this chat?</string>
     <string name="chat_clear_body">This removes the messages in this conversation.</string>
     <string name="chat_clear_confirm">Clear chat</string>

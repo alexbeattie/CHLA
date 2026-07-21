@@ -6,11 +6,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import com.chla.kindd.R
 import com.chla.kindd.ui.theme.KiNDDIndigo
 
 internal const val SAFE_MARKDOWN_URL_TAG = "URL"
@@ -34,9 +39,25 @@ internal fun SafeMarkdownText(
     }
 
     val uriHandler = LocalUriHandler.current
+    val openVerb = stringResource(R.string.chat_open_link_action)
+    val openLink: (String) -> Boolean = remember(onOpenLink, uriHandler) {
+        { url ->
+            runCatching { (onOpenLink ?: uriHandler::openUri)(url) }.isSuccess
+        }
+    }
+    val accessibilityActions = remember(rendered, links, openVerb, openLink) {
+        links.map { link ->
+            val label = rendered.text.substring(link.start, link.end)
+            CustomAccessibilityAction(label = "$openVerb $label") {
+                openLink(link.item)
+            }
+        }
+    }
     ClickableText(
         text = rendered,
-        modifier = modifier,
+        modifier = modifier.semantics {
+            customActions = accessibilityActions
+        },
         style = style,
         onClick = { offset ->
             rendered.getStringAnnotations(
@@ -44,7 +65,7 @@ internal fun SafeMarkdownText(
                 start = offset,
                 end = offset
             ).firstOrNull()?.let { link ->
-                runCatching { (onOpenLink ?: uriHandler::openUri)(link.item) }
+                openLink(link.item)
             }
         }
     )

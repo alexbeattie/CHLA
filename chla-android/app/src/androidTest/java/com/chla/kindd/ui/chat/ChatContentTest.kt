@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.platform.LocalConfiguration
@@ -167,6 +168,31 @@ class ChatContentTest {
         composeRule.runOnIdle {
             assertEquals("https://kinddhelp.com", openedUrl)
         }
+    }
+
+    @Test
+    fun safeMarkdownLinks_exposeNamedTalkBackActionsForEachDestination() {
+        val openedUrls = mutableListOf<String>()
+        composeRule.setContent {
+            KINDDTheme {
+                SafeMarkdownText(
+                    markdown = "[KiNDD](https://kinddhelp.org) and " +
+                        "[DDS](https://www.dds.ca.gov)",
+                    modifier = Modifier.testTag("safe_markdown_accessible_links"),
+                    onOpenLink = openedUrls::add
+                )
+            }
+        }
+
+        val actions = composeRule.onNodeWithTag("safe_markdown_accessible_links")
+            .fetchSemanticsNode()
+            .config
+            .getOrNull(SemanticsActions.CustomActions)
+            .orEmpty()
+
+        assertEquals(listOf("Open KiNDD", "Open DDS"), actions.map { it.label })
+        composeRule.runOnIdle { assertTrue(actions.last().action()) }
+        assertEquals(listOf("https://www.dds.ca.gov"), openedUrls)
     }
 
     @Test
