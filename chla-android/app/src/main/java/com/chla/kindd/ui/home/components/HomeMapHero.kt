@@ -38,8 +38,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -47,6 +48,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -74,7 +76,8 @@ fun HomeMapHero(
     onDetails: () -> Unit,
     onCall: (String) -> Unit,
     modifier: Modifier = Modifier,
-    mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
+    mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null,
+    onCenterRoleTextLayout: (TextLayoutResult) -> Unit = {}
 ) {
     val identity = profile.regionalCenter
     val summary = identity?.let {
@@ -82,10 +85,14 @@ fun HomeMapHero(
     } ?: stringResource(R.string.home_parity_map_summary_unmatched)
     val heroShape = RoundedCornerShape(KiNDDShapeTokens.Hero)
 
+    val heroHeight = homeMapHeroHeightDp(
+        availableWidthDp = LocalConfiguration.current.screenWidthDp,
+        fontScale = LocalDensity.current.fontScale
+    ).dp
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(340.dp)
+            .height(heroHeight)
             .shadow(18.dp, heroShape, ambientColor = KiNDDIndigo.copy(alpha = 0.12f))
             .clip(heroShape)
             .background(
@@ -153,6 +160,7 @@ fun HomeMapHero(
                 uiState = uiState,
                 onDetails = onDetails,
                 onCall = onCall,
+                onCenterRoleTextLayout = onCenterRoleTextLayout,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(10.dp)
@@ -167,6 +175,7 @@ private fun HomeMatchedCenterOverlayCard(
     uiState: HomeUiState,
     onDetails: () -> Unit,
     onCall: (String) -> Unit,
+    onCenterRoleTextLayout: (TextLayoutResult) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val identity = profile.regionalCenter ?: return
@@ -237,8 +246,8 @@ private fun HomeMatchedCenterOverlayCard(
                 text = stringResource(R.string.home_parity_center_role),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = if (stackActions) 1 else 2,
-                overflow = TextOverflow.Ellipsis
+                onTextLayout = onCenterRoleTextLayout,
+                modifier = Modifier.testTag("home_center_role")
             )
             if (stackActions) {
                 Column(
@@ -313,6 +322,9 @@ private fun MatchedCenterDetailsAction(
 
 internal fun shouldStackMatchedCenterActions(availableWidthDp: Int, fontScale: Float): Boolean =
     availableWidthDp <= 340 || fontScale >= 1.3f
+
+internal fun homeMapHeroHeightDp(availableWidthDp: Int, fontScale: Float): Int =
+    if (availableWidthDp <= 340 && fontScale >= 1.3f) 420 else 340
 
 @Composable
 private fun HomeZipOverlayCard(

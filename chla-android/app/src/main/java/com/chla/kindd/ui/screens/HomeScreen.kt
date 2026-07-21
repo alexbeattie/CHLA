@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.data.discovery.TherapyType
@@ -117,7 +118,8 @@ fun HomeContent(
     regionalCenterMapContent: (@Composable (
         RegionalCenterMapRenderModel,
         (String) -> Unit
-    ) -> Unit)? = null
+    ) -> Unit)? = null,
+    onCenterRoleTextLayout: (TextLayoutResult) -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -146,7 +148,8 @@ fun HomeContent(
                 onExplore = onNavigateToRegionalCenters,
                 onDetails = onNavigateToRegionalCenters,
                 onCall = onCall,
-                mapContent = regionalCenterMapContent
+                mapContent = regionalCenterMapContent,
+                onCenterRoleTextLayout = onCenterRoleTextLayout
             )
 
             HomeServiceTiles(onTherapySelected = onTherapySelected)

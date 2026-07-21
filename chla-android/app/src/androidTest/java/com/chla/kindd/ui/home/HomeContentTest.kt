@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.platform.app.InstrumentationRegistry
 import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.models.RegionalCenter
@@ -40,6 +41,7 @@ import com.chla.kindd.ui.chat.ChatLaunchPrompt
 import com.chla.kindd.ui.screens.HomeContent
 import com.chla.kindd.ui.theme.KINDDTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -500,15 +502,19 @@ class HomeContentTest {
     }
 
     private fun assertMatchedHeroActionsFit(widthDp: Int) {
+        var centerRoleLayout: TextLayoutResult? = null
         setNarrowHome(
             widthDp = widthDp,
             locale = Locale.US,
             fontScale = 1.3f,
             state = matchedState(),
-            profile = matchedProfile()
+            profile = matchedProfile(),
+            onCenterRoleTextLayout = { centerRoleLayout = it }
         )
 
         val root = composeRule.onNodeWithTag("narrow_home_root").fetchSemanticsNode().boundsInRoot
+        val hero = composeRule.onNodeWithTag("home_map_hero").fetchSemanticsNode().boundsInRoot
+        val centerRole = composeRule.onNodeWithTag("home_center_role").fetchSemanticsNode().boundsInRoot
         val minimumPixels = 48f * composeRule.density.density
         listOf("+1 (213) 555-1212", "Details").forEach { label ->
             val bounds = composeRule.onNode(hasClickAction() and hasText(label))
@@ -521,6 +527,15 @@ class HomeContentTest {
             assertTrue("$label target is shorter than 48dp", bounds.height >= minimumPixels)
             assertTrue("$label target is narrower than 48dp", bounds.width >= minimumPixels)
         }
+        composeRule.runOnIdle {
+            val layout = requireNotNull(centerRoleLayout)
+            assertTrue("center explanation did not wrap at ${widthDp}dp", layout.lineCount > 1)
+            assertFalse("center explanation is truncated at ${widthDp}dp", layout.hasVisualOverflow)
+        }
+        assertTrue("center explanation starts outside hero", centerRole.top >= hero.top)
+        assertTrue("center explanation ends outside hero", centerRole.bottom <= hero.bottom)
+        assertTrue("center explanation starts outside narrow root", centerRole.left >= root.left)
+        assertTrue("center explanation ends outside narrow root", centerRole.right <= root.right)
     }
 
     private fun setNarrowHome(
@@ -528,7 +543,8 @@ class HomeContentTest {
         locale: Locale,
         fontScale: Float,
         state: HomeUiState,
-        profile: UserProfile
+        profile: UserProfile,
+        onCenterRoleTextLayout: (TextLayoutResult) -> Unit = {}
     ) {
         val baseContext = InstrumentationRegistry.getInstrumentation().targetContext
         val configuration = Configuration(baseContext.resources.configuration).apply {
@@ -562,7 +578,8 @@ class HomeContentTest {
                             onNavigateToChat = {},
                             onOpenChat = {},
                             onTherapySelected = {},
-                            onCall = {}
+                            onCall = {},
+                            onCenterRoleTextLayout = onCenterRoleTextLayout
                         )
                     }
                 }
