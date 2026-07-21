@@ -161,6 +161,73 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun externalProfileChangeSupersedesCancellationIgnoringLookup_beforeItCanPersist() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val pendingMatch = CompletableDeferred<RegionalCenterLookup>()
+            val source = ControlledLookupCenterSource(ArrayDeque(listOf(pendingMatch)))
+            val original = profile(zip = "90001", identity = null)
+            val externallyEdited = profile(
+                zip = "91311",
+                identity = RegionalCenterIdentity(91, "Externally edited", "EXTERNAL"),
+                audience = AudienceType.CLINICIAN,
+                journey = JourneyStage.RECEIVING_SERVICES,
+                age = AgeGroup.ADULT
+            )
+            val repository = RecordingProfileRepository(original)
+            val viewModel = HomeViewModel(repository, source, FakeDiscoveryController())
+            runCurrent()
+
+            viewModel.onZipChanged("90210")
+            viewModel.submitZip()
+            runCurrent()
+            repository.emit(externallyEdited)
+            runCurrent()
+
+            pendingMatch.complete(RegionalCenterLookup.Matched(center(id = 22, name = "Late")))
+            runCurrent()
+
+            assertEquals(externallyEdited, repository.current)
+            assertTrue(repository.replacements.isEmpty())
+            assertEquals("91311", viewModel.uiState.value.zipDraft)
+            assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+        }
+
+    @Test
+    fun lookupOrProfileWriteFailure_exposesSanitizedRetryableState_andKeepsProfile() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val original = profile(zip = "90001", identity = null)
+
+            val lookupFailureFixture = fixture(
+                original,
+                CenterSource(lookupFailure = IllegalStateException("private lookup body 90001"))
+            )
+            lookupFailureFixture.viewModel.onZipChanged("90210")
+            lookupFailureFixture.viewModel.submitZip()
+            runCurrent()
+
+            assertEquals(original, lookupFailureFixture.repository.current)
+            assertEquals(HomeLookupState.UNAVAILABLE, lookupFailureFixture.viewModel.uiState.value.lookupState)
+            assertEquals(HomeMessage.LOOKUP_UNAVAILABLE, lookupFailureFixture.viewModel.uiState.value.message)
+            assertFalse(lookupFailureFixture.viewModel.uiState.value.message.toString().contains("private"))
+
+            val writeFailureFixture = fixture(
+                original,
+                CenterSource(lookup = RegionalCenterLookup.Matched(center()))
+            )
+            writeFailureFixture.repository.replaceFailure =
+                IllegalStateException("private write body 90210")
+            writeFailureFixture.viewModel.onZipChanged("90210")
+            writeFailureFixture.viewModel.submitZip()
+            runCurrent()
+
+            assertEquals(original, writeFailureFixture.repository.current)
+            assertTrue(writeFailureFixture.repository.replacements.isEmpty())
+            assertEquals(HomeLookupState.UNAVAILABLE, writeFailureFixture.viewModel.uiState.value.lookupState)
+            assertEquals(HomeMessage.LOOKUP_UNAVAILABLE, writeFailureFixture.viewModel.uiState.value.message)
+            assertFalse(writeFailureFixture.viewModel.uiState.value.message.toString().contains("private"))
+        }
+
+    @Test
     fun unmatchedAndUnavailableLeaveCurrentProfileByteForByteUnchanged() =
         runTest(mainDispatcherRule.testDispatcher) {
             val original = profile()
@@ -373,8 +440,10 @@ class HomeViewModelTest {
         private val profiles = MutableStateFlow(initial)
         val replacements = mutableListOf<UserProfile>()
         val current get() = profiles.value
+        var replaceFailure: Throwable? = null
         override val profile: Flow<UserProfile> = profiles
         override suspend fun replaceProfile(profile: UserProfile) {
+            replaceFailure?.let { throw it }
             replacements += profile
             profiles.value = profile
         }
@@ -384,13 +453,15 @@ class HomeViewModelTest {
 
     private class CenterSource(
         var centers: Result<List<RegionalCenter>> = Result.success(emptyList()),
-        var lookup: RegionalCenterLookup = RegionalCenterLookup.Unmatched
+        var lookup: RegionalCenterLookup = RegionalCenterLookup.Unmatched,
+        var lookupFailure: Throwable? = null
     ) : RegionalCenterDataSource {
         val lookups = mutableListOf<String>()
         override suspend fun getRegionalCenters() = centers
         override suspend fun getRegionalCentersNearby(latitude: Double, longitude: Double) = centers
         override suspend fun lookupRegionalCenter(zipCode: String): RegionalCenterLookup {
             lookups += zipCode
+            lookupFailure?.let { throw it }
             return lookup
         }
     }

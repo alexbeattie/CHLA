@@ -47,6 +47,7 @@ class OnboardingViewModel @Inject constructor(
     fun initialize(mode: OnboardingMode, initialProfile: UserProfile) {
         if (initialized) return
         initialized = true
+        saveCompleted = false
         val draft = when (mode) {
             OnboardingMode.FIRST_RUN -> initialProfile.copy(
                 audienceType = initialProfile.audienceType ?: AudienceType.FAMILY
@@ -231,6 +232,7 @@ class OnboardingViewModel @Inject constructor(
                 saveCompleted = true
                 mutableUiState.update { it.copy(isSaving = false) }
                 eventChannel.send(OnboardingEvent.Saved)
+                initialized = false
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
@@ -245,7 +247,11 @@ class OnboardingViewModel @Inject constructor(
 
     fun cancel() {
         if (interactionsLocked()) return
-        eventChannel.trySend(OnboardingEvent.Close)
+        if (eventChannel.trySend(OnboardingEvent.Close).isSuccess) {
+            invalidateAsyncWork()
+            initialized = false
+            saveCompleted = true
+        }
     }
 
     private fun lookupCurrentZip() {

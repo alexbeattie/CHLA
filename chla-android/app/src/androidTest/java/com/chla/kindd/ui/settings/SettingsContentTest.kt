@@ -53,4 +53,23 @@ class SettingsContentTest {
         composeRule.runOnIdle { assertEquals(1, clearCount) }
         composeRule.onNodeWithTag("settings_clear_confirmation").assertDoesNotExist()
     }
+
+    @Test
+    fun clearFailure_showsSanitizedLocalizedRetryMessage() {
+        composeRule.setContent {
+            KINDDTheme {
+                SettingsContent(
+                    onNavigateToFAQ = {},
+                    onNavigateToAbout = {},
+                    onEditProfile = {},
+                    onClearProfile = {},
+                    clearFailed = true
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("settings_clear_profile_error").assertIsDisplayed()
+        composeRule.onNodeWithText("We couldn't clear your profile. Please try again.")
+            .assertIsDisplayed()
+    }
 }

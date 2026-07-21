@@ -60,11 +60,13 @@ fun SettingsScreen(
     onNavigateToEditProfile: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    var clearFailed by rememberSaveable { mutableStateOf(false) }
     val editNavigator = remember(onNavigateToEditProfile) { onNavigateToEditProfile }
     LaunchedEffect(viewModel, editNavigator) {
         viewModel.events.collect { event ->
             when (event) {
                 SettingsEvent.NavigateToEditProfile -> editNavigator()
+                SettingsEvent.ClearFailed -> clearFailed = true
             }
         }
     }
@@ -73,7 +75,11 @@ fun SettingsScreen(
         onNavigateToFAQ = onNavigateToFAQ,
         onNavigateToAbout = onNavigateToAbout,
         onEditProfile = viewModel::editProfile,
-        onClearProfile = viewModel::clearProfile
+        onClearProfile = {
+            clearFailed = false
+            viewModel.clearProfile()
+        },
+        clearFailed = clearFailed
     )
 }
 
@@ -84,6 +90,7 @@ fun SettingsContent(
     onNavigateToAbout: () -> Unit,
     onEditProfile: () -> Unit,
     onClearProfile: () -> Unit,
+    clearFailed: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var showClearConfirmation by rememberSaveable { mutableStateOf(false) }
@@ -140,6 +147,19 @@ fun SettingsContent(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 )
+            }
+            if (clearFailed) {
+                item {
+                    Text(
+                        text = stringResource(R.string.settings_clear_profile_failed),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("settings_clear_profile_error")
+                            .semantics { liveRegion = LiveRegionMode.Polite }
+                    )
+                }
             }
             item {
                 SettingsSectionHeading(

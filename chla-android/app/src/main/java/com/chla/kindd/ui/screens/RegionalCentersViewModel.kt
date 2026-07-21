@@ -87,50 +87,63 @@ class RegionalCentersViewModel @Inject constructor(
             return
         }
         lookupJob = viewModelScope.launch {
-            if (!isCurrentLookup(generation)) return@launch
-            mutableUiState.update {
-                it.copy(
-                    lookupState = RegionalCentersLookupState.LOADING,
-                    matchedCenter = null,
-                    message = null
-                )
-            }
-            when (val lookup = regionalCenterDataSource.lookupRegionalCenter(zipCode)) {
-                is RegionalCenterLookup.Matched -> {
-                    if (!isCurrentLookup(generation)) return@launch
-                    profileRepository.replaceProfile(
-                        currentProfile.copy(
-                            zipCode = zipCode,
-                            regionalCenter = RegionalCenterIdentity.from(lookup.center)
-                        )
+            val submittedProfile = currentProfile
+            try {
+                if (!isCurrentLookup(generation)) return@launch
+                mutableUiState.update {
+                    it.copy(
+                        lookupState = RegionalCentersLookupState.LOADING,
+                        matchedCenter = null,
+                        message = null
                     )
-                    if (!isCurrentLookup(generation)) return@launch
-                    mutableUiState.update {
-                        it.copy(
-                            matchedCenter = lookup.center,
-                            lookupState = RegionalCentersLookupState.MATCHED
+                }
+                when (val lookup = regionalCenterDataSource.lookupRegionalCenter(zipCode)) {
+                    is RegionalCenterLookup.Matched -> {
+                        if (!canApplyLookup(generation, submittedProfile)) {
+                            finishSupersededLookup(generation)
+                            return@launch
+                        }
+                        profileRepository.replaceProfile(
+                            submittedProfile.copy(
+                                zipCode = zipCode,
+                                regionalCenter = RegionalCenterIdentity.from(lookup.center)
+                            )
                         )
-                    }
-                }
-                RegionalCenterLookup.Unmatched -> {
-                    if (isCurrentLookup(generation)) {
+                        if (!isCurrentLookup(generation)) return@launch
                         mutableUiState.update {
                             it.copy(
-                                lookupState = RegionalCentersLookupState.UNMATCHED,
-                                message = RegionalCentersMessage.NO_MATCH
+                                matchedCenter = lookup.center,
+                                lookupState = RegionalCentersLookupState.MATCHED
                             )
                         }
                     }
-                }
-                is RegionalCenterLookup.Unavailable -> {
-                    if (isCurrentLookup(generation)) {
-                        mutableUiState.update {
-                            it.copy(
-                                lookupState = RegionalCentersLookupState.UNAVAILABLE,
-                                message = RegionalCentersMessage.LOOKUP_UNAVAILABLE
-                            )
+                    RegionalCenterLookup.Unmatched -> {
+                        if (canApplyLookup(generation, submittedProfile)) {
+                            mutableUiState.update {
+                                it.copy(
+                                    lookupState = RegionalCentersLookupState.UNMATCHED,
+                                    message = RegionalCentersMessage.NO_MATCH
+                                )
+                            }
+                        } else {
+                            finishSupersededLookup(generation)
                         }
                     }
+                    is RegionalCenterLookup.Unavailable -> {
+                        if (canApplyLookup(generation, submittedProfile)) {
+                            showLookupUnavailable()
+                        } else {
+                            finishSupersededLookup(generation)
+                        }
+                    }
+                }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                if (canApplyLookup(generation, submittedProfile)) {
+                    showLookupUnavailable()
+                } else {
+                    finishSupersededLookup(generation)
                 }
             }
         }
@@ -144,6 +157,31 @@ class RegionalCentersViewModel @Inject constructor(
     }
 
     private fun isCurrentLookup(generation: Long): Boolean = generation == lookupGeneration
+
+    private fun canApplyLookup(generation: Long, submittedProfile: UserProfile): Boolean =
+        isCurrentLookup(generation) && currentProfile == submittedProfile
+
+    private fun finishSupersededLookup(generation: Long) {
+        if (isCurrentLookup(generation)) {
+            mutableUiState.update {
+                it.copy(
+                    lookupState = RegionalCentersLookupState.IDLE,
+                    matchedCenter = null,
+                    message = null
+                )
+            }
+        }
+    }
+
+    private fun showLookupUnavailable() {
+        mutableUiState.update {
+            it.copy(
+                lookupState = RegionalCentersLookupState.UNAVAILABLE,
+                matchedCenter = null,
+                message = RegionalCentersMessage.LOOKUP_UNAVAILABLE
+            )
+        }
+    }
 
     private fun loadCenters() {
         viewModelScope.launch {

@@ -16,12 +16,20 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.data.profile.UserProfileRepository
+import com.chla.kindd.data.source.RegionalCenterDataSource
+import com.chla.kindd.data.source.RegionalCenterLookup
+import com.chla.kindd.data.source.UserCoordinates
+import com.chla.kindd.data.source.UserLocationSource
 import com.chla.kindd.ui.theme.KINDDTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -216,8 +224,9 @@ class OnboardingContentTest {
     }
 
     @Test
-    fun onboardingBackGuard_consumesSystemBackOnlyWhileSaving() {
+    fun onboardingBackGuard_consumesWhileSaving_thenRoutesToPriorStep() {
         var fallbackBackCalls = 0
+        var routedBackCalls = 0
         val fallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 fallbackBackCalls += 1
@@ -228,15 +237,129 @@ class OnboardingContentTest {
         }
         val isSaving = mutableStateOf(true)
         composeRule.setContent {
-            OnboardingBackGuard(isSaving = isSaving.value)
+            OnboardingBackGuard(
+                state = state(
+                    step = OnboardingStep.AGE,
+                    draft = draft(zipCode = "90001", journey = JourneyStage.EXPLORING),
+                    isSaving = isSaving.value
+                ),
+                onBack = { routedBackCalls += 1 },
+                onClose = {}
+            )
         }
 
         composeRule.runOnIdle {
             composeRule.activity.onBackPressedDispatcher.onBackPressed()
         }
         assertEquals(0, fallbackBackCalls)
+        assertEquals(0, routedBackCalls)
 
         composeRule.runOnIdle { isSaving.value = false }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle {
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+
+        assertEquals(0, fallbackBackCalls)
+        assertEquals(1, routedBackCalls)
+        fallback.remove()
+    }
+
+    @Test
+    fun routeDisposalDuringRecreation_doesNotResetRetainedViewModelDraft() {
+        val viewModel = onboardingViewModel()
+        val showRoute = mutableStateOf(true)
+        composeRule.setContent {
+            if (showRoute.value) {
+                OnboardingRoute(
+                    mode = OnboardingMode.FIRST_RUN,
+                    initialProfile = UserProfile(),
+                    viewModel = viewModel
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle {
+            viewModel.continueFromCurrentStep()
+            viewModel.onZipChanged("90001")
+        }
+        assertEquals(OnboardingStep.ZIP, viewModel.uiState.value.step)
+
+        composeRule.runOnIdle { showRoute.value = false }
+        composeRule.waitForIdle()
+
+        assertEquals(OnboardingStep.ZIP, viewModel.uiState.value.step)
+        assertEquals("90001", viewModel.uiState.value.draft.zipCode)
+
+        composeRule.runOnIdle { showRoute.value = true }
+        composeRule.waitForIdle()
+        assertEquals(OnboardingStep.ZIP, viewModel.uiState.value.step)
+        assertEquals("90001", viewModel.uiState.value.draft.zipCode)
+    }
+
+    @Test
+    fun systemBack_routesByModeStepAndSavingState() {
+        var fallbackBackCalls = 0
+        val fallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                fallbackBackCalls += 1
+            }
+        }
+        composeRule.activityRule.scenario.onActivity { activity ->
+            activity.onBackPressedDispatcher.addCallback(fallback)
+        }
+
+        val firstRunViewModel = onboardingViewModel()
+        val editViewModel = onboardingViewModel()
+        val audienceViewModel = onboardingViewModel()
+        val routeCase = mutableStateOf(0)
+        var closeCalls = 0
+        composeRule.setContent {
+            when (routeCase.value) {
+                0 -> OnboardingRoute(
+                    mode = OnboardingMode.FIRST_RUN,
+                    initialProfile = UserProfile(),
+                    viewModel = firstRunViewModel
+                )
+                1 -> OnboardingRoute(
+                    mode = OnboardingMode.EDIT,
+                    initialProfile = draft(
+                        zipCode = "90001",
+                        journey = JourneyStage.EXPLORING
+                    ),
+                    onClose = { closeCalls += 1 },
+                    viewModel = editViewModel
+                )
+                else -> OnboardingRoute(
+                    mode = OnboardingMode.FIRST_RUN,
+                    initialProfile = UserProfile(),
+                    viewModel = audienceViewModel
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle { firstRunViewModel.continueFromCurrentStep() }
+        assertEquals(OnboardingStep.ZIP, firstRunViewModel.uiState.value.step)
+
+        composeRule.runOnIdle {
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+        composeRule.waitForIdle()
+
+        assertEquals(OnboardingStep.AUDIENCE, firstRunViewModel.uiState.value.step)
+        assertEquals(0, fallbackBackCalls)
+
+        composeRule.runOnIdle { routeCase.value = 1 }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle {
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+        composeRule.waitForIdle()
+
+        assertEquals(1, closeCalls)
+        assertEquals(0, fallbackBackCalls)
+
+        composeRule.runOnIdle { routeCase.value = 2 }
         composeRule.waitForIdle()
         composeRule.runOnIdle {
             composeRule.activity.onBackPressedDispatcher.onBackPressed()
@@ -419,5 +542,31 @@ class OnboardingContentTest {
         id = 7,
         name = "Westside Regional Center",
         shortName = "WRC"
+    )
+
+    private fun onboardingViewModel(): OnboardingViewModel = OnboardingViewModel(
+        profileRepository = object : UserProfileRepository {
+            private val profiles = MutableStateFlow(UserProfile())
+            override val profile: Flow<UserProfile> = profiles
+            override suspend fun replaceProfile(profile: UserProfile) {
+                profiles.value = profile
+            }
+            override suspend fun clearProfile() {
+                profiles.value = UserProfile()
+            }
+        },
+        regionalCenterDataSource = object : RegionalCenterDataSource {
+            override suspend fun getRegionalCenters() =
+                Result.success(emptyList<RegionalCenter>())
+            override suspend fun getRegionalCentersNearby(latitude: Double, longitude: Double) =
+                Result.success(emptyList<RegionalCenter>())
+            override suspend fun lookupRegionalCenter(zipCode: String) =
+                RegionalCenterLookup.Unmatched
+        },
+        userLocationSource = object : UserLocationSource {
+            override fun hasLocationPermission() = false
+            override suspend fun currentCoordinates(): UserCoordinates? = null
+            override suspend fun zipCodeFor(coordinates: UserCoordinates): String? = null
+        }
     )
 }

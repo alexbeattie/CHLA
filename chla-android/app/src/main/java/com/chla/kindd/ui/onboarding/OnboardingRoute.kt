@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -44,7 +43,12 @@ fun OnboardingRoute(
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    OnboardingBackGuard(isSaving = state.isSaving)
+    OnboardingBackGuard(
+        state = state,
+        mode = mode,
+        onBack = viewModel::goBack,
+        onClose = viewModel::cancel
+    )
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -53,9 +57,6 @@ fun OnboardingRoute(
 
     LaunchedEffect(viewModel, mode, initialProfile) {
         viewModel.initialize(mode, initialProfile)
-    }
-    DisposableEffect(viewModel) {
-        onDispose { viewModel.endSession() }
     }
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -88,9 +89,21 @@ fun OnboardingRoute(
 }
 
 @Composable
-internal fun OnboardingBackGuard(isSaving: Boolean) {
-    BackHandler(enabled = isSaving) {
-        // Keep the onboarding host in place until the profile write completes.
+internal fun OnboardingBackGuard(
+    state: OnboardingUiState,
+    mode: OnboardingMode = state.mode,
+    onBack: () -> Unit,
+    onClose: () -> Unit
+) {
+    val handlesBack = state.isSaving ||
+        state.step != OnboardingStep.AUDIENCE ||
+        mode == OnboardingMode.EDIT
+    BackHandler(enabled = handlesBack) {
+        when {
+            state.isSaving -> Unit
+            state.step != OnboardingStep.AUDIENCE -> onBack()
+            mode == OnboardingMode.EDIT -> onClose()
+        }
     }
 }
 

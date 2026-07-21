@@ -95,6 +95,42 @@ class OnboardingViewModelTest {
         }
 
     @Test
+    fun successfulSave_marksSessionEndedSoRetainedViewModelCanInitializeFreshProfile() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val fixture = fixture()
+            advanceToAge(fixture)
+            fixture.viewModel.finish()
+            runCurrent()
+
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+
+            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertEquals(
+                UserProfile(audienceType = AudienceType.FAMILY),
+                fixture.viewModel.uiState.value.draft
+            )
+        }
+
+    @Test
+    fun editCancel_marksSessionEndedSoRetainedViewModelCanInitializeFreshProfile() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val saved = completeProfile()
+            val fixture = fixture(repository = RecordingProfileRepository(saved))
+            fixture.viewModel.initialize(OnboardingMode.EDIT, saved)
+            fixture.viewModel.onZipChanged("90210")
+
+            fixture.viewModel.cancel()
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+
+            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertEquals(
+                UserProfile(audienceType = AudienceType.FAMILY),
+                fixture.viewModel.uiState.value.draft
+            )
+            assertTrue(fixture.repository.replacedProfiles.isEmpty())
+        }
+
+    @Test
     fun zipInput_keepsOnlyAsciiDigitsAndClampsToFive() =
         runTest(mainDispatcherRule.testDispatcher) {
             val fixture = fixture()

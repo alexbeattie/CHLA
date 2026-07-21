@@ -85,45 +85,57 @@ class HomeViewModel @Inject constructor(
             }
             return
         }
-
         lookupJob = viewModelScope.launch {
-            if (!isCurrentLookup(generation)) return@launch
-            mutableUiState.update {
-                it.copy(lookupState = HomeLookupState.LOADING, message = null)
-            }
-            when (val lookup = regionalCenterDataSource.lookupRegionalCenter(zipCode)) {
-                is RegionalCenterLookup.Matched -> {
-                    if (!isCurrentLookup(generation)) return@launch
-                    profileRepository.replaceProfile(
-                        currentProfile.copy(
-                            zipCode = zipCode,
-                            regionalCenter = RegionalCenterIdentity.from(lookup.center)
+            val submittedProfile = currentProfile
+            try {
+                if (!isCurrentLookup(generation)) return@launch
+                mutableUiState.update {
+                    it.copy(lookupState = HomeLookupState.LOADING, message = null)
+                }
+                when (val lookup = regionalCenterDataSource.lookupRegionalCenter(zipCode)) {
+                    is RegionalCenterLookup.Matched -> {
+                        if (!canApplyLookup(generation, submittedProfile)) {
+                            finishSupersededLookup(generation)
+                            return@launch
+                        }
+                        profileRepository.replaceProfile(
+                            submittedProfile.copy(
+                                zipCode = zipCode,
+                                regionalCenter = RegionalCenterIdentity.from(lookup.center)
+                            )
                         )
-                    )
-                    if (!isCurrentLookup(generation)) return@launch
-                    mutableUiState.update {
-                        it.copy(lookupState = HomeLookupState.MATCHED, message = null)
-                    }
-                }
-                RegionalCenterLookup.Unmatched -> {
-                    if (isCurrentLookup(generation)) {
+                        if (!isCurrentLookup(generation)) return@launch
                         mutableUiState.update {
-                            it.copy(
-                                lookupState = HomeLookupState.UNMATCHED,
-                                message = HomeMessage.NO_MATCH
-                            )
+                            it.copy(lookupState = HomeLookupState.MATCHED, message = null)
+                        }
+                    }
+                    RegionalCenterLookup.Unmatched -> {
+                        if (canApplyLookup(generation, submittedProfile)) {
+                            mutableUiState.update {
+                                it.copy(
+                                    lookupState = HomeLookupState.UNMATCHED,
+                                    message = HomeMessage.NO_MATCH
+                                )
+                            }
+                        } else {
+                            finishSupersededLookup(generation)
+                        }
+                    }
+                    is RegionalCenterLookup.Unavailable -> {
+                        if (canApplyLookup(generation, submittedProfile)) {
+                            showLookupUnavailable()
+                        } else {
+                            finishSupersededLookup(generation)
                         }
                     }
                 }
-                is RegionalCenterLookup.Unavailable -> {
-                    if (isCurrentLookup(generation)) {
-                        mutableUiState.update {
-                            it.copy(
-                                lookupState = HomeLookupState.UNAVAILABLE,
-                                message = HomeMessage.LOOKUP_UNAVAILABLE
-                            )
-                        }
-                    }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                if (canApplyLookup(generation, submittedProfile)) {
+                    showLookupUnavailable()
+                } else {
+                    finishSupersededLookup(generation)
                 }
             }
         }
@@ -158,6 +170,26 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun isCurrentLookup(generation: Long): Boolean = generation == lookupGeneration
+
+    private fun canApplyLookup(generation: Long, submittedProfile: UserProfile): Boolean =
+        isCurrentLookup(generation) && currentProfile == submittedProfile
+
+    private fun finishSupersededLookup(generation: Long) {
+        if (isCurrentLookup(generation)) {
+            mutableUiState.update {
+                it.copy(lookupState = HomeLookupState.IDLE, message = null)
+            }
+        }
+    }
+
+    private fun showLookupUnavailable() {
+        mutableUiState.update {
+            it.copy(
+                lookupState = HomeLookupState.UNAVAILABLE,
+                message = HomeMessage.LOOKUP_UNAVAILABLE
+            )
+        }
+    }
 
     private fun hydrate(identity: RegionalCenterIdentity, generation: Long) {
         hydrationJob = viewModelScope.launch {

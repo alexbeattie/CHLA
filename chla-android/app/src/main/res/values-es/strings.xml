@@ -109,6 +109,7 @@
     <string name="settings_clear_profile_dialog_title">¿Borrar el perfil?</string>
     <string name="settings_clear_profile_dialog_body">Se borrará tu perfil guardado y volverás a completar la introducción.</string>
     <string name="settings_clear_profile_confirm">Borrar y reiniciar</string>
+    <string name="settings_clear_profile_failed">No pudimos borrar tu perfil. Inténtalo de nuevo.</string>
     <string name="settings_app_info">Información de la aplicación</string>
     <string name="settings_footer">KiNDD - NDD Resource Navigator</string>
 

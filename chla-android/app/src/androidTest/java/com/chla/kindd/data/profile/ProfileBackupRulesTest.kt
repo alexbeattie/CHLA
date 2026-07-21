@@ -4,6 +4,8 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.chla.kindd.R
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,6 +23,19 @@ class ProfileBackupRulesTest {
             .invariantSeparatorsPath
 
         assertEquals(PROFILE_DATASTORE_PATH, relativePath)
+    }
+
+    @Test
+    fun malformedProductionDataStore_recoversToDefaultProfile() = runBlocking {
+        val profileFile = context.preferencesDataStoreFile(PROFILE_DATASTORE_NAME)
+        profileFile.parentFile?.mkdirs()
+        profileFile.writeBytes(byteArrayOf(0x0A, 0x05, 0x01))
+
+        val profile = DataStoreUserProfileRepository(context.userProfileDataStore)
+            .profile
+            .first()
+
+        assertEquals(UserProfile(), profile)
     }
 
     @Test
