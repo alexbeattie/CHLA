@@ -49,9 +49,10 @@ not rebuilt or overwritten.
 - Updated `play-assets/data-safety-draft.md` to state that approximate location
   is collected, device permission is optional, ZIP is required to complete the
   profile, and precise/background location is not collected by this release.
-- Updated `PLAY_STORE_RELEASE.md` to distinguish onboarding's on-device
-  coarse-fix-to-ZIP conversion from user-initiated nearby provider discovery,
-  which is the only flow that sends raw coarse coordinates.
+- Updated `PLAY_STORE_RELEASE.md` to distinguish onboarding's coarse-fix-to-ZIP
+  geocoding path, which may use a network-backed device service, from
+  user-initiated nearby provider discovery, which sends raw coarse coordinates
+  to the KiNDD API.
 - Reworded the draft data-sale answer as requiring organization confirmation
   because code does not establish that legal answer.
 - Follow-up review changed the Google Maps-related `Shared` cells for app
