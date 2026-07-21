@@ -230,9 +230,8 @@ class OnboardingViewModel @Inject constructor(
                 profileRepository.replaceProfile(completedProfile)
                 if (!isCurrent(generation)) return@launch
                 saveCompleted = true
-                mutableUiState.update { it.copy(isSaving = false) }
                 eventChannel.send(OnboardingEvent.Saved)
-                initialized = false
+                completeSessionPresentation()
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
@@ -248,9 +247,7 @@ class OnboardingViewModel @Inject constructor(
     fun cancel() {
         if (interactionsLocked()) return
         if (eventChannel.trySend(OnboardingEvent.Close).isSuccess) {
-            invalidateAsyncWork()
-            initialized = false
-            saveCompleted = true
+            completeSessionPresentation()
         }
     }
 
@@ -320,6 +317,14 @@ class OnboardingViewModel @Inject constructor(
 
     private fun interactionsLocked(): Boolean =
         mutableUiState.value.isSaving || saveCompleted
+
+    private fun completeSessionPresentation() {
+        invalidateAsyncWork()
+        saveJob = null
+        initialized = false
+        saveCompleted = true
+        mutableUiState.value = OnboardingUiState()
+    }
 
     private companion object {
         const val ZIP_LENGTH = 5

@@ -75,6 +75,11 @@ class AppEntryViewModelTest {
 
                 override suspend fun replaceProfile(profile: UserProfile) = Unit
 
+                override suspend fun replaceProfileIfCurrent(
+                    expected: UserProfile,
+                    replacement: UserProfile
+                ) = false
+
                 override suspend fun clearProfile() = Unit
             }
             val viewModel = AppEntryViewModel(repository)

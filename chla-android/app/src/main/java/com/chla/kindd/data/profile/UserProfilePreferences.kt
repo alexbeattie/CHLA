@@ -1,14 +1,15 @@
 package com.chla.kindd.data.profile
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import java.io.File
+import kotlinx.coroutines.CoroutineScope
 
 const val PROFILE_DATASTORE_NAME = "user_profile"
 
@@ -23,7 +24,14 @@ internal object UserProfilePreferences {
     val ageGroup = stringPreferencesKey("age_group")
 }
 
-internal val Context.userProfileDataStore: DataStore<Preferences> by preferencesDataStore(
-    name = PROFILE_DATASTORE_NAME,
-    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() }
+private val userProfileCorruptionHandler =
+    ReplaceFileCorruptionHandler { emptyPreferences() }
+
+internal fun createUserProfileDataStore(
+    produceFile: () -> File,
+    scope: CoroutineScope
+): DataStore<Preferences> = PreferenceDataStoreFactory.create(
+    corruptionHandler = userProfileCorruptionHandler,
+    scope = scope,
+    produceFile = produceFile
 )

@@ -193,6 +193,36 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun committedProfileChangeNotYetObservedByFlow_cannotBeOverwrittenByLateLookup() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val pendingMatch = CompletableDeferred<RegionalCenterLookup>()
+            val source = ControlledLookupCenterSource(ArrayDeque(listOf(pendingMatch)))
+            val original = profile(zip = "90001", identity = null)
+            val externallyEdited = profile(
+                zip = "91311",
+                identity = RegionalCenterIdentity(91, "Externally edited", "WRC"),
+                audience = AudienceType.CLINICIAN,
+                journey = JourneyStage.RECEIVING_SERVICES,
+                age = AgeGroup.ADULT
+            )
+            val repository = LaggingProfileRepository(original)
+            val viewModel = HomeViewModel(repository, source, FakeDiscoveryController())
+            runCurrent()
+
+            viewModel.onZipChanged("90210")
+            viewModel.submitZip()
+            runCurrent()
+            repository.commitWithoutFlowEmission(externallyEdited)
+
+            pendingMatch.complete(RegionalCenterLookup.Matched(center(id = 22, name = "Late")))
+            runCurrent()
+
+            assertEquals(externallyEdited, repository.actualProfile)
+            assertTrue(repository.unconditionalReplacements.isEmpty())
+            assertEquals(HomeLookupState.IDLE, viewModel.uiState.value.lookupState)
+        }
+
+    @Test
     fun lookupOrProfileWriteFailure_exposesSanitizedRetryableState_andKeepsProfile() =
         runTest(mainDispatcherRule.testDispatcher) {
             val original = profile(zip = "90001", identity = null)
@@ -447,8 +477,48 @@ class HomeViewModelTest {
             replacements += profile
             profiles.value = profile
         }
+        override suspend fun replaceProfileIfCurrent(
+            expected: UserProfile,
+            replacement: UserProfile
+        ): Boolean {
+            replaceFailure?.let { throw it }
+            if (profiles.value != expected) return false
+            replacements += replacement
+            profiles.value = replacement
+            return true
+        }
         override suspend fun clearProfile() { profiles.value = UserProfile() }
         fun emit(profile: UserProfile) { profiles.value = profile }
+    }
+
+    private class LaggingProfileRepository(initial: UserProfile) : UserProfileRepository {
+        private val observedProfiles = MutableStateFlow(initial)
+        var actualProfile = initial
+            private set
+        val unconditionalReplacements = mutableListOf<UserProfile>()
+        override val profile: Flow<UserProfile> = observedProfiles
+
+        override suspend fun replaceProfile(profile: UserProfile) {
+            unconditionalReplacements += profile
+            actualProfile = profile
+        }
+
+        override suspend fun replaceProfileIfCurrent(
+            expected: UserProfile,
+            replacement: UserProfile
+        ): Boolean {
+            if (actualProfile != expected) return false
+            actualProfile = replacement
+            return true
+        }
+
+        override suspend fun clearProfile() {
+            actualProfile = UserProfile()
+        }
+
+        fun commitWithoutFlowEmission(profile: UserProfile) {
+            actualProfile = profile
+        }
     }
 
     private class CenterSource(

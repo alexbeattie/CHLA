@@ -98,13 +98,19 @@ class HomeViewModel @Inject constructor(
                             finishSupersededLookup(generation)
                             return@launch
                         }
-                        profileRepository.replaceProfile(
-                            submittedProfile.copy(
-                                zipCode = zipCode,
-                                regionalCenter = RegionalCenterIdentity.from(lookup.center)
-                            )
+                        val replacement = submittedProfile.copy(
+                            zipCode = zipCode,
+                            regionalCenter = RegionalCenterIdentity.from(lookup.center)
+                        )
+                        val replaced = profileRepository.replaceProfileIfCurrent(
+                            expected = submittedProfile,
+                            replacement = replacement
                         )
                         if (!isCurrentLookup(generation)) return@launch
+                        if (!replaced) {
+                            finishSupersededLookup(generation)
+                            return@launch
+                        }
                         mutableUiState.update {
                             it.copy(lookupState = HomeLookupState.MATCHED, message = null)
                         }

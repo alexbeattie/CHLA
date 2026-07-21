@@ -131,6 +131,43 @@ class OnboardingViewModelTest {
         }
 
     @Test
+    fun successfulSave_resetsPresentationSynchronously_withoutDroppingSavedEvent() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val fixture = fixture()
+            val events = mutableListOf<OnboardingEvent>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                fixture.viewModel.events.collect(events::add)
+            }
+            advanceToAge(fixture)
+
+            fixture.viewModel.finish()
+            runCurrent()
+
+            assertEquals(listOf(OnboardingEvent.Saved), events)
+            assertEquals(OnboardingUiState(), fixture.viewModel.uiState.value)
+        }
+
+    @Test
+    fun editCancel_resetsPresentationSynchronously_withoutDroppingCloseEvent() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val saved = completeProfile()
+            val fixture = fixture(repository = RecordingProfileRepository(saved))
+            val events = mutableListOf<OnboardingEvent>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                fixture.viewModel.events.collect(events::add)
+            }
+            fixture.viewModel.initialize(OnboardingMode.EDIT, saved)
+            fixture.viewModel.onZipChanged("90210")
+
+            fixture.viewModel.cancel()
+            runCurrent()
+
+            assertEquals(listOf(OnboardingEvent.Close), events)
+            assertEquals(OnboardingUiState(), fixture.viewModel.uiState.value)
+            assertTrue(fixture.repository.replacedProfiles.isEmpty())
+        }
+
+    @Test
     fun zipInput_keepsOnlyAsciiDigitsAndClampsToFive() =
         runTest(mainDispatcherRule.testDispatcher) {
             val fixture = fixture()
@@ -666,6 +703,15 @@ class OnboardingViewModelTest {
             replaceFailure?.let { throw it }
             replacedProfiles += profile
             profiles.value = profile
+        }
+
+        override suspend fun replaceProfileIfCurrent(
+            expected: UserProfile,
+            replacement: UserProfile
+        ): Boolean {
+            if (profiles.value != expected) return false
+            replaceProfile(replacement)
+            return true
         }
 
         override suspend fun clearProfile() = Unit

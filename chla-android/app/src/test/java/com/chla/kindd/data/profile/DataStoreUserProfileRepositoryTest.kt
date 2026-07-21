@@ -1,6 +1,7 @@
 package com.chla.kindd.data.profile
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.CorruptionException
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -132,6 +133,58 @@ class DataStoreUserProfileRepositoryTest {
     }
 
     @Test
+    fun `compare and replace is atomic against the current stored profile`() = runTest {
+        val repository = DataStoreUserProfileRepository(createStore(profileFile()))
+        val original = completeProfile(zipCode = "90001")
+        val externallyEdited = completeProfile(zipCode = "91311")
+        val lateLookupReplacement = completeProfile(zipCode = "90210")
+        repository.replaceProfile(original)
+        repository.replaceProfile(externallyEdited)
+
+        val staleReplaceApplied = repository.replaceProfileIfCurrent(
+            expected = original,
+            replacement = lateLookupReplacement
+        )
+
+        assertFalse(staleReplaceApplied)
+        assertEquals(externallyEdited, repository.profile.first())
+
+        val currentReplaceApplied = repository.replaceProfileIfCurrent(
+            expected = externallyEdited,
+            replacement = lateLookupReplacement
+        )
+
+        assertTrue(currentReplaceApplied)
+        assertEquals(lateLookupReplacement, repository.profile.first())
+    }
+
+    @Test
+    fun `production factory recovers malformed bytes while no-handler control fails`() = runTest {
+        val malformedBytes = byteArrayOf(0x0A, 0x05, 0x01)
+        val controlFile = temporaryFolder.newFile("control.preferences_pb")
+            .apply { writeBytes(malformedBytes) }
+        val controlStore = createStore(controlFile)
+        var controlFailure: Throwable? = null
+        try {
+            controlStore.data.first()
+        } catch (caught: Throwable) {
+            controlFailure = caught
+        }
+        assertTrue(controlFailure is CorruptionException)
+
+        val productionFile = temporaryFolder.newFile("production.preferences_pb")
+            .apply { writeBytes(malformedBytes) }
+        val productionStore = createUserProfileDataStore(
+            produceFile = { productionFile },
+            scope = createStoreScope()
+        )
+        val recovered = DataStoreUserProfileRepository(productionStore).profile.first()
+
+        assertEquals(UserProfile(), recovered)
+        assertFalse(productionFile.readBytes().contentEquals(malformedBytes))
+    }
+
+    @Test
     fun `unknown enums and an incomplete regional center tuple decode to null`() = runTest {
         val store = createStore(profileFile())
         store.edit { preferences ->
@@ -193,6 +246,15 @@ class DataStoreUserProfileRepositoryTest {
     }
 
     private fun profileFile(): File = temporaryFolder.newFile("user_profile.preferences_pb")
+
+    private fun completeProfile(zipCode: String) = UserProfile(
+        onboardingCompleted = true,
+        audienceType = AudienceType.FAMILY,
+        zipCode = zipCode,
+        regionalCenter = null,
+        journeyStage = JourneyStage.EXPLORING,
+        ageGroup = AgeGroup.ALL_AGES
+    )
 
     private fun TestScope.createStoreScope(): CoroutineScope =
         CoroutineScope(UnconfinedTestDispatcher(testScheduler) + SupervisorJob())

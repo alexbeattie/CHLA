@@ -14,6 +14,15 @@ class FakeUserProfileRepository(
         profiles.value = profile
     }
 
+    override suspend fun replaceProfileIfCurrent(
+        expected: UserProfile,
+        replacement: UserProfile
+    ): Boolean {
+        if (profiles.value != expected) return false
+        profiles.value = replacement
+        return true
+    }
+
     override suspend fun clearProfile() {
         profiles.value = UserProfile()
     }

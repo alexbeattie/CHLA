@@ -136,6 +136,16 @@ class SettingsViewModelTest {
             profiles.value = profile
         }
 
+        override suspend fun replaceProfileIfCurrent(
+            expected: UserProfile,
+            replacement: UserProfile
+        ): Boolean {
+            if (profiles.value != expected) return false
+            replacements += replacement
+            profiles.value = replacement
+            return true
+        }
+
         override suspend fun clearProfile() {
             clearCount += 1
             clearGate?.await()

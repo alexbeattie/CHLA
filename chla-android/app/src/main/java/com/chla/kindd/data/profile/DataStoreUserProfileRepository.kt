@@ -1,6 +1,7 @@
 package com.chla.kindd.data.profile
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
@@ -25,26 +26,22 @@ class DataStoreUserProfileRepository(
 
     override suspend fun replaceProfile(profile: UserProfile) {
         store.edit { preferences ->
-            preferences.clear()
-            preferences[UserProfilePreferences.onboardingCompleted] = profile.onboardingCompleted
-            profile.audienceType?.let {
-                preferences[UserProfilePreferences.audienceType] = it.storageValue
-            }
-            profile.zipCode?.let {
-                preferences[UserProfilePreferences.zipCode] = it
-            }
-            profile.regionalCenter?.let { center ->
-                preferences[UserProfilePreferences.regionalCenterId] = center.id
-                preferences[UserProfilePreferences.regionalCenterName] = center.name
-                preferences[UserProfilePreferences.regionalCenterShortName] = center.shortName
-            }
-            profile.journeyStage?.let {
-                preferences[UserProfilePreferences.journeyStage] = it.storageValue
-            }
-            profile.ageGroup?.let {
-                preferences[UserProfilePreferences.ageGroup] = it.apiValue
+            preferences.writeProfile(profile)
+        }
+    }
+
+    override suspend fun replaceProfileIfCurrent(
+        expected: UserProfile,
+        replacement: UserProfile
+    ): Boolean {
+        var replaced = false
+        store.edit { preferences ->
+            if (decodeProfile(preferences) == expected) {
+                preferences.writeProfile(replacement)
+                replaced = true
             }
         }
+        return replaced
     }
 
     override suspend fun clearProfile() {
@@ -87,5 +84,29 @@ class DataStoreUserProfileRepository(
                 preferences[UserProfilePreferences.ageGroup]
             )
         )
+    }
+
+    private fun MutablePreferences.writeProfile(
+        profile: UserProfile
+    ) {
+        clear()
+        this[UserProfilePreferences.onboardingCompleted] = profile.onboardingCompleted
+        profile.audienceType?.let {
+            this[UserProfilePreferences.audienceType] = it.storageValue
+        }
+        profile.zipCode?.let {
+            this[UserProfilePreferences.zipCode] = it
+        }
+        profile.regionalCenter?.let { center ->
+            this[UserProfilePreferences.regionalCenterId] = center.id
+            this[UserProfilePreferences.regionalCenterName] = center.name
+            this[UserProfilePreferences.regionalCenterShortName] = center.shortName
+        }
+        profile.journeyStage?.let {
+            this[UserProfilePreferences.journeyStage] = it.storageValue
+        }
+        profile.ageGroup?.let {
+            this[UserProfilePreferences.ageGroup] = it.apiValue
+        }
     }
 }

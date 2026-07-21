@@ -7,5 +7,11 @@ interface UserProfileRepository {
 
     suspend fun replaceProfile(profile: UserProfile)
 
+    /** Atomically replaces the stored profile only when it still equals [expected]. */
+    suspend fun replaceProfileIfCurrent(
+        expected: UserProfile,
+        replacement: UserProfile
+    ): Boolean
+
     suspend fun clearProfile()
 }

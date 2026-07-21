@@ -3,6 +3,8 @@ package com.chla.kindd.ui.onboarding
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.getOrNull
@@ -16,6 +18,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.profile.AudienceType
@@ -298,6 +301,42 @@ class OnboardingContentTest {
     }
 
     @Test
+    fun completedSession_firstReusedRouteFrameIsReset_andSavedEventIsDelivered() {
+        val viewModel = onboardingViewModel()
+        composeRule.runOnIdle {
+            viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            viewModel.continueFromCurrentStep()
+            viewModel.onZipChanged("90001")
+            viewModel.continueFromCurrentStep()
+        }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle {
+            viewModel.continueFromCurrentStep()
+            viewModel.selectJourney(JourneyStage.EXPLORING)
+            viewModel.continueFromCurrentStep()
+            viewModel.finish()
+        }
+        composeRule.waitForIdle()
+
+        val renderedSteps = mutableListOf<OnboardingStep>()
+        var savedCalls = 0
+        composeRule.setContent {
+            val state by viewModel.uiState.collectAsStateWithLifecycle()
+            SideEffect { renderedSteps += state.step }
+            OnboardingRoute(
+                mode = OnboardingMode.FIRST_RUN,
+                initialProfile = UserProfile(),
+                onSaved = { savedCalls += 1 },
+                viewModel = viewModel
+            )
+        }
+        composeRule.waitForIdle()
+
+        assertEquals(OnboardingStep.AUDIENCE, renderedSteps.first())
+        assertEquals(1, savedCalls)
+    }
+
+    @Test
     fun systemBack_routesByModeStepAndSavingState() {
         var fallbackBackCalls = 0
         val fallback = object : OnBackPressedCallback(true) {
@@ -550,6 +589,14 @@ class OnboardingContentTest {
             override val profile: Flow<UserProfile> = profiles
             override suspend fun replaceProfile(profile: UserProfile) {
                 profiles.value = profile
+            }
+            override suspend fun replaceProfileIfCurrent(
+                expected: UserProfile,
+                replacement: UserProfile
+            ): Boolean {
+                if (profiles.value != expected) return false
+                profiles.value = replacement
+                return true
             }
             override suspend fun clearProfile() {
                 profiles.value = UserProfile()
