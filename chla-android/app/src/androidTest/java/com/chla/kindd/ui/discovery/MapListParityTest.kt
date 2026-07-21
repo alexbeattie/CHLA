@@ -326,6 +326,38 @@ class MapListParityTest {
     }
 
     @Test
+    fun map_listOnlyResultsKeepATruthfulRouteToTheProviderList() {
+        var listClicks = 0
+
+        composeRule.setContent {
+            KINDDTheme {
+                MapContent(
+                    state = DiscoveryState(
+                        providers = listOf(provider("list-only", null, null)),
+                        hasLoadedOnce = true
+                    ),
+                    locationState = MapLocationState(),
+                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
+                    onUseMyLocation = {},
+                    onProviderClick = {},
+                    onNavigateToList = { listClicks += 1 },
+                    markerContent = { markers, _ -> assertTrue(markers.isEmpty()) }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("map_result_count")
+            .assertIsDisplayed()
+            .assertTextContains("0", substring = true)
+            .assertContentDescriptionEquals(
+                "0 resources shown on the map. View matching resources in the list"
+            )
+            .assertHasClickAction()
+            .performClick()
+        composeRule.runOnIdle { assertEquals(1, listClicks) }
+    }
+
+    @Test
     fun providerList_usesCompactHeaderAndRendersRealProviderMetadata() {
         val provider = Provider(
             id = "rich",

@@ -304,7 +304,7 @@ internal fun ResourceMapContextBadges(
         if (state.profile.regionalCenter == null) {
             Box(Modifier)
         }
-        if (mappedProviderCount > 0) {
+        if (state.providers.isNotEmpty()) {
             ResourceMapBadge(
                 text = stringResource(
                     if (mappedProviderCount == 1) {
