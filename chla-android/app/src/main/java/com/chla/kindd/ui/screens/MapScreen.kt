@@ -34,8 +34,33 @@ data class MapMarkerModel(
     val title: String,
     val latitude: Double,
     val longitude: Double,
-    val snippet: String
+    val snippet: String,
+    val role: ProviderMarkerRole
 )
+
+enum class ProviderMarkerRole {
+    ABA,
+    SPEECH,
+    OCCUPATIONAL,
+    PHYSICAL,
+    OTHER
+}
+
+internal fun providerMarkerRole(provider: Provider): ProviderMarkerRole =
+    (provider.therapyTypes.orEmpty() + listOfNotNull(provider.type))
+        .asSequence()
+        .map(String::lowercase)
+        .map { value ->
+            when {
+                "aba" in value -> ProviderMarkerRole.ABA
+                "speech" in value -> ProviderMarkerRole.SPEECH
+                "occupational" in value -> ProviderMarkerRole.OCCUPATIONAL
+                "physical" in value -> ProviderMarkerRole.PHYSICAL
+                else -> ProviderMarkerRole.OTHER
+            }
+        }
+        .firstOrNull { it != ProviderMarkerRole.OTHER }
+        ?: ProviderMarkerRole.OTHER
 
 fun providerMarkerModels(providers: List<Provider>): List<MapMarkerModel> = providers.mapNotNull {
     if (!it.hasValidCoordinates) return@mapNotNull null
@@ -46,13 +71,15 @@ fun providerMarkerModels(providers: List<Provider>): List<MapMarkerModel> = prov
         title = it.name,
         latitude = latitude,
         longitude = longitude,
-        snippet = it.therapyTypes?.firstOrNull().orEmpty()
+        snippet = it.therapyTypes?.firstOrNull() ?: it.type.orEmpty(),
+        role = providerMarkerRole(it)
     )
 }
 
 @Composable
 fun MapScreen(
     onProviderClick: (String) -> Unit,
+    onNavigateToList: () -> Unit,
     viewModel: MapViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -93,7 +120,8 @@ fun MapScreen(
                 permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
             }
         },
-        onProviderClick = onProviderClick
+        onProviderClick = onProviderClick,
+        onNavigateToList = onNavigateToList
     )
 }
 
@@ -104,6 +132,7 @@ fun MapContent(
     actions: DiscoveryUiActions,
     onUseMyLocation: () -> Unit,
     onProviderClick: (String) -> Unit,
+    onNavigateToList: () -> Unit,
     markerContent: (@Composable (List<MapMarkerModel>, (String) -> Unit) -> Unit)? = null
 ) {
     var showFilters by remember { mutableStateOf(false) }
@@ -161,6 +190,7 @@ fun MapContent(
 
         ResourceMapContextBadges(
             state = state,
+            onNavigateToList = onNavigateToList,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }

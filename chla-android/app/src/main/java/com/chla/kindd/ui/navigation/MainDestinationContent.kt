@@ -96,7 +96,10 @@ object ProductionMainDestinationContent : MainDestinationContent {
 
     @Composable
     override fun map(actions: MainNavActions) {
-        MapScreen(onProviderClick = actions.navigateToProviderDetail)
+        MapScreen(
+            onProviderClick = actions.navigateToProviderDetail,
+            onNavigateToList = actions.navigateToList
+        )
     }
 
     @Composable

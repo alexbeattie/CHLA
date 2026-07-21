@@ -301,7 +301,8 @@ class TouchedSurfaceAccessibilityTest {
                 ),
                 locationState = MapLocationState(status = MapLocationStatus.PERMISSION_DENIED),
                 actions = noOpDiscoveryActions(),
-                onUseMyLocation = {}, onProviderClick = {}, markerContent = { _, _ -> }
+                onUseMyLocation = {}, onProviderClick = {}, onNavigateToList = {},
+                markerContent = { _, _ -> }
             )
         }
 

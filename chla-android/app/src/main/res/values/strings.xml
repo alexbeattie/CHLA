@@ -52,6 +52,10 @@
     <string name="list_title">Resources</string>
     <string name="resources_found">%d resources found</string>
     <string name="resource_found">%d resource found</string>
+    <plurals name="map_result_count_action">
+        <item quantity="one">%d resource shown on the map. View matching resources in the list</item>
+        <item quantity="other">%d resources shown on the map. View matching resources in the list</item>
+    </plurals>
     <string name="search_placeholder">Search resources, services, or ZIP code</string>
     <string name="list_no_resources_found">No Resources Found</string>
     <string name="list_no_resources_description">Try adjusting your search filters or expanding your search radius.</string>

@@ -14,6 +14,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertHasClickAction
@@ -135,7 +139,7 @@ class MapListParityTest {
             assertEquals("shared query", controller.state.value.criteria.query)
         }
 
-        composeRule.onNodeWithTag("bottom_nav_list").performClick()
+        composeRule.onNodeWithTag("map_result_count").performClick()
         composeRule.onNodeWithTag("filter_chip_therapy_ABA").assertExists()
         composeRule.runOnIdle {
             assertEquals(Screen.Providers.route, navController.currentDestination?.route)
@@ -160,6 +164,7 @@ class MapListParityTest {
                     actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
                     onUseMyLocation = {},
                     onProviderClick = {},
+                    onNavigateToList = {},
                     markerContent = { _, _ -> Unit }
                 )
             }
@@ -193,6 +198,7 @@ class MapListParityTest {
                     actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
                     onUseMyLocation = {},
                     onProviderClick = {},
+                    onNavigateToList = {},
                     markerContent = { _, _ ->
                         Box(Modifier.fillMaxSize().testTag("fake_map_surface"))
                     }
@@ -256,6 +262,7 @@ class MapListParityTest {
                     actions = actions,
                     onUseMyLocation = { locationClicks += 1 },
                     onProviderClick = {},
+                    onNavigateToList = {},
                     markerContent = { _, _ -> Unit }
                 )
             }
@@ -268,6 +275,53 @@ class MapListParityTest {
         composeRule.runOnIdle {
             assertEquals(1, locationClicks)
             assertEquals(1, refreshClicks)
+        }
+    }
+
+    @Test
+    fun map_resultCountMatchesPlottedProvidersAndNavigatesOnceAsA48DpButton() {
+        var listClicks = 0
+        var plottedProviderIds: List<String> = emptyList()
+        val valid = provider("mapped", 34.0, -118.0)
+        val invalid = provider("list-only", null, null)
+
+        composeRule.setContent {
+            KINDDTheme {
+                MapContent(
+                    state = DiscoveryState(
+                        providers = listOf(valid, invalid),
+                        hasLoadedOnce = true
+                    ),
+                    locationState = MapLocationState(),
+                    actions = discoveryActions(FakeDiscoveryController(DiscoveryState())),
+                    onUseMyLocation = {},
+                    onProviderClick = {},
+                    onNavigateToList = { listClicks += 1 },
+                    markerContent = { markers, _ ->
+                        plottedProviderIds = markers.map(MapMarkerModel::providerId)
+                    }
+                )
+            }
+        }
+
+        val resultCount = composeRule.onNodeWithTag("map_result_count")
+            .assertIsDisplayed()
+            .assertTextContains("1", substring = true)
+            .assertContentDescriptionEquals(
+                "1 resource shown on the map. View matching resources in the list"
+            )
+            .assertHasClickAction()
+        val semanticsNode = resultCount.fetchSemanticsNode()
+        val minimumPixels = 48f * composeRule.density.density
+
+        assertEquals(Role.Button, semanticsNode.config.getOrNull(SemanticsProperties.Role))
+        assertTrue(semanticsNode.boundsInRoot.height >= minimumPixels)
+        assertTrue(semanticsNode.boundsInRoot.width >= minimumPixels)
+
+        resultCount.performClick()
+        composeRule.runOnIdle {
+            assertEquals(listOf("mapped"), plottedProviderIds)
+            assertEquals(1, listClicks)
         }
     }
 
@@ -536,6 +590,8 @@ class MapListParityTest {
         composeRule.onNodeWithTag("fake_map_surface").assertIsDisplayed()
         composeRule.onNodeWithTag("map_search_chrome").assertIsDisplayed()
         composeRule.onNodeWithTag("discovery_search_field").assertIsDisplayed()
+        composeRule.onNodeWithText("Search resources, services, or ZIP code")
+            .assertIsDisplayed()
         composeRule.onNodeWithTag("map_top_filter").assertIsDisplayed()
         composeRule.onNodeWithTag("map_control_rail").assertIsDisplayed()
         composeRule.onNodeWithTag("map_title").assertDoesNotExist()
@@ -571,6 +627,7 @@ class MapListParityTest {
                 actions = discoveryActions(controller),
                 onUseMyLocation = {},
                 onProviderClick = { lastClickedProviderId = it },
+                onNavigateToList = actions.navigateToList,
                 markerContent = { markers, onProviderClick ->
                     lastMarkerIds = markers.map(MapMarkerModel::providerId)
                     Column {

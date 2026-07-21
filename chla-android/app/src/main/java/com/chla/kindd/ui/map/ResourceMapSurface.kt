@@ -17,9 +17,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.data.discovery.DiscoveryOrigin
 import com.chla.kindd.ui.screens.MapMarkerModel
+import com.chla.kindd.ui.screens.ProviderMarkerRole
 import com.chla.kindd.ui.theme.KiNDDIndigo
 import com.chla.kindd.ui.theme.KiNDDPink
-import com.chla.kindd.ui.theme.KiNDDViolet
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -92,7 +92,7 @@ internal fun ProviderResourceMap(
             }
             val selected = selectedProviderId == marker.providerId
             MarkerComposable(
-                keys = arrayOf(marker.providerId, selected),
+                keys = arrayOf(marker.providerId, marker.role, selected),
                 state = markerState,
                 anchor = Offset(0.5f, 1f),
                 title = marker.title,
@@ -104,17 +104,25 @@ internal fun ProviderResourceMap(
                     true
                 }
             ) {
-                KiNDDProviderPin(selected = selected)
+                KiNDDProviderPin(role = marker.role, selected = selected)
             }
         }
     }
 }
 
+internal fun providerMarkerColor(role: ProviderMarkerRole): Color = when (role) {
+    ProviderMarkerRole.ABA,
+    ProviderMarkerRole.OTHER -> Color(red = 0.24f, green = 0.47f, blue = 0.85f)
+    ProviderMarkerRole.SPEECH -> Color(red = 0.55f, green = 0.35f, blue = 0.85f)
+    ProviderMarkerRole.OCCUPATIONAL -> Color(red = 0.25f, green = 0.75f, blue = 0.45f)
+    ProviderMarkerRole.PHYSICAL -> Color(red = 0.95f, green = 0.60f, blue = 0.20f)
+}
+
 @Composable
-private fun KiNDDProviderPin(selected: Boolean) {
+private fun KiNDDProviderPin(role: ProviderMarkerRole, selected: Boolean) {
     val width = if (selected) 42.dp else 36.dp
     val height = if (selected) 50.dp else 44.dp
-    val pinColor = if (selected) KiNDDViolet else KiNDDIndigo
+    val pinColor = providerMarkerColor(role)
     Canvas(Modifier.size(width = width, height = height)) {
         val radius = size.width * 0.36f
         val center = Offset(size.width / 2f, radius + size.width * 0.08f)

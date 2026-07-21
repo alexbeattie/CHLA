@@ -1,6 +1,7 @@
 package com.chla.kindd.ui.map
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -275,8 +278,10 @@ private fun FilterCountBadge(count: Int, modifier: Modifier = Modifier) {
 @Composable
 internal fun ResourceMapContextBadges(
     state: DiscoveryState,
+    onNavigateToList: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val mappedProviderCount = state.mapProviders.size
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -299,18 +304,24 @@ internal fun ResourceMapContextBadges(
         if (state.profile.regionalCenter == null) {
             Box(Modifier)
         }
-        if (state.providers.isNotEmpty()) {
+        if (mappedProviderCount > 0) {
             ResourceMapBadge(
                 text = stringResource(
-                    if (state.providers.size == 1) {
+                    if (mappedProviderCount == 1) {
                         R.string.resource_found
                     } else {
                         R.string.resources_found
                     },
-                    state.providers.size
+                    mappedProviderCount
                 ),
                 color = KiNDDIndigo,
-                tag = "map_result_count"
+                tag = "map_result_count",
+                contentDescription = pluralStringResource(
+                    R.plurals.map_result_count_action,
+                    mappedProviderCount,
+                    mappedProviderCount
+                ),
+                onClick = onNavigateToList
             )
         }
     }
@@ -320,16 +331,30 @@ internal fun ResourceMapContextBadges(
 private fun ResourceMapBadge(
     text: String,
     color: Color,
-    tag: String
+    tag: String,
+    contentDescription: String? = null,
+    onClick: (() -> Unit)? = null
 ) {
+    val actionModifier = if (onClick == null) {
+        Modifier
+    } else {
+        Modifier
+            .heightIn(min = 48.dp)
+            .widthIn(min = 48.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+    }
     KiNDDGlassSurface(
         modifier = Modifier
             .testTag(tag)
-            .semantics(mergeDescendants = true) {},
+            .then(actionModifier)
+            .semantics(mergeDescendants = true) {
+                contentDescription?.let { this.contentDescription = it }
+            },
         shape = CircleShape,
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Row(
+            modifier = Modifier.align(Alignment.Center),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

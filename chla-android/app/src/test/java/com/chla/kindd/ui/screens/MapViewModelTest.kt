@@ -223,6 +223,59 @@ class MapViewModelTest {
         assertEquals(listOf("valid"), providerMarkerModels(providers).map(MapMarkerModel::providerId))
     }
 
+    @Test
+    fun `marker models preserve canonical therapy role with provider type fallback`() {
+        val providers = listOf(
+            Provider(
+                id = "aba",
+                name = "ABA",
+                type = "Speech therapy resource",
+                latitude = 34.0,
+                longitude = -118.0,
+                therapyTypes = listOf("ABA therapy")
+            ),
+            Provider(
+                id = "speech",
+                name = "Speech",
+                latitude = 34.1,
+                longitude = -118.1,
+                therapyTypes = listOf("Speech and language therapy")
+            ),
+            Provider(
+                id = "occupational",
+                name = "Occupational",
+                type = "Occupational Therapy Resource",
+                latitude = 34.2,
+                longitude = -118.2
+            ),
+            Provider(
+                id = "physical",
+                name = "Physical",
+                latitude = 34.3,
+                longitude = -118.3,
+                therapyTypes = listOf("Physical therapy")
+            ),
+            Provider(
+                id = "other",
+                name = "Other",
+                type = "Family support",
+                latitude = 34.4,
+                longitude = -118.4
+            )
+        )
+
+        assertEquals(
+            listOf(
+                ProviderMarkerRole.ABA,
+                ProviderMarkerRole.SPEECH,
+                ProviderMarkerRole.OCCUPATIONAL,
+                ProviderMarkerRole.PHYSICAL,
+                ProviderMarkerRole.OTHER
+            ),
+            providerMarkerModels(providers).map(MapMarkerModel::role)
+        )
+    }
+
     private fun stateWithResults() = DiscoveryState(
         criteria = DiscoveryCriteria(origin = DiscoveryOrigin.ProfileZip("90001")),
         providers = listOf(provider("kept", latitude = 34.0, longitude = -118.0)),
