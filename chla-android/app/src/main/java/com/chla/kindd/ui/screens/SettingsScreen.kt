@@ -203,7 +203,8 @@ fun SettingsContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding(),
+                .statusBarsPadding()
+                .testTag("settings_list"),
             contentPadding = PaddingValues(
                 start = KiNDDSpacingTokens.PageInset,
                 top = 8.dp,

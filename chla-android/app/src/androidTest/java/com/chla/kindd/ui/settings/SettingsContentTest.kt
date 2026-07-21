@@ -14,6 +14,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.Density
 import androidx.test.platform.app.InstrumentationRegistry
 import com.chla.kindd.ui.screens.SettingsContent
@@ -81,6 +82,11 @@ class SettingsContentTest {
             }
         }
 
+        composeRule.onNodeWithTag("settings_list")
+            .performScrollToNode(SemanticsMatcher.expectValue(
+                SemanticsProperties.TestTag,
+                "settings_clear_profile_error"
+            ))
         composeRule.onNodeWithTag("settings_clear_profile_error").assertIsDisplayed()
         composeRule.onNodeWithText("We couldn't clear your profile. Please try again.")
             .assertIsDisplayed()
@@ -150,8 +156,12 @@ class SettingsContentTest {
 
         assertEquals(topCoordinates.sorted(), topCoordinates)
         composeRule.onNodeWithText("1.4.1 (1)").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("settings_list")
+            .performScrollToNode(SemanticsMatcher.expectValue(
+                SemanticsProperties.TestTag,
+                "settings_bottom_navigation_clearance"
+            ))
         composeRule.onNodeWithTag("settings_bottom_navigation_clearance")
-            .performScrollTo()
             .assertIsDisplayed()
     }
 
