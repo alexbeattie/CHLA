@@ -457,6 +457,9 @@ class AppEntryNavigationTest {
         assertControlClearsFloatingNavigation(REGIONS_BOTTOM_CONTROL_TAG)
         composeRule.onNodeWithTag(BOTTOM_MORE_TAG).performClick()
         assertControlClearsFloatingNavigation(MORE_BOTTOM_CONTROL_TAG)
+        composeRule.runOnIdle { navController.navigate(Screen.Settings.route) }
+        composeRule.waitForIdle()
+        assertControlClearsFloatingNavigation(SETTINGS_BOTTOM_CONTROL_TAG)
 
         composeRule.onNodeWithTag(BOTTOM_MAP_TAG).performClick()
         val mapBottom = composeRule.onNodeWithTag(MAP_FULL_BLEED_TAG)

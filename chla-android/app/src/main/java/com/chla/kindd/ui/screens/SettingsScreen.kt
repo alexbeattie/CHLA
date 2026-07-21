@@ -409,14 +409,6 @@ fun SettingsContent(
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
-            item {
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(112.dp)
-                        .testTag("settings_bottom_navigation_clearance")
-                )
-            }
         }
     }
 

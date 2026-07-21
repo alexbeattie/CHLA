@@ -162,7 +162,7 @@ class SettingsContentTest {
                 "settings_bottom_navigation_clearance"
             ))
         composeRule.onNodeWithTag("settings_bottom_navigation_clearance")
-            .assertIsDisplayed()
+            .assertDoesNotExist()
     }
 
     @Test

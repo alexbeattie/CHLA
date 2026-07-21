@@ -182,7 +182,7 @@ private fun RegionsMapMode(
                 onAreaSelected = onAreaSelected,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 18.dp, vertical = 112.dp)
+                    .padding(horizontal = 18.dp, vertical = 16.dp)
             )
         }
         RegionalCenterServiceAreaState.Loading,
@@ -212,7 +212,7 @@ private fun RegionsMapMode(
                     mapContent = mapContent
                 )
             }
-            Spacer(modifier = Modifier.height(120.dp))
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -248,7 +248,7 @@ private fun RegionsList(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("regions_list"),
-        contentPadding = PaddingValues(bottom = 120.dp),
+        contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item(key = "controls") {

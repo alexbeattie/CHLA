@@ -2,6 +2,7 @@ package com.chla.kindd.ui.onboarding
 
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -23,6 +24,8 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.data.models.RegionalCenter
 import com.chla.kindd.data.profile.AgeGroup
@@ -68,6 +71,27 @@ class OnboardingContentTest {
         composeRule.onNodeWithTag("onboarding_audience_segmented").assertExists()
         composeRule.onNodeWithTag("onboarding_primary_gradient", useUnmergedTree = true)
             .assertExists()
+    }
+
+    @Test
+    fun edgeToEdge_progressChromeStartsBelowTheStatusBar() {
+        composeRule.activity.enableEdgeToEdge()
+        compose(state(step = OnboardingStep.AUDIENCE))
+
+        val statusBarBottom = ViewCompat.getRootWindowInsets(
+            composeRule.activity.window.decorView
+        )?.getInsets(WindowInsetsCompat.Type.statusBars())?.top ?: 0
+        val progressTop = composeRule.onNodeWithTag("onboarding_progress_capsules")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+            .top
+
+        assertTrue("Expected a non-zero status bar inset", statusBarBottom > 0)
+        assertTrue(
+            "Onboarding progress starts behind the status bar: $progressTop < $statusBarBottom",
+            progressTop >= statusBarBottom
+        )
     }
 
     @Test
