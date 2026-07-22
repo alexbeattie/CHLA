@@ -28,7 +28,10 @@ env:
   AWS_REGION: us-west-2
   EB_ENVIRONMENT: chla-api-docker2
   S3_BUCKET: kinddhelp-frontend-1755148345
+  # kinddhelp.com / www.kinddhelp.com (redirects canonical traffic to .org)
   CLOUDFRONT_DIST_ID: E2W6EECHUV4LMM
+  # kinddhelp.org / www.kinddhelp.org (canonical public site)
+  CLOUDFRONT_DIST_ID_ORG: E2Z6DZAF6O77HY
 
 jobs:
   deploy-backend:
@@ -138,13 +141,17 @@ jobs:
 
       - name: Invalidate CloudFront Cache
         run: |
-          echo "Invalidating CloudFront cache..."
-          INVALIDATION_ID=$(aws cloudfront create-invalidation \
-            --distribution-id ${{ env.CLOUDFRONT_DIST_ID }} \
-            --paths "/*" \
-            --query 'Invalidation.Id' \
-            --output text)
-          echo "CloudFront invalidation created: $INVALIDATION_ID"
+          echo "Invalidating CloudFront caches for .com and .org..."
+          for DIST_ID in \
+            "${{ env.CLOUDFRONT_DIST_ID }}" \
+            "${{ env.CLOUDFRONT_DIST_ID_ORG }}"; do
+            INVALIDATION_ID=$(aws cloudfront create-invalidation \
+              --distribution-id "$DIST_ID" \
+              --paths "/*" \
+              --query 'Invalidation.Id' \
+              --output text)
+            echo "CloudFront invalidation created for $DIST_ID: $INVALIDATION_ID"
+          done
           echo "Cache invalidation usually takes 1-2 minutes"
 
       - name: Verify Frontend
@@ -152,12 +159,12 @@ jobs:
           echo "Waiting for CloudFront propagation..."
           sleep 10
 
-          echo "Testing frontend..."
-          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://kinddhelp.com)
+          echo "Testing canonical frontend (kinddhelp.org)..."
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://kinddhelp.org)
           if [ "$STATUS_CODE" == "200" ]; then
-            echo "Frontend is accessible (HTTP $STATUS_CODE)"
+            echo "Frontend is accessible at kinddhelp.org (HTTP $STATUS_CODE)"
           else
-            echo " Frontend returned HTTP $STATUS_CODE (may need cache time)"
+            echo "Frontend returned HTTP $STATUS_CODE at kinddhelp.org (may need cache time)"
           fi
 
   deployment-summary:
@@ -177,7 +184,7 @@ jobs:
           echo "Backend Status: ${{ needs.deploy-backend.result }}"
           echo "Frontend Status: ${{ needs.deploy-frontend.result }}"
           echo ""
-          echo "Frontend URL: https://kinddhelp.com"
+          echo "Frontend URL: https://kinddhelp.org"
           echo "Backend API: https://api.kinddhelp.com"
           echo ""
           echo "════════════════════════════════════════════════════════════"
