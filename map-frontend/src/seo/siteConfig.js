@@ -88,7 +88,7 @@ const ROUTE_SEO = {
   '/privacy': {
     title: `Privacy Policy - ${SITE_TITLE}`,
     description:
-      'Privacy policy for KiNDD - NDD Resource Map. Learn how user information is handled.',
+      'Privacy policy for the KiNDD website, iOS app, and Android app. Learn how location, AI chat, and other user information is handled.',
   },
   '/terms': {
     title: `Terms of Service - ${SITE_TITLE}`,
