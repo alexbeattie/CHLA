@@ -18,11 +18,11 @@ val releaseSigningConfigured = listOf(
 ).all { it.isPresent }
 
 android {
-    namespace = "com.chla.kindd"
+    namespace = "com.navigator.kindd"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.chla.kindd"
+        applicationId = "com.navigator.kindd"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

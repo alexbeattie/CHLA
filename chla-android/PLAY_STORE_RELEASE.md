@@ -11,7 +11,7 @@ KiNDD - NDD Resource Navigator.
 | Account type | Organization |
 | Developer name | `KiNDD` |
 | App title | `KiNDD - NDD Resource Navigator` |
-| Package | `com.chla.kindd` |
+| Package | `com.navigator.kindd` |
 | Version | `1.4.1` |
 | Version code | `1` for the first upload; confirm unused in Play Console |
 | Price | Free |
@@ -97,9 +97,10 @@ the Play build:
    icon, feature graphic, and phone screenshots from `play-assets/`.
 5. Complete App access (no sign-in), Ads (none), Content rating, Target audience,
    News, Data safety, Health apps, and privacy-policy declarations accurately.
-6. Add the Play app-signing SHA-1 certificate to the Android-restricted Google
-   Maps API key for package `com.chla.kindd`. The upload/debug certificate is not
-   the certificate users receive from Play.
+6. Restrict Google Maps to package `com.navigator.kindd`. Authorize the debug or
+   upload signer used for direct installs, and authorize the Play App Signing
+   signer for Play-delivered builds; the upload certificate is not the
+   certificate users receive from Play.
 7. Install the Play-delivered internal-test build and repeat map, location,
    provider, phone, website, English/Spanish, and Ask KiNDD checks.
 8. Resolve every Play pre-review warning, then promote the verified build to

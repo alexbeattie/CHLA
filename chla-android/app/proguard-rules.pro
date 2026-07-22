@@ -5,8 +5,8 @@
 # Keep Retrofit models
 -keepattributes Signature
 -keepattributes *Annotation*
--keep class com.chla.kindd.data.models.** { *; }
--keep class com.chla.kindd.data.api.** { *; }
+-keep class com.navigator.kindd.data.models.** { *; }
+-keep class com.navigator.kindd.data.api.** { *; }
 
 # Retrofit
 -dontwarn retrofit2.**

@@ -45,7 +45,7 @@ KiNDD - NDD Resource Navigator is a free resource map helping families find ABA 
 ## Project Structure
 
 ```
-app/src/main/java/com/chla/kindd/
+app/src/main/java/com/navigator/kindd/
 ├── ui/
 │   ├── screens/          # Composable screens
 │   ├── components/       # Reusable UI components
