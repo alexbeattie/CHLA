@@ -90,6 +90,10 @@ android {
     }
 }
 
+tasks.matching { task -> task.name == "testDebugUnitTest" }.configureEach {
+    dependsOn("processReleaseManifest")
+}
+
 dependencies {
     // Core Android
     implementation("androidx.core:core-ktx:1.12.0")

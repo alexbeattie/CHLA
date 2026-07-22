@@ -1,18 +1,15 @@
 package com.navigator.kindd
 
-import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.w3c.dom.Document
 
 class PlayReleaseManifestContractTest {
 
     @Test
     fun releaseLocationPermissionIsForegroundCoarseOnly() {
-        val permissions = manifest()
+        val permissions = releaseManifest()
             .getElementsByTagName("uses-permission")
             .let { nodes ->
                 (0 until nodes.length)
@@ -28,7 +25,7 @@ class PlayReleaseManifestContractTest {
 
     @Test
     fun optionalLocationDoesNotFilterDevicesWithoutLocationHardware() {
-        val features = manifest()
+        val features = releaseManifest()
             .getElementsByTagName("uses-feature")
             .let { nodes ->
                 (0 until nodes.length)
@@ -58,20 +55,5 @@ class PlayReleaseManifestContractTest {
                 features[feature]
             )
         }
-    }
-
-    private fun manifest(): Document {
-        val releaseManifest = File(
-            "build/intermediates/merged_manifests/release/" +
-                "processReleaseManifest/AndroidManifest.xml"
-        )
-        assertTrue("Merged release manifest must exist", releaseManifest.isFile)
-        return DocumentBuilderFactory.newInstance().apply {
-            isNamespaceAware = true
-        }.newDocumentBuilder().parse(releaseManifest)
-    }
-
-    private companion object {
-        const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
     }
 }

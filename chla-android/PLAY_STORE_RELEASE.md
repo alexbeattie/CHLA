@@ -71,6 +71,15 @@ SHA-256 checksum. The output is:
 Before upload, run the full unit, lint, and device verification appropriate to
 the release and retain the results with the bundle checksum.
 
+## Binary asset identity gate
+
+The automated identity contract scans every classified text-bearing Android
+source, resource, test, configuration, release-documentation, and store-asset
+format. PNG files are not read as text. Before release, compare every Android
+and Play PNG visually with the approved KiNDD artwork or verify it against an
+approved checksum inventory, and record that result separately from the text
+identity contract.
+
 ## Pre-upload service gate
 
 The Android reporting client and backend must ship together. Before distributing
