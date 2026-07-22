@@ -18,14 +18,14 @@ val releaseSigningConfigured = listOf(
 ).all { it.isPresent }
 
 android {
-    namespace = "com.chla.kindd"
+    namespace = "com.navigator.kindd"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.chla.kindd"
+        applicationId = "com.navigator.kindd"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
+        versionCode = 2
         versionName = "1.4.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -88,6 +88,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+tasks.matching { task -> task.name == "testDebugUnitTest" }.configureEach {
+    dependsOn("processReleaseManifest")
 }
 
 dependencies {
