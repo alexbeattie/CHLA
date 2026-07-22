@@ -1,6 +1,7 @@
 package com.navigator.kindd
 
 import java.io.File
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -12,6 +13,13 @@ class PlayReleaseIdentityContractTest {
     private val targetPath = "com/navigator/kindd"
     private val legacyMarker = charArrayOf('c', 'h', 'l', 'a').concatToString()
     private val legacyPackage = "com.$legacyMarker.kindd"
+    private val forbiddenExactBrands = listOf(legacyMarker, legacyPackage)
+    private val formerInstitutionWords = listOf(
+        "child" + "ren" + "s",
+        "hospital",
+        "los",
+        "angeles"
+    )
     private val textExtensions = setOf(
         "geojson",
         "gradle",
@@ -140,10 +148,28 @@ class PlayReleaseIdentityContractTest {
         val offenders = identityTextFiles()
             .filter { file ->
                 val text = file.readText().withoutAllowedInfrastructureMarker(file)
-                text.contains(legacyMarker, ignoreCase = true)
+                text.containsForbiddenBrand()
             }
 
         assertTrue("Legacy branding remains in: $offenders", offenders.isEmpty())
+    }
+
+    @Test
+    fun forbiddenBrandDetectorNormalizesIdentifiersPunctuationAndCase() {
+        val subject = "Child" + "ren"
+        val institution = "Hos" + "pital"
+        val location = listOf("Los", "Angeles").joinToString(" ")
+        val variants = listOf(
+            "$subject's $institution $location",
+            "$subject’s $institution $location",
+            "${subject.uppercase(Locale.ROOT)}’S -- " +
+                "${institution.lowercase(Locale.ROOT)}, ${location.uppercase(Locale.ROOT)}",
+            "${subject}s | $institution / $location"
+        )
+
+        (forbiddenExactBrands + variants).forEach { value ->
+            assertTrue("Forbidden brand variant was not detected", value.containsForbiddenBrand())
+        }
     }
 
     @Test
@@ -175,6 +201,22 @@ class PlayReleaseIdentityContractTest {
 
     private fun scopedTreeFiles(): List<File> = treeRoots
         .flatMap { root -> root.walkTopDown().filter(File::isFile).toList() }
+
+    private fun String.containsForbiddenBrand(): Boolean {
+        val caseFolded = lowercase(Locale.ROOT)
+        if (forbiddenExactBrands.any { brand -> caseFolded.contains(brand) }) return true
+
+        val words = normalizedBrandWords()
+        return words.windowed(formerInstitutionWords.size)
+            .any { sequence -> sequence == formerInstitutionWords }
+    }
+
+    private fun String.normalizedBrandWords(): List<String> = lowercase(Locale.ROOT)
+        .replace(Regex("['’‘ʼ]"), "")
+        .replace(Regex("[^\\p{L}\\p{N}]+"), " ")
+        .trim()
+        .split(Regex("\\s+"))
+        .filter(String::isNotEmpty)
 
     private fun String.withoutAllowedInfrastructureMarker(file: File): String {
         if (file.canonicalFile !in infrastructureMarkerFiles) return this
