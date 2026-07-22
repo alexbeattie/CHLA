@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-07-22 — Invalidate both .com and .org CloudFront on deploy
+- **Branch:** fix/cloudfront-org-invalidation
+- **Files:** .github/workflows/deploy-production.yml, map-frontend/deploy.sh
+- **Problem:** Production deploy only invalidated the kinddhelp.com CloudFront dist; kinddhelp.com redirects to kinddhelp.org, which kept serving stale HTML until a manual invalidation.
+- **Fix:** Invalidate both E2W6EECHUV4LMM (.com) and E2Z6DZAF6O77HY (.org) after S3 sync, and verify the canonical .org URL.
+
 ### 2026-07-22 — Privacy policy covers Android, Google Maps, and AI
 - **Branch:** chore/privacy-policy-android
 - **Files:** map-frontend/src/views/PrivacyPolicyView.vue, map-frontend/src/views/TermsOfServiceView.vue, map-frontend/src/seo/siteConfig.js
