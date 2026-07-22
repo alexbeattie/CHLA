@@ -164,7 +164,11 @@ class PlayReleaseIdentityContractTest {
             "$subject’s $institution $location",
             "${subject.uppercase(Locale.ROOT)}’S -- " +
                 "${institution.lowercase(Locale.ROOT)}, ${location.uppercase(Locale.ROOT)}",
-            "${subject}s | $institution / $location"
+            "${subject}s | $institution / $location",
+            "${subject}\\'s $institution $location",
+            "${subject}&" + "apos;s $institution $location",
+            "${subject}&" + "#39;s $institution $location",
+            "${subject}&" + "#x27;s $institution $location"
         )
 
         (forbiddenExactBrands + variants).forEach { value ->
@@ -212,7 +216,8 @@ class PlayReleaseIdentityContractTest {
     }
 
     private fun String.normalizedBrandWords(): List<String> = lowercase(Locale.ROOT)
-        .replace(Regex("['’‘ʼ]"), "")
+        .replace(Regex("(?i)&(?:apos|#39|#x27);"), "'")
+        .replace(Regex("""\\*['’‘ʼ]"""), "")
         .replace(Regex("[^\\p{L}\\p{N}]+"), " ")
         .trim()
         .split(Regex("\\s+"))
