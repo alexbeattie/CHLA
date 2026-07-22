@@ -3,7 +3,7 @@
     <div class="container">
       <header class="terms-header">
         <h1>Terms of Service</h1>
-        <p class="last-updated">Last Updated: December 15, 2025</p>
+        <p class="last-updated">Last Updated: July 22, 2026</p>
       </header>
 
       <div class="terms-content">
@@ -89,10 +89,10 @@
         <section>
           <h2>Third-Party Services</h2>
           <p>
-            The Service integrates with third-party mapping services (Apple
-            Maps, Mapbox) to provide location and directions features. Your use
-            of these features is subject to the respective third-party terms of
-            service.
+            The Service integrates with third-party mapping services (Apple Maps
+            on iOS, Google Maps on Android, and Mapbox on the web) and may use
+            cloud AI providers to power Ask KiNDD. Your use of these features is
+            subject to the respective third-party terms of service.
           </p>
         </section>
 
