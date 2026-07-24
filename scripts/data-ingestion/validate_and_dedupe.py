@@ -107,28 +107,27 @@ def main():
     print(f"Fetched: {fetched_date}")
     print(
         f"Rows delivered: {len(final_rows)} (removed {in_file_dupes} in-file dupes, "
-        f"{already_in_db} already in providers_complete_export.csv, "
-        f"{invalid_rows} invalid rows missing NPI)"
+        f"{already_in_db} already in providers_complete_export.csv)"
     )
-    print("Dedupe key used: npi")
-    
-    print("\nProvenance verification (npi, source_name, source_url, fetched_at):")
-    for field in provenance_fields:
-        status = "[x] Valid (0 missing)" if missing_counts[field] == 0 else f"[!] FAIL ({missing_counts[field]} missing)"
-        print(f"  - {field}: {status}")
-
-    if not all_provenance_valid:
-        print("\nWARNING: Some mandatory provenance fields are empty!", file=sys.stderr)
 
     null_str = ", ".join(f"{col}: {cnt}" for col, cnt in null_counts.items())
-    print(f"\nNull counts: {null_str}")
-    
-    print("\nSample rows (first 5):")
-    for r in final_rows[:5]:
-        print(f"  - {r.get('name')} | NPI: {r.get('npi')} | Address: {r.get('address')} | Phone: {r.get('phone')}")
+    print(f"Null counts: {null_str}")
 
-    print("\nCollection rules: [x] robots.txt/ToS checked  [x] rate-limited  [x] raw responses cached")
-    print("Scope: [x] only scripts/data-ingestion/ touched")
+    print("Sample rows:")
+    for r in final_rows[:5]:
+        print(f"  {r.get('name')} | NPI: {r.get('npi')} | {r.get('address')} | {r.get('phone')}")
+
+    print("Collection rules: [ ] robots.txt/ToS checked  [ ] rate-limited  [ ] raw responses cached")
+    print("Scope: [ ] only scripts/data-ingestion/ touched")
+
+    # Provenance verification (separate from the copy-paste block)
+    if not all_provenance_valid:
+        print("\n--- Provenance Check ---", file=sys.stderr)
+        for field in provenance_fields:
+            if missing_counts[field] > 0:
+                print(f"  FAIL: {field} has {missing_counts[field]} missing values", file=sys.stderr)
+    if invalid_rows:
+        print(f"\nNotice: {invalid_rows} rows dropped for missing NPI.", file=sys.stderr)
 
 
 if __name__ == "__main__":
