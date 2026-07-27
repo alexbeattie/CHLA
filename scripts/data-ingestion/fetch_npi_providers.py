@@ -4,7 +4,13 @@ API docs: https://npiregistry.cms.hhs.gov/api-page (version 2.1, no key required
 Pagination is capped by the API at limit=200 and skip=1000, so one query segment
 returns at most 1,200 rows; segment large taxonomies with repeated --city flags.
 
-Example:
+Examples:
+    # County-wide search (recommended for deliverables)
+    python fetch_npi_providers.py \
+        --taxonomy "Behavior Analyst" \
+        --out deliverables/npi_behavior_analysts.csv
+
+    # Or narrow API queries by city (still post-filters to county ZIPs)
     python fetch_npi_providers.py \
         --taxonomy "Behavior Analyst" \
         --city "Los Angeles" --city "Long Beach" \
@@ -61,6 +67,22 @@ def normalize_phone(raw):
     return f"{digits[0:3]}-{digits[3:6]}-{digits[6:10]}"
 
 
+def load_county_zips(path):
+    """Return the set of 5-digit ZIP strings from a county ZIP CSV."""
+    zip_file = Path(path)
+    if not zip_file.is_file():
+        sys.exit(f"County ZIP file not found: {path}")
+    zips = set()
+    with zip_file.open() as f:
+        for row in csv.DictReader(f):
+            z = (row.get("zip") or "").strip()
+            if z:
+                zips.add(z)
+    if not zips:
+        sys.exit(f"County ZIP file is empty: {path}")
+    return zips
+
+
 def fetch_page(session, params, cache_path, rate_limit_seconds):
     if cache_path.is_file():
         return json.loads(cache_path.read_text()), True
@@ -78,6 +100,7 @@ def fetch_page(session, params, cache_path, rate_limit_seconds):
 
 
 def flatten(record, source_url, fetched_at):
+    """Return (practice_zip, row_dict) for one NPPES record."""
     basic = record.get("basic", {})
     if record.get("enumeration_type") == "NPI-2":
         name = basic.get("organization_name", "").strip()
@@ -107,7 +130,7 @@ def flatten(record, source_url, fetched_at):
         (record.get("taxonomies") or [{}])[0],
     )
 
-    return {
+    return postal, {
         "name": name,
         "address": address,
         "latitude": "",
@@ -129,23 +152,27 @@ def flatten(record, source_url, fetched_at):
     }
 
 
-def fetch_segment(session, taxonomy, city, state, cache_dir, rate_limit_seconds):
+def fetch_segment(session, taxonomy, city, state, cache_dir, rate_limit_seconds, postal_code=None):
     records = []
     for skip in range(0, MAX_SKIP + 1, PAGE_SIZE):
         params = {
             "version": API_VERSION,
             "taxonomy_description": taxonomy,
             "state": state,
+            "address_purpose": "LOCATION",
             "limit": PAGE_SIZE,
             "skip": skip,
         }
         if city:
             params["city"] = city
-        cache_name = f"npi_{slugify(taxonomy)}_{slugify(state)}_{slugify(city or 'all')}_{skip}.json"
+        if postal_code:
+            params["postal_code"] = postal_code
+        geo = city or postal_code or "all"
+        cache_name = f"npi_{slugify(taxonomy)}_{slugify(state)}_{slugify(geo)}_{skip}.json"
         data, from_cache = fetch_page(session, params, cache_dir / cache_name, rate_limit_seconds)
         page = data.get("results", [])
         source = "cache" if from_cache else "api"
-        print(f"  {city or 'all cities'} skip={skip}: {len(page)} results ({source})")
+        print(f"  {geo} skip={skip}: {len(page)} results ({source})")
         records.extend(page)
         if len(page) < PAGE_SIZE:
             return records, False
@@ -157,6 +184,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--taxonomy", required=True, help='e.g. "Behavior Analyst"')
     parser.add_argument("--city", action="append", default=[], help="Repeatable; segments the query")
+    parser.add_argument("--county-zips",
+                        default=str(Path(__file__).resolve().parent / "la_county_zips.csv"),
+                        help="Path to county ZIP CSV (default: la_county_zips.csv)")
     parser.add_argument("--state", default="CA")
     parser.add_argument("--out", default="output/npi_providers.csv")
     parser.add_argument("--cache-dir", default="cache")
@@ -166,6 +196,9 @@ def main():
 
     if not args.contact_email:
         sys.exit("Set CONTACT_EMAIL in .env or pass --contact-email (goes in the User-Agent).")
+
+    county_zips = load_county_zips(args.county_zips)
+    print(f"Loaded {len(county_zips)} county ZIPs from {args.county_zips}")
 
     cache_dir = Path(args.cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -178,21 +211,36 @@ def main():
     fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     rows = {}
     truncated_segments = []
-    for city in args.city or [None]:
-        print(f"Fetching taxonomy={args.taxonomy!r} city={city or 'all'} state={args.state}")
+    skipped_outside = 0
+
+    if args.city:
+        segments = [(c, None) for c in args.city]
+    else:
+        segments = [(None, z) for z in sorted(county_zips)]
+
+    for i, (city, postal_code) in enumerate(segments, 1):
+        geo = city or postal_code or "all"
+        print(f"[{i}/{len(segments)}] Fetching taxonomy={args.taxonomy!r} {geo} state={args.state}")
         records, truncated = fetch_segment(
-            session, args.taxonomy, city, args.state, cache_dir, args.rate_limit
+            session, args.taxonomy, city, args.state, cache_dir, args.rate_limit,
+            postal_code=postal_code,
         )
         if truncated:
-            truncated_segments.append(city or "all")
+            truncated_segments.append(geo)
         source_url = (
             f"{API_URL}?version={API_VERSION}&taxonomy_description={args.taxonomy}"
-            f"&state={args.state}" + (f"&city={city}" if city else "")
+            f"&state={args.state}"
+            + (f"&city={city}" if city else "")
+            + (f"&postal_code={postal_code}" if postal_code else "")
         )
         for record in records:
-            row = flatten(record, source_url, fetched_at)
-            if row["npi"]:
-                rows[row["npi"]] = row
+            practice_zip, row = flatten(record, source_url, fetched_at)
+            if not row["npi"]:
+                continue
+            if practice_zip not in county_zips:
+                skipped_outside += 1
+                continue
+            rows[row["npi"]] = row
 
     with out_path.open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
@@ -200,6 +248,8 @@ def main():
         writer.writerows(sorted(rows.values(), key=lambda r: r["name"]))
 
     print(f"\nWrote {len(rows)} unique providers to {out_path}")
+    if skipped_outside:
+        print(f"Filtered out {skipped_outside} providers with practice locations outside county ZIP set.")
     if truncated_segments:
         print(
             "WARNING: these segments hit the API's 1,200-row pagination cap and are "
