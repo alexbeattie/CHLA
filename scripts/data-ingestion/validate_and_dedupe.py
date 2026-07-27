@@ -103,7 +103,7 @@ def main():
     print("      PULL REQUEST VALIDATION REPORT (COPY BELOW)      ")
     print("=======================================================\n")
     print("Source: NPPES NPI Registry API (https://npiregistry.cms.hhs.gov/api-page)")
-    print("Query/scope: Taxonomy 'Behavior Analyst' across 10 LA County cities")
+    print("Query/scope: Taxonomy 'Behavior Analyst', LA County (ZIP-filtered)")
     print(f"Fetched: {fetched_date}")
     print(
         f"Rows delivered: {len(final_rows)} (removed {in_file_dupes} in-file dupes, "
