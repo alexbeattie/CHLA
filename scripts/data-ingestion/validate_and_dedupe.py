@@ -12,24 +12,49 @@ import sys
 from pathlib import Path
 
 
-def load_existing_npis(export_path="../../providers_complete_export.csv"):
+def normalize_name(name):
+    """Strip to lowercase alphanumeric for fuzzy matching."""
+    return re.sub(r"[^a-z0-9]", "", (name or "").lower())
+
+
+def normalize_phone_digits(raw):
+    """Return 10-digit phone string, or empty."""
+    digits = re.sub(r"\D", "", raw or "")
+    if len(digits) == 11 and digits.startswith("1"):
+        digits = digits[1:]
+    return digits if len(digits) == 10 else ""
+
+
+def load_existing_providers(export_path="../../providers_complete_export.csv"):
+    """Load existing providers for cross-file dedup.
+
+    Returns (npi_set, name_phone_set, name_only_set).
+    """
     export_file = Path(export_path)
     if not export_file.is_file():
         export_file = Path("providers_complete_export.csv")
     if not export_file.is_file():
         print(f"Notice: {export_path} not found. Skipping cross-file deduplication.", file=sys.stderr)
-        return set()
+        return set(), set(), set()
 
-    existing_npis = set()
+    npis = set()
+    name_phone_pairs = set()
+    name_only = set()
 
     with export_file.open("r", encoding="utf-8", errors="ignore") as f:
         reader = csv.DictReader(f)
         for row in reader:
             npi = (row.get("npi") or "").strip()
             if npi:
-                existing_npis.add(npi)
+                npis.add(npi)
+            name = normalize_name(row.get("name"))
+            phone = normalize_phone_digits(row.get("phone"))
+            if name:
+                name_only.add(name)
+                if phone:
+                    name_phone_pairs.add((name, phone))
 
-    return existing_npis
+    return npis, name_phone_pairs, name_only
 
 
 def main():
@@ -46,13 +71,15 @@ def main():
         rows = list(reader)
 
     total_pulled = len(rows)
-    existing_npis = load_existing_npis()
+    existing_npis, existing_name_phone, existing_names = load_existing_providers()
 
     already_in_db = 0
     final_rows = []
     seen_npis = set()
     in_file_dupes = 0
     invalid_rows = 0
+    name_phone_dupes = 0
+    name_only_review = []
 
     for r in rows:
         npi = (r.get("npi") or "").strip()
@@ -71,8 +98,21 @@ def main():
         # Cross-file deduplication against database export
         if npi in existing_npis:
             already_in_db += 1
-        else:
-            final_rows.append(r)
+            continue
+
+        name = normalize_name(r.get("name"))
+        phone = normalize_phone_digits(r.get("phone"))
+
+        # Name + phone match: auto-remove (confident duplicate)
+        if name and phone and (name, phone) in existing_name_phone:
+            name_phone_dupes += 1
+            continue
+
+        # Name-only match: flag for review but still include
+        if name and name in existing_names:
+            name_only_review.append(r)
+
+        final_rows.append(r)
 
     # Overwrite target CSV with deduplicated rows
     with target_file.open("w", newline="", encoding="utf-8") as f:
@@ -107,7 +147,8 @@ def main():
     print(f"Fetched: {fetched_date}")
     print(
         f"Rows delivered: {len(final_rows)} (removed {in_file_dupes} in-file dupes, "
-        f"{already_in_db} already in providers_complete_export.csv)"
+        f"{already_in_db} NPI matches + {name_phone_dupes} name+phone matches "
+        f"already in providers_complete_export.csv)"
     )
 
     null_str = ", ".join(f"{col}: {cnt}" for col, cnt in null_counts.items())
@@ -119,6 +160,12 @@ def main():
 
     print("Collection rules: [ ] robots.txt/ToS checked  [ ] rate-limited  [ ] raw responses cached")
     print("Scope: [ ] only scripts/data-ingestion/ touched")
+
+    if name_only_review:
+        print(f"\nName-only matches for review ({len(name_only_review)} rows, "
+              "same name but different phone, kept in deliverable):")
+        for r in name_only_review:
+            print(f"  {r.get('name')} | {r.get('phone')} | NPI: {r.get('npi')}")
 
     # Provenance verification (separate from the copy-paste block)
     if not all_provenance_valid:
