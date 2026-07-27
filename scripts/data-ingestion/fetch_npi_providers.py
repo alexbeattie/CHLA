@@ -24,6 +24,7 @@ import os
 import re
 import sys
 import time
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -212,6 +213,7 @@ def main():
     rows = {}
     truncated_segments = []
     skipped_outside = 0
+    skipped_taxonomy = Counter()
 
     if args.city:
         segments = [(c, None) for c in args.city]
@@ -240,6 +242,9 @@ def main():
             if practice_zip not in county_zips:
                 skipped_outside += 1
                 continue
+            if row["therapy_types"] != args.taxonomy:
+                skipped_taxonomy[row["therapy_types"]] += 1
+                continue
             rows[row["npi"]] = row
 
     with out_path.open("w", newline="") as f:
@@ -250,6 +255,11 @@ def main():
     print(f"\nWrote {len(rows)} unique providers to {out_path}")
     if skipped_outside:
         print(f"Filtered out {skipped_outside} providers with practice locations outside county ZIP set.")
+    if skipped_taxonomy:
+        print(f"Filtered out {sum(skipped_taxonomy.values())} providers whose primary taxonomy "
+              f"is not {args.taxonomy!r}:")
+        for tax, count in skipped_taxonomy.most_common():
+            print(f"  {tax}: {count}")
     if truncated_segments:
         print(
             "WARNING: these segments hit the API's 1,200-row pagination cap and are "
