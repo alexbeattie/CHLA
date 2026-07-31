@@ -3,7 +3,7 @@
     <div class="container">
       <header class="policy-header">
         <h1>Privacy Policy</h1>
-        <p class="last-updated">Last Updated: July 22, 2026</p>
+        <p class="last-updated">Last Updated: July 31, 2026</p>
       </header>
 
       <div class="policy-content">
@@ -123,8 +123,9 @@
           </ul>
           <p>
             You can clear on-device chat history in the app where that control
-            is available. Clearing chat on your device does not necessarily
-            delete operational logs already created on our servers.
+            is available. See Data Retention and Deletion below for how
+            on-device data, server-side records, and deletion requests are
+            handled.
           </p>
         </section>
 
@@ -169,6 +170,71 @@
             protect your information against unauthorized access, alteration,
             disclosure, or destruction. However, no method of transmission over
             the Internet is 100% secure.
+          </p>
+        </section>
+
+        <section>
+          <h2>Data Retention and Deletion</h2>
+          <p>
+            KiNDD does not require or create a user account. We retain data
+            according to its type and purpose:
+          </p>
+          <ul>
+            <li>
+              <strong>Data stored on your device:</strong> Profile details,
+              preferences, and saved conversations (where supported) remain on
+              your device until you delete them using the app's controls, clear
+              the app's storage, or uninstall the app. Android chat messages are
+              not saved as a persistent conversation history.
+            </li>
+            <li>
+              <strong>Location and resource searches:</strong> Coordinates, ZIP
+              codes, search terms, and filters sent to our servers are used to
+              fulfill your request. We do not maintain a persistent
+              account-based history of your location or searches. This
+              information may appear temporarily in restricted operational or
+              security logs and is deleted or de-identified when it is no
+              longer needed for troubleshooting, security, or abuse prevention.
+            </li>
+            <li>
+              <strong>Ask KiNDD data:</strong> Chat messages, optional profile
+              context, and generated responses may be retained in restricted
+              operational and AI-monitoring systems while needed to provide the
+              Service, investigate errors or safety concerns, and improve
+              response quality. We delete or de-identify this data when it is no
+              longer needed for those purposes.
+            </li>
+            <li>
+              <strong>AI response reports:</strong> If you explicitly report an
+              AI response, we retain the reported response, report reason,
+              locale, platform, app version, timestamp, and a non-reversible
+              response fingerprint until the report has been reviewed and is no
+              longer needed for safety or quality follow-up. We then delete or
+              anonymize the report.
+            </li>
+            <li>
+              <strong>Support and privacy requests:</strong> We retain
+              correspondence while we respond to and resolve the request, and
+              afterward only as long as needed for legal, security, or
+              record-keeping obligations.
+            </li>
+          </ul>
+          <p>
+            De-identified or aggregated information that can no longer
+            reasonably identify you may be retained for service improvement and
+            reporting. Information may be kept longer when required by law, to
+            resolve a dispute, or to protect the security and integrity of the
+            Service. Backup copies are removed through our normal backup
+            rotation after deletion from active systems.
+          </p>
+          <p>
+            You may request deletion of personal data held by KiNDD at any time
+            by emailing
+            <a href="mailto:support@kinddhelp.org">support@kinddhelp.org</a>.
+            We will verify and process the request subject to applicable legal,
+            security, and record-retention requirements. Data controlled
+            directly by a third-party service is also subject to that service's
+            retention and deletion policy.
           </p>
         </section>
 

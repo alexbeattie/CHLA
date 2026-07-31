@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-07-31 — Add explicit privacy data-retention practices
+- **Branch:** fix/privacy-retention-play
+- **Files:** map-frontend/src/views/PrivacyPolicyView.vue
+- **Problem:** Google Play rejected the privacy-policy declaration because it did not explain how long or under what conditions KiNDD retains and deletes user data.
+- **Fix:** Added category-specific retention and deletion practices for on-device data, searches and location, Ask KiNDD, response reports, support requests, backups, and deletion requests.
+
 ### 2026-07-22 — Invalidate both .com and .org CloudFront on deploy
 - **Branch:** fix/cloudfront-org-invalidation
 - **Files:** .github/workflows/deploy-production.yml, map-frontend/deploy.sh
