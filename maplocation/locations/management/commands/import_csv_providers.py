@@ -170,9 +170,10 @@ class Command(BaseCommand):
                 self.style.WARNING("UPDATE ONLY MODE - New providers will be skipped")
             )
 
-        with open(csv_file, "r", encoding="utf-8") as f:
+        with open(csv_file, "r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             providers = list(reader)
+            csv_columns = set(reader.fieldnames or [])
 
         # Filter out empty rows
         providers = [p for p in providers if p.get("id") and p.get("name")]
@@ -251,25 +252,28 @@ class Command(BaseCommand):
                         else:
                             insurance_accepted = insurance_accepted[1:-1]
 
-                # Prepare data
-                data = {
-                    "name": name,
-                    "type": row.get("type", "") or "",
-                    "phone": row.get("phone", "") or "",
-                    "email": row.get("email", "") or "",
-                    "website": row.get("website", "") or "",
-                    "description": row.get("description", "") or "",
-                    "latitude": lat,
-                    "longitude": lng,
-                    "location": location,
-                    "address": address,
-                    "insurance_accepted": insurance_accepted,
-                    "therapy_types": therapy_types if therapy_types else None,
-                    "age_groups": age_groups if age_groups else None,
-                    "diagnoses_treated": (
+                # Prepare data, limited to columns present in the CSV so a
+                # partial export never blanks fields it does not carry.
+                data = {"name": name}
+                for field in ("type", "phone", "email", "website", "description"):
+                    if field in csv_columns:
+                        data[field] = row.get(field, "") or ""
+                if "address" in csv_columns:
+                    data["address"] = address
+                if "insurance_accepted" in csv_columns:
+                    data["insurance_accepted"] = insurance_accepted
+                if "therapy_types" in csv_columns:
+                    data["therapy_types"] = therapy_types if therapy_types else None
+                if "age_groups" in csv_columns:
+                    data["age_groups"] = age_groups if age_groups else None
+                if "diagnoses_treated" in csv_columns:
+                    data["diagnoses_treated"] = (
                         diagnoses_treated if diagnoses_treated else None
-                    ),
-                }
+                    )
+                if "latitude" in csv_columns or "longitude" in csv_columns:
+                    data["latitude"] = lat
+                    data["longitude"] = lng
+                    data["location"] = location
 
                 if not dry_run:
                     if existing:
