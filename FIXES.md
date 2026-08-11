@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-08-10 — Header-aware provider CSV import plus cleaned dataset
+- **Branch:** fix/csv-import-absent-columns
+- **Files:** maplocation/locations/management/commands/import_csv_providers.py, maplocation/locations/tests/test_import_csv_providers.py, docs/data/providers_complete_export_cleaned.csv
+- **Problem:** import_csv_providers wrote every model field unconditionally, so a partial CSV (like the hand-cleaned providers sheet, which drops description/type/coordinates) would blank those fields on all 360 matched providers. The cleaned sheet also carried 6 mojibake cells and one lost provider name.
+- **Fix:** The importer now assigns only fields whose columns exist in the CSV header (and reads utf-8-sig for BOM safety). Committed the repaired cleaned dataset: 360 rows enriching diagnoses_treated (374 to 16 null), age_groups (374 to 16), therapy_types (123 to 13), which activates the previously no-op diagnosis/age filters in web and iOS.
+
 ### 2026-07-31 — Add explicit privacy data-retention practices
 - **Branch:** fix/privacy-retention-play
 - **Files:** map-frontend/src/views/PrivacyPolicyView.vue
