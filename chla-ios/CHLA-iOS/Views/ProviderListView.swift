@@ -37,7 +37,11 @@ struct ProviderListView: View {
                 provider.name.localizedCaseInsensitiveContains(searchText) ||
                 (provider.type?.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 provider.address.localizedCaseInsensitiveContains(searchText) ||
-                (provider.therapyTypes?.contains { $0.localizedCaseInsensitiveContains(searchText) } ?? false)
+                (provider.therapyTypes?.contains { $0.localizedCaseInsensitiveContains(searchText) } ?? false) ||
+                (provider.diagnosesTreated?.contains {
+                    $0.localizedCaseInsensitiveContains(searchText) ||
+                    shortDiagnosisLabel($0).localizedCaseInsensitiveContains(searchText)
+                } ?? false)
             }
         }
 
@@ -62,13 +66,18 @@ struct ProviderListView: View {
     private var currentSuggestions: [String] {
         guard !searchText.isEmpty else { return [] }
 
+        let diagnosisSuggestions = SearchFilters.diagnoses
+            .filter { $0 != "Other" }
+            .map { shortDiagnosisLabel($0) }
+            .filter { $0.localizedCaseInsensitiveContains(searchText) }
+
         // Generate suggestions from provider names
         let providerSuggestions = providerStore.providers
             .map { $0.name }
             .filter { $0.localizedCaseInsensitiveContains(searchText) }
             .prefix(5)
 
-        return Array(providerSuggestions)
+        return diagnosisSuggestions + Array(providerSuggestions)
     }
 
     var body: some View {
@@ -599,16 +608,16 @@ struct ProviderCardView: View {
             .replacingOccurrences(of: " therapy", with: "")
             .replacingOccurrences(of: "Parent child interaction therapy/parent training behavior management", with: "Parent Training")
     }
+}
 
-    private func shortDiagnosisLabel(_ diagnosis: String) -> String {
-        let short: [String: String] = [
-            "Autism Spectrum Disorder": "Autism",
-            "Global Development Delay": "Dev Delay",
-            "Sensory Processing Disorder": "Sensory",
-            "Speech and Language Disorder": "Speech"
-        ]
-        return short[diagnosis] ?? diagnosis
-    }
+fileprivate func shortDiagnosisLabel(_ diagnosis: String) -> String {
+    let short: [String: String] = [
+        "Autism Spectrum Disorder": "Autism",
+        "Global Development Delay": "Dev Delay",
+        "Sensory Processing Disorder": "Sensory",
+        "Speech and Language Disorder": "Speech"
+    ]
+    return short[diagnosis] ?? diagnosis
 }
 
 // MARK: - Provider Card Skeleton (loading placeholder)
