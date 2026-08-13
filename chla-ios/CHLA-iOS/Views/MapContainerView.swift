@@ -713,7 +713,7 @@ struct ActiveFiltersBar: View {
         let short: [String: String] = [
             "Autism Spectrum Disorder": "Autism",
             "Global Development Delay": "Dev Delay",
-            "Intellectual Disability": "Intellectual",
+            "Sensory Processing Disorder": "Sensory",
             "Speech and Language Disorder": "Speech"
         ]
         return short[diagnosis] ?? diagnosis

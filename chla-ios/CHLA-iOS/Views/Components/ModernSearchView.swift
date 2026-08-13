@@ -98,9 +98,12 @@ class SearchStateManager: ObservableObject {
     }
 
     static let popularSearches = [
+        "Autism",
+        "ADHD",
         "ABA",
         "Speech",
-        "Autism",
+        "Sensory",
+        "Dev Delay",
         "therapy",
         "behavior",
         "developmental"

@@ -13,6 +13,18 @@ Format:
 
 ---
 
+### 2026-08-13 — TestFlight uploads broadcast to Slack; 1.4.2 version bump
+- **Branch:** feat/onboarding-diagnosis
+- **Files:** chla-ios/scripts/release.sh, chla-ios/CHLA-iOS/Resources/Info.plist, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** Nothing announced new TestFlight builds; testers had to be pinged by hand. Marketing version needed to exceed the released 1.4.1 for the next beta-reviewable build (external testers are stuck NOT_INVITED behind a closed version).
+- **Fix:** release.sh posts to the KiNDD Slack (#general by default, KINDD_SLACK_CHANNEL to override) after a successful upload, using SLACK_BOT_TOKEN or the stored bot token; notify failure never fails the release. Version bumped to 1.4.2 (build 1) in Info.plist and all four pbxproj MARKETING_VERSION slots.
+
+### 2026-08-13 — Diagnosis step in iOS onboarding plus provider card match badge
+- **Branch:** feat/onboarding-diagnosis
+- **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/App/CHLA_iOSApp.swift
+- **Problem:** The Aug 11 dataset import populated diagnoses_treated on all 307 providers, but nothing in the app asked families which diagnoses they were navigating: onboarding collected ZIP, journey stage, and age only, and provider cards gave no signal that a provider treats the user's diagnosis. The SearchFilters.diagnoses vocabulary also listed Intellectual Disability (0 providers) while omitting ADHD (258) and Sensory Processing Disorder (155).
+- **Fix:** Onboarding gains an optional multi-select diagnosis step (step 5 of 6); the first non-Other pick becomes searchFilters.diagnosis (the API filter is single-valued) and all picks are stored in UserMemory for chat context. Provider cards show a purple "Treats X" capsule when a provider's diagnoses_treated matches the active filter or a remembered diagnosis. Diagnosis vocabulary aligned with live data.
+
 ### 2026-08-13 — Skeleton loading state for the iOS Resources list
 - **Branch:** fix/spinner-loading-skeleton
 - **Files:** chla-ios/CHLA-iOS/Views/ProviderListView.swift

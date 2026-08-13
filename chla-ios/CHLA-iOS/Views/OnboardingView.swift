@@ -22,10 +22,11 @@ struct OnboardingView: View {
     @State private var zipCode = ""
     @State private var selectedAgeGroup: String?
     @State private var selectedStage: JourneyStage?
+    @State private var selectedDiagnoses: [String] = []
     @State private var selectedAudienceType = "family"
     @State private var userRegionalCenter: RegionalCenterMatcher.RegionalCenterInfo?
 
-    private let totalSteps = 5
+    private let totalSteps = 6
 
     /// Step-change animation; settles to a short ease-out under Reduce Motion
     private var stepAnimation: Animation {
@@ -53,7 +54,8 @@ struct OnboardingView: View {
                 locationStep.tag(1)
                 matchedStep.tag(2)
                 journeyStep.tag(3)
-                ageGroupStep.tag(4)
+                diagnosisStep.tag(4)
+                ageGroupStep.tag(5)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut, value: currentStep)
@@ -431,7 +433,49 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 4: Age group
+    // MARK: - Step 4: Diagnoses
+
+    private var diagnosisStep: some View {
+        stepContainer {
+        VStack(spacing: 22) {
+            Spacer(minLength: 8)
+
+            stepIcon("heart.text.square", tint: Theme.purple)
+
+            Text("Any diagnoses you're navigating?")
+                .font(.system(.title, design: .rounded).weight(.bold))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+
+            Text("Optional - pick any that apply. We'll highlight providers who treat them.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 36)
+
+            VStack(spacing: 10) {
+                ForEach(SearchFilters.diagnoses, id: \.self) { diagnosis in
+                    SelectionButton(
+                        title: diagnosis,
+                        isSelected: selectedDiagnoses.contains(diagnosis)
+                    ) {
+                        if let index = selectedDiagnoses.firstIndex(of: diagnosis) {
+                            selectedDiagnoses.remove(at: index)
+                        } else {
+                            selectedDiagnoses.append(diagnosis)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+
+            Spacer()
+        }
+        .padding()
+        }
+    }
+
+    // MARK: - Step 5: Age group
 
     private var ageGroupStep: some View {
         stepContainer {
@@ -500,6 +544,15 @@ struct OnboardingView: View {
 
     private func completeOnboarding() {
         appState.searchFilters.ageGroup = selectedAgeGroup
+        // Filter pipeline is single-valued (?diagnosis= on the API); first pick
+        // is the primary. All picks land in UserMemory for chat context.
+        appState.searchFilters.diagnosis = selectedDiagnoses.first(where: { $0 != "Other" })
+        if !selectedDiagnoses.isEmpty {
+            let memory = UserMemory()
+            for diagnosis in selectedDiagnoses where diagnosis != "Other" {
+                memory.addDiagnosis(diagnosis)
+            }
+        }
         appState.saveUserContext(
             zipCode: zipCode,
             audienceType: selectedAudienceType,

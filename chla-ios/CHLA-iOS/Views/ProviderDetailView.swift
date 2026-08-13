@@ -12,8 +12,35 @@ struct ProviderDetailView: View {
     let provider: Provider
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @EnvironmentObject var appState: AppState
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
+    @StateObject private var userMemory = UserMemory()
     @State private var showDirections = false
+
+    /// First user diagnosis (active filter, then remembered ones) this provider treats.
+    private var matchedDiagnosis: String? {
+        var selected: [String] = []
+        if let dx = appState.searchFilters.diagnosis { selected.append(dx) }
+        for dx in userMemory.context.diagnoses where !selected.contains(dx) {
+            selected.append(dx)
+        }
+        guard !selected.isEmpty, let treated = provider.diagnosesTreated else { return nil }
+        return selected.first { dx in
+            treated.contains { $0.caseInsensitiveCompare(dx) == .orderedSame }
+        }
+    }
+
+    /// First user therapy (active filter, then remembered interests) this provider offers.
+    private var matchedTherapy: String? {
+        var selected = appState.searchFilters.therapyTypes
+        for therapy in userMemory.context.therapyInterests where !selected.contains(therapy) {
+            selected.append(therapy)
+        }
+        guard !selected.isEmpty, let offered = provider.therapyTypes else { return nil }
+        return selected.first { therapy in
+            offered.contains { $0.localizedCaseInsensitiveContains(therapy) }
+        }
+    }
 
     // Cache regional center lookup to avoid repeated calculations
     private var cachedRegionalCenter: RegionalCenterMatcher.RegionalCenterInfo? {
@@ -160,6 +187,19 @@ struct ProviderDetailView: View {
                     Text(type)
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.9))
+                }
+
+                if matchedDiagnosis != nil || matchedTherapy != nil {
+                    HStack(spacing: 8) {
+                        if let diagnosis = matchedDiagnosis {
+                            heroMatchBadge("Treats \(shortDiagnosisName(diagnosis))")
+                                .accessibilityLabel("Treats \(diagnosis)")
+                        }
+                        if let therapy = matchedTherapy {
+                            heroMatchBadge("Offers \(shortTherapyName(therapy))")
+                                .accessibilityLabel("Offers \(therapy)")
+                        }
+                    }
                 }
 
                 if provider.distance != nil {
@@ -635,8 +675,36 @@ struct ProviderDetailView: View {
 
         return lines.joined(separator: "\n")
     }
+
+    private func heroMatchBadge(_ text: String) -> some View {
+        Label(text, systemImage: "checkmark.seal.fill")
+            .font(.caption)
+            .fontWeight(.bold)
+            .foregroundColor(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(.white.opacity(0.2))
+            .clipShape(Capsule())
+    }
+
+    private func shortDiagnosisName(_ diagnosis: String) -> String {
+        let short: [String: String] = [
+            "Autism Spectrum Disorder": "Autism",
+            "Global Development Delay": "Dev Delay",
+            "Sensory Processing Disorder": "Sensory",
+            "Speech and Language Disorder": "Speech"
+        ]
+        return short[diagnosis] ?? diagnosis
+    }
+
+    private func shortTherapyName(_ therapy: String) -> String {
+        therapy
+            .replacingOccurrences(of: " therapy", with: "")
+            .replacingOccurrences(of: "Parent child interaction therapy/parent training behavior management", with: "Parent Training")
+    }
 }
 
 #Preview {
     ProviderDetailView(provider: .mock)
+        .environmentObject(AppState())
 }

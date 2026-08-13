@@ -363,8 +363,9 @@ struct SearchFilters: Codable, Equatable {
 
     static let diagnoses = [
         "Autism Spectrum Disorder",
+        "ADHD",
         "Global Development Delay",
-        "Intellectual Disability",
+        "Sensory Processing Disorder",
         "Speech and Language Disorder",
         "Other"
     ]

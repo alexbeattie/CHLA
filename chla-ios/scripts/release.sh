@@ -77,3 +77,30 @@ xcrun altool --upload-app -f "$EXPORT_DIR"/*.ipa -t ios \
     --apiKey "$KEY_ID" --apiIssuer "$ISSUER_ID"
 
 echo "== Uploaded KiNDD $VERSION ($BUILD). Processing takes 5-15 min in App Store Connect."
+
+# Broadcast the upload to the KiNDD Slack. Token comes from SLACK_BOT_TOKEN,
+# falling back to the bot token stored in ~/.claude.json. Failure to notify
+# never fails the release.
+SLACK_CHANNEL="${KINDD_SLACK_CHANNEL:-#general}"
+SLACK_TOKEN="${SLACK_BOT_TOKEN:-$(python3 - <<'PY' 2>/dev/null
+import json, os
+path = os.path.expanduser("~/.claude.json")
+proj = "/Users/alexbeattie/Library/CloudStorage/GoogleDrive-alex@kinddhelp.org/My Drive"
+try:
+    print(json.load(open(path))["projects"][proj]["mcpServers"]["slack"]["env"]["SLACK_BOT_TOKEN"])
+except Exception:
+    pass
+PY
+)}"
+if [ -n "$SLACK_TOKEN" ]; then
+    SLACK_TEXT="KiNDD $VERSION ($BUILD) uploaded to TestFlight. Processing takes 5-15 min, then it appears for internal testers; external testers follow beta review."
+    curl -s -X POST "https://slack.com/api/chat.postMessage" \
+        -H "Authorization: Bearer $SLACK_TOKEN" \
+        -H "Content-Type: application/json; charset=utf-8" \
+        -d "{\"channel\": \"$SLACK_CHANNEL\", \"text\": \"$SLACK_TEXT\"}" \
+        | grep -q '"ok":true' \
+        && echo "== Slack notified ($SLACK_CHANNEL)" \
+        || echo "== Slack notify failed (check bot is in $SLACK_CHANNEL)"
+else
+    echo "== Slack notify skipped (no bot token found)"
+fi
