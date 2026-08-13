@@ -10,6 +10,7 @@ import CoreLocation
 
 struct ProviderListView: View {
     @EnvironmentObject var appState: AppState
+    @StateObject private var userMemory = UserMemory()
     @StateObject private var providerStore = ProviderStore()
     @StateObject private var locationService = LocationService()
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
@@ -232,6 +233,19 @@ struct ProviderListView: View {
         return count
     }
 
+    /// First user diagnosis (active filter, then remembered ones) this provider treats.
+    private func matchedDiagnosis(for provider: Provider) -> String? {
+        var selected: [String] = []
+        if let dx = appState.searchFilters.diagnosis { selected.append(dx) }
+        for dx in userMemory.context.diagnoses where !selected.contains(dx) {
+            selected.append(dx)
+        }
+        guard !selected.isEmpty, let treated = provider.diagnosesTreated else { return nil }
+        return selected.first { dx in
+            treated.contains { $0.caseInsensitiveCompare(dx) == .orderedSame }
+        }
+    }
+
     private func searchWithCurrentFilters() async {
         var filters = appState.searchFilters
 
@@ -291,7 +305,10 @@ struct ProviderListView: View {
                 Button {
                     selectedProvider = provider
                 } label: {
-                    ProviderCardView(provider: provider)
+                    ProviderCardView(
+                        provider: provider,
+                        matchedDiagnosis: matchedDiagnosis(for: provider)
+                    )
                 }
                 .buttonStyle(.plain)
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -420,6 +437,7 @@ struct ProviderListView: View {
 
 struct ProviderCardView: View {
     let provider: Provider
+    var matchedDiagnosis: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -444,6 +462,22 @@ struct ProviderCardView: View {
                                     .stroke(Color.accentBlue.opacity(0.2), lineWidth: 0.5)
                             }
                             .foregroundColor(.accentBlue)
+                    }
+
+                    if let matched = matchedDiagnosis {
+                        Label("Treats \(shortDiagnosisLabel(matched))", systemImage: "checkmark.seal.fill")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background {
+                                Capsule()
+                                    .fill(Theme.purple.opacity(0.12))
+                                Capsule()
+                                    .stroke(Theme.purple.opacity(0.2), lineWidth: 0.5)
+                            }
+                            .foregroundColor(Theme.purple)
+                            .accessibilityLabel("Treats \(matched)")
                     }
                 }
 
@@ -564,6 +598,16 @@ struct ProviderCardView: View {
         therapy
             .replacingOccurrences(of: " therapy", with: "")
             .replacingOccurrences(of: "Parent child interaction therapy/parent training behavior management", with: "Parent Training")
+    }
+
+    private func shortDiagnosisLabel(_ diagnosis: String) -> String {
+        let short: [String: String] = [
+            "Autism Spectrum Disorder": "Autism",
+            "Global Development Delay": "Dev Delay",
+            "Sensory Processing Disorder": "Sensory",
+            "Speech and Language Disorder": "Speech"
+        ]
+        return short[diagnosis] ?? diagnosis
     }
 }
 

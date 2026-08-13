@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-08-13 — Diagnosis step in iOS onboarding plus provider card match badge
+- **Branch:** feat/onboarding-diagnosis
+- **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/App/CHLA_iOSApp.swift
+- **Problem:** The Aug 11 dataset import populated diagnoses_treated on all 307 providers, but nothing in the app asked families which diagnoses they were navigating: onboarding collected ZIP, journey stage, and age only, and provider cards gave no signal that a provider treats the user's diagnosis. The SearchFilters.diagnoses vocabulary also listed Intellectual Disability (0 providers) while omitting ADHD (258) and Sensory Processing Disorder (155).
+- **Fix:** Onboarding gains an optional multi-select diagnosis step (step 5 of 6); the first non-Other pick becomes searchFilters.diagnosis (the API filter is single-valued) and all picks are stored in UserMemory for chat context. Provider cards show a purple "Treats X" capsule when a provider's diagnoses_treated matches the active filter or a remembered diagnosis. Diagnosis vocabulary aligned with live data.
+
 ### 2026-08-13 — Skeleton loading state for the iOS Resources list
 - **Branch:** fix/spinner-loading-skeleton
 - **Files:** chla-ios/CHLA-iOS/Views/ProviderListView.swift
