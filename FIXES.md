@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-08-13 — release.sh tags each upload
+- **Branch:** chore/release-tagging
+- **Files:** chla-ios/scripts/release.sh
+- **Problem:** Releases were never pinned in git (1.4.0 and 1.4.1 shipped untagged; v1.4.1/v1.4.2 were back-tagged by hand today), so the archived source of an upload was not recoverable from the repo.
+- **Fix:** After a successful upload, release.sh creates an annotated v{VERSION} tag and pushes it - only when the working tree is clean, since a dirty tree would not describe the archived source. Existing tags are never moved.
+
 ### 2026-08-13 — TestFlight uploads broadcast to Slack; 1.4.2 version bump
 - **Branch:** feat/onboarding-diagnosis
 - **Files:** chla-ios/scripts/release.sh, chla-ios/CHLA-iOS/Resources/Info.plist, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj

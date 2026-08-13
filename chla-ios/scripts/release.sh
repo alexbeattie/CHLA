@@ -104,3 +104,19 @@ if [ -n "$SLACK_TOKEN" ]; then
 else
     echo "== Slack notify skipped (no bot token found)"
 fi
+
+# Pin the upload to an annotated git tag (vVERSION) when the tree is clean.
+# A dirty tree means the tag would not describe the archived source - skip.
+if [ -z "$(git status --porcelain 2>/dev/null)" ]; then
+    TAG="v$VERSION"
+    if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+        echo "== Tag $TAG already exists; leaving it in place"
+    else
+        git tag -a "$TAG" -m "KiNDD iOS $VERSION ($BUILD) uploaded to App Store Connect"
+        git push -q origin "$TAG" \
+            && echo "== Tagged $TAG and pushed" \
+            || echo "== Tagged $TAG locally; push failed"
+    fi
+else
+    echo "== Git tag skipped (working tree dirty)"
+fi
