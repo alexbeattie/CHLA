@@ -259,6 +259,7 @@ struct FAQItem: View {
     let question: String
     let answer: String
     @Binding var expandedID: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isExpanded: Bool { expandedID == id }
 
@@ -266,7 +267,8 @@ struct FAQItem: View {
         VStack(alignment: .leading, spacing: 0) {
             // Question - entire row is tappable
             Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                Haptics.tap()
+                withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.3, dampingFraction: 0.7)) {
                     expandedID = isExpanded ? nil : id
                 }
             } label: {
@@ -292,7 +294,7 @@ struct FAQItem: View {
                 .padding(14)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(FAQButtonStyle())
+            .buttonStyle(.pressable)
 
             // Answer with slide animation
             if isExpanded {
@@ -313,18 +315,6 @@ struct FAQItem: View {
         .background(Color(.systemBackground))
         .cornerRadius(10)
         .shadow(color: .black.opacity(0.03), radius: 2, y: 1)
-    }
-}
-
-// Custom button style for better tap feedback
-struct FAQButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .background(
-                configuration.isPressed ? Color(.systemGray5) : Color.clear
-            )
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 

@@ -1,0 +1,9 @@
+---
+description: Every shipped change is logged in FIXES.md
+alwaysApply: true
+---
+Before finishing any fix, feature, or behavior change: append an entry to
+repo-root FIXES.md, newest first, using the format in its header.
+In scope: bug fixes, features, behavior/config changes, dependency bumps.
+Out of scope: pure refactors, docs-only, formatting.
+If FIXES.md conflicts on merge/cherry-pick: keep ALL entries, newest first.

@@ -255,8 +255,7 @@ struct DirectionsMapView: View {
             }
             Button("Copy Address") {
                 UIPasteboard.general.string = destinationAddress
-                let impact = UIImpactFeedbackGenerator(style: .medium)
-                impact.impactOccurred()
+                Haptics.success()
             }
             Button("Cancel", role: .cancel) { }
         } message: {

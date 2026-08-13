@@ -1,0 +1,10 @@
+---
+description: Corrected agent mistakes become rules, same session
+alwaysApply: true
+---
+When the user corrects a repeatable, repo-specific mistake you made (wrong
+command, wrong path, wrong assumption about the stack), do both in this session:
+1. Fix the work.
+2. Add or tighten a rule in .cursor/rules/ (and mirror the fact into CLAUDE.md
+   or AGENTS.md if it is a fact, not a behavior). Prefer small, concrete rules
+   over broad policy text. One mistake, one rule.

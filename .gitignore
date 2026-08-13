@@ -98,3 +98,8 @@ maplocation/.venv/
 venv/
 .venv/
 aws-credentials/
+
+# Agent kit
+.harness/
+.worktrees/
+docs/memory/change-journal.md
