@@ -15,6 +15,9 @@ struct OnboardingView: View {
     @StateObject private var locationService = LocationService()
     @StateObject private var mapModel = RegionalCenterMapViewModel()
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     @State private var currentStep = 0
     @State private var zipCode = ""
     @State private var selectedAgeGroup: String?
@@ -24,6 +27,22 @@ struct OnboardingView: View {
     @State private var userRegionalCenter: RegionalCenterMatcher.RegionalCenterInfo?
 
     private let totalSteps = 6
+
+    /// Step-change animation; settles to a short ease-out under Reduce Motion
+    private var stepAnimation: Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8)
+    }
+
+    /// Steps keep their fixed, centered layout at standard type sizes; at
+    /// accessibility sizes the content scrolls so text never truncates.
+    @ViewBuilder
+    private func stepContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            ScrollView(showsIndicators: false) { content() }
+        } else {
+            content()
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -70,7 +89,7 @@ struct OnboardingView: View {
                 Capsule()
                     .fill(step == currentStep ? Theme.indigo : Theme.indigo.opacity(0.18))
                     .frame(width: step == currentStep ? 22 : 7, height: 7)
-                    .animation(.spring(response: 0.35, dampingFraction: 0.8), value: currentStep)
+                    .animation(stepAnimation, value: currentStep)
             }
         }
     }
@@ -81,7 +100,7 @@ struct OnboardingView: View {
         HStack(spacing: 16) {
             if currentStep > 0 {
                 Button {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    withAnimation(stepAnimation) {
                         currentStep -= 1
                     }
                 } label: {
@@ -92,7 +111,7 @@ struct OnboardingView: View {
                         .padding(.vertical, 13)
                         .background(.ultraThinMaterial, in: Capsule())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
 
             Spacer()
@@ -101,7 +120,7 @@ struct OnboardingView: View {
                 if currentStep == totalSteps - 1 {
                     completeOnboarding()
                 } else {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    withAnimation(stepAnimation) {
                         currentStep += 1
                     }
                 }
@@ -121,7 +140,7 @@ struct OnboardingView: View {
                 }
                 .shadow(color: canProceed ? Theme.indigo.opacity(0.35) : .clear, radius: 12, y: 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .disabled(!canProceed)
             .animation(.easeOut(duration: 0.2), value: canProceed)
         }
@@ -130,6 +149,7 @@ struct OnboardingView: View {
     // MARK: - Step 0: Welcome
 
     private var welcomeStep: some View {
+        stepContainer {
         VStack(spacing: 22) {
             Spacer()
 
@@ -174,11 +194,13 @@ struct OnboardingView: View {
             Spacer()
         }
         .padding()
+        }
     }
 
     // MARK: - Step 1: ZIP
 
     private var locationStep: some View {
+        stepContainer {
         VStack(spacing: 22) {
             Spacer()
 
@@ -221,7 +243,7 @@ struct OnboardingView: View {
                         .font(.subheadline.weight(.medium))
                         .foregroundColor(Theme.indigo)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             } else if locationService.hasLocationPermission && locationService.isLoading {
                 ProgressView()
             }
@@ -239,12 +261,14 @@ struct OnboardingView: View {
                 }
             }
         }
+        }
     }
 
     // MARK: - Step 2: The matched moment
 
     @ViewBuilder
     private var matchedStep: some View {
+        stepContainer {
         if let rc = userRegionalCenter {
             VStack(spacing: 0) {
                 Spacer(minLength: 12)
@@ -286,6 +310,7 @@ struct OnboardingView: View {
                 Spacer()
             }
             .padding()
+        }
         }
     }
 
@@ -372,6 +397,7 @@ struct OnboardingView: View {
     // MARK: - Step 3: Journey stage
 
     private var journeyStep: some View {
+        stepContainer {
         VStack(spacing: 22) {
             Spacer(minLength: 8)
 
@@ -404,6 +430,7 @@ struct OnboardingView: View {
             Spacer()
         }
         .padding()
+        }
     }
 
     // MARK: - Step 4: Diagnoses
@@ -449,6 +476,7 @@ struct OnboardingView: View {
     // MARK: - Step 5: Age group
 
     private var ageGroupStep: some View {
+        stepContainer {
         VStack(spacing: 22) {
             Spacer(minLength: 8)
 
@@ -478,6 +506,7 @@ struct OnboardingView: View {
             Spacer()
         }
         .padding()
+        }
     }
 
     // MARK: - Shared bits
@@ -532,10 +561,10 @@ struct OnboardingView: View {
             appState.saveJourneyStage(stage)
         }
 
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        Haptics.action()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            withAnimation(stepAnimation) {
                 appState.completeOnboarding()
             }
         }
@@ -591,7 +620,7 @@ struct SelectionButton: View {
                     .stroke(isSelected ? Theme.indigo.opacity(0.6) : Color.clear, lineWidth: 1.5)
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressableCard)
     }
 }
 

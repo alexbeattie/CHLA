@@ -10,6 +10,7 @@ import MapKit
 
 struct MapContainerView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var providerStore = ProviderStore()
     @StateObject private var locationService = LocationService()
     @StateObject private var searchState = SearchStateManager()
@@ -54,8 +55,8 @@ struct MapContainerView: View {
                 .padding(.trailing, 20)
                 .offset(x: visibilityManager.isHeaderVisible ? 0 : 100)
                 .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
-                .animation(.spring(response: 0.3), value: hasActiveFilters)
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
+                .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.3), value: hasActiveFilters)
+                .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
             }
 
             // Loading overlay
@@ -77,8 +78,8 @@ struct MapContainerView: View {
                         .padding(.bottom, 100)
                     }
                 }
-                .transition(.opacity.combined(with: .scale(scale: 0.8)))
-                .animation(.spring(response: 0.3), value: visibilityManager.isHeaderVisible)
+                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.8)))
+                .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.3), value: visibilityManager.isHeaderVisible)
             }
         }
         .sheet(isPresented: $showFilters) {
@@ -208,7 +209,7 @@ struct MapContainerView: View {
             return
         }
 
-        withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
+        withAnimation(reduceMotion ? nil : .spring(response: 0.55, dampingFraction: 0.82)) {
             cameraPosition = .region(MKCoordinateRegion(
                 center: provider.coordinate,
                 span: MKCoordinateSpan(latitudeDelta: 0.035, longitudeDelta: 0.035)
@@ -224,7 +225,7 @@ struct MapContainerView: View {
         selectedProvider = nil
         providerStore.providers = providers
 
-        withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
+        withAnimation(reduceMotion ? nil : .spring(response: 0.55, dampingFraction: 0.82)) {
             cameraPosition = .region(mapRegion(for: providers))
         }
 
@@ -280,7 +281,7 @@ struct MapContainerView: View {
 
     private func centerOnUserLocation() {
         if let coordinate = locationService.coordinate {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            withAnimation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.8)) {
                 cameraPosition = .region(MKCoordinateRegion(
                     center: coordinate,
                     span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
@@ -355,7 +356,7 @@ struct MapContainerView: View {
         }
         .offset(y: shouldShow ? 0 : -180)
         .opacity(shouldShow ? 1 : 0)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: shouldShow)
+        .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8), value: shouldShow)
     }
 
     @ViewBuilder
@@ -419,7 +420,7 @@ struct MapContainerView: View {
                     } label: {
                     ProviderCountBadge(count: providerStore.providerCount)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                 }
             }
             .padding()
@@ -923,7 +924,7 @@ struct GlassControlButton: View {
                 }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }
 
@@ -973,7 +974,7 @@ struct ShowControlsButton: View {
             .shadow(color: Color.accentBlue.opacity(0.4), radius: 8, y: 4)
             .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }
 

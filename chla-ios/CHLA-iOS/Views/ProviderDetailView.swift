@@ -324,7 +324,7 @@ struct ProviderDetailView: View {
                     .padding(8)
                 }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
         }
     }
 
@@ -336,9 +336,7 @@ struct ProviderDetailView: View {
             // Address - tap to copy
             Button {
                 UIPasteboard.general.string = provider.formattedAddress
-                // Haptic feedback
-                let impact = UIImpactFeedbackGenerator(style: .medium)
-                impact.impactOccurred()
+                // Haptic comes from the .sensoryFeedback(.success) below
             } label: {
                 HStack {
                     Image(systemName: "mappin.circle.fill")
@@ -360,7 +358,7 @@ struct ProviderDetailView: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(12)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressableCard)
             .sensoryFeedback(.success, trigger: UIPasteboard.general.changeCount)
 
             // Phone
@@ -394,7 +392,7 @@ struct ProviderDetailView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressableCard)
             }
 
             // Email
@@ -429,7 +427,7 @@ struct ProviderDetailView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressableCard)
             }
 
             // Website
@@ -464,7 +462,7 @@ struct ProviderDetailView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressableCard)
             }
         }
     }
@@ -515,7 +513,7 @@ struct ProviderDetailView: View {
                             .foregroundColor(.green)
                             .cornerRadius(8)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
 
                         Button {
                             if let url = URL(string: "https://\(rc.website)") {
@@ -534,7 +532,7 @@ struct ProviderDetailView: View {
                             .foregroundColor(rcColor)
                             .cornerRadius(8)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

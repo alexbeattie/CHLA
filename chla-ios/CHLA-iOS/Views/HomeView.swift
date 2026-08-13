@@ -152,7 +152,8 @@ struct HomeView: View {
             }
             .padding(.leading, 16)
             .padding(.trailing, 7)
-            .frame(height: 48)
+            .padding(.vertical, 7)
+            .frame(minHeight: 48)
             .background {
                 Capsule()
                     .fill(.ultraThinMaterial)
@@ -163,7 +164,7 @@ struct HomeView: View {
             }
             .shadow(color: Color(hex: "8B5CF6").opacity(0.18), radius: 12, y: 5)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .padding(.horizontal, 18)
         .accessibilityLabel("Ask KiNDD anything")
     }
@@ -304,7 +305,7 @@ struct HomeView: View {
                     .padding(.vertical, 7)
                     .background(.ultraThinMaterial, in: Capsule())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .padding(10)
             }
         }
@@ -543,7 +544,7 @@ struct HomeView: View {
                             .padding(.vertical, 10)
                             .background(Capsule().fill(Theme.accentGradient))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                 }
 
                 Button {
@@ -560,7 +561,7 @@ struct HomeView: View {
                     .padding(.vertical, 10)
                     .background(Capsule().stroke(Theme.violet.opacity(0.4), lineWidth: 1))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
 
                 Spacer()
             }
@@ -661,7 +662,7 @@ struct HomeView: View {
             }
             .shadow(color: .black.opacity(0.03), radius: 8, y: 4)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressableCard)
     }
 
     // MARK: - Service Types
@@ -714,8 +715,8 @@ struct HomeView: View {
                 Text(label)
                     .font(.caption2.weight(.medium))
                     .foregroundColor(.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
@@ -725,7 +726,7 @@ struct HomeView: View {
             }
             .shadow(color: .black.opacity(0.03), radius: 6, y: 3)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressableCard)
     }
 
     // MARK: - Info Footer
