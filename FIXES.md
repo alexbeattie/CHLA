@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-08-13 — Skeleton loading state for the iOS Resources list
+- **Branch:** fix/spinner-loading-skeleton
+- **Files:** chla-ios/CHLA-iOS/Views/ProviderListView.swift
+- **Problem:** The Resources tab attaches its full-screen gradient background to the content Group; while loading, the Group collapsed to the intrinsic size of the spinner VStack, so the 300pt indigo gradient painted as a floating lavender slab around the spinner. Every re-search also replaced the visible list with that spinner.
+- **Fix:** Content now fills the screen so the background paints edge-to-edge; the bare spinner is replaced with pulsing skeleton provider cards (static under Reduce Motion, VoiceOver announces the loading label); skeletons show only until the first results arrive so refreshes keep the current list; the loading-to-list swap crossfades over 200ms.
+
 ### 2026-08-10 — Header-aware provider CSV import plus cleaned dataset
 - **Branch:** fix/csv-import-absent-columns
 - **Files:** maplocation/locations/management/commands/import_csv_providers.py, maplocation/locations/tests/test_import_csv_providers.py, docs/data/providers_complete_export_cleaned.csv
