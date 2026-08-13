@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-08-13 — TestFlight uploads broadcast to Slack; 1.4.2 version bump
+- **Branch:** feat/onboarding-diagnosis
+- **Files:** chla-ios/scripts/release.sh, chla-ios/CHLA-iOS/Resources/Info.plist, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** Nothing announced new TestFlight builds; testers had to be pinged by hand. Marketing version needed to exceed the released 1.4.1 for the next beta-reviewable build (external testers are stuck NOT_INVITED behind a closed version).
+- **Fix:** release.sh posts to the KiNDD Slack (#general by default, KINDD_SLACK_CHANNEL to override) after a successful upload, using SLACK_BOT_TOKEN or the stored bot token; notify failure never fails the release. Version bumped to 1.4.2 (build 1) in Info.plist and all four pbxproj MARKETING_VERSION slots.
+
 ### 2026-08-13 — Diagnosis step in iOS onboarding plus provider card match badge
 - **Branch:** feat/onboarding-diagnosis
 - **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/App/CHLA_iOSApp.swift

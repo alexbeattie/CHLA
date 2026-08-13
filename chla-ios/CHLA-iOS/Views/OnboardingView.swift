@@ -436,6 +436,7 @@ struct OnboardingView: View {
     // MARK: - Step 4: Diagnoses
 
     private var diagnosisStep: some View {
+        stepContainer {
         VStack(spacing: 22) {
             Spacer(minLength: 8)
 
@@ -471,6 +472,7 @@ struct OnboardingView: View {
             Spacer()
         }
         .padding()
+        }
     }
 
     // MARK: - Step 5: Age group
