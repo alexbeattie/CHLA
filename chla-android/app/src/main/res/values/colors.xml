@@ -6,11 +6,6 @@
     <color name="kindd_purple">#FFA855F7</color>
     <color name="kindd_pink">#FFEC4899</color>
     <color name="kindd_matched_green">#FF10B981</color>
-    <color name="chla_blue">#FF004877</color>
-    <color name="chla_blue_dark">#FF003355</color>
-    <color name="chla_blue_light">#FF0D9DDB</color>
-    <color name="chla_gold">#FFFFC923</color>
-    <color name="chla_gold_dark">#FFFFB700</color>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
 </resources>
