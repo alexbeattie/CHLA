@@ -3,6 +3,7 @@ package com.chla.kindd.data.discovery
 import androidx.annotation.StringRes
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.AgeGroup
+import com.chla.kindd.data.profile.Diagnosis
 
 enum class TherapyType(
     val apiValue: String,
@@ -22,13 +23,7 @@ enum class TherapyType(
 object DiscoveryCatalog {
     val ageGroups: List<AgeGroup> = AgeGroup.entries
 
-    val diagnoses: List<String> = listOf(
-        "Autism Spectrum Disorder",
-        "Global Development Delay",
-        "Intellectual Disability",
-        "Speech and Language Disorder",
-        "Other"
-    )
+    val diagnoses: List<String> = Diagnosis.entries.map(Diagnosis::apiValue)
 
     val insurances: List<String> = listOf(
         "Regional Center",

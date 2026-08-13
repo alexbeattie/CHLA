@@ -17,6 +17,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.chla.kindd.R
 import com.chla.kindd.platform.launchDialer
 import com.chla.kindd.platform.launchWebsite
+import com.chla.kindd.ui.providers.diagnosisShortLabel
+import com.chla.kindd.ui.providers.matchedDiagnosis
+import com.chla.kindd.ui.providers.matchedTherapy
+import com.chla.kindd.ui.providers.providerHighlightDiagnoses
+import com.chla.kindd.ui.providers.therapyShortLabel
 import com.chla.kindd.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -27,6 +32,7 @@ fun ProviderDetailScreen(
     viewModel: ProviderDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val discoveryState by viewModel.discoveryState.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(providerId) {
@@ -89,6 +95,57 @@ fun ProviderDetailScreen(
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = CHLABlueLight
                                 )
+                            }
+                            val matchedDiagnosis = provider.matchedDiagnosis(
+                                providerHighlightDiagnoses(
+                                    criteria = discoveryState.criteria,
+                                    profile = discoveryState.profile
+                                )
+                            )
+                            val matchedTherapy = provider.matchedTherapy(
+                                discoveryState.criteria.therapyTypes
+                            )
+                            if (matchedDiagnosis != null || matchedTherapy != null) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    if (matchedDiagnosis != null) {
+                                        AssistChip(
+                                            onClick = { },
+                                            label = {
+                                                Text(
+                                                    stringResource(
+                                                        R.string.provider_treats_badge,
+                                                        diagnosisShortLabel(matchedDiagnosis)
+                                                    )
+                                                )
+                                            },
+                                            colors = AssistChipDefaults.assistChipColors(
+                                                containerColor = KiNDDPurple.copy(alpha = 0.12f),
+                                                labelColor = KiNDDPurple
+                                            )
+                                        )
+                                    }
+                                    if (matchedTherapy != null) {
+                                        AssistChip(
+                                            onClick = { },
+                                            label = {
+                                                Text(
+                                                    stringResource(
+                                                        R.string.provider_offers_badge,
+                                                        therapyShortLabel(matchedTherapy)
+                                                    )
+                                                )
+                                            },
+                                            colors = AssistChipDefaults.assistChipColors(
+                                                containerColor = KiNDDViolet.copy(alpha = 0.12f),
+                                                labelColor = KiNDDViolet
+                                            )
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

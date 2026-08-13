@@ -13,6 +13,12 @@ Format:
 
 ---
 
+### 2026-08-13 — Add diagnosis onboarding step and provider match badges on Android
+- **Branch:** feat/android-onboarding-diagnosis
+- **Files:** chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/DiagnosisStep.kt, chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/OnboardingRoute.kt, chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/OnboardingUiState.kt, chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/OnboardingViewModel.kt, chla-android/app/src/main/java/com/chla/kindd/data/profile/, chla-android/app/src/main/java/com/chla/kindd/data/discovery/, chla-android/app/src/main/java/com/chla/kindd/ui/providers/, chla-android/app/src/main/java/com/chla/kindd/ui/screens/ProviderListScreen.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/ProviderDetailScreen.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/ProviderDetailViewModel.kt, chla-android/app/src/main/java/com/chla/kindd/ui/discovery/ActiveFilterChips.kt, chla-android/app/src/main/res/values/strings.xml, chla-android/app/src/main/res/values-es/strings.xml, chla-android/app/src/test/, chla-android/app/src/androidTest/
+- **Problem:** Android never asked which diagnoses a family navigates, so provider results could not highlight relevant providers the way iOS now does, free-text search ignored diagnoses_treated, and the filter vocabulary still listed Intellectual Disability (zero providers) while missing ADHD and Sensory Processing Disorder.
+- **Fix:** Add an optional multi-select diagnosis onboarding step between journey and age persisted in the profile DataStore, seed the discovery diagnosis filter from the first non-Other selection, show Treats badges on list cards and Treats/Offers badges on the detail header, match search text against diagnoses and their short names, and align the diagnosis vocabulary in both locales.
+
 ### 2026-07-21 — Prepare Android for Google Play release
 - **Branch:** feature/android-persistent-discovery
 - **Files:** chla-android/app/build.gradle.kts, chla-android/build.gradle.kts, chla-android/gradle/wrapper/gradle-wrapper.properties, chla-android/app/src/main/AndroidManifest.xml, chla-android/app/src/main/java/com/chla/kindd/ui/, chla-android/app/src/main/res/values/, chla-android/app/src/main/res/values-es/, chla-android/app/src/test/, chla-android/app/src/androidTest/java/com/chla/kindd/ui/home/HomeContentTest.kt, chla-android/scripts/, chla-android/PLAY_STORE_RELEASE.md, chla-android/play-assets/

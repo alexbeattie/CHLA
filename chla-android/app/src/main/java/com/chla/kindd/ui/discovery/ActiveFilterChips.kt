@@ -195,8 +195,9 @@ internal fun ageGroupLabel(ageGroup: AgeGroup): String = stringResource(
 internal fun diagnosisLabel(value: String): String = stringResource(
     when (value) {
         "Autism Spectrum Disorder" -> R.string.discovery_diagnosis_autism
+        "ADHD" -> R.string.discovery_diagnosis_adhd
         "Global Development Delay" -> R.string.discovery_diagnosis_global_delay
-        "Intellectual Disability" -> R.string.discovery_diagnosis_intellectual
+        "Sensory Processing Disorder" -> R.string.discovery_diagnosis_sensory
         "Speech and Language Disorder" -> R.string.discovery_diagnosis_speech_language
         "Other" -> R.string.discovery_other
         else -> R.string.discovery_unknown_filter

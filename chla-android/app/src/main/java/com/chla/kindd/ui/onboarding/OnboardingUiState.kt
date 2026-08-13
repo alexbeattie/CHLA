@@ -12,6 +12,7 @@ enum class OnboardingStep {
     ZIP,
     REGIONAL_CENTER,
     JOURNEY,
+    DIAGNOSIS,
     AGE
 }
 
@@ -66,6 +67,7 @@ data class OnboardingUiState(
                 CenterLookupState.LOADING -> false
             }
             OnboardingStep.JOURNEY -> draft.journeyStage != null
+            OnboardingStep.DIAGNOSIS -> true
             OnboardingStep.AGE ->
                 draft.audienceType != null &&
                     draft.zipCode?.matches(ASCII_ZIP) == true &&

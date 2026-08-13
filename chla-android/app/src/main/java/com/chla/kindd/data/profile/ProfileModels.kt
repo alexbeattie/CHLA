@@ -32,6 +32,20 @@ enum class JourneyStage(val storageValue: String) {
     }
 }
 
+enum class Diagnosis(val apiValue: String, val shortName: String) {
+    AUTISM("Autism Spectrum Disorder", "Autism"),
+    ADHD("ADHD", "ADHD"),
+    GLOBAL_DEVELOPMENT_DELAY("Global Development Delay", "Dev Delay"),
+    SENSORY_PROCESSING("Sensory Processing Disorder", "Sensory"),
+    SPEECH_LANGUAGE("Speech and Language Disorder", "Speech"),
+    OTHER("Other", "Other");
+
+    companion object {
+        fun fromStorageValue(value: String?): Diagnosis? =
+            entries.firstOrNull { it.apiValue == value }
+    }
+}
+
 enum class AgeGroup(val apiValue: String) {
     EARLY_INTERVENTION("0-5"),
     SCHOOL_AGE("6-12"),
@@ -84,6 +98,7 @@ data class UserProfile(
     val zipCode: String? = null,
     val regionalCenter: RegionalCenterIdentity? = null,
     val journeyStage: JourneyStage? = null,
+    val diagnoses: List<Diagnosis> = emptyList(),
     val ageGroup: AgeGroup? = null
 ) {
     val isComplete: Boolean
@@ -91,4 +106,7 @@ data class UserProfile(
             audienceType != null &&
             zipCode?.matches(Regex("[0-9]{5}")) == true &&
             journeyStage != null
+
+    val primaryDiagnosisFilter: String?
+        get() = diagnoses.firstOrNull { it != Diagnosis.OTHER }?.apiValue
 }

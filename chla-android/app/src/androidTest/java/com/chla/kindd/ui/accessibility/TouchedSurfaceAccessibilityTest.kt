@@ -258,7 +258,8 @@ class TouchedSurfaceAccessibilityTest {
             OnboardingContent(
                 state = state.value,
                 onAudienceSelected = {}, onZipChanged = {}, onUseLocation = {},
-                onRetryCenterLookup = {}, onJourneySelected = {}, onAgeSelected = {},
+                onRetryCenterLookup = {}, onJourneySelected = {},
+                onDiagnosisToggled = {}, onAgeSelected = {},
                 onBack = {}, onContinue = {}, onFinish = {}, onCancel = {}
             )
         }

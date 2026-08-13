@@ -2,6 +2,8 @@ package com.chla.kindd.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.chla.kindd.data.discovery.DiscoveryController
+import com.chla.kindd.data.discovery.DiscoveryState
 import com.chla.kindd.data.models.Provider
 import com.chla.kindd.data.repository.ProviderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,11 +22,14 @@ data class ProviderDetailUiState(
 
 @HiltViewModel
 class ProviderDetailViewModel @Inject constructor(
-    private val providerRepository: ProviderRepository
+    private val providerRepository: ProviderRepository,
+    discoveryController: DiscoveryController
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProviderDetailUiState())
     val uiState: StateFlow<ProviderDetailUiState> = _uiState.asStateFlow()
+
+    val discoveryState: StateFlow<DiscoveryState> = discoveryController.state
 
     fun loadProvider(id: String) {
         viewModelScope.launch {

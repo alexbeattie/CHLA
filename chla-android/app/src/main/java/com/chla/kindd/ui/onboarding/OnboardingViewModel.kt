@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.profile.AudienceType
+import com.chla.kindd.data.profile.Diagnosis
 import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.RegionalCenterIdentity
 import com.chla.kindd.data.profile.UserProfile
@@ -105,6 +106,9 @@ class OnboardingViewModel @Inject constructor(
                 mutableUiState.update { it.copy(step = OnboardingStep.JOURNEY) }
             }
             OnboardingStep.JOURNEY -> if (state.canContinue) {
+                mutableUiState.update { it.copy(step = OnboardingStep.DIAGNOSIS) }
+            }
+            OnboardingStep.DIAGNOSIS -> if (state.canContinue) {
                 mutableUiState.update { it.copy(step = OnboardingStep.AGE) }
             }
             OnboardingStep.AGE -> Unit
@@ -123,7 +127,8 @@ class OnboardingViewModel @Inject constructor(
                     OnboardingStep.ZIP -> OnboardingStep.AUDIENCE
                     OnboardingStep.REGIONAL_CENTER -> OnboardingStep.ZIP
                     OnboardingStep.JOURNEY -> OnboardingStep.REGIONAL_CENTER
-                    OnboardingStep.AGE -> OnboardingStep.JOURNEY
+                    OnboardingStep.DIAGNOSIS -> OnboardingStep.JOURNEY
+                    OnboardingStep.AGE -> OnboardingStep.DIAGNOSIS
                 },
                 centerLookupState = if (leavingAsyncStep) {
                     CenterLookupState.IDLE
@@ -205,6 +210,21 @@ class OnboardingViewModel @Inject constructor(
         if (interactionsLocked()) return
         mutableUiState.update { state ->
             state.copy(draft = state.draft.copy(journeyStage = journeyStage))
+        }
+    }
+
+    fun toggleDiagnosis(diagnosis: Diagnosis) {
+        if (interactionsLocked()) return
+        mutableUiState.update { state ->
+            state.copy(
+                draft = state.draft.copy(
+                    diagnoses = if (diagnosis in state.draft.diagnoses) {
+                        state.draft.diagnoses - diagnosis
+                    } else {
+                        state.draft.diagnoses + diagnosis
+                    }
+                )
+            )
         }
     }
 
