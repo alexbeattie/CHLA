@@ -34,7 +34,7 @@ struct RegionalCentersMiniMapCard: View {
             )
             .shadow(color: .black.opacity(0.05), radius: 14, y: 6)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressableCard)
     }
 
     private var header: some View {

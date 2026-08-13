@@ -29,6 +29,8 @@
 		78C521D12FFCC5F800DC8A86 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78C521D02FFCC5F800DC8A86 /* SwiftUI.framework */; };
 		78C521DC2FFCC5FA00DC8A86 /* KiNDDWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C521CC2FFCC5F800DC8A86 /* KiNDDWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306D53C14B3C1FAEC3E125CB /* Formatters.swift */; };
+		AA10C0DE0000000000000002 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10C0DE0000000000000001 /* Haptics.swift */; };
+		AA10C0DE0000000000000004 /* PressableButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10C0DE0000000000000003 /* PressableButtonStyle.swift */; };
 		7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */; };
 		8228B2A552594EC69884FF14 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92919786FE583BD8E230766A /* HomeView.swift */; };
 		8655A013D36520C7E627B87C /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1CAAF9621905B2CA8C4526 /* FAQView.swift */; };
@@ -81,6 +83,8 @@
 		1FB5C75599D9C22F14F05B42 /* NDD Resource Map.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NDD Resource Map.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2075D8466FED15932BEE85FD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		306D53C14B3C1FAEC3E125CB /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		AA10C0DE0000000000000001 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
+		AA10C0DE0000000000000003 /* PressableButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButtonStyle.swift; sourceTree = "<group>"; };
 		35633B734ABCC31192C5B4FC /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		3D436BC3380B8D5D10977DC8 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
 		3E1CAAF9621905B2CA8C4526 /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
@@ -201,6 +205,7 @@
 			isa = PBXGroup;
 			children = (
 				306D53C14B3C1FAEC3E125CB /* Formatters.swift */,
+				AA10C0DE0000000000000001 /* Haptics.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -210,6 +215,7 @@
 			children = (
 				CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */,
 				5C307B5218ED66C3FF88851E /* ModernSearchView.swift */,
+				AA10C0DE0000000000000003 /* PressableButtonStyle.swift */,
 				EEFD64F5D39FA2865A37E1C2 /* RegionalCentersMiniMapCard.swift */,
 			);
 			path = Components;
@@ -432,6 +438,7 @@
 				8655A013D36520C7E627B87C /* FAQView.swift in Sources */,
 				7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */,
 				04BC3A23DAB7D2BC4099B14B /* FullMapView.swift in Sources */,
+				AA10C0DE0000000000000002 /* Haptics.swift in Sources */,
 				8228B2A552594EC69884FF14 /* HomeView.swift in Sources */,
 				F7C5D739A4B6EDD98B6A9AA6 /* LLMService.swift in Sources */,
 				288D77660E5ADF38E60000E8 /* LanguageManager.swift in Sources */,
@@ -441,6 +448,7 @@
 				145D54D02BE5241957F3095B /* ModernSearchView.swift in Sources */,
 				4F04A92EC00D984CEA5CEE8B /* OnboardingView.swift in Sources */,
 				EBA84EB20ACAE5C15E1646E2 /* Provider.swift in Sources */,
+				AA10C0DE0000000000000004 /* PressableButtonStyle.swift in Sources */,
 				8B442B44FD870077299FF3F9 /* ProviderDetailView.swift in Sources */,
 				9500190A582CEE8FB5DC8DC1 /* ProviderListView.swift in Sources */,
 				8B50850460375933BDD8764B /* ProviderStore.swift in Sources */,
@@ -504,7 +512,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map;
 				PRODUCT_NAME = "NDD Resource Map";
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -568,7 +576,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.4.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -608,7 +616,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map.KiNDDWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -618,7 +626,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -647,7 +655,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map.KiNDDWidgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -656,7 +664,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -727,7 +735,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.4.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -755,7 +763,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nddresources.map;
 				PRODUCT_NAME = "NDD Resource Map";
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

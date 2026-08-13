@@ -1,0 +1,3 @@
+#!/bin/bash
+# Best-effort self-filing. Must never block a commit.
+"$(git rev-parse --show-toplevel)/scripts/journal.sh" >/dev/null 2>&1 || true

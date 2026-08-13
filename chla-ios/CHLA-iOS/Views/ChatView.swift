@@ -186,26 +186,26 @@ struct ChatView: View {
                                 MessageBubble(
                                     message: message,
                                     onLike: {
-                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        Haptics.tap()
                                         llmService.setFeedback(message.id, feedback: .liked)
                                     },
                                     onDislike: {
-                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        Haptics.tap()
                                         llmService.setFeedback(message.id, feedback: .disliked)
                                     },
                                     onCopy: {
                                         if let text = llmService.copyMessage(message.id) {
                                             UIPasteboard.general.string = text
-                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                            Haptics.tap()
                                         }
                                     },
                                     onShare: {
-                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        Haptics.tap()
                                         exportText = message.content
                                         showingExportSheet = true
                                     },
                                     onSpeak: {
-                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        Haptics.tap()
                                         if textToSpeech.isSpeaking {
                                             textToSpeech.stop()
                                         } else {
@@ -240,12 +240,20 @@ struct ChatView: View {
                     onCancel: { llmService.cancelStreaming() },
                     onAttachment: { showingAttachmentTypeSheet = true },
                     onMicTap: {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        Haptics.action()
                         if !speechRecognizer.isRecording {
                             // Capture existing text before starting to record
                             textBeforeRecording = inputText
                         }
                         speechRecognizer.toggleRecording()
+                    },
+                    showingSourceOptions: $showingSourceOptions,
+                    onSourceSelected: { source in
+                        switch source {
+                        case .photoLibrary: showingImagePicker = true
+                        case .camera: showingCamera = true
+                        case .files: showingDocumentPicker = true
+                        }
                     }
                 )
                 .onChange(of: speechRecognizer.transcript) { _, newTranscript in
@@ -320,7 +328,7 @@ struct ChatView: View {
                             if !llmService.messages.isEmpty {
                                 Button {
                                     saveCurrentConversation()
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    Haptics.action()
                                 } label: {
                                     Label("Save Chat", systemImage: "square.and.arrow.down")
                                 }
@@ -344,7 +352,7 @@ struct ChatView: View {
                                         regionalCenter: lastRC
                                     )
                                     UIPasteboard.general.string = text
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    Haptics.action()
                                 } label: {
                                     Label("Copy All", systemImage: "doc.on.doc")
                                 }
@@ -380,7 +388,7 @@ struct ChatView: View {
 
                                     Button(role: .destructive) {
                                         userMemory.clearAll()
-                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                        Haptics.action()
                                     } label: {
                                         Label("Clear Memory", systemImage: "brain")
                                     }
@@ -440,19 +448,7 @@ struct ChatView: View {
                 })
                 .kinddSheet()
             }
-            // Step 2: Choose source (Photo Library, Camera, Files)
-            .confirmationDialog("Choose Source", isPresented: $showingSourceOptions) {
-                Button("Photo Library") {
-                    showingImagePicker = true
-                }
-                Button("Take Photo") {
-                    showingCamera = true
-                }
-                Button("Choose File") {
-                    showingDocumentPicker = true
-                }
-                Button("Cancel", role: .cancel) {}
-            }
+            // Step 2 (Choose Source) is anchored to the + button inside ChatInputBar
             .sheet(isPresented: $showingImagePicker) {
                 ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
             }
@@ -621,7 +617,7 @@ struct ChatView: View {
         guard !query.isEmpty else { return }
 
         // Haptic feedback on send
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        Haptics.action()
 
         // Stop TTS if speaking
         if textToSpeech.isSpeaking {
@@ -816,7 +812,7 @@ struct AnalysisTypeButton: View {
             .background(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(16)
         }
-        .buttonStyle(ScaleButtonStyle())
+        .buttonStyle(.pressable)
     }
 
     private var typeDescription: String {
@@ -879,7 +875,7 @@ struct AttachmentTypeButton: View {
 
     var body: some View {
         Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            Haptics.tap()
             action()
         } label: {
             HStack(spacing: 16) {
@@ -910,7 +906,7 @@ struct AttachmentTypeButton: View {
             .background(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(16)
         }
-        .buttonStyle(ScaleButtonStyle())
+        .buttonStyle(.pressable)
     }
 
     private var typeDescription: String {
@@ -1046,7 +1042,7 @@ struct ChatProviderCard: View {
                     .stroke(Theme.indigo.opacity(0.15), lineWidth: 1)
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .accessibilityElement(children: .combine)
         .accessibilityHint("Opens provider details")
     }
@@ -1080,7 +1076,7 @@ struct SuggestionChip: View {
                     .stroke(Color(uiColor: .separator), lineWidth: 0.5)
             )
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.pressableCard)
     }
 }
 
@@ -1149,7 +1145,7 @@ struct ChatActionButton: View {
 
     var body: some View {
         Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            Haptics.tap()
             onTap(action)
         } label: {
             HStack(spacing: 6) {
@@ -1170,7 +1166,7 @@ struct ChatActionButton: View {
                     .strokeBorder(Color(hex: "C7D2FE"), lineWidth: 1)
             )
         }
-        .buttonStyle(ScaleButtonStyle())
+        .buttonStyle(.pressable)
     }
 }
 
@@ -1738,7 +1734,7 @@ struct ResearchSourcesView: View {
                 }
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
 
             if isExpanded {
                 VStack(spacing: 8) {
@@ -1792,7 +1788,7 @@ struct ResearchCitationCard: View {
                 cardContent
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 
     private var cardContent: some View {
@@ -1907,6 +1903,7 @@ private extension ResearchCitation {
 
 struct TypingIndicator: View {
     @State private var animating = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 4) {
@@ -1914,7 +1911,9 @@ struct TypingIndicator: View {
                 Circle()
                     .fill(Color(uiColor: .tertiaryLabel))
                     .frame(width: 8, height: 8)
-                    .scaleEffect(animating ? 1.0 : 0.5)
+                    // Reduce Motion keeps a gentle opacity pulse instead of the scale bounce
+                    .scaleEffect(reduceMotion ? 1.0 : (animating ? 1.0 : 0.5))
+                    .opacity(reduceMotion ? (animating ? 1.0 : 0.4) : 1.0)
                     .animation(
                         Animation.easeInOut(duration: 0.5)
                             .repeatForever()
@@ -1935,6 +1934,13 @@ struct TypingIndicator: View {
 
 // MARK: - Chat Input Bar
 
+/// Where an attachment comes from (step 2 of the attachment flow)
+enum AttachmentSource {
+    case photoLibrary
+    case camera
+    case files
+}
+
 struct ChatInputBar: View {
     @Binding var text: String
     var isFocused: FocusState<Bool>.Binding
@@ -1945,6 +1951,10 @@ struct ChatInputBar: View {
     let onCancel: () -> Void
     var onAttachment: (() -> Void)?
     var onMicTap: (() -> Void)?
+    var showingSourceOptions: Binding<Bool> = .constant(false)
+    var onSourceSelected: ((AttachmentSource) -> Void)?
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1959,6 +1969,14 @@ struct ChatInputBar: View {
                             .foregroundColor(isLoading || isRecording ? Color(uiColor: .secondaryLabel) : Color(hex: "6366F1"))
                     }
                     .disabled(isLoading || isStreaming || isRecording)
+                    // Anchored here so iOS 26 presents the source menu from the
+                    // + button instead of floating it over the chat header
+                    .confirmationDialog("Choose Source", isPresented: showingSourceOptions) {
+                        Button("Photo Library") { onSourceSelected?(.photoLibrary) }
+                        Button("Take Photo") { onSourceSelected?(.camera) }
+                        Button("Choose File") { onSourceSelected?(.files) }
+                        Button("Cancel", role: .cancel) {}
+                    }
                 }
 
                 // Text field with microphone button
@@ -1982,8 +2000,8 @@ struct ChatInputBar: View {
                                     Circle()
                                         .fill(isRecording ? Color(hex: "EF4444").opacity(0.15) : Color(hex: "6366F1").opacity(0.1))
                                 )
-                                .scaleEffect(isRecording ? 1.1 : 1.0)
-                                .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: isRecording)
+                                .scaleEffect(isRecording && !reduceMotion ? 1.1 : 1.0)
+                                .animation(reduceMotion ? nil : .easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: isRecording)
                         }
                         .disabled(isLoading || isStreaming)
                         .padding(.trailing, 8)
@@ -2051,7 +2069,7 @@ struct PromptCapsulesBar: View {
             HStack(spacing: 8) {
                 ForEach(prompts, id: \.1) { icon, label, prompt in
                     PromptCapsule(icon: icon, label: label) {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        Haptics.tap()
                         onTap(prompt)
                     }
                 }
@@ -2066,8 +2084,6 @@ struct PromptCapsule: View {
     let icon: String
     let label: String
     let action: () -> Void
-
-    @State private var isPressed = false
 
     var body: some View {
         Button(action: action) {
@@ -2091,15 +2107,7 @@ struct PromptCapsule: View {
                     .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
             )
         }
-        .buttonStyle(ScaleButtonStyle())
-    }
-}
-
-struct ScaleButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+        .buttonStyle(.pressable)
     }
 }
 
@@ -2381,7 +2389,7 @@ struct MarkdownTextView: View {
                         Link(destination: url) {
                             sourceReferenceRow(reference)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                     } else {
                         sourceReferenceRow(reference)
                     }
@@ -2751,7 +2759,7 @@ struct ConversationHistorySheet: View {
                             ConversationRow(conversation: conversation)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
-                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    Haptics.tap()
                                     onSelect(conversation)
                                 }
                         }

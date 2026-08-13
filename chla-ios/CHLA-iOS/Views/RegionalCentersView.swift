@@ -90,7 +90,7 @@ struct RegionalCentersView: View {
                     } label: {
                         UserRCRow(center: userCenter)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressableCard)
                 } header: {
                     HStack {
                         Image(systemName: "location.fill")
@@ -110,7 +110,7 @@ struct RegionalCentersView: View {
                     } label: {
                         RCListRow(center: center)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressableCard)
                 }
             } header: {
                 Text(userRegionalCenter != nil ? "Other Centers" : "All Centers")
@@ -529,7 +529,7 @@ struct RegionalCenterDetailSheet: View {
                     } label: {
                         zipResultRow(result: result)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressableCard)
                 } else {
                     zipResultRow(result: result)
                 }
@@ -899,7 +899,7 @@ struct RegionalCenterDetailSheet: View {
                         } label: {
                             OtherCenterCard(center: otherCenter)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                     }
                 }
             }
@@ -1002,7 +1002,7 @@ struct ContactRow: View {
             }
             .padding()
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressableCard)
     }
 }
 
@@ -1525,7 +1525,7 @@ struct ActionButton: View {
             .background(color.opacity(0.1))
             .cornerRadius(12)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }
 

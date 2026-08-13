@@ -12,8 +12,9 @@
 #      (or pass as arguments: ./release.sh <KEYID> <ISSUER_ID>)
 #
 # VERSIONING: the marketing version must EXCEED every version already
-# uploaded to App Store Connect (history includes 1.3.0). Check the
-# Organizer archive list or App Store Connect before bumping. Version
+# uploaded to App Store Connect (history through 1.4.0 build 2, submitted
+# 2026-07-08), and the build number must exceed every build already
+# uploaded for the same version. Check App Store Connect before bumping. Version
 # lives in CHLA-iOS/Resources/Info.plist (CFBundleShortVersionString /
 # CFBundleVersion) AND in project.pbxproj (MARKETING_VERSION /
 # CURRENT_PROJECT_VERSION for the widget) - keep all targets aligned.

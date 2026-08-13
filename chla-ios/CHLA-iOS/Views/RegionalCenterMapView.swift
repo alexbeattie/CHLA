@@ -12,6 +12,7 @@ struct RegionalCenterMapView: View {
     @StateObject private var viewModel = RegionalCenterMapViewModel()
     @StateObject private var locationService = LocationService()
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // Centered on LA County with appropriate zoom
     @State private var cameraPosition: MapCameraPosition = .region(MKCoordinateRegion(
@@ -74,7 +75,7 @@ struct RegionalCenterMapView: View {
 
     private func centerOnUserLocation() {
         if let coordinate = locationService.coordinate {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            withAnimation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.8)) {
                 cameraPosition = .region(MKCoordinateRegion(
                     center: coordinate,
                     span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
@@ -443,7 +444,7 @@ struct RegionalCenterInfoSheet: View {
                         .background(Color.backgroundSecondary)
                         .cornerRadius(10)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressableCard)
                 }
 
                 // Website
@@ -468,7 +469,7 @@ struct RegionalCenterInfoSheet: View {
                         .background(Color.backgroundSecondary)
                         .cornerRadius(10)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressableCard)
                 }
             }
         }
@@ -573,7 +574,7 @@ struct RegionalCenterInfoSheet: View {
                             .padding(8)
                     }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
         }
     }
