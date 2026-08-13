@@ -21,6 +21,7 @@ internal object UserProfilePreferences {
     val regionalCenterName = stringPreferencesKey("regional_center_name")
     val regionalCenterShortName = stringPreferencesKey("regional_center_short_name")
     val journeyStage = stringPreferencesKey("journey_stage")
+    val diagnoses = stringPreferencesKey("diagnoses")
     val ageGroup = stringPreferencesKey("age_group")
 }
 

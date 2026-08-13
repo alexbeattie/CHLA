@@ -443,6 +443,7 @@ class OnboardingContentTest {
             viewModel.continueFromCurrentStep()
             viewModel.selectJourney(JourneyStage.EXPLORING)
             viewModel.continueFromCurrentStep()
+            viewModel.continueFromCurrentStep()
             viewModel.finish()
         }
         composeRule.waitForIdle()
@@ -663,6 +664,7 @@ class OnboardingContentTest {
                     onUseLocation = {},
                     onRetryCenterLookup = {},
                     onJourneySelected = {},
+                    onDiagnosisToggled = {},
                     onAgeSelected = {},
                     onBack = {},
                     onContinue = {},

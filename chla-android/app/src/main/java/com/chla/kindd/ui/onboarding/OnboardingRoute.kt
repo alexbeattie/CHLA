@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.profile.AudienceType
+import com.chla.kindd.data.profile.Diagnosis
 import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
@@ -101,6 +102,7 @@ fun OnboardingRoute(
         },
         onRetryCenterLookup = viewModel::retryCenterLookup,
         onJourneySelected = viewModel::selectJourney,
+        onDiagnosisToggled = viewModel::toggleDiagnosis,
         onAgeSelected = viewModel::selectAgeGroup,
         onBack = viewModel::goBack,
         onContinue = viewModel::continueFromCurrentStep,
@@ -137,6 +139,7 @@ fun OnboardingContent(
     onUseLocation: () -> Unit,
     onRetryCenterLookup: () -> Unit,
     onJourneySelected: (JourneyStage) -> Unit,
+    onDiagnosisToggled: (Diagnosis) -> Unit,
     onAgeSelected: (AgeGroup) -> Unit,
     onBack: () -> Unit,
     onContinue: () -> Unit,
@@ -192,6 +195,10 @@ fun OnboardingContent(
                     OnboardingStep.JOURNEY -> JourneyStep(
                         selectedJourney = state.draft.journeyStage,
                         onJourneySelected = onJourneySelected
+                    )
+                    OnboardingStep.DIAGNOSIS -> DiagnosisStep(
+                        selectedDiagnoses = state.draft.diagnoses,
+                        onDiagnosisToggled = onDiagnosisToggled
                     )
                     OnboardingStep.AGE -> AgeGroupStep(
                         selectedAgeGroup = state.draft.ageGroup,

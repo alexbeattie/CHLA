@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.discovery.TherapyType
 import com.chla.kindd.data.models.Provider
+import com.chla.kindd.data.profile.Diagnosis
 import com.chla.kindd.ui.theme.KiNDDCardSurface
 import com.chla.kindd.ui.theme.KiNDDDeepIndigo
 import com.chla.kindd.ui.theme.KiNDDIndigo
@@ -50,6 +51,7 @@ fun ProviderCard(
     provider: Provider,
     onClick: () -> Unit,
     onPhoneClick: (() -> Unit)? = null,
+    highlightDiagnoses: List<Diagnosis> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     KiNDDCardSurface(
@@ -60,7 +62,10 @@ fun ProviderCard(
         contentPadding = PaddingValues(16.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            ProviderHeader(provider)
+            ProviderHeader(
+                provider = provider,
+                matchedDiagnosis = provider.matchedDiagnosis(highlightDiagnoses)
+            )
 
             provider.displayAddressLines.take(2).takeIf { it.isNotEmpty() }?.let { lines ->
                 Spacer(Modifier.height(10.dp))
@@ -178,7 +183,7 @@ fun ProviderCard(
 }
 
 @Composable
-private fun ProviderHeader(provider: Provider) {
+private fun ProviderHeader(provider: Provider, matchedDiagnosis: Diagnosis?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -201,6 +206,17 @@ private fun ProviderHeader(provider: Provider) {
                     color = KiNDDDeepIndigo,
                     containerColor = KiNDDIndigo.copy(alpha = 0.12f),
                     modifier = Modifier.testTag("provider_type_${provider.id}")
+                )
+            }
+            matchedDiagnosis?.let { diagnosis ->
+                ProviderCapsule(
+                    text = stringResource(
+                        R.string.provider_treats_badge,
+                        diagnosisShortLabel(diagnosis)
+                    ),
+                    color = KiNDDPurple,
+                    containerColor = KiNDDPurple.copy(alpha = 0.12f),
+                    modifier = Modifier.testTag("provider_treats_${provider.id}")
                 )
             }
         }

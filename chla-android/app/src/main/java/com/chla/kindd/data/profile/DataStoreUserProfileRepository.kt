@@ -80,6 +80,10 @@ class DataStoreUserProfileRepository(
             journeyStage = JourneyStage.fromStorageValue(
                 preferences[UserProfilePreferences.journeyStage]
             ),
+            diagnoses = preferences[UserProfilePreferences.diagnoses]
+                .orEmpty()
+                .split(DIAGNOSES_SEPARATOR)
+                .mapNotNull(Diagnosis::fromStorageValue),
             ageGroup = AgeGroup.fromStorageValue(
                 preferences[UserProfilePreferences.ageGroup]
             )
@@ -105,8 +109,16 @@ class DataStoreUserProfileRepository(
         profile.journeyStage?.let {
             this[UserProfilePreferences.journeyStage] = it.storageValue
         }
+        profile.diagnoses.takeIf(List<Diagnosis>::isNotEmpty)?.let { diagnoses ->
+            this[UserProfilePreferences.diagnoses] =
+                diagnoses.joinToString(DIAGNOSES_SEPARATOR, transform = Diagnosis::apiValue)
+        }
         profile.ageGroup?.let {
             this[UserProfilePreferences.ageGroup] = it.apiValue
         }
+    }
+
+    private companion object {
+        const val DIAGNOSES_SEPARATOR = "\u001F"
     }
 }

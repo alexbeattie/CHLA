@@ -159,7 +159,8 @@ class DiscoveryStore @Inject constructor(
             val current = mutableState.value
             val criteriaChanged = !current.profile.isComplete ||
                 current.profile.zipCode != profile.zipCode ||
-                current.profile.ageGroup != profile.ageGroup
+                current.profile.ageGroup != profile.ageGroup ||
+                current.profile.diagnoses != profile.diagnoses
 
             if (!criteriaChanged) {
                 mutableState.value = current.copy(profile = profile)
@@ -169,11 +170,17 @@ class DiscoveryStore @Inject constructor(
             val criteria = if (current.profile.isComplete) {
                 current.criteria.copy(
                     ageGroup = profile.ageGroup,
+                    diagnosis = if (current.profile.diagnoses != profile.diagnoses) {
+                        profile.primaryDiagnosisFilter
+                    } else {
+                        current.criteria.diagnosis
+                    },
                     origin = DiscoveryOrigin.ProfileZip(requireNotNull(profile.zipCode))
                 )
             } else {
                 DiscoveryCriteria(
                     ageGroup = profile.ageGroup,
+                    diagnosis = profile.primaryDiagnosisFilter,
                     origin = DiscoveryOrigin.ProfileZip(requireNotNull(profile.zipCode))
                 )
             }

@@ -48,12 +48,14 @@ import com.chla.kindd.data.discovery.DiscoveryCriteria
 import com.chla.kindd.data.discovery.DiscoveryOrigin
 import com.chla.kindd.data.discovery.DiscoveryState
 import com.chla.kindd.data.models.Provider
+import com.chla.kindd.data.profile.Diagnosis
 import com.chla.kindd.ui.discovery.ActiveFilterChips
 import com.chla.kindd.ui.discovery.DiscoveryFilterSheet
 import com.chla.kindd.ui.discovery.DiscoveryStateContent
 import com.chla.kindd.ui.discovery.DiscoveryUiActions
 import com.chla.kindd.ui.discovery.KiNDDSearchOverlay
 import com.chla.kindd.ui.providers.ProviderCard
+import com.chla.kindd.ui.providers.providerHighlightDiagnoses
 import com.chla.kindd.ui.theme.KiNDDCompactIconAction
 import com.chla.kindd.ui.theme.KiNDDIndigo
 import com.chla.kindd.ui.theme.KiNDDSpacingTokens
@@ -158,6 +160,10 @@ fun ProviderListContent(
             ) {
                 ProviderCards(
                     providers = providers,
+                    highlightDiagnoses = providerHighlightDiagnoses(
+                        criteria = state.criteria,
+                        profile = state.profile
+                    ),
                     onProviderClick = onProviderClick,
                     onPhoneClick = { provider ->
                         provider.phone?.takeIf(String::isNotBlank)?.let { phone ->
@@ -290,6 +296,7 @@ private fun ProviderListHeader(
 @Composable
 private fun ProviderCards(
     providers: List<Provider>,
+    highlightDiagnoses: List<Diagnosis>,
     onProviderClick: (String) -> Unit,
     onPhoneClick: (Provider) -> Unit
 ) {
@@ -308,7 +315,8 @@ private fun ProviderCards(
                 onClick = { onProviderClick(provider.id) },
                 onPhoneClick = provider.phone?.takeIf(String::isNotBlank)?.let {
                     { onPhoneClick(provider) }
-                }
+                },
+                highlightDiagnoses = highlightDiagnoses
             )
         }
         item(key = "bottom_clearance") {

@@ -1,6 +1,7 @@
 package com.chla.kindd.data.discovery
 
 import com.chla.kindd.data.models.Provider
+import com.chla.kindd.data.profile.Diagnosis
 import java.util.Locale
 import javax.inject.Inject
 
@@ -148,6 +149,12 @@ class DiscoveryRequestPlanner @Inject constructor() {
         provider.description?.let(::add)
         addAll(provider.therapyTypes.orEmpty())
         addAll(provider.insuranceAccepted)
+        provider.diagnosesTreated.orEmpty().forEach { treated ->
+            add(treated)
+            Diagnosis.entries
+                .firstOrNull { it.apiValue.equals(treated.trim(), ignoreCase = true) }
+                ?.let { add(it.shortName) }
+        }
     }
 
     private fun keyOf(vararg fields: String?): String = fields.joinToString("|") { field ->

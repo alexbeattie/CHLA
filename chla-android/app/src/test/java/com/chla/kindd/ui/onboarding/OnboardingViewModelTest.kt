@@ -533,6 +533,7 @@ class OnboardingViewModelTest {
             fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.selectJourney(JourneyStage.RECEIVING_SERVICES)
             fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.selectAgeGroup(AgeGroup.ADULT)
 
             fixture.viewModel.finish()
@@ -635,6 +636,7 @@ class OnboardingViewModelTest {
     private suspend fun kotlinx.coroutines.test.TestScope.advanceToAge(fixture: Fixture) {
         advanceToJourney(fixture)
         fixture.viewModel.selectJourney(JourneyStage.EXPLORING)
+        fixture.viewModel.continueFromCurrentStep()
         fixture.viewModel.continueFromCurrentStep()
     }
 

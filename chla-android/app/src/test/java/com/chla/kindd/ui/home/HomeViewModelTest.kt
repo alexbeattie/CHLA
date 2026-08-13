@@ -980,7 +980,7 @@ class HomeViewModelTest {
         audience: AudienceType = AudienceType.FAMILY,
         journey: JourneyStage = JourneyStage.JUST_DIAGNOSED,
         age: AgeGroup? = AgeGroup.EARLY_INTERVENTION
-    ) = UserProfile(true, audience, zip, identity, journey, age)
+    ) = UserProfile(true, audience, zip, identity, journey, ageGroup = age)
 
     private fun center(
         id: Int = 7,
