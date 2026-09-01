@@ -90,7 +90,8 @@ fun ProviderListScreen(
             onRemoveInsurance = viewModel::removeInsurance,
             onRemoveRadius = viewModel::removeRadius,
             onClearAll = viewModel::clearAllFilters,
-            onRetry = viewModel::retry
+            onRetry = viewModel::retry,
+            onSelectAge = viewModel::selectAge
         ),
         onProviderClick = onProviderClick
     )
@@ -146,6 +147,9 @@ fun ProviderListContent(
                 onRemoveInsurance = actions.onRemoveInsurance,
                 onRemoveRadius = actions.onRemoveRadius,
                 onClearAll = actions.onClearAll,
+                childAgeGroups = state.profile.savedChildAges,
+                onSelectChildAge = actions.onSelectAge,
+                onShowFilters = { showFilters = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = KiNDDSpacingTokens.PageInset)

@@ -6,7 +6,24 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Resolve the Mapbox token without ever blanking a token we already have:
+# shell environment first, then the current .env, then .env.production.
+read_token_from_file() {
+  [ -f "$1" ] && sed -n 's/^VITE_MAPBOX_TOKEN=//p' "$1" | head -n 1
+}
+
 MAPBOX_TOKEN="${VITE_MAPBOX_TOKEN:-${MAPBOX_TOKEN:-}}"
+if [ -z "$MAPBOX_TOKEN" ]; then
+  MAPBOX_TOKEN="$(read_token_from_file "$SCRIPT_DIR/.env")"
+fi
+if [ -z "$MAPBOX_TOKEN" ]; then
+  MAPBOX_TOKEN="$(read_token_from_file "$SCRIPT_DIR/.env.production")"
+fi
+if [ -z "$MAPBOX_TOKEN" ]; then
+  echo "WARNING: no Mapbox token found (shell env, .env, .env.production)."
+  echo "The map will not render without VITE_MAPBOX_TOKEN."
+fi
 
 case "${1:-dev}" in
   "dev"|"development")

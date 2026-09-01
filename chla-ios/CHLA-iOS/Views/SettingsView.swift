@@ -98,6 +98,22 @@ struct SettingsView: View {
                     }
 
                     NavigationLink {
+                        HowToGuideView()
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("How to use KiNDD")
+                                Text("Optional questions, Filters, and switching between kids")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "slider.horizontal.3")
+                                .foregroundColor(.indigo)
+                        }
+                    }
+
+                    NavigationLink {
                         FiltersEditView(filters: $appState.searchFilters)
                     } label: {
                         Label("Search Filters", systemImage: "slider.horizontal.3")
@@ -247,7 +263,10 @@ struct SettingsView: View {
                 // Reset
                 Section {
                     Button(role: .destructive) {
-                        appState.searchFilters = SearchFilters()
+                        var reset = SearchFilters()
+                        reset.childAgeGroups = appState.childAgeGroups
+                        reset.hasMultipleChildren = appState.hasMultipleChildren
+                        appState.searchFilters = reset
                     } label: {
                         Label("Reset Filters", systemImage: "xmark.circle")
                     }

@@ -70,6 +70,8 @@ class ProviderListViewModel @Inject constructor(
 
     fun removeAge() = updateFilters { copy(ageGroup = null) }
 
+    fun selectAge(ageGroup: AgeGroup) = updateFilters { copy(ageGroup = ageGroup) }
+
     fun removeDiagnosis() = updateFilters { copy(diagnosis = null) }
 
     fun removeInsurance() = updateFilters { copy(insurance = null) }

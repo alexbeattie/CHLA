@@ -20,6 +20,7 @@ struct MapContainerView: View {
     @State private var selectedProvider: Provider?
     @State private var showFilters = false
     @State private var showResultsSheet = false
+    @State private var showHowToTip = false
 
     // LA County center as default
     private let defaultRegion = MKCoordinateRegion(
@@ -43,7 +44,7 @@ struct MapContainerView: View {
                 Spacer()
                 VStack(spacing: 0) {
                     Spacer()
-                        .frame(height: hasActiveFilters ? 210 : 160) // Extra space when filters shown
+                        .frame(height: showFamilyFilterBar ? 210 : 160) // Extra space when filters shown
                     GlassMapControls(
                         onLocationTap: { centerOnUserLocation() },
                         onFilterTap: { showFilters = true },
@@ -55,7 +56,7 @@ struct MapContainerView: View {
                 .padding(.trailing, 20)
                 .offset(x: visibilityManager.isHeaderVisible ? 0 : 100)
                 .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
-                .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.3), value: hasActiveFilters)
+                .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.3), value: showFamilyFilterBar)
                 .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isHeaderVisible)
             }
 
@@ -64,6 +65,10 @@ struct MapContainerView: View {
 
             // Bottom info and results preview
             bottomOverlay
+
+            if showHowToTip {
+                howToTipOverlay
+            }
 
             // Show UI button (appears when UI is hidden)
             if !visibilityManager.isHeaderVisible {
@@ -115,6 +120,11 @@ struct MapContainerView: View {
         .onAppear {
             setupInitialLocation()
             setupSearchCallback()
+            if !appState.hasSeenHowToTip {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+                    showHowToTip = true
+                }
+            }
         }
         .onChange(of: locationService.currentLocation) { _, location in
             if let location = location {
@@ -346,17 +356,77 @@ struct MapContainerView: View {
             .padding(.bottom, 12)
             .background(.ultraThinMaterial)
 
-            // Active filter chips
-            if hasActiveFilters && !searchState.isSearchActive {
-                ActiveFiltersBar(filters: appState.searchFilters, onClearAll: clearFilters, onRemove: removeFilter)
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
+            // Filter bar: Reset, kid toggles, active chips
+            if showFamilyFilterBar && !searchState.isSearchActive {
+                FamilyFilterBar(
+                    filters: appState.searchFilters,
+                    childAgeGroups: appState.childAgeGroups,
+                    onOpenFilters: { showFilters = true },
+                    onClearAll: clearFilters,
+                    onSelectChildAge: { age in
+                        appState.selectChildAge(age)
+                        Task { await performSearch() }
+                    },
+                    onRemove: removeFilter
+                )
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(.ultraThinMaterial)
             }
         }
         .offset(y: shouldShow ? 0 : -180)
         .opacity(shouldShow ? 1 : 0)
         .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8), value: shouldShow)
+    }
+
+    @ViewBuilder
+    private var howToTipOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+                .onTapGesture { dismissHowToTip() }
+
+            VStack {
+                Spacer()
+                    .frame(height: 130)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Filters live up here")
+                        .font(.system(.headline, design: .rounded).weight(.semibold))
+
+                    Text("Open Filters to reset your search or switch between kids if you selected more than one age. Next questions in setup are optional.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Button {
+                        dismissHowToTip()
+                    } label: {
+                        Text("Got it")
+                            .font(.system(.body, design: .rounded).weight(.semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Theme.indigo, in: Capsule())
+                    }
+                    .buttonStyle(.pressable)
+                }
+                .padding(18)
+                .background {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Theme.cardSurface)
+                }
+                .padding(.horizontal, 24)
+
+                Spacer()
+            }
+        }
+        .accessibilityAddTraits(.isModal)
+    }
+
+    private func dismissHowToTip() {
+        showHowToTip = false
+        appState.markHowToTipSeen()
     }
 
     @ViewBuilder
@@ -450,6 +520,10 @@ struct MapContainerView: View {
 
     private var hasActiveFilters: Bool {
         activeFilterCount > 0
+    }
+
+    private var showFamilyFilterBar: Bool {
+        hasActiveFilters || appState.childAgeGroups.count > 0 || appState.hasMultipleChildren
     }
 
     private var detectedRegionalCenter: String? {
@@ -662,6 +736,94 @@ struct SearchBarView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Family Filter Bar
+
+struct FamilyFilterBar: View {
+    let filters: SearchFilters
+    let childAgeGroups: [String]
+    let onOpenFilters: () -> Void
+    let onClearAll: () -> Void
+    let onSelectChildAge: (String) -> Void
+    let onRemove: (FilterType) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                Button(action: onOpenFilters) {
+                    Label("Filters", systemImage: "slider.horizontal.3")
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background {
+                            Capsule().fill(Color.accentBlue)
+                        }
+                        .foregroundColor(.white)
+                }
+
+                Button(action: onClearAll) {
+                    Text("Reset")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.accentBlue)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background {
+                            Capsule().fill(Color.accentBlue.opacity(0.12))
+                        }
+                }
+
+                if !childAgeGroups.isEmpty {
+                    ForEach(childAgeGroups, id: \.self) { age in
+                        let selected = filters.ageGroup == age
+                        Button {
+                            onSelectChildAge(age)
+                        } label: {
+                            Text(age)
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background {
+                                    Capsule()
+                                        .fill(selected ? Color.accentBlue.opacity(0.18) : Color.clear)
+                                    Capsule()
+                                        .stroke(selected ? Color.accentBlue : Color.primary.opacity(0.2), lineWidth: 1)
+                                }
+                                .foregroundColor(selected ? .accentBlue : .primary)
+                        }
+                    }
+                }
+
+                if let diagnosis = filters.diagnosis {
+                    FilterChip(label: shortDiagnosis(diagnosis), onRemove: { onRemove(.diagnosis) })
+                }
+
+                if let insurance = filters.insurance {
+                    FilterChip(label: insurance, onRemove: { onRemove(.insurance) })
+                }
+
+                ForEach(filters.therapyTypes, id: \.self) { therapy in
+                    FilterChip(label: shortTherapy(therapy), onRemove: { onRemove(.therapy(therapy)) })
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
+    private func shortDiagnosis(_ diagnosis: String) -> String {
+        let short: [String: String] = [
+            "Autism Spectrum Disorder": "Autism",
+            "Global Development Delay": "Dev Delay",
+            "Intellectual Disability": "Intellectual",
+            "Speech and Language Disorder": "Speech"
+        ]
+        return short[diagnosis] ?? diagnosis
+    }
+
+    private func shortTherapy(_ therapy: String) -> String {
+        return therapy.replacingOccurrences(of: " therapy", with: "")
+            .replacingOccurrences(of: "Parent child interaction therapy/parent training behavior management", with: "Parent Training")
     }
 }
 
@@ -993,6 +1155,12 @@ struct FilterSheetView: View {
                 diagnosisSection
                 insuranceSection
                 therapySection
+
+                Section {
+                    Text("KiNDD does not keep your medical information. Filters stay on this device. This is a navigation tool, not official medical advice.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Filters")
@@ -1034,14 +1202,31 @@ struct FilterSheetView: View {
     @ViewBuilder
     private var ageGroupSection: some View {
         Section {
-            Picker("Age Group", selection: $filters.ageGroup) {
-                Text("Any Age").tag(String?.none)
-                ForEach(SearchFilters.ageGroups, id: \.self) { age in
-                    Text(age).tag(Optional(age))
+            if filters.childAgeGroups.count > 1 {
+                ForEach(filters.childAgeGroups, id: \.self) { age in
+                    Button {
+                        filters.ageGroup = filters.ageGroup == age ? nil : age
+                    } label: {
+                        HStack {
+                            Text(age)
+                            Spacer()
+                            if filters.ageGroup == age {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.accentBlue)
+                            }
+                        }
+                    }
+                }
+            } else {
+                Picker("Age Group", selection: $filters.ageGroup) {
+                    Text("Any Age").tag(String?.none)
+                    ForEach(SearchFilters.ageGroups, id: \.self) { age in
+                        Text(age).tag(Optional(age))
+                    }
                 }
             }
         } header: {
-            Label("Age Group", systemImage: "person.fill")
+            Label(filters.childAgeGroups.count > 1 ? "Kids (tap to switch)" : "Age Group", systemImage: "person.fill")
         }
     }
 

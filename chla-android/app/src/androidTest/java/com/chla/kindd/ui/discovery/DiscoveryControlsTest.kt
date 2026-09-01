@@ -131,7 +131,7 @@ class DiscoveryControlsTest {
         composeRule.onNodeWithText("Speech Therapy").performScrollTo().performClick()
         composeRule.onNodeWithText("19+ years (Adult)").performScrollTo().performClick()
         composeRule.onNodeWithText("Other").performScrollTo().performClick()
-        composeRule.onNodeWithText("L.A. Care").performScrollTo().performClick()
+        composeRule.onNodeWithText("Private Insurance").performScrollTo().performClick()
         composeRule.onNodeWithText("25 miles").performScrollTo().performClick()
         composeRule.onNodeWithTag("discovery_filter_apply").performScrollTo().performClick()
 
@@ -139,7 +139,7 @@ class DiscoveryControlsTest {
             assertEquals(setOf(TherapyType.SPEECH), applied?.therapyTypes)
             assertEquals(AgeGroup.ADULT, applied?.ageGroup)
             assertEquals("Other", applied?.diagnosis)
-            assertEquals("L.A. Care", applied?.insurance)
+            assertEquals("Private Insurance", applied?.insurance)
             assertEquals(25, applied?.radiusMiles)
         }
     }
@@ -172,7 +172,7 @@ class DiscoveryControlsTest {
                         therapyTypes = setOf(TherapyType.ABA),
                         ageGroup = AgeGroup.ADULT,
                         diagnosis = "Other",
-                        insurance = "L.A. Care",
+                        insurance = "Private Insurance",
                         radiusMiles = 50,
                         origin = DiscoveryOrigin.DeviceLocation(34.0, -118.0)
                     ),

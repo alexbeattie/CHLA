@@ -31,21 +31,9 @@ object DiscoveryCatalog {
     )
 
     val insurances: List<String> = listOf(
-        "Regional Center",
-        "Private Pay",
         "Medi-Cal",
-        "Medicare",
-        "Blue Cross",
-        "Blue Shield",
-        "Anthem",
-        "Aetna",
-        "Cigna",
-        "Kaiser Permanente",
-        "United Healthcare",
-        "Health Net",
-        "Molina",
-        "L.A. Care",
-        "Covered California"
+        "Private Insurance",
+        "Private Pay"
     )
 
     val therapyTypes: List<TherapyType> = TherapyType.entries

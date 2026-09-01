@@ -5,8 +5,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,7 +39,10 @@ fun ActiveFilterChips(
     onRemoveInsurance: () -> Unit,
     onRemoveRadius: () -> Unit,
     onClearAll: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    childAgeGroups: List<AgeGroup> = emptyList(),
+    onSelectChildAge: (AgeGroup) -> Unit = {},
+    onShowFilters: (() -> Unit)? = null
 ) {
     val hasRadius = criteria.origin is DiscoveryOrigin.DeviceLocation
     val hasFilters = criteria.therapyTypes.isNotEmpty() ||
@@ -45,8 +50,9 @@ fun ActiveFilterChips(
         criteria.diagnosis != null ||
         criteria.insurance != null ||
         hasRadius
-    if (!hasFilters) return
+    if (!hasFilters && childAgeGroups.isEmpty() && onShowFilters == null) return
 
+    val hideRemovableAge = childAgeGroups.isNotEmpty()
     val chips = buildList {
         criteria.therapyTypes.sortedBy(TherapyType::ordinal).forEach { therapy ->
             add(
@@ -59,15 +65,17 @@ fun ActiveFilterChips(
                 )
             )
         }
-        criteria.ageGroup?.let {
-            add(
-                ActiveFilterChipModel(
-                    key = "age",
-                    label = stringResource(R.string.discovery_age_chip, ageGroupLabel(it)),
-                    tag = "filter_chip_age",
-                    onRemove = onRemoveAge
+        if (!hideRemovableAge) {
+            criteria.ageGroup?.let {
+                add(
+                    ActiveFilterChipModel(
+                        key = "age",
+                        label = stringResource(R.string.discovery_age_chip, ageGroupLabel(it)),
+                        tag = "filter_chip_age",
+                        onRemove = onRemoveAge
+                    )
                 )
-            )
+            }
         }
         criteria.diagnosis?.let {
             add(
@@ -115,6 +123,41 @@ fun ActiveFilterChips(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        onShowFilters?.let { showFilters ->
+            item(key = "open_filters") {
+                AssistChip(
+                    onClick = showFilters,
+                    label = { Text(stringResource(R.string.filters)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.testTag("family_filter_open"),
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = KiNDDIndigo,
+                        labelColor = Color.White,
+                        leadingIconContentColor = Color.White
+                    )
+                )
+            }
+            item(key = "clear_all") {
+                AssistChip(
+                    onClick = onClearAll,
+                    label = { Text(stringResource(R.string.discovery_reset)) },
+                    modifier = Modifier.testTag("discovery_clear_all")
+                )
+            }
+        }
+        items(childAgeGroups, key = { "child_${it.name}" }) { age ->
+            FilterChip(
+                selected = criteria.ageGroup == age,
+                onClick = { onSelectChildAge(age) },
+                label = { Text(age.apiValue) },
+                modifier = Modifier.testTag("filter_chip_child_${age.name}")
+            )
+        }
         items(chips, key = ActiveFilterChipModel::key) { chip ->
             RemovableFilterChip(
                 label = chip.label,
@@ -123,12 +166,14 @@ fun ActiveFilterChips(
                 onRemove = chip.onRemove
             )
         }
-        item(key = "clear_all") {
-            AssistChip(
-                onClick = onClearAll,
-                label = { Text(stringResource(R.string.discovery_clear_all)) },
-                modifier = Modifier.testTag("discovery_clear_all")
-            )
+        if (onShowFilters == null) {
+            item(key = "clear_all") {
+                AssistChip(
+                    onClick = onClearAll,
+                    label = { Text(stringResource(R.string.discovery_clear_all)) },
+                    modifier = Modifier.testTag("discovery_clear_all")
+                )
+            }
         }
     }
 }
@@ -208,6 +253,7 @@ internal fun insuranceLabel(value: String): String = stringResource(
     when (value) {
         "Regional Center" -> R.string.discovery_insurance_regional_center
         "Private Pay" -> R.string.discovery_insurance_private_pay
+        "Private Insurance" -> R.string.discovery_insurance_private_insurance
         "Medi-Cal" -> R.string.discovery_insurance_medi_cal
         "Medicare" -> R.string.discovery_insurance_medicare
         "Blue Cross" -> R.string.discovery_insurance_blue_cross

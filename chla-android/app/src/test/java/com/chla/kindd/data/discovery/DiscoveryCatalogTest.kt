@@ -36,21 +36,9 @@ class DiscoveryCatalogTest {
     fun `insurance catalog uses exact values and order`() {
         assertEquals(
             listOf(
-                "Regional Center",
-                "Private Pay",
                 "Medi-Cal",
-                "Medicare",
-                "Blue Cross",
-                "Blue Shield",
-                "Anthem",
-                "Aetna",
-                "Cigna",
-                "Kaiser Permanente",
-                "United Healthcare",
-                "Health Net",
-                "Molina",
-                "L.A. Care",
-                "Covered California"
+                "Private Insurance",
+                "Private Pay"
             ),
             DiscoveryCatalog.insurances
         )

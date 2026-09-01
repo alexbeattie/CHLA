@@ -1,8 +1,8 @@
 # App Store Connect Metadata
 
-## Current Status (updated 2026-07-13)
+## Current Status (updated 2026-09-01)
 
-1.4.1 build 1 is a TestFlight-only interaction-polish release for the external beta group (haptics, press feedback, Reduce Motion, Dynamic Type). It is not submitted for App Store release.
+1.4.3 build 1 is the how-to / multi-child / insurance-bucket onboarding release. Upload via `scripts/release.sh`, then attach the build in App Store Connect and submit for review. Live store version remains 1.4.0 until that review lands.
 
 | Item            | Value                                                                                                                                                                                       |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -122,6 +122,28 @@ Location permission is optional; every feature works by entering a ZIP code inst
 | Version | 1.4.0                                                                                                                                                                                      |
 | Build   | 2 (build 1, uploaded 2026-07-07, included iPad in the device family, and review submission was blocked on missing iPad Pro screenshots; build 2 is iPhone-only and is the submitted build) |
 
+
+## What's New - 1.4.3 (paste into App Store Connect)
+
+```
+After your Regional Center match, KiNDD now explains optional questions and how Filters work.
+
+- Multi-select ages, plus I have more than 1 child
+- Insurance: Medi-Cal, Private Insurance, or Private Pay
+- Filters and Reset stay visible on the map, with a kid toggle when you saved more than one age
+- How to use KiNDD in Settings
+- Clear note that KiNDD does not keep medical information and is a navigation tool, not official medical advice
+```
+
+## What to Test - 1.4.3 (paste into TestFlight)
+
+```
+1. Fresh onboarding (More -> Restart Welcome Setup): after Regional Center, you should see the how-to step, then optional journey/diagnosis/age. Age can pick more than one, plus I have more than 1 child.
+2. Map: Filters and Reset in the bar. If you picked two ages, tap the kid chips and confirm the list/map change.
+3. Filters sheet: insurance is three buckets. Disclaimer is on the sheet, About, and FAQ.
+4. Settings -> How to use KiNDD.
+5. First visit after onboarding: the Filters coach tip, then it stays gone.
+```
 
 ## What's New - 1.4.0 (paste into App Store Connect)
 

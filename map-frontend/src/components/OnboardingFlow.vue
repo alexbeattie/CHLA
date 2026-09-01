@@ -111,8 +111,49 @@
           </div>
         </div>
 
+        <!-- How-to Step (after Regional Center) -->
+        <div v-if="currentStep === 2" class="step howto-step">
+          <h3>Optional questions, then Filters</h3>
+          <p>
+            Next we'll ask a few optional questions about your family. Skip
+            anything you don't want to answer.
+          </p>
+          <div class="howto-cards">
+            <div class="howto-card">
+              <i class="bi bi-funnel"></i>
+              <div>
+                <strong>Filters stay on the map</strong>
+                <span
+                  >Use Filters to narrow results, reset your search, or switch
+                  which child's age is applied.</span
+                >
+              </div>
+            </div>
+            <div class="howto-card">
+              <i class="bi bi-people"></i>
+              <div>
+                <strong>More than one child</strong>
+                <span
+                  >Select every age that applies. Later, tap a child's age chip
+                  to toggle between kids.</span
+                >
+              </div>
+            </div>
+            <div class="howto-card">
+              <i class="bi bi-shield-lock"></i>
+              <div>
+                <strong>Your information stays with you</strong>
+                <span
+                  >KiNDD does not keep medical records. This is a navigation
+                  tool, not official medical advice or a diagnosis.</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Profile Step -->
-        <div v-if="currentStep === 2" class="step profile-step">
+        <div v-if="currentStep === 3" class="step profile-step">
           <h3>Quick Setup</h3>
           <p>Just a few details to personalize your experience</p>
 
@@ -142,18 +183,40 @@
             </div>
 
             <div class="form-row">
-              <label>Age Group</label>
-              <select
-                v-model="userProfile.age"
-                class="form-control"
-                @change="console.log('Age selected:', userProfile.age)"
-              >
-                <option value="">Select age</option>
-                <option value="0-5">0-5 years</option>
-                <option value="6-12">6-12 years</option>
-                <option value="13-18">13-18 years</option>
-                <option value="19+">19+ years</option>
-              </select>
+              <label>{{
+                userProfile.hasMultipleChildren || userProfile.ages.length > 1
+                  ? "How old are your children?"
+                  : "How old is your child?"
+              }}</label>
+              <p class="optional-hint">
+                Optional - pick every age that applies. You can switch between
+                kids later in Filters.
+              </p>
+              <div class="age-options">
+                <button
+                  type="button"
+                  class="audience-option"
+                  v-for="age in ageOptions"
+                  :key="age.value"
+                  :class="{ active: userProfile.ages.includes(age.value) }"
+                  @click="toggleAge(age.value)"
+                >
+                  <span>{{ age.label }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="audience-option"
+                  :class="{
+                    active:
+                      userProfile.hasMultipleChildren ||
+                      userProfile.ages.length > 1,
+                  }"
+                  @click="toggleMultipleChildren"
+                >
+                  <i class="bi bi-people-fill"></i>
+                  <span>I have more than 1 child</span>
+                </button>
+              </div>
             </div>
 
             <div class="form-row">
@@ -217,9 +280,11 @@
         </div>
 
         <!-- Services Step -->
-        <div v-if="currentStep === 3" class="step services-step">
+        <div v-if="currentStep === 4" class="step services-step">
           <h3>Which therapies are you seeking?</h3>
-          <p>Select all that apply. You can always change these later.</p>
+          <p>
+            Optional - select all that apply. You can always change these later.
+          </p>
           <div class="service-types">
             <label class="service-option" v-for="t in therapyOptions" :key="t">
               <input
@@ -273,7 +338,7 @@
         </div>
 
         <!-- Results Step -->
-        <div v-if="currentStep === 4" class="step results-step">
+        <div v-if="currentStep === 5" class="step results-step">
           <div class="success-header">
             <div
               class="success-icon"
@@ -354,6 +419,11 @@
               </div>
             </div>
           </div>
+
+          <p class="disclaimer-note">
+            KiNDD does not keep your medical information. This is a navigation
+            tool, not official medical advice or a diagnosis.
+          </p>
 
           <!-- Regional Center Display -->
           <div v-if="effectiveRegionalCenter" class="regional-center-info">
@@ -459,7 +529,7 @@ export default {
   data() {
     return {
       currentStep: 1,
-      totalSteps: 4,
+      totalSteps: 5,
       locationDetecting: false,
       locationError: null,
       loading: false,
@@ -468,11 +538,19 @@ export default {
       userProfile: {
         audienceType: "family",
         age: "",
+        ages: [],
+        hasMultipleChildren: false,
         diagnosis: "",
         hasInsurance: false,
         hasRegionalCenter: false,
         therapies: [],
       },
+      ageOptions: [
+        { value: "0-5", label: "0-5 years" },
+        { value: "6-12", label: "6-12 years" },
+        { value: "13-18", label: "13-18 years" },
+        { value: "19+", label: "19+ years" },
+      ],
       localRegionalCenter: null,
       therapyOptions: [
         "ABA therapy",
@@ -502,15 +580,9 @@ export default {
       const result = (() => {
         switch (this.currentStep) {
           case 1:
-            return this.userLocation && this.userLocation.length > 0; // Require location on step 1
-          case 2:
-            return this.userProfile.age && this.userProfile.age.length > 0; // Age is required on profile step
-          case 3:
-            return this.userProfile.therapies.length > 0; // Therapies required on services step
-          case 4:
-            return true; // Results step - always can proceed
+            return this.userLocation && this.userLocation.length > 0;
           default:
-            return false;
+            return true;
         }
       })();
 
@@ -565,7 +637,7 @@ export default {
         }
 
         // If moving from step 3 to step 4, regenerate results with latest therapy selections
-        if (this.currentStep === 3) {
+        if (this.currentStep === 4) {
           this.currentStep++;
           await this.$nextTick(); // Wait for DOM update
           console.log(
@@ -587,6 +659,32 @@ export default {
     previousStep() {
       if (this.currentStep > 1) {
         this.currentStep--;
+      }
+    },
+
+    toggleAge(age) {
+      const ages = this.userProfile.ages;
+      const index = ages.indexOf(age);
+      if (index > -1) {
+        ages.splice(index, 1);
+      } else {
+        ages.push(age);
+      }
+      if (ages.length > 1) {
+        this.userProfile.hasMultipleChildren = true;
+      }
+      this.userProfile.age = ages.length === 1 ? ages[0] : "";
+    },
+
+    toggleMultipleChildren() {
+      this.userProfile.hasMultipleChildren =
+        !this.userProfile.hasMultipleChildren;
+      if (
+        !this.userProfile.hasMultipleChildren &&
+        this.userProfile.ages.length > 1
+      ) {
+        this.userProfile.ages = this.userProfile.ages.slice(0, 1);
+        this.userProfile.age = this.userProfile.ages[0] || "";
       }
     },
 
@@ -1435,6 +1533,66 @@ export default {
   border-color: #004877;
   background: #eef8fc;
   color: #004877;
+}
+
+.age-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.age-options .audience-option:last-child {
+  grid-column: 1 / -1;
+}
+
+.optional-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.howto-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.howto-card {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  text-align: left;
+}
+
+.howto-card i {
+  color: #004877;
+  font-size: 1.1rem;
+  margin-top: 0.15rem;
+}
+
+.howto-card strong {
+  display: block;
+  font-size: 0.9rem;
+  color: #1f2937;
+}
+
+.howto-card span {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+}
+
+.disclaimer-note {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  line-height: 1.4;
 }
 
 .funding-row {

@@ -191,6 +191,15 @@ fun DiscoveryFilterContent(
                 }
             }
             Spacer(Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.onboarding_disclaimer),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+                    .testTag("discovery_filter_disclaimer")
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -27,7 +27,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
@@ -45,9 +47,11 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -88,6 +92,7 @@ import com.chla.kindd.data.discovery.DiscoveryCriteria
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.ui.discovery.DiscoveryFilterSelection
 import com.chla.kindd.ui.discovery.DiscoveryFilterSheet
+import com.chla.kindd.ui.onboarding.HowToGuideContent
 import com.chla.kindd.ui.settings.SettingsEvent
 import com.chla.kindd.ui.settings.SettingsLocationPermissionStatus
 import com.chla.kindd.ui.settings.SettingsViewModel
@@ -195,6 +200,7 @@ fun SettingsScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsContent(
     onNavigateToFAQ: () -> Unit,
@@ -220,6 +226,7 @@ fun SettingsContent(
     var showAppModeSelection by rememberSaveable { mutableStateOf(false) }
     var showSearchFilters by rememberSaveable { mutableStateOf(false) }
     var showRadiusSelection by rememberSaveable { mutableStateOf(false) }
+    var showHowTo by rememberSaveable { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -425,6 +432,15 @@ fun SettingsContent(
                     )
                     HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
                     SettingsRow(
+                        icon = Icons.Default.Tune,
+                        iconTint = KiNDDIndigo,
+                        title = stringResource(R.string.settings_how_to_use),
+                        subtitle = stringResource(R.string.settings_how_to_use_description),
+                        onClick = { showHowTo = true },
+                        modifier = Modifier.testTag("settings_how_to")
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
+                    SettingsRow(
                         icon = Icons.AutoMirrored.Filled.HelpOutline,
                         iconTint = KiNDDPurple,
                         title = stringResource(R.string.faq),
@@ -540,6 +556,21 @@ fun SettingsContent(
                 onApplySearchFilters(selection)
             }
         )
+    }
+
+    if (showHowTo) {
+        ModalBottomSheet(onDismissRequest = { showHowTo = false }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+                    .testTag("settings_how_to_sheet")
+            ) {
+                HowToGuideContent()
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
     }
 
     if (showClearConfirmation) {

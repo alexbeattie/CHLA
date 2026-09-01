@@ -177,6 +177,14 @@ class OnboardingContentTest {
     }
 
     @Test
+    fun howTo_showsItsHeadingAndExactlyOnePrimaryAction() {
+        assertStep(
+            state(step = OnboardingStep.HOW_TO, draft = draft(zipCode = "90001")),
+            "Optional questions, then Filters"
+        )
+    }
+
+    @Test
     fun journey_showsItsHeadingAndExactlyOnePrimaryAction() {
         assertStep(
             state(step = OnboardingStep.JOURNEY, draft = draft(zipCode = "90001")),
@@ -213,7 +221,7 @@ class OnboardingContentTest {
         )
 
         composeRule.onAllNodesWithTag("onboarding_choice_icon", useUnmergedTree = true)
-            .assertCountEquals(AgeGroup.entries.size)
+            .assertCountEquals(AgeGroup.childAges.size + 1)
     }
 
     @Test
@@ -239,10 +247,10 @@ class OnboardingContentTest {
     }
 
     @Test
-    fun missingJourney_disablesContinue() {
+    fun missingJourney_stillAllowsContinue() {
         compose(state(step = OnboardingStep.JOURNEY, draft = draft(zipCode = "90001")))
 
-        composeRule.onNodeWithTag("onboarding_primary_action").assertIsNotEnabled()
+        composeRule.onNodeWithTag("onboarding_primary_action").assertIsEnabled()
     }
 
     @Test
@@ -336,7 +344,7 @@ class OnboardingContentTest {
 
         val role = composeRule.onNodeWithTag("onboarding_age_school_age")
             .fetchSemanticsNode().config.getOrNull(SemanticsProperties.Role)
-        assertEquals(Role.RadioButton, role)
+        assertEquals(Role.Checkbox, role)
     }
 
     @Test

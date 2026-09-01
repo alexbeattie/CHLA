@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.discovery.TherapyType
+import com.chla.kindd.data.profile.AgeGroup
 
 data class DiscoveryUiActions(
     val onQueryChange: (String) -> Unit,
@@ -31,7 +32,8 @@ data class DiscoveryUiActions(
     val onRemoveRadius: () -> Unit,
     val onClearAll: () -> Unit,
     val onRetry: () -> Unit,
-    val onRefresh: () -> Unit = onRetry
+    val onRefresh: () -> Unit = onRetry,
+    val onSelectAge: (AgeGroup) -> Unit = {}
 )
 
 @Composable

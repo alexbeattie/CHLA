@@ -20,13 +20,14 @@ struct OnboardingView: View {
 
     @State private var currentStep = 0
     @State private var zipCode = ""
-    @State private var selectedAgeGroup: String?
+    @State private var selectedAgeGroups: Set<String> = []
+    @State private var hasMultipleChildren = false
     @State private var selectedStage: JourneyStage?
     @State private var selectedDiagnoses: [String] = []
     @State private var selectedAudienceType = "family"
     @State private var userRegionalCenter: RegionalCenterMatcher.RegionalCenterInfo?
 
-    private let totalSteps = 6
+    private let totalSteps = 7
 
     /// Step-change animation; settles to a short ease-out under Reduce Motion
     private var stepAnimation: Animation {
@@ -53,9 +54,10 @@ struct OnboardingView: View {
                 welcomeStep.tag(0)
                 locationStep.tag(1)
                 matchedStep.tag(2)
-                journeyStep.tag(3)
-                diagnosisStep.tag(4)
-                ageGroupStep.tag(5)
+                howToStep.tag(3)
+                journeyStep.tag(4)
+                diagnosisStep.tag(5)
+                ageGroupStep.tag(6)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut, value: currentStep)
@@ -175,6 +177,13 @@ struct OnboardingView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 36)
+
+            Text("KiNDD does not keep your medical information. This is a navigation tool, not official medical advice.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 36)
+                .padding(.top, 4)
 
             VStack(alignment: .leading, spacing: 10) {
                 Text("I'm here as a")
@@ -394,7 +403,15 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 3: Journey stage
+    // MARK: - Step 3: How to use KiNDD
+
+    private var howToStep: some View {
+        stepContainer {
+            HowToGuideContent()
+        }
+    }
+
+    // MARK: - Step 4: Journey stage
 
     private var journeyStep: some View {
         stepContainer {
@@ -408,7 +425,7 @@ struct OnboardingView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
 
-            Text("KiNDD uses this to suggest your next step - nothing is locked in.")
+            Text("Optional - KiNDD uses this to suggest a next step. Nothing is locked in.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -433,7 +450,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 4: Diagnoses
+    // MARK: - Step 5: Diagnoses
 
     private var diagnosisStep: some View {
         stepContainer {
@@ -475,7 +492,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 5: Age group
+    // MARK: - Step 6: Age group
 
     private var ageGroupStep: some View {
         stepContainer {
@@ -484,22 +501,39 @@ struct OnboardingView: View {
 
             stepIcon("figure.and.child.holdinghands", tint: Theme.pink)
 
-            Text("How old is your child?")
+            Text(hasMultipleChildren || selectedAgeGroups.count > 1
+                 ? "How old are your children?"
+                 : "How old is your child?")
                 .font(.system(.title, design: .rounded).weight(.bold))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
 
-            Text("Optional - it helps us show age-appropriate services first.")
+            Text("Optional - pick every age that applies. You can switch between kids later in Filters.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 36)
 
             VStack(spacing: 10) {
-                ForEach(SearchFilters.ageGroups, id: \.self) { age in
+                ForEach(SearchFilters.onboardingAgeGroups, id: \.self) { age in
                     SelectionButton(
                         title: ageGroupDisplayName(age),
-                        isSelected: selectedAgeGroup == age
+                        isSelected: selectedAgeGroups.contains(age)
                     ) {
-                        selectedAgeGroup = selectedAgeGroup == age ? nil : age
+                        toggleAge(age)
+                    }
+                }
+
+                SelectionButton(
+                    title: "I have more than 1 child",
+                    icon: "person.2.fill",
+                    isSelected: hasMultipleChildren || selectedAgeGroups.count > 1
+                ) {
+                    hasMultipleChildren.toggle()
+                    if !hasMultipleChildren && selectedAgeGroups.count > 1 {
+                        if let first = selectedAgeGroups.sorted().first {
+                            selectedAgeGroups = [first]
+                        }
                     }
                 }
             }
@@ -535,15 +569,25 @@ struct OnboardingView: View {
         switch currentStep {
         case 1:
             return zipCode.count == 5 && zipCode.allSatisfy { $0.isNumber }
-        case 3:
-            return selectedStage != nil
         default:
             return true
         }
     }
 
+    private func toggleAge(_ age: String) {
+        if selectedAgeGroups.contains(age) {
+            selectedAgeGroups.remove(age)
+        } else {
+            selectedAgeGroups.insert(age)
+        }
+        if selectedAgeGroups.count > 1 {
+            hasMultipleChildren = true
+        }
+    }
+
     private func completeOnboarding() {
-        appState.searchFilters.ageGroup = selectedAgeGroup
+        let ages = SearchFilters.onboardingAgeGroups.filter { selectedAgeGroups.contains($0) }
+        appState.saveChildAges(ages, hasMultiple: hasMultipleChildren)
         // Filter pipeline is single-valued (?diagnosis= on the API); first pick
         // is the primary. All picks land in UserMemory for chat context.
         appState.searchFilters.diagnosis = selectedDiagnoses.first(where: { $0 != "Other" })
@@ -581,6 +625,95 @@ struct OnboardingView: View {
         case "All Ages": return "All Ages"
         default: return age
         }
+    }
+}
+
+// MARK: - How-to guide (onboarding step + Settings)
+
+struct HowToGuideContent: View {
+    var body: some View {
+        VStack(spacing: 22) {
+            Spacer(minLength: 8)
+
+            ZStack {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Theme.indigo.opacity(0.13))
+                    .frame(width: 64, height: 64)
+
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundColor(Theme.indigo)
+            }
+
+            Text("Optional questions, then Filters")
+                .font(.system(.title, design: .rounded).weight(.bold))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+
+            Text("Next we'll ask a few optional questions about your family. Skip anything you don't want to answer.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 36)
+
+            VStack(alignment: .leading, spacing: 12) {
+                howToRow(
+                    icon: "slider.horizontal.3",
+                    title: "Filters stay on the map",
+                    detail: "Use Filters to narrow results, reset your search, or switch which child's age is applied."
+                )
+                howToRow(
+                    icon: "person.2.fill",
+                    title: "More than one child",
+                    detail: "Select every age that applies. Later, tap a child's age chip to toggle between kids."
+                )
+                howToRow(
+                    icon: "lock.shield",
+                    title: "Your information stays with you",
+                    detail: "KiNDD does not keep medical records. This is a navigation tool, not official medical advice or a diagnosis."
+                )
+            }
+            .padding(16)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Theme.cardSurface)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+            }
+            .padding(.horizontal, 24)
+
+            Spacer()
+        }
+        .padding()
+    }
+
+    private func howToRow(icon: String, title: String, detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Theme.indigo)
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                Text(detail)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
+struct HowToGuideView: View {
+    var body: some View {
+        ScrollView {
+            HowToGuideContent()
+        }
+        .background(Theme.canvas.ignoresSafeArea())
+        .navigationTitle("How to use KiNDD")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

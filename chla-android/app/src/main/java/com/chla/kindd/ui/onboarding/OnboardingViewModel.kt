@@ -102,6 +102,9 @@ class OnboardingViewModel @Inject constructor(
                 lookupCurrentZip()
             }
             OnboardingStep.REGIONAL_CENTER -> if (state.canContinue) {
+                mutableUiState.update { it.copy(step = OnboardingStep.HOW_TO) }
+            }
+            OnboardingStep.HOW_TO -> if (state.canContinue) {
                 mutableUiState.update { it.copy(step = OnboardingStep.JOURNEY) }
             }
             OnboardingStep.JOURNEY -> if (state.canContinue) {
@@ -122,7 +125,8 @@ class OnboardingViewModel @Inject constructor(
                     OnboardingStep.AUDIENCE -> OnboardingStep.AUDIENCE
                     OnboardingStep.ZIP -> OnboardingStep.AUDIENCE
                     OnboardingStep.REGIONAL_CENTER -> OnboardingStep.ZIP
-                    OnboardingStep.JOURNEY -> OnboardingStep.REGIONAL_CENTER
+                    OnboardingStep.HOW_TO -> OnboardingStep.REGIONAL_CENTER
+                    OnboardingStep.JOURNEY -> OnboardingStep.HOW_TO
                     OnboardingStep.AGE -> OnboardingStep.JOURNEY
                 },
                 centerLookupState = if (leavingAsyncStep) {
@@ -209,11 +213,44 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun selectAgeGroup(ageGroup: AgeGroup) {
-        if (interactionsLocked()) return
+        if (interactionsLocked() || ageGroup !in AgeGroup.childAges) return
         mutableUiState.update { state ->
+            val current = state.draft.ageGroups.ifEmpty {
+                listOfNotNull(state.draft.ageGroup).filter { it in AgeGroup.childAges }
+            }.toMutableList()
+            if (ageGroup in current) {
+                current.remove(ageGroup)
+            } else {
+                current.add(ageGroup)
+            }
+            val ordered = AgeGroup.childAges.filter { it in current }
             state.copy(
                 draft = state.draft.copy(
-                    ageGroup = ageGroup.takeUnless { it == state.draft.ageGroup }
+                    ageGroups = ordered,
+                    ageGroup = ordered.singleOrNull(),
+                    hasMultipleChildren = state.draft.hasMultipleChildren || ordered.size > 1
+                )
+            )
+        }
+    }
+
+    fun toggleMultipleChildren() {
+        if (interactionsLocked()) return
+        mutableUiState.update { state ->
+            val turningOn = !state.draft.hasMultipleChildren
+            val current = state.draft.ageGroups.ifEmpty {
+                listOfNotNull(state.draft.ageGroup).filter { it in AgeGroup.childAges }
+            }
+            val ages = if (!turningOn && current.size > 1) {
+                current.take(1)
+            } else {
+                current
+            }
+            state.copy(
+                draft = state.draft.copy(
+                    hasMultipleChildren = turningOn || ages.size > 1,
+                    ageGroups = ages,
+                    ageGroup = ages.singleOrNull()
                 )
             )
         }
@@ -223,7 +260,15 @@ class OnboardingViewModel @Inject constructor(
         val state = mutableUiState.value
         if (interactionsLocked() || !state.canContinue || state.step != OnboardingStep.AGE) return
         val generation = beginAsyncWork()
-        val completedProfile = state.draft.copy(onboardingCompleted = true)
+        val ages = AgeGroup.childAges.filter { it in state.draft.ageGroups }.ifEmpty {
+            listOfNotNull(state.draft.ageGroup).filter { it in AgeGroup.childAges }
+        }
+        val completedProfile = state.draft.copy(
+            onboardingCompleted = true,
+            ageGroups = ages,
+            hasMultipleChildren = state.draft.hasMultipleChildren || ages.size > 1,
+            ageGroup = ages.singleOrNull()
+        )
         mutableUiState.update { it.copy(isSaving = true, saveError = null) }
         saveJob = viewModelScope.launch {
             try {

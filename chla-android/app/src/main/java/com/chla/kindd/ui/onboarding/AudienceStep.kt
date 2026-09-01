@@ -97,6 +97,12 @@ internal fun AudienceStep(
                 modifier = Modifier.weight(1f)
             )
         }
+        Text(
+            text = stringResource(R.string.onboarding_disclaimer),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        )
     }
 }
 

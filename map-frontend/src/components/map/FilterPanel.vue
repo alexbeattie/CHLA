@@ -1,85 +1,67 @@
 <template>
   <div class="filter-panel">
-    <!-- Insurance Types (Multi-Select) -->
-    <div class="filter-section" v-if="availableInsuranceTypes.length > 0">
-      <div
-        class="section-header"
-        @click="toggleInsuranceSection"
-        style="cursor: pointer"
+    <div class="filter-toolbar panel-header">
+      <div class="header-title">
+        <h3>Filters</h3>
+      </div>
+      <button
+        v-if="hasActiveFilters"
+        class="btn-reset"
+        type="button"
+        @click="handleReset"
       >
-        <div style="display: flex; align-items: center; gap: 8px">
-          <i class="bi bi-credit-card"></i>
-          <h4>Insurance Accepted</h4>
-          <span
-            v-if="filterStore.filterOptions.insuranceTypes.length > 0"
-            class="selected-count"
-          >
-            ({{ filterStore.filterOptions.insuranceTypes.length }})
-          </span>
-        </div>
-        <i
-          class="bi"
-          :class="showInsuranceSection ? 'bi-chevron-up' : 'bi-chevron-down'"
-        ></i>
+        Reset
+      </button>
+    </div>
+
+    <div
+      v-if="userData.ages && userData.ages.length > 0"
+      class="filter-section"
+    >
+      <div class="section-header">
+        <i class="bi bi-people"></i>
+        <h4>{{ userData.ages.length > 1 ? "Kids" : "Age" }}</h4>
+      </div>
+      <div class="kid-chips">
+        <button
+          v-for="age in userData.ages"
+          :key="age"
+          type="button"
+          class="kid-chip"
+          :class="{ active: userData.age === age && localFilters.matchesAge }"
+          @click="selectChildAge(age)"
+        >
+          {{ age }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Insurance buckets -->
+    <div class="filter-section" v-if="availableInsuranceTypes.length > 0">
+      <div class="section-header">
+        <i class="bi bi-credit-card"></i>
+        <h4>Insurance</h4>
+        <span
+          v-if="filterStore.filterOptions.insuranceTypes.length > 0"
+          class="selected-count"
+        >
+          ({{ filterStore.filterOptions.insuranceTypes.length }})
+        </span>
       </div>
 
-      <div v-if="showInsuranceSection" class="filter-options">
-        <!-- Search Box -->
-        <div class="insurance-search">
+      <div class="filter-options">
+        <label
+          class="filter-option"
+          v-for="insurance in availableInsuranceTypes"
+          :key="insurance"
+        >
           <input
-            type="text"
-            v-model="insuranceSearchQuery"
-            placeholder="Search insurance..."
-            class="form-control form-control-sm"
+            type="checkbox"
+            :checked="isInsuranceSelected(insurance)"
+            @change="handleInsuranceToggle(insurance)"
           />
-        </div>
-
-        <!-- Most Common (Always Visible) -->
-        <div class="insurance-group">
-          <div class="group-label">Most Common</div>
-          <label
-            class="filter-option"
-            v-for="insurance in topInsuranceTypes"
-            :key="insurance"
-            v-show="insuranceMatchesSearch(insurance)"
-          >
-            <input
-              type="checkbox"
-              :checked="isInsuranceSelected(insurance)"
-              @change="handleInsuranceToggle(insurance)"
-            />
-            <span class="filter-label">{{ insurance }}</span>
-          </label>
-        </div>
-
-        <!-- Other Insurance Types (Collapsible) -->
-        <div class="insurance-group">
-          <div
-            class="group-label clickable"
-            @click="showAllInsurance = !showAllInsurance"
-          >
-            Other Insurance Types
-            <i
-              class="bi"
-              :class="showAllInsurance ? 'bi-chevron-up' : 'bi-chevron-down'"
-            ></i>
-          </div>
-          <div v-if="showAllInsurance || insuranceSearchQuery">
-            <label
-              class="filter-option"
-              v-for="insurance in otherInsuranceTypes"
-              :key="insurance"
-              v-show="insuranceMatchesSearch(insurance)"
-            >
-              <input
-                type="checkbox"
-                :checked="isInsuranceSelected(insurance)"
-                @change="handleInsuranceToggle(insurance)"
-              />
-              <span class="filter-label">{{ insurance }}</span>
-            </label>
-          </div>
-        </div>
+          <span class="filter-label">{{ insurance }}</span>
+        </label>
       </div>
     </div>
 
@@ -230,6 +212,11 @@
       </div>
     </div>
 
+    <p class="disclaimer-note">
+      KiNDD does not keep your medical information. This is a navigation tool,
+      not official medical advice.
+    </p>
+
     <!-- Info Modal -->
     <div
       v-if="showInfoModal"
@@ -304,9 +291,6 @@ export default {
   setup(props, { emit }) {
     const filterStore = useFilterStore();
     const showInfoModal = ref(false);
-    const showInsuranceSection = ref(false);
-    const showAllInsurance = ref(false);
-    const insuranceSearchQuery = ref("");
 
     // Local copy of filters
     const localFilters = ref({
@@ -329,20 +313,11 @@ export default {
       () => filterStore.availableInsuranceTypes
     );
 
-    // Split insurance into top (most common) and others
-    const topInsuranceTypes = computed(() => {
-      // Top 8 most common for developmental services
-      return availableInsuranceTypes.value.slice(0, 8);
-    });
-
-    const otherInsuranceTypes = computed(() => {
-      return availableInsuranceTypes.value.slice(8);
-    });
-
     // Check if user has profile data
     const hasUserProfile = computed(() => {
       return !!(
         userData.value.age ||
+        (userData.value.ages && userData.value.ages.length > 0) ||
         userData.value.diagnosis ||
         userData.value.therapy
       );
@@ -359,6 +334,7 @@ export default {
       if (localFilters.value.showOnlyFavorites) count++;
       // Add count for selected therapy types
       count += filterStore.filterOptions.therapies.length;
+      count += filterStore.filterOptions.insuranceTypes.length;
       return count;
     });
 
@@ -366,7 +342,8 @@ export default {
     const hasActiveFilters = computed(() => {
       return (
         activeFilterCount.value > 0 ||
-        filterStore.filterOptions.therapies.length > 0
+        filterStore.filterOptions.therapies.length > 0 ||
+        filterStore.filterOptions.insuranceTypes.length > 0
       );
     });
 
@@ -487,21 +464,14 @@ export default {
       emit("filter-change", localFilters.value);
     };
 
-    /**
-     * Toggle insurance section visibility
-     */
-    const toggleInsuranceSection = () => {
-      showInsuranceSection.value = !showInsuranceSection.value;
-    };
-
-    /**
-     * Check if insurance matches search query
-     */
-    const insuranceMatchesSearch = (insurance) => {
-      if (!insuranceSearchQuery.value) return true;
-      return insurance
-        .toLowerCase()
-        .includes(insuranceSearchQuery.value.toLowerCase());
+    const selectChildAge = (age) => {
+      if (userData.value.age === age && localFilters.value.matchesAge) {
+        localFilters.value.matchesAge = false;
+      } else {
+        filterStore.updateUserData({ age });
+        localFilters.value.matchesAge = true;
+      }
+      handleFilterChange();
     };
 
     // Sync with store when store changes
@@ -519,15 +489,10 @@ export default {
       userData,
       availableTherapyTypes,
       availableInsuranceTypes,
-      topInsuranceTypes,
-      otherInsuranceTypes,
       hasUserProfile,
       activeFilterCount,
       hasActiveFilters,
       showInfoModal,
-      showInsuranceSection,
-      showAllInsurance,
-      insuranceSearchQuery,
       formatAge,
       formatDiagnosis,
       handleFilterChange,
@@ -537,8 +502,7 @@ export default {
       handleTherapyToggle,
       isInsuranceSelected,
       handleInsuranceToggle,
-      toggleInsuranceSection,
-      insuranceMatchesSearch,
+      selectChildAge,
     };
   },
 };
@@ -549,6 +513,61 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0.15rem 0.5rem;
+}
+
+.filter-toolbar h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.btn-reset {
+  border: none;
+  background: #eef8fc;
+  color: #004877;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.kid-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.kid-chip {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.kid-chip.active {
+  border-color: #004877;
+  background: #eef8fc;
+  color: #004877;
+}
+
+.disclaimer-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: #6b7280;
+  line-height: 1.4;
 }
 
 /* Filter Section */

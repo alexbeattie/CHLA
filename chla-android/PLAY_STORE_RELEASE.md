@@ -12,8 +12,8 @@ KiNDD - NDD Resource Navigator.
 | Developer name | `KiNDD` |
 | App title | `KiNDD - NDD Resource Navigator` |
 | Package | `com.chla.kindd` |
-| Version | `1.4.1` |
-| Version code | `1` for the first upload; confirm unused in Play Console |
+| Version | `1.4.3` |
+| Version code | `4`; confirm unused in Play Console |
 | Price | Free |
 | Primary language | English (United States) |
 | Category | Medical |

@@ -46,15 +46,15 @@ class ProfileModelsTest {
     }
 
     @Test
-    fun `profile is complete only with completion audience ASCII ZIP and journey`() {
+    fun `profile is complete with completion audience and ASCII ZIP`() {
         val complete = UserProfile(
             onboardingCompleted = true,
             audienceType = AudienceType.FAMILY,
-            zipCode = "90001",
-            journeyStage = JourneyStage.EXPLORING
+            zipCode = "90001"
         )
 
         assertTrue(complete.isComplete)
+        assertTrue(complete.copy(journeyStage = null).isComplete)
         assertFalse(complete.copy(onboardingCompleted = false).isComplete)
         assertFalse(complete.copy(audienceType = null).isComplete)
         assertFalse(complete.copy(zipCode = null).isComplete)
@@ -62,7 +62,6 @@ class ProfileModelsTest {
         assertFalse(complete.copy(zipCode = "900001").isComplete)
         assertFalse(complete.copy(zipCode = "9000A").isComplete)
         assertFalse(complete.copy(zipCode = "٩٠٠٠١").isComplete)
-        assertFalse(complete.copy(journeyStage = null).isComplete)
     }
 
     @Test

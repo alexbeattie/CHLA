@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.3] - 2026-09-01
+
+How-to step after Regional Center, multi-child ages, three insurance buckets, Filters/Reset/kid chips, and a navigation-tool disclaimer. Same flow on iOS, web, and Android.
+
+### Onboarding
+- New how-to step after Regional Center match
+- Age is multi-select, plus "I have more than 1 child"
+- Insurance is Medi-Cal, Private Insurance, or Private Pay
+- Disclaimer that KiNDD does not keep medical information and is not official medical advice
+
+### Map and filters
+- Visible Filters and Reset, with kid chips when more than one age is saved
+- First-map coach until the how-to tip is dismissed
+- Settings: How to use KiNDD
+
+---
+
 ## [1.4.1] - 2026-07-13
 
 TestFlight-only polish release for the external beta group. Not submitted for App Store release.

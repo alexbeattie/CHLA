@@ -23,6 +23,14 @@ export const THERAPY_OPTIONS = [
   "Parent child interaction therapy/parent training behavior management",
 ];
 
+// Family-facing insurance buckets. The API already maps
+// "Private Insurance" to any carrier relationship.
+export const INSURANCE_BUCKETS = [
+  "Medi-Cal",
+  "Private Insurance",
+  "Private Pay",
+];
+
 // IMPORTANT: Must match ProviderV2.INSURANCE_CHOICES in models.py
 // Ordered by most common for developmental services in LA County
 export const INSURANCE_OPTIONS = [
