@@ -49,6 +49,7 @@ import com.chla.kindd.R
 import com.chla.kindd.data.discovery.DiscoveryCriteria
 import com.chla.kindd.data.discovery.DiscoveryOrigin
 import com.chla.kindd.data.discovery.DiscoveryState
+import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.ui.discovery.ActiveFilterChips
 import com.chla.kindd.ui.discovery.DiscoveryUiActions
 import com.chla.kindd.ui.discovery.KiNDDSearchOverlay
@@ -73,9 +74,11 @@ internal fun ResourceMapSearchChrome(
     criteria: DiscoveryCriteria,
     actions: DiscoveryUiActions,
     onShowFilters: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    childAgeGroups: List<AgeGroup> = emptyList()
 ) {
     val activeFilterCount = criteria.activeMapFilterCount()
+    val showFilterBar = true
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -132,7 +135,7 @@ internal fun ResourceMapSearchChrome(
             }
         }
 
-        if (activeFilterCount > 0) {
+        if (showFilterBar) {
             KiNDDGlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(KiNDDShapeTokens.Compact),
@@ -146,6 +149,9 @@ internal fun ResourceMapSearchChrome(
                     onRemoveInsurance = actions.onRemoveInsurance,
                     onRemoveRadius = actions.onRemoveRadius,
                     onClearAll = actions.onClearAll,
+                    childAgeGroups = childAgeGroups,
+                    onSelectChildAge = actions.onSelectAge,
+                    onShowFilters = onShowFilters,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("map_active_filter_row")

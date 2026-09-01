@@ -11,6 +11,7 @@ enum class OnboardingStep {
     AUDIENCE,
     ZIP,
     REGIONAL_CENTER,
+    HOW_TO,
     JOURNEY,
     AGE
 }
@@ -66,11 +67,11 @@ data class OnboardingUiState(
                 CenterLookupState.IDLE,
                 CenterLookupState.LOADING -> false
             }
-            OnboardingStep.JOURNEY -> draft.journeyStage != null
+            OnboardingStep.HOW_TO,
+            OnboardingStep.JOURNEY -> true
             OnboardingStep.AGE ->
                 draft.audienceType != null &&
-                    draft.zipCode?.matches(ASCII_ZIP) == true &&
-                    draft.journeyStage != null
+                    draft.zipCode?.matches(ASCII_ZIP) == true
         }
 
     val progressStep: Int

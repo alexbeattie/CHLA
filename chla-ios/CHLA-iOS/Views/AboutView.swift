@@ -25,6 +25,8 @@ struct AboutView: View {
                     whoWeServeSection
                     statsSection
                     ctaSection
+
+                    disclaimerSection
                 }
                 .padding(20)
             }
@@ -235,6 +237,22 @@ struct AboutView: View {
         .frame(maxWidth: .infinity)
         .padding(20)
         .background(Color.accentBlue)
+        .cornerRadius(12)
+    }
+
+    private var disclaimerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Not medical advice", systemImage: "lock.shield")
+                .font(.headline)
+                .foregroundColor(.accentBlue)
+
+            Text("KiNDD does not keep your medical information. This app is a navigation tool to help families find Regional Center and provider options. It is not official medical advice, a diagnosis, or a substitute for talking with your Regional Center or a clinician.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemBackground))
         .cornerRadius(12)
     }
 }

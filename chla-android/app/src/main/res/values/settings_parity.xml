@@ -26,6 +26,8 @@
     <string name="settings_location_allowed">Allowed while using KiNDD</string>
     <string name="settings_location_not_allowed">Not allowed</string>
     <string name="settings_location_unavailable">Location settings are unavailable on this device.</string>
+    <string name="settings_how_to_use">How to use KiNDD</string>
+    <string name="settings_how_to_use_description">Filters, optional questions, and how to switch between kids</string>
     <string name="settings_about_kindd">About KiNDD</string>
     <string name="settings_about_description">About the NDD Resource Navigator</string>
     <string name="settings_faq_description">Common questions answered</string>

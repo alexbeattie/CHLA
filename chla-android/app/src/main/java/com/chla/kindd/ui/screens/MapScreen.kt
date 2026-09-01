@@ -29,6 +29,7 @@ import com.chla.kindd.data.discovery.DiscoveryState
 import com.chla.kindd.data.models.Provider
 import com.chla.kindd.ui.discovery.DiscoveryFilterSheet
 import com.chla.kindd.ui.discovery.DiscoveryUiActions
+import com.chla.kindd.ui.map.HowToTipOverlay
 import com.chla.kindd.ui.map.ProviderResourceMap
 import com.chla.kindd.ui.map.ResourceMapContextBadges
 import com.chla.kindd.ui.map.ResourceMapControlRail
@@ -160,7 +161,8 @@ fun MapScreen(
             onRemoveRadius = viewModel::removeRadius,
             onClearAll = viewModel::clearAllFilters,
             onRetry = viewModel::retry,
-            onRefresh = viewModel::refresh
+            onRefresh = viewModel::refresh,
+            onSelectAge = viewModel::selectAge
         ),
         onUseMyLocation = {
             if (safeLocationState.hasPermission) {
@@ -214,6 +216,7 @@ fun MapContent(
             criteria = state.criteria,
             actions = actions,
             onShowFilters = { showFilters = true },
+            childAgeGroups = state.profile.savedChildAges,
             modifier = Modifier.align(Alignment.TopCenter)
         )
 
@@ -242,6 +245,8 @@ fun MapContent(
             onNavigateToList = onNavigateToList,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+
+        HowToTipOverlay(profileComplete = state.profile.isComplete)
     }
 
     if (showFilters) {

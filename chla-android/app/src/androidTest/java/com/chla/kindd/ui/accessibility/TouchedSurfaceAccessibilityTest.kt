@@ -291,6 +291,9 @@ class TouchedSurfaceAccessibilityTest {
         composeRule.onNodeWithTag("onboarding_center_status")
             .assert(hasLiveRegion(LiveRegionMode.Polite))
 
+        composeRule.runOnIdle { state.value = state.value.copy(step = OnboardingStep.HOW_TO) }
+        composeRule.onNodeWithText("Preguntas opcionales, luego Filtros").assert(hasHeading())
+
         composeRule.runOnIdle { state.value = state.value.copy(step = OnboardingStep.JOURNEY) }
         composeRule.onNodeWithText("¿En qué etapa del camino estás?").assert(hasHeading())
         composeRule.onNodeWithTag("onboarding_journey_exploring").assertIsSelected()

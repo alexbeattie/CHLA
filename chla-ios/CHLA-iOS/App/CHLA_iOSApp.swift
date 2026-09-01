@@ -110,6 +110,9 @@ class AppState: ObservableObject {
     @Published var showChat = false
     @Published var pendingChatPrompt: String?
     @Published var userJourneyStage: String?
+    @Published var childAgeGroups: [String]
+    @Published var hasMultipleChildren: Bool
+    @Published var hasSeenHowToTip: Bool
 
     var journeyStage: JourneyStage? {
         userJourneyStage.flatMap(JourneyStage.init(rawValue:))
@@ -137,6 +140,15 @@ class AppState: ObservableObject {
         self.userRegionalCenterName = UserDefaults.standard.string(forKey: "userRegionalCenterName")
         self.userRegionalCenterShortName = UserDefaults.standard.string(forKey: "userRegionalCenterShortName")
         self.userJourneyStage = UserDefaults.standard.string(forKey: "userJourneyStage")
+        self.childAgeGroups = UserDefaults.standard.stringArray(forKey: "childAgeGroups") ?? []
+        self.hasMultipleChildren = UserDefaults.standard.bool(forKey: "hasMultipleChildren")
+        self.hasSeenHowToTip = UserDefaults.standard.bool(forKey: "hasSeenHowToTip")
+
+        if childAgeGroups.count == 1 {
+            searchFilters.ageGroup = childAgeGroups[0]
+        }
+        searchFilters.childAgeGroups = childAgeGroups
+        searchFilters.hasMultipleChildren = hasMultipleChildren
 
         syncSharedDefaults()
     }
@@ -210,6 +222,35 @@ class AppState: ObservableObject {
 
         syncSharedDefaults()
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    func saveChildAges(_ ages: [String], hasMultiple: Bool) {
+        let uniqueAges = SearchFilters.onboardingAgeGroups.filter { ages.contains($0) }
+        childAgeGroups = uniqueAges
+        hasMultipleChildren = hasMultiple || uniqueAges.count > 1
+        UserDefaults.standard.set(uniqueAges, forKey: "childAgeGroups")
+        UserDefaults.standard.set(hasMultipleChildren, forKey: "hasMultipleChildren")
+
+        searchFilters.childAgeGroups = uniqueAges
+        searchFilters.hasMultipleChildren = hasMultipleChildren
+        if uniqueAges.count == 1 {
+            searchFilters.ageGroup = uniqueAges[0]
+        } else {
+            searchFilters.ageGroup = nil
+        }
+    }
+
+    func selectChildAge(_ age: String?) {
+        if let age, childAgeGroups.contains(age) {
+            searchFilters.ageGroup = searchFilters.ageGroup == age ? nil : age
+        } else {
+            searchFilters.ageGroup = age
+        }
+    }
+
+    func markHowToTipSeen() {
+        hasSeenHowToTip = true
+        UserDefaults.standard.set(true, forKey: "hasSeenHowToTip")
     }
 
     func completeOnboarding() {
@@ -354,12 +395,15 @@ struct Location: Codable, Equatable {
 /// User's search filter preferences
 struct SearchFilters: Codable, Equatable {
     var ageGroup: String?
+    var childAgeGroups: [String] = []
+    var hasMultipleChildren: Bool = false
     var diagnosis: String?
     var therapyTypes: [String] = []
     var insurance: String?
     var radiusMiles: Double = 15.0
 
-    static let ageGroups = ["0-5", "6-12", "13-18", "19+", "All Ages"]
+    static let onboardingAgeGroups = ["0-5", "6-12", "13-18", "19+"]
+    static let ageGroups = onboardingAgeGroups + ["All Ages"]
 
     static let diagnoses = [
         "Autism Spectrum Disorder",
@@ -380,20 +424,8 @@ struct SearchFilters: Codable, Equatable {
     ]
 
     static let insuranceOptions = [
-        "Regional Center",
-        "Private Pay",
         "Medi-Cal",
-        "Medicare",
-        "Blue Cross",
-        "Blue Shield",
-        "Anthem",
-        "Aetna",
-        "Cigna",
-        "Kaiser Permanente",
-        "United Healthcare",
-        "Health Net",
-        "Molina",
-        "L.A. Care",
-        "Covered California"
+        "Private Insurance",
+        "Private Pay"
     ]
 }

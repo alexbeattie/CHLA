@@ -17,22 +17,34 @@ import com.chla.kindd.data.profile.AgeGroup
 
 @Composable
 internal fun AgeGroupStep(
-    selectedAgeGroup: AgeGroup?,
+    selectedAgeGroups: List<AgeGroup>,
+    hasMultipleChildren: Boolean,
     onAgeSelected: (AgeGroup) -> Unit,
+    onMultipleChildrenToggled: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val selected = selectedAgeGroups.filter { it in AgeGroup.childAges }
+    val multiple = hasMultipleChildren || selected.size > 1
     OnboardingStepColumn(modifier = modifier) {
-        OnboardingHeading(stringResource(R.string.onboarding_age_title))
+        OnboardingHeading(
+            stringResource(
+                if (multiple) {
+                    R.string.onboarding_age_title_plural
+                } else {
+                    R.string.onboarding_age_title
+                }
+            )
+        )
         Text(
             text = stringResource(R.string.onboarding_age_body),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-        AgeGroup.entries.forEach { ageGroup ->
+        AgeGroup.childAges.forEach { ageGroup ->
             OnboardingChoice(
                 label = ageGroup.displayLabel(),
-                selected = selectedAgeGroup == ageGroup,
+                selected = ageGroup in selected,
                 onClick = { onAgeSelected(ageGroup) },
                 testTag = when (ageGroup) {
                     AgeGroup.EARLY_INTERVENTION -> "onboarding_age_early_intervention"
@@ -41,7 +53,7 @@ internal fun AgeGroupStep(
                     AgeGroup.ADULT -> "onboarding_age_adult"
                     AgeGroup.ALL_AGES -> "onboarding_age_all_ages"
                 },
-                role = Role.RadioButton,
+                role = Role.Checkbox,
                 icon = when (ageGroup) {
                     AgeGroup.EARLY_INTERVENTION -> Icons.Default.ChildCare
                     AgeGroup.SCHOOL_AGE -> Icons.Default.School
@@ -51,6 +63,14 @@ internal fun AgeGroupStep(
                 }
             )
         }
+        OnboardingChoice(
+            label = stringResource(R.string.onboarding_age_multiple_children),
+            selected = multiple,
+            onClick = onMultipleChildrenToggled,
+            testTag = "onboarding_age_multiple_children",
+            role = Role.Checkbox,
+            icon = Icons.Default.Groups
+        )
     }
 }
 

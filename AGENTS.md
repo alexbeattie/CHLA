@@ -115,8 +115,10 @@ cd maplocation
 source ../venv/bin/activate
 python3 manage.py runserver
 
-# Frontend
+# Frontend (this app's Vite is :3000, not :5173)
 cd map-frontend
+# Worktrees do not copy gitignored .env; copy VITE_MAPBOX_TOKEN from the
+# main checkout map-frontend/.env first or the map canvas stays blank.
 ./switch-env.sh dev
 npm run dev
 
@@ -147,6 +149,10 @@ Linux dev environment), the following are not yet set up automatically:
 - **Pre-existing test failures**: backend pytest fixtures and some vitest
   tests have failures unrelated to the environment — don't treat those as
   regressions.
+- **Worktree Mapbox token**: `map-frontend/.env` is gitignored, so a new
+  worktree starts with no `VITE_MAPBOX_TOKEN`. Copy it from the main
+  checkout before `./switch-env.sh dev`. Vite only reads `.env` at
+  startup. Never print or commit the token.
 - **Basic Auth on the admin/client portal**: credentials live in AWS
   Secrets Manager under `kindd/prod/basic-auth-password`,
   `kindd/prod/admin-password`, and `kindd/prod/client-password`. Fetch

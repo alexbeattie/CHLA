@@ -119,6 +119,14 @@ fun FAQScreen(
                     }
                 )
             }
+            item {
+                Text(
+                    text = stringResource(R.string.onboarding_disclaimer),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                )
+            }
         }
     }
 }

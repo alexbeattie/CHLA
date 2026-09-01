@@ -102,6 +102,7 @@ fun OnboardingRoute(
         onRetryCenterLookup = viewModel::retryCenterLookup,
         onJourneySelected = viewModel::selectJourney,
         onAgeSelected = viewModel::selectAgeGroup,
+        onMultipleChildrenToggled = viewModel::toggleMultipleChildren,
         onBack = viewModel::goBack,
         onContinue = viewModel::continueFromCurrentStep,
         onFinish = viewModel::finish,
@@ -138,6 +139,7 @@ fun OnboardingContent(
     onRetryCenterLookup: () -> Unit,
     onJourneySelected: (JourneyStage) -> Unit,
     onAgeSelected: (AgeGroup) -> Unit,
+    onMultipleChildrenToggled: () -> Unit = {},
     onBack: () -> Unit,
     onContinue: () -> Unit,
     onFinish: () -> Unit,
@@ -189,13 +191,16 @@ fun OnboardingContent(
                         mapContent = mapContent,
                         onRetry = onRetryCenterLookup
                     )
+                    OnboardingStep.HOW_TO -> HowToStep()
                     OnboardingStep.JOURNEY -> JourneyStep(
                         selectedJourney = state.draft.journeyStage,
                         onJourneySelected = onJourneySelected
                     )
                     OnboardingStep.AGE -> AgeGroupStep(
-                        selectedAgeGroup = state.draft.ageGroup,
-                        onAgeSelected = onAgeSelected
+                        selectedAgeGroups = state.draft.savedChildAges,
+                        hasMultipleChildren = state.draft.hasMultipleChildren,
+                        onAgeSelected = onAgeSelected,
+                        onMultipleChildrenToggled = onMultipleChildrenToggled
                     )
                 }
             }

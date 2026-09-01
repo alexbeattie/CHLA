@@ -167,17 +167,20 @@ struct ProviderListView: View {
                     Button {
                         showFilters = true
                     } label: {
-                        ZStack(alignment: .topTrailing) {
-                        Image(systemName: "slider.horizontal.3")
-
+                        HStack(spacing: 4) {
+                            Image(systemName: "slider.horizontal.3")
+                            Text("Filters")
                             if activeFilterCount > 0 {
-                                Circle()
-                                    .fill(Color.accentBlue)
-                                    .frame(width: 8, height: 8)
-                                    .offset(x: 2, y: -2)
+                                Text("\(activeFilterCount)")
+                                    .font(.caption2.weight(.bold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.accentBlue, in: Capsule())
                             }
                         }
                     }
+                    .accessibilityLabel("Filters")
                 }
             }
             .sheet(isPresented: $showFilters) {
@@ -335,6 +338,32 @@ struct ProviderListView: View {
 
     private var resultsHeader: some View {
         VStack(spacing: 8) {
+            if !appState.childAgeGroups.isEmpty || activeFilterCount > 0 {
+                FamilyFilterBar(
+                    filters: appState.searchFilters,
+                    childAgeGroups: appState.childAgeGroups,
+                    onOpenFilters: { showFilters = true },
+                    onClearAll: clearFilters,
+                    onSelectChildAge: { age in
+                        appState.selectChildAge(age)
+                        Task { await refreshProviders() }
+                    },
+                    onRemove: { type in
+                        switch type {
+                        case .ageGroup:
+                            appState.searchFilters.ageGroup = nil
+                        case .diagnosis:
+                            appState.searchFilters.diagnosis = nil
+                        case .insurance:
+                            appState.searchFilters.insurance = nil
+                        case .therapy(let therapy):
+                            appState.searchFilters.therapyTypes.removeAll { $0 == therapy }
+                        }
+                        Task { await refreshProviders() }
+                    }
+                )
+            }
+
             HStack {
                 Text(L10n.Resources.found(filteredProviders.count))
                     .font(.subheadline)
@@ -439,6 +468,14 @@ struct ProviderListView: View {
                 location: coordinate,
                 filters: appState.searchFilters
             )
+    }
+
+    private func clearFilters() {
+        appState.searchFilters.ageGroup = nil
+        appState.searchFilters.diagnosis = nil
+        appState.searchFilters.insurance = nil
+        appState.searchFilters.therapyTypes = []
+        Task { await refreshProviders() }
     }
 }
 

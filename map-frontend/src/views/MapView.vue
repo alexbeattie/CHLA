@@ -699,6 +699,7 @@ import { geocodeAddress } from "@/utils/map/geocoding";
 import {
   DIAGNOSIS_OPTIONS,
   THERAPY_OPTIONS,
+  INSURANCE_BUCKETS,
   LA_COUNTY_CENTER,
   LA_COUNTY_BOUNDS,
 } from "@/constants/filters.js";
@@ -1183,35 +1184,7 @@ export default {
         "Cerebral Palsy",
         "Other",
       ],
-      insuranceTypes: [
-        "Medi-Cal",
-        "Regional Center",
-        "Blue Cross",
-        "Blue Shield",
-        "Anthem",
-        "Aetna",
-        "Cigna",
-        "Kaiser Permanente",
-        "United Healthcare",
-        "Health Net",
-        "L.A. Care",
-        "CalOptima",
-        "Molina",
-        "Magellan",
-        "Medicaid",
-        "Medicare",
-        "Beacon",
-        "MHN",
-        "Optum",
-        "Humana",
-        "Tricare",
-        "Inland Empire Health Plan",
-        "The Holman Group",
-        "United Behavioral Health",
-        "Covered California",
-        "Self-determination programs",
-        "Kaiser/Easterseal",
-      ],
+      insuranceTypes: INSURANCE_BUCKETS,
     });
     console.log("[MapView] Available filter options initialized");
 
@@ -6118,6 +6091,8 @@ export default {
         this.filterStore.updateUserData({
           audienceType: this.userData.audienceType,
           age: this.userData.age,
+          ages: this.userData.ages,
+          hasMultipleChildren: this.userData.hasMultipleChildren,
           diagnosis: this.userData.diagnosis,
           therapy: this.userData.therapies
             ? this.userData.therapies[0]

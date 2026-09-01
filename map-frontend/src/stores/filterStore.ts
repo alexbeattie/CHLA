@@ -23,6 +23,8 @@ export interface UserData {
   audienceType?: "family" | "clinician";
   insurance?: string;
   age?: string;
+  ages?: string[];
+  hasMultipleChildren?: boolean;
   diagnosis?: string;
   therapy?: string;
   therapies?: string[]; // Added: Support for multiple therapies from onboarding
@@ -183,6 +185,8 @@ export const useFilterStore = defineStore("filter", () => {
     userData.insurance = undefined;
     userData.audienceType = "family";
     userData.age = undefined;
+    userData.ages = undefined;
+    userData.hasMultipleChildren = undefined;
     userData.diagnosis = undefined;
     userData.therapy = undefined;
     userData.therapies = undefined;

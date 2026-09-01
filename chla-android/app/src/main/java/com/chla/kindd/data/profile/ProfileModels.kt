@@ -40,6 +40,13 @@ enum class AgeGroup(val apiValue: String) {
     ALL_AGES("All Ages");
 
     companion object {
+        val childAges: List<AgeGroup> = listOf(
+            EARLY_INTERVENTION,
+            SCHOOL_AGE,
+            ADOLESCENT,
+            ADULT
+        )
+
         fun fromStorageValue(value: String?): AgeGroup? = when (value) {
             "0-5" -> EARLY_INTERVENTION
             "6-12" -> SCHOOL_AGE
@@ -84,11 +91,17 @@ data class UserProfile(
     val zipCode: String? = null,
     val regionalCenter: RegionalCenterIdentity? = null,
     val journeyStage: JourneyStage? = null,
-    val ageGroup: AgeGroup? = null
+    val ageGroup: AgeGroup? = null,
+    val ageGroups: List<AgeGroup> = emptyList(),
+    val hasMultipleChildren: Boolean = false
 ) {
+    val savedChildAges: List<AgeGroup>
+        get() = ageGroups.filter { it in AgeGroup.childAges }.ifEmpty {
+            listOfNotNull(ageGroup).filter { it in AgeGroup.childAges }
+        }
+
     val isComplete: Boolean
         get() = onboardingCompleted &&
             audienceType != null &&
-            zipCode?.matches(Regex("[0-9]{5}")) == true &&
-            journeyStage != null
+            zipCode?.matches(Regex("[0-9]{5}")) == true
 }

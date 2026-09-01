@@ -22,6 +22,8 @@ internal object UserProfilePreferences {
     val regionalCenterShortName = stringPreferencesKey("regional_center_short_name")
     val journeyStage = stringPreferencesKey("journey_stage")
     val ageGroup = stringPreferencesKey("age_group")
+    val ageGroups = stringPreferencesKey("age_groups")
+    val hasMultipleChildren = booleanPreferencesKey("has_multiple_children")
 }
 
 private val userProfileCorruptionHandler =

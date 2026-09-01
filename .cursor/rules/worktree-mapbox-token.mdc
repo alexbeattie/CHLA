@@ -1,0 +1,9 @@
+---
+description: Worktree frontend env must keep the Mapbox token
+alwaysApply: true
+---
+When running `map-frontend/switch-env.sh` from a git worktree, copy
+`VITE_MAPBOX_TOKEN` from the main checkout `map-frontend/.env` if the
+worktree `.env` does not already have one. Never rewrite `.env` with a
+blank token. Vite only reads `.env` at startup; restart `npm run dev`
+after filling the token. Do not print or commit the token.

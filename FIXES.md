@@ -13,6 +13,30 @@ Format:
 
 ---
 
+### 2026-09-01 — Bump iOS and Android to 1.4.3
+- **Branch:** feat/onboarding-howto
+- **Files:** chla-ios/CHLA-iOS/Resources/Info.plist, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj, chla-android/app/build.gradle.kts
+- **Problem:** 1.4.2 is already tagged and uploaded to App Store Connect; Android on main was still versionCode 1 / 1.4.1 while another Play bundle used versionCode 3.
+- **Fix:** Marketing version 1.4.3 (iOS build 1) and Android versionCode 4 so store uploads are unique.
+
+---
+
+### 2026-09-01 — Keep Mapbox token when switching frontend env
+- **Branch:** feat/onboarding-howto
+- **Files:** map-frontend/switch-env.sh
+- **Problem:** `./switch-env.sh dev` rewrote `.env` from shell vars only, so a worktree (or a shell with no `VITE_MAPBOX_TOKEN`) ended up with a blank token and Mapbox never painted.
+- **Fix:** Read the existing token from `.env` / `.env.production` before rewriting, and warn if none is found.
+
+---
+
+### 2026-09-01 — How-to step, multi-child ages, insurance buckets, disclaimers
+- **Branch:** feat/onboarding-howto
+- **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/App/CHLA_iOSApp.swift, map-frontend/src/components/OnboardingFlow.vue, map-frontend/src/components/map/FilterPanel.vue, map-frontend/src/constants/filters.js, chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/OnboardingUiState.kt, chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/OnboardingViewModel.kt, chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/HowToGuideContent.kt, chla-android/app/src/main/java/com/chla/kindd/ui/discovery/ActiveFilterChips.kt, chla-android/app/src/main/java/com/chla/kindd/data/discovery/DiscoveryCatalog.kt, chla-android/app/src/main/java/com/chla/kindd/data/profile/ProfileModels.kt
+- **Problem:** After the Regional Center match, families were dropped into optional questions with no explanation of Filters; age was single-select; insurance listed dozens of carriers; there was no in-flow disclaimer that KiNDD does not keep medical information. Android still had the old flow after iOS and web shipped the new one.
+- **Fix:** Added a how-to step after Regional Center, multi-select ages plus "I have more than 1 child", a visible Filters/Reset/kid-toggle bar, three insurance buckets (Medi-Cal, Private Insurance, Private Pay), and a navigation-tool disclaimer on onboarding, filters, About, and FAQ. Android now matches iOS: optional journey/age, Settings how-to, and a first-map Filters coach.
+
+---
+
 ### 2026-08-13 — release.sh tags each upload
 - **Branch:** chore/release-tagging
 - **Files:** chla-ios/scripts/release.sh

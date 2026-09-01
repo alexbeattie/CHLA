@@ -357,6 +357,7 @@ class OnboardingViewModelTest {
 
             fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.finish()
             runCurrent()
 
@@ -533,17 +534,36 @@ class OnboardingViewModelTest {
         }
 
     @Test
-    fun journeyIsRequiredAndSelectingItAgainDoesNotToggleItOff() =
+    fun journeyIsOptionalAndSelectingItAgainDoesNotToggleItOff() =
         runTest(mainDispatcherRule.testDispatcher) {
             val fixture = fixture()
             advanceToJourney(fixture)
 
-            assertFalse(fixture.viewModel.uiState.value.canContinue)
+            assertTrue(fixture.viewModel.uiState.value.canContinue)
             fixture.viewModel.selectJourney(JourneyStage.EXPLORING)
             assertTrue(fixture.viewModel.uiState.value.canContinue)
             fixture.viewModel.selectJourney(JourneyStage.EXPLORING)
             assertEquals(JourneyStage.EXPLORING, fixture.viewModel.uiState.value.draft.journeyStage)
             assertTrue(fixture.viewModel.uiState.value.canContinue)
+        }
+
+    @Test
+    fun matchedCenterContinue_opensHowToThenJourney() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val fixture = fixture()
+            advanceToCenter(fixture)
+
+            fixture.viewModel.continueFromCurrentStep()
+            assertEquals(OnboardingStep.HOW_TO, fixture.viewModel.uiState.value.step)
+            assertTrue(fixture.viewModel.uiState.value.canContinue)
+
+            fixture.viewModel.continueFromCurrentStep()
+            assertEquals(OnboardingStep.JOURNEY, fixture.viewModel.uiState.value.step)
+
+            fixture.viewModel.goBack()
+            assertEquals(OnboardingStep.HOW_TO, fixture.viewModel.uiState.value.step)
+            fixture.viewModel.goBack()
+            assertEquals(OnboardingStep.REGIONAL_CENTER, fixture.viewModel.uiState.value.step)
         }
 
     @Test
@@ -576,7 +596,8 @@ class OnboardingViewModelTest {
                     zipCode = "90001",
                     regionalCenter = null,
                     journeyStage = JourneyStage.EXPLORING,
-                    ageGroup = AgeGroup.EARLY_INTERVENTION
+                    ageGroup = AgeGroup.EARLY_INTERVENTION,
+                    ageGroups = listOf(AgeGroup.EARLY_INTERVENTION)
                 ),
                 fixture.repository.replacedProfiles.single()
             )
@@ -610,6 +631,7 @@ class OnboardingViewModelTest {
             fixture.viewModel.continueFromCurrentStep()
             runCurrent()
             fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.selectJourney(JourneyStage.RECEIVING_SERVICES)
             fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.selectAgeGroup(AgeGroup.ADULT)
@@ -625,7 +647,9 @@ class OnboardingViewModelTest {
                     zipCode = "90002",
                     regionalCenter = null,
                     journeyStage = JourneyStage.RECEIVING_SERVICES,
-                    ageGroup = AgeGroup.ADULT
+                    ageGroup = null,
+                    ageGroups = listOf(AgeGroup.SCHOOL_AGE, AgeGroup.ADULT),
+                    hasMultipleChildren = true
                 ),
                 fixture.repository.replacedProfiles.single()
             )
@@ -709,6 +733,7 @@ class OnboardingViewModelTest {
     private suspend fun kotlinx.coroutines.test.TestScope.advanceToJourney(fixture: Fixture) {
         advanceToCenter(fixture)
         fixture.viewModel.continueFromCurrentStep()
+        fixture.viewModel.continueFromCurrentStep()
     }
 
     private suspend fun kotlinx.coroutines.test.TestScope.advanceToAge(fixture: Fixture) {
@@ -735,7 +760,8 @@ class OnboardingViewModelTest {
         zipCode = zipCode,
         regionalCenter = RegionalCenterIdentity.from(regionalCenter()),
         journeyStage = JourneyStage.WAITING_FOR_INTAKE,
-        ageGroup = ageGroup
+        ageGroup = ageGroup,
+        ageGroups = listOfNotNull(ageGroup).filter { it in AgeGroup.childAges }
     )
 
     private fun regionalCenter() = RegionalCenter(

@@ -82,8 +82,19 @@ class DataStoreUserProfileRepository(
             ),
             ageGroup = AgeGroup.fromStorageValue(
                 preferences[UserProfilePreferences.ageGroup]
-            )
+            ),
+            ageGroups = decodeAgeGroups(preferences[UserProfilePreferences.ageGroups]),
+            hasMultipleChildren =
+                preferences[UserProfilePreferences.hasMultipleChildren] ?: false
         )
+    }
+
+    private fun decodeAgeGroups(stored: String?): List<AgeGroup> {
+        if (stored.isNullOrBlank()) return emptyList()
+        return stored.split(',')
+            .mapNotNull(AgeGroup::fromStorageValue)
+            .filter { it in AgeGroup.childAges }
+            .distinct()
     }
 
     private fun MutablePreferences.writeProfile(
@@ -107,6 +118,13 @@ class DataStoreUserProfileRepository(
         }
         profile.ageGroup?.let {
             this[UserProfilePreferences.ageGroup] = it.apiValue
+        }
+        if (profile.ageGroups.isNotEmpty()) {
+            this[UserProfilePreferences.ageGroups] =
+                profile.ageGroups.joinToString(",") { it.apiValue }
+        }
+        if (profile.hasMultipleChildren) {
+            this[UserProfilePreferences.hasMultipleChildren] = true
         }
     }
 }

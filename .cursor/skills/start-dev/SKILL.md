@@ -12,12 +12,12 @@ Bring up all local services from the repo root (`/Users/alexbeattie/Developer/CH
 Check the terminals folder and ports before starting anything:
 
 ```bash
-lsof -nP -iTCP:5433 -iTCP:8000 -iTCP:5173 -sTCP:LISTEN
+lsof -nP -iTCP:5433 -iTCP:8000 -iTCP:3000 -sTCP:LISTEN
 ```
 
 - 5433: Postgres (Docker)
 - 8000: Django backend
-- 5173: Vite frontend
+- 3000: Vite frontend (this repo; not 5173)
 
 Do not start duplicates of services that are already listening.
 
@@ -43,13 +43,17 @@ Verify: `curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/` retu
 
 ## Step 3: Frontend (Vite)
 
-Run in the background (long-running dev server, do not block):
+Worktree `.env` files are gitignored. If `VITE_MAPBOX_TOKEN` is empty,
+copy it from the main checkout `map-frontend/.env` first. Then:
 
 ```bash
 cd map-frontend && ./switch-env.sh dev && npm run dev
 ```
 
-Verify: dev server output shows `http://localhost:5173` or `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173` returns 200.
+Confirm the token survived: `grep -c '^VITE_MAPBOX_TOKEN=pk' .env` should
+print `1`. Do not print the token. Vite only reads `.env` at process start.
+
+Verify: dev server output shows `http://localhost:3000` or `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000` returns 200.
 
 ## Step 4: iOS (Xcode)
 
@@ -65,7 +69,7 @@ Report status of each service:
 
 - Database: running on localhost:5433
 - Backend API: http://localhost:8000/api/ (admin at /admin/)
-- Frontend: http://localhost:5173
+- Frontend: http://localhost:3000
 - Xcode: opened CHLA-iOS.xcodeproj
 
 If any service failed, include the relevant error output and the most likely fix (see QUICK_START.md "Quick Debugging").

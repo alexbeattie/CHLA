@@ -230,35 +230,28 @@ struct ModernSearchBar: View {
     private var filterButton: some View {
         Button(action: onFilterTap) {
             ZStack(alignment: .topTrailing) {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.title3)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.primary)
-                    .padding(12)
-                    .background {
-                        ZStack {
-                            Circle()
-                                .fill(.ultraThinMaterial)
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [.white.opacity(0.2), .clear],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            Circle()
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [.white.opacity(0.5), .white.opacity(0.1)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 0.5
-                                )
-                        }
-                    }
-                    .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                HStack(spacing: 6) {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.subheadline.weight(.semibold))
+                    Text("Filters")
+                        .font(.subheadline.weight(.semibold))
+                }
+                .foregroundStyle(activeFilterCount > 0 ? Color.accentBlue : .primary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background {
+                    Capsule().fill(.ultraThinMaterial)
+                    Capsule()
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.5), .white.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 0.5
+                        )
+                }
+                .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
 
                 if activeFilterCount > 0 {
                     Text("\(activeFilterCount)")
@@ -271,10 +264,11 @@ struct ModernSearchBar: View {
                                 .fill(Color.accentBlue)
                                 .shadow(color: Color.accentBlue.opacity(0.5), radius: 4)
                         )
-                        .offset(x: 4, y: -4)
+                        .offset(x: 6, y: -6)
                 }
             }
         }
+        .accessibilityLabel("Filters")
     }
 
     @ViewBuilder
