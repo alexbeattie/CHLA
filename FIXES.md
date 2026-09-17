@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-09-16 — Legal entity block on the About page
+- **Branch:** feat/about-legal-entity
+- **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
+- **Problem:** Goodstack, TechSoup, and Google for Nonprofits cross-check the website against the application and kinddhelp.com showed no legal name, EIN, or exempt status. IRS 501(c)(3) determination (Letter 947, 2026-09-01) now allows the claim.
+- **Fix:** About page states the operator is KINDD, a California nonprofit public benefit corporation and 501(c)(3) public charity, EIN 42-3052958, contributions deductible to the extent allowed by law. English and Spanish.
+
+---
+
 ### 2026-09-01 — Bump iOS and Android to 1.4.3
 - **Branch:** feat/onboarding-howto
 - **Files:** chla-ios/CHLA-iOS/Resources/Info.plist, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj, chla-android/app/build.gradle.kts
