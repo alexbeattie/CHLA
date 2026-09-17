@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-09-16 — EIN line missing from the About page
+- **Branch:** fix/about-ein-pipe
+- **Files:** map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
+- **Problem:** `about.legalEntityEin` was "KINDD | EIN 42-3052958"; vue-i18n reads `|` as the plural separator, so the rendered line was blank after "KINDD".
+- **Fix:** Comma instead of pipe. Do not put a bare `|` in locale strings.
+
+---
+
 ### 2026-09-16 — Legal entity block on the About page
 - **Branch:** feat/about-legal-entity
 - **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
