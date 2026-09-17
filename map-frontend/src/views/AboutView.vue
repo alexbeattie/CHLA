@@ -222,6 +222,14 @@
           </div>
         </div>
 
+        <!-- Legal Entity -->
+        <div class="content-block legal-entity-block">
+          <h2>{{ $t("about.legalEntity") }}</h2>
+          <p>{{ $t("about.legalEntityText") }}</p>
+          <p class="legal-entity-ein">{{ $t("about.legalEntityEin") }}</p>
+          <p class="legal-entity-note">{{ $t("about.legalEntityDeductible") }}</p>
+        </div>
+
         <!-- CTA Section -->
         <div class="cta-section">
           <h2>{{ $t("about.readyToFind") }}</h2>
@@ -413,6 +421,21 @@ export default {
 
 .info-box strong {
   color: #004877;
+}
+
+/* Legal Entity */
+.legal-entity-block p {
+  margin-bottom: 0.5rem;
+}
+
+.legal-entity-ein {
+  font-weight: 600;
+  color: #004877;
+}
+
+.legal-entity-note {
+  font-size: 0.95rem;
+  color: #555;
 }
 
 /* Steps */
