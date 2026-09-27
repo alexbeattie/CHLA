@@ -11,11 +11,11 @@
             height="36"
           />
         </router-link>
-        <span class="brand-separator d-none d-md-inline">|</span>
-        <span class="brand-subtitle d-none d-md-inline">NDD Resource Map</span>
+        <span class="brand-separator d-none d-xl-inline">|</span>
+        <span class="brand-subtitle d-none d-xl-inline">NDD Resource Map</span>
       </div>
 
-      <nav class="navbar-links d-none d-md-flex">
+      <nav class="navbar-links d-none d-lg-flex">
         <router-link to="/" class="nav-link">
           <i class="bi bi-map me-1"></i>
           Map
@@ -36,20 +36,30 @@
           <i class="bi bi-clipboard2-pulse me-1"></i>
           Clinicians
         </router-link>
+        <router-link to="/about#download-app" class="nav-link">
+          <i class="bi bi-phone me-1"></i>
+          {{ $t("nav.getApp") }}
+        </router-link>
+        <router-link v-if="isDev" to="/ask" class="nav-link">
+          <i class="bi bi-chat-dots me-1"></i>
+          {{ $t("nav.askKindd") }}
+        </router-link>
       </nav>
 
       <div class="navbar-actions">
-        <div class="mobile-nav-menu d-md-none">
+        <div class="mobile-nav-menu d-lg-none">
           <button
             class="btn-icon"
             type="button"
             aria-label="Toggle menu"
+            aria-controls="app-mobile-nav"
+            :aria-expanded="showMobileNav ? 'true' : 'false'"
             @click="toggleMobileNav"
             :class="{ active: showMobileNav }"
           >
             <i class="bi bi-three-dots-vertical"></i>
           </button>
-          <div v-if="showMobileNav" class="mobile-nav-dropdown">
+          <div v-if="showMobileNav" id="app-mobile-nav" class="mobile-nav-dropdown">
             <router-link
               to="/"
               class="mobile-nav-item"
@@ -90,6 +100,23 @@
               <i class="bi bi-clipboard2-pulse me-2"></i>
               Clinicians
             </router-link>
+            <router-link
+              to="/about#download-app"
+              class="mobile-nav-item"
+              @click="closeMobileNav"
+            >
+              <i class="bi bi-phone me-2"></i>
+              {{ $t("nav.getApp") }}
+            </router-link>
+            <router-link
+              v-if="isDev"
+              to="/ask"
+              class="mobile-nav-item"
+              @click="closeMobileNav"
+            >
+              <i class="bi bi-chat-dots me-2"></i>
+              {{ $t("nav.askKindd") }}
+            </router-link>
           </div>
         </div>
       </div>
@@ -100,6 +127,7 @@
 <script setup>
 import { ref } from "vue";
 
+const isDev = import.meta.env.DEV;
 const showMobileNav = ref(false);
 
 const toggleMobileNav = () => {
@@ -282,6 +310,16 @@ const closeMobileNav = () => {
 
 .mobile-nav-item i {
   font-size: 16px;
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .navbar-links {
+    gap: 4px;
+  }
+
+  .navbar-links .nav-link {
+    padding: 8px 10px;
+  }
 }
 
 @media (max-width: 767.98px) {

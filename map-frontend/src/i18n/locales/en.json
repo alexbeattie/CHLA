@@ -32,7 +32,9 @@
     "startOver": "Start Over",
     "login": "Login",
     "logout": "Logout",
-    "profile": "Profile"
+    "profile": "Profile",
+    "getApp": "Get the app",
+    "askKindd": "Ask KiNDD"
   },
   "search": {
     "placeholder": "Enter city or ZIP code",
@@ -310,6 +312,12 @@
     "legalEntityText": "KiNDD - NDD Resource Navigator is operated by KINDD, a California nonprofit public benefit corporation recognized by the IRS as a 501(c)(3) tax-exempt public charity. Our mission is to help families of children with neurodevelopmental disorders find and reach the services they need.",
     "legalEntityEin": "KINDD, EIN 42-3052958",
     "legalEntityDeductible": "Contributions to KINDD are tax-deductible to the extent allowed by law.",
+    "downloadTitle": "Get the KiNDD - NDD Resource Navigator App",
+    "downloadText": "Search for NDD resources and Regional Center information from your phone.",
+    "downloadIphone": "Download for iPhone",
+    "downloadIphoneLabel": "Download KiNDD - NDD Resource Navigator for iPhone on the App Store (opens in a new tab)",
+    "downloadAndroid": "Download for Android",
+    "downloadAndroidLabel": "Download KiNDD - NDD Resource Navigator for Android on Google Play (opens in a new tab)",
     "readyToFind": "Ready to Find a Resource?",
     "startSearch": "Start your search now - it only takes a few seconds.",
     "exploreMap": "Explore the Map",
