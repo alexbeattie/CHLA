@@ -24,6 +24,15 @@
           </p>
         </div>
 
+        <div class="content-block legal-entity-block">
+          <h2>{{ $t("about.legalEntity") }}</h2>
+          <p>{{ $t("about.legalEntityText") }}</p>
+          <p class="legal-entity-ein">{{ $t("about.legalEntityEin") }}</p>
+          <p class="legal-entity-note">{{ $t("about.legalEntityDeductible") }}</p>
+        </div>
+
+        <AppDownloadLinks id="download-app" class="content-block" />
+
         <!-- What We Do -->
         <div class="content-block">
           <h2>{{ $t("about.whatWeDo") }}</h2>
@@ -222,14 +231,6 @@
           </div>
         </div>
 
-        <!-- Legal Entity -->
-        <div class="content-block legal-entity-block">
-          <h2>{{ $t("about.legalEntity") }}</h2>
-          <p>{{ $t("about.legalEntityText") }}</p>
-          <p class="legal-entity-ein">{{ $t("about.legalEntityEin") }}</p>
-          <p class="legal-entity-note">{{ $t("about.legalEntityDeductible") }}</p>
-        </div>
-
         <!-- CTA Section -->
         <div class="cta-section">
           <h2>{{ $t("about.readyToFind") }}</h2>
@@ -251,12 +252,28 @@
 </template>
 
 <script>
+import { nextTick, watch } from "vue";
+import { useRoute } from "vue-router";
+import AppDownloadLinks from "@/components/AppDownloadLinks.vue";
 import { useSeo } from "@/composables/useSeo";
 
 export default {
   name: "AboutView",
+  components: { AppDownloadLinks },
   setup() {
     useSeo({ path: "/about" });
+
+    // The router has no scrollBehavior, so honor /about#download-app here.
+    const route = useRoute();
+    watch(
+      () => route.hash,
+      async (hash) => {
+        if (!hash) return;
+        await nextTick();
+        document.getElementById(hash.slice(1))?.scrollIntoView();
+      },
+      { immediate: true }
+    );
   },
 };
 </script>

@@ -22,6 +22,11 @@ export const DEFAULT_DESCRIPTION =
 export const DEFAULT_OG_IMAGE = `${CANONICAL_ORIGIN}/og-image.jpg`
 export const DEFAULT_TWITTER_IMAGE = `${CANONICAL_ORIGIN}/twitter-card.jpg`
 
+export const IOS_APP_STORE_URL =
+  'https://apps.apple.com/us/app/kindd-resource-navigator/id6756593861'
+export const ANDROID_PLAY_STORE_URL =
+  'https://play.google.com/store/apps/details?id=com.navigator.kindd'
+
 const REGIONAL_CENTER_PAGES = {
   'san-gabriel-pomona': {
     label: 'San Gabriel/Pomona Regional Center',
