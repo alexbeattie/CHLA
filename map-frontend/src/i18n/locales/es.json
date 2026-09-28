@@ -33,8 +33,7 @@
     "login": "Iniciar Sesión",
     "logout": "Cerrar Sesión",
     "profile": "Perfil",
-    "getApp": "Obtener la app",
-    "askKindd": "Pregúntale a KiNDD"
+    "getApp": "Obtener la app"
   },
   "search": {
     "placeholder": "Ingrese ciudad o código postal",

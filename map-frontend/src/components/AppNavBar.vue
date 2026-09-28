@@ -40,10 +40,6 @@
           <i class="bi bi-phone me-1"></i>
           {{ $t("nav.getApp") }}
         </router-link>
-        <router-link v-if="isDev" to="/ask" class="nav-link">
-          <i class="bi bi-chat-dots me-1"></i>
-          {{ $t("nav.askKindd") }}
-        </router-link>
       </nav>
 
       <div class="navbar-actions">
@@ -108,15 +104,6 @@
               <i class="bi bi-phone me-2"></i>
               {{ $t("nav.getApp") }}
             </router-link>
-            <router-link
-              v-if="isDev"
-              to="/ask"
-              class="mobile-nav-item"
-              @click="closeMobileNav"
-            >
-              <i class="bi bi-chat-dots me-2"></i>
-              {{ $t("nav.askKindd") }}
-            </router-link>
           </div>
         </div>
       </div>
@@ -127,7 +114,6 @@
 <script setup>
 import { ref } from "vue";
 
-const isDev = import.meta.env.DEV;
 const showMobileNav = ref(false);
 
 const toggleMobileNav = () => {

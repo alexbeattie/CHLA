@@ -33,8 +33,7 @@
     "login": "Login",
     "logout": "Logout",
     "profile": "Profile",
-    "getApp": "Get the app",
-    "askKindd": "Ask KiNDD"
+    "getApp": "Get the app"
   },
   "search": {
     "placeholder": "Enter city or ZIP code",
