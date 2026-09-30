@@ -29,6 +29,7 @@
           <p>{{ $t("about.legalEntityText") }}</p>
           <p class="legal-entity-ein">{{ $t("about.legalEntityEin") }}</p>
           <p class="legal-entity-note">{{ $t("about.legalEntityDeductible") }}</p>
+          <p class="legal-entity-note">{{ $t("about.legalEntityDomains") }}</p>
         </div>
 
         <AppDownloadLinks id="download-app" class="content-block" />

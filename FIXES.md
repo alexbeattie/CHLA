@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-09-30 — State that kinddhelp.org belongs to KINDD on the About page
+- **Branch:** fix/about-domains
+- **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
+- **Problem:** Google Workspace for Nonprofits activation for kinddhelp.org was refused because the official site on the application is kinddhelp.com and nothing there connects the two domains.
+- **Fix:** Legal entity block now says KINDD owns and operates kinddhelp.com and kinddhelp.org and that staff email uses kinddhelp.org. English and Spanish.
+
+---
+
 ### 2026-09-16 — EIN line missing from the About page
 - **Branch:** fix/about-ein-pipe
 - **Files:** map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
