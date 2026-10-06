@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-06 — iOS layout ready for iPhone Duo and resizable windows
+- **Branch:** cursor/iphone-duo-readiness-5fa1
+- **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/RegionalCenterMapView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/ProviderDetailView.swift, chla-ios/CHLA-iOS/Views/RegionalCentersView.swift, chla-ios/CHLA-iOS/Views/ChatView.swift, chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/Components/ReadableContentWidth.swift, chla-ios/CHLA-iOS/Resources/Info.plist, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj, chla-ios/project.yml
+- **Problem:** iOS 27 SDK apps resize on iPhone Duo, whose inner display puts the status bar on the right edge. The tab container ignored safe areas and each tab hardcoded status and tab bar heights; chat bubbles sized from `UIScreen.main`; onboarding could not scroll in short windows; the generic orientation key listed portrait only.
+- **Fix:** Tabs lay out inside the safe area, with the floating tab bar and Regions picker as safe-area insets and only maps and backgrounds bleeding. Chat bubbles size from the measured column, onboarding steps scroll when they do not fit, wide windows get a readable-width column, and all orientations are declared. Static checks only; still needs an Xcode build and an iPhone Duo simulator pass.
+
+---
+
 ### 2026-09-30 — State that kinddhelp.org belongs to KINDD on the About page
 - **Branch:** fix/about-domains
 - **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
