@@ -175,6 +175,7 @@ struct ChatView: View {
                     PromptCapsulesBar(prompts: quickPrompts) { prompt in
                         sendMessage(prompt)
                     }
+                    .readableContentWidth()
                 }
 
                 // Messages
@@ -238,6 +239,7 @@ struct ChatView: View {
                         } action: { width in
                             messageColumnWidth = width
                         }
+                        .readableContentWidth()
                     }
                     .defaultScrollAnchor(llmService.messages.isEmpty ? .top : .bottom)
                 }
@@ -2067,6 +2069,7 @@ struct ChatInputBar: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .readableContentWidth()
             .background(Color(uiColor: .systemBackground))
         }
     }

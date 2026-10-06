@@ -42,7 +42,7 @@ struct OnboardingView: View {
         return GeometryReader { proxy in
             ScrollView(showsIndicators: false) {
                 FillHeightLayout(minHeight: proxy.size.height) {
-                    content
+                    content.readableContentWidth()
                 }
             }
             .scrollBounceBehavior(.basedOnSize)
@@ -69,6 +69,7 @@ struct OnboardingView: View {
             navigationButtons
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
+                .readableContentWidth()
         }
         .background {
             ZStack(alignment: .top) {

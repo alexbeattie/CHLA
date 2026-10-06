@@ -31,6 +31,7 @@
 		7964A1F5FEC571AC30E29F87 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306D53C14B3C1FAEC3E125CB /* Formatters.swift */; };
 		AA10C0DE0000000000000002 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10C0DE0000000000000001 /* Haptics.swift */; };
 		AA10C0DE0000000000000004 /* PressableButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10C0DE0000000000000003 /* PressableButtonStyle.swift */; };
+		AA10C0DE0000000000000006 /* ReadableContentWidth.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10C0DE0000000000000005 /* ReadableContentWidth.swift */; };
 		7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D676DBAED22C40FD2AF4B4 /* RegionalCenterMapView.swift */; };
 		8228B2A552594EC69884FF14 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92919786FE583BD8E230766A /* HomeView.swift */; };
 		8655A013D36520C7E627B87C /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1CAAF9621905B2CA8C4526 /* FAQView.swift */; };
@@ -85,6 +86,7 @@
 		306D53C14B3C1FAEC3E125CB /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		AA10C0DE0000000000000001 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		AA10C0DE0000000000000003 /* PressableButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressableButtonStyle.swift; sourceTree = "<group>"; };
+		AA10C0DE0000000000000005 /* ReadableContentWidth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadableContentWidth.swift; sourceTree = "<group>"; };
 		35633B734ABCC31192C5B4FC /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		3D436BC3380B8D5D10977DC8 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
 		3E1CAAF9621905B2CA8C4526 /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
@@ -216,6 +218,7 @@
 				CDE7FD3EC39FC16BFB7CB9F7 /* MapMarkers.swift */,
 				5C307B5218ED66C3FF88851E /* ModernSearchView.swift */,
 				AA10C0DE0000000000000003 /* PressableButtonStyle.swift */,
+				AA10C0DE0000000000000005 /* ReadableContentWidth.swift */,
 				EEFD64F5D39FA2865A37E1C2 /* RegionalCentersMiniMapCard.swift */,
 			);
 			path = Components;
@@ -452,6 +455,7 @@
 				8B442B44FD870077299FF3F9 /* ProviderDetailView.swift in Sources */,
 				9500190A582CEE8FB5DC8DC1 /* ProviderListView.swift in Sources */,
 				8B50850460375933BDD8764B /* ProviderStore.swift in Sources */,
+				AA10C0DE0000000000000006 /* ReadableContentWidth.swift in Sources */,
 				B07E247A299B557906472120 /* RegionalCenter.swift in Sources */,
 				7E54637115E6F34E364B6F22 /* RegionalCenterMapView.swift in Sources */,
 				D021626D7868639BF75E7DED /* RegionalCenterMatcher.swift in Sources */,

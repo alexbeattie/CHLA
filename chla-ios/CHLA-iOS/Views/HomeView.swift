@@ -40,6 +40,7 @@ struct HomeView: View {
             .padding(.horizontal, 18)
             .padding(.top, 8)
             .padding(.bottom, 24)
+            .readableContentWidth()
         }
         .background {
             ZStack(alignment: .top) {
@@ -57,6 +58,7 @@ struct HomeView: View {
         }
         .safeAreaInset(edge: .bottom) {
             chatCapsule
+                .readableContentWidth()
                 .padding(.bottom, 10)
         }
         .onAppear {
