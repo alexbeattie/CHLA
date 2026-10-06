@@ -60,6 +60,7 @@ struct ChatView: View {
     @State private var showingRestartSetupConfirmation = false
     @State private var didSendInitialPrompt = false
     @State private var selectedChatProvider: Provider?
+    @State private var messageColumnWidth: CGFloat = 0
 
     // Attachment flow state (Step 1: Type, Step 2: Source)
     @State private var showingAttachmentTypeSheet = false  // Step 1: Choose analysis type
@@ -160,6 +161,12 @@ struct ChatView: View {
         return count
     }
 
+    /// User bubbles cap at 78% of the measured message column rather than the
+    /// screen, so they track window resizes; uncapped until the first measurement
+    private var maxUserBubbleWidth: CGFloat {
+        messageColumnWidth > 0 ? messageColumnWidth * 0.78 : .infinity
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -218,13 +225,19 @@ struct ChatView: View {
                                     },
                                     onProviderTap: { provider in
                                         selectedChatProvider = provider
-                                    }
+                                    },
+                                    maxUserBubbleWidth: maxUserBubbleWidth
                                 )
                                 .id(message.id)
                             }
                         }
                         .padding(.horizontal, 6)
                         .padding(.bottom, 12)
+                        .onGeometryChange(for: CGFloat.self) { proxy in
+                            proxy.size.width
+                        } action: { width in
+                            messageColumnWidth = width
+                        }
                     }
                     .defaultScrollAnchor(llmService.messages.isEmpty ? .top : .bottom)
                 }
@@ -1182,6 +1195,7 @@ struct MessageBubble: View {
     var isSpeaking: Bool = false
     var onAction: ((ChatAction) -> Void)?
     var onProviderTap: ((Provider) -> Void)?
+    var maxUserBubbleWidth: CGFloat = .infinity
 
     @State private var showActions = false
     @State private var showTimestamp = false
@@ -1498,7 +1512,7 @@ struct MessageBubble: View {
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
-                    .modifier(MessageBubbleChrome(role: message.role))
+                    .modifier(MessageBubbleChrome(role: message.role, maxUserWidth: maxUserBubbleWidth))
                 }
 
                 if showTimestamp {
@@ -1569,7 +1583,7 @@ struct MessageBubble: View {
 
 private struct MessageBubbleChrome: ViewModifier {
     let role: ChatMessage.MessageRole
-    private let maxUserWidth = UIScreen.main.bounds.width * 0.78
+    let maxUserWidth: CGFloat
 
     func body(content: Content) -> some View {
         if role == .user {
