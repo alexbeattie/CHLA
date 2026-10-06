@@ -16,7 +16,6 @@ struct OnboardingView: View {
     @StateObject private var mapModel = RegionalCenterMapViewModel()
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var currentStep = 0
     @State private var zipCode = ""
@@ -34,14 +33,19 @@ struct OnboardingView: View {
         reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8)
     }
 
-    /// Steps keep their fixed, centered layout at standard type sizes; at
-    /// accessibility sizes the content scrolls so text never truncates.
-    @ViewBuilder
+    /// Steps keep their fixed layout whenever they fit, and scroll instead of
+    /// truncating when they do not: accessibility type sizes, landscape, or a
+    /// short resized window. The scroll view is always present so the ZIP field
+    /// is not rebuilt, and does not lose focus, when the keyboard changes the height.
     private func stepContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            ScrollView(showsIndicators: false) { content() }
-        } else {
-            content()
+        let content = content()
+        return GeometryReader { proxy in
+            ScrollView(showsIndicators: false) {
+                FillHeightLayout(minHeight: proxy.size.height) {
+                    content.readableContentWidth()
+                }
+            }
+            .scrollBounceBehavior(.basedOnSize)
         }
     }
 
@@ -65,6 +69,7 @@ struct OnboardingView: View {
             navigationButtons
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
+                .readableContentWidth()
         }
         .background {
             ZStack(alignment: .top) {
@@ -714,6 +719,25 @@ struct HowToGuideView: View {
         .background(Theme.canvas.ignoresSafeArea())
         .navigationTitle("How to use KiNDD")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Fill Height Layout
+
+/// Proposes at least `minHeight` to its content, so a step's Spacers spread it
+/// over the visible height when it fits; taller content keeps its natural
+/// height and scrolls
+private struct FillHeightLayout: Layout {
+    let minHeight: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        let natural = content.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+        return CGSize(width: proposal.width ?? natural.width, height: max(natural.height, minHeight))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
     }
 }
 

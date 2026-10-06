@@ -44,7 +44,7 @@ struct MapContainerView: View {
                 Spacer()
                 VStack(spacing: 0) {
                     Spacer()
-                        .frame(height: showFamilyFilterBar ? 210 : 160) // Extra space when filters shown
+                        .frame(height: showFamilyFilterBar ? 160 : 110) // Extra space when filters shown
                     GlassMapControls(
                         onLocationTap: { centerOnUserLocation() },
                         onFilterTap: { showFilters = true },
@@ -80,7 +80,7 @@ struct MapContainerView: View {
                             visibilityManager.showUI()
                         }
                         .padding(.trailing, 20)
-                        .padding(.bottom, 100)
+                        .padding(.bottom, 8)
                     }
                 }
                 .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.8)))
@@ -323,7 +323,7 @@ struct MapContainerView: View {
             MapCompass()
             MapScaleView()
         }
-        .ignoresSafeArea(edges: .top)
+        .ignoresSafeArea()
         .onTapGesture {
             // Tap on map to toggle UI visibility
             visibilityManager.toggleUI()
@@ -341,11 +341,8 @@ struct MapContainerView: View {
     private var searchOverlay: some View {
         let shouldShow = visibilityManager.isHeaderVisible || searchState.isSearchActive
         return VStack(spacing: 0) {
-            // Safe area spacer for status bar area
-            Color.clear
-                .frame(height: 50)
-                .background(.ultraThinMaterial)
-
+            // ShapeStyle backgrounds extend into the adjacent safe area, so the
+            // material covers the status bar on whichever edge it sits
             ModernSearchBar(
                 searchState: searchState,
                 onFilterTap: { showFilters = true },
@@ -388,7 +385,7 @@ struct MapContainerView: View {
 
             VStack {
                 Spacer()
-                    .frame(height: 130)
+                    .frame(height: 80)
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Filters live up here")

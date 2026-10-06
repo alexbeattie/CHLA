@@ -38,8 +38,9 @@ struct HomeView: View {
                 infoFooter
             }
             .padding(.horizontal, 18)
-            .padding(.top, 56)
+            .padding(.top, 8)
             .padding(.bottom, 24)
+            .readableContentWidth()
         }
         .background {
             ZStack(alignment: .top) {
@@ -57,9 +58,8 @@ struct HomeView: View {
         }
         .safeAreaInset(edge: .bottom) {
             chatCapsule
-                // The parent tab container ignores safe areas, so this measures from
-                // the screen edge: pill spans 42-92pt, capsule sits 10pt above it
-                .padding(.bottom, 102)
+                .readableContentWidth()
+                .padding(.bottom, 10)
         }
         .onAppear {
             resolveRegionalCenter()

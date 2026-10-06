@@ -208,33 +208,35 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Tab Content - Full Screen
-            Group {
-                switch appState.selectedTab {
-                case 0:
-                    HomeView()
-                case 1:
-                    MapContainerView()
-                case 2:
-                    RegionalCentersTabView()
-                case 3: ProviderListView()
-                case 4: MoreView()
-                default: HomeView()
-                }
+        // Tabs respect the safe area and only maps and backgrounds bleed, since
+        // the status bar can sit on any edge (the right edge of the iPhone Duo
+        // inner display). ZStack rather than Group so the modifiers below,
+        // including the tab bar inset, are not rebuilt on every tab switch.
+        ZStack {
+            switch appState.selectedTab {
+            case 0:
+                HomeView()
+            case 1:
+                MapContainerView()
+            case 2:
+                RegionalCentersTabView()
+            case 3: ProviderListView()
+            case 4: MoreView()
+            default: HomeView()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea()
-            .onChange(of: appState.selectedTab) { _, newTab in
-                // Refresh List when tab is selected
-                if newTab == 2 {
-                    NotificationCenter.default.post(name: .refreshList, object: nil)
-                }
-                // Show UI when switching tabs
-                visibilityManager.showUI()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onChange(of: appState.selectedTab) { _, newTab in
+            // Refresh List when tab is selected
+            if newTab == 2 {
+                NotificationCenter.default.post(name: .refreshList, object: nil)
             }
-
-            // Floating Glass Tab Bar
+            // Show UI when switching tabs
+            visibilityManager.showUI()
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            // As an inset, the floating bar extends each tab's bottom safe area.
+            // The space stays reserved while the bar is scrolled away.
             LiquidGlassTabBar(
                 selectedTab: $appState.selectedTab,
                 onMenuAction: handleMenuAction,
@@ -689,40 +691,33 @@ struct RegionalCentersTabView: View {
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack {
             // Content
             if selectedView == 0 {
                 // List content - using RegionalCentersView from separate file
                 RegionalCentersView()
-                    .safeAreaInset(edge: .top, spacing: 0) {
-                        // Invisible spacer to push content below picker
-                        Color.clear.frame(height: 44)
-                    }
             } else {
                 // Full screen map
                 RegionalCenterMapView()
             }
-
-            // Floating picker overlay - always visible
-            VStack(spacing: 0) {
-                Picker("View", selection: $selectedView) {
-                    Text("List").tag(0)
-                    Text("Map").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 160)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
-                )
-                .padding(.top, 54)
-
-                Spacer()
-            }
         }
-        .ignoresSafeArea(edges: .top)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            // Floating picker, always visible. As an inset, the list starts
+            // below it and the map's overlays clear it.
+            Picker("View", selection: $selectedView) {
+                Text("List").tag(0)
+                Text("Map").tag(1)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 160)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
+            )
+            .padding(.top, 8)
+        }
     }
 }
 

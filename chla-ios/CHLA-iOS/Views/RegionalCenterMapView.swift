@@ -31,7 +31,7 @@ struct RegionalCenterMapView: View {
                     Spacer()
                     VStack(spacing: 0) {
                         Spacer()
-                            .frame(height: 160)
+                            .frame(height: 54)
                         GlassMapControls(
                             onLocationTap: { centerOnUserLocation() },
                             onFilterTap: { /* No filters on this map */ },
@@ -54,12 +54,11 @@ struct RegionalCenterMapView: View {
                 Spacer()
                 legendView
                     .padding(.horizontal)
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 8)
                     .offset(y: visibilityManager.isHeaderVisible ? 0 : 100)
                     .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
             }
         }
-        .ignoresSafeArea(edges: .all)
         .statusBarHidden(true)
             .sheet(item: $selectedCenter) { center in
                 RegionalCenterInfoSheet(feature: center)
@@ -113,6 +112,7 @@ struct RegionalCenterMapView: View {
             UserAnnotation()
         }
         .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .excludingAll))
+        .ignoresSafeArea()
     }
 
     // MARK: - Loading Overlay
