@@ -1,12 +1,14 @@
 # App Store Connect Metadata
 
-## Current Status (updated 2026-09-01)
+## Current Status (updated 2026-10-09)
 
-1.4.3 build 1 is the how-to / multi-child / insurance-bucket onboarding release. Upload via `scripts/release.sh`, then attach the build in App Store Connect and submit for review. Live store version remains 1.4.0 until that review lands.
+1.4.3 build 1 is live. Version 1.4.4 exists in App Store Connect (PREPARE_FOR_SUBMISSION) with the new subtitle, keywords, and the es-MX listing already entered via the API; it is waiting on a build. `MARKETING_VERSION` is 1.4.4, so the next `scripts/release.sh` run produces that build. Attach it, fill What's New with the real changes, and submit.
+
+The App Store Connect API returns `FORBIDDEN.REQUIRED_AGREEMENTS_MISSING_OR_EXPIRED` whenever Apple publishes a new Developer Program License Agreement (usually September). The Account Holder accepts it at appstoreconnect.apple.com/business; nothing can be uploaded or edited until then.
 
 | Item            | Value                                                                                                                                                                                       |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Live version    | 1.4.0 build 2 - approved and Ready for Sale 2026-07-10 (submitted 2026-07-08; rejected 2026-07-09 under Guideline 2.3.6 for the Age Rating; fixed via API and resubmitted the same morning) |
+| Live version    | 1.4.3 build 1 - Ready for Sale 2026-09-02. Earlier: 1.4.0 build 2 - approved and Ready for Sale 2026-07-10 (submitted 2026-07-08; rejected 2026-07-09 under Guideline 2.3.6 for the Age Rating; fixed via API and resubmitted the same morning) |
 | Age rating note | Medical Treatment Information: Frequent (required by App Review for medical content; may raise age rating from 4+ to 12+). Do not downgrade in future versions.                             |
 | Release type    | Automatic after approval                                                                                                                                                                    |
 | Device family   | iPhone only (iPad removed in 1.4.0; store previously required iPad screenshots)                                                                                                             |
@@ -17,8 +19,8 @@
 
 | Field                | Value                          |
 | -------------------- | ------------------------------ |
-| App Name             | KiNDD Resources                |
-| Subtitle             | Find Regional Center Resources |
+| App Name             | KiNDD Resource Navigator       |
+| Subtitle             | Autism & Regional Center Help  |
 | Bundle ID            | com.nddresources.map           |
 | SKU                  | ndd-resource-map-001           |
 | Primary Language     | English (U.S.)                 |
@@ -31,10 +33,10 @@
 ## Subtitle (30 characters max)
 
 ```
-Find help. Know your next step
+Autism & Regional Center Help
 ```
 
-(Previous: "Find Regional Center Resources" - also fits if preferred.)
+(Previous: "Find help. Know your next step" and "Find Regional Center Resources". Changed 2026-10-09 for search: the subtitle is indexed with the title, so it should carry search terms rather than a tagline.)
 
 ## Promotional Text (170 characters max, editable without review)
 
@@ -81,8 +83,25 @@ Questions or feedback: support@kinddhelp.com
 ## Keywords (100 characters max)
 
 ```
-regional center,autism,ABA,speech therapy,developmental,disability,early intervention,IPP,IEP,LA
+kinddhelp,kind,ndd,aba,therapy,developmental,disability,los,angeles,parents,ipp,iep,dds,speech
 ```
+
+Rules for this field (changed 2026-10-09):
+
+- Single words separated by commas, no spaces. Apple combines them into phrases, so `los,angeles` already matches "los angeles".
+- Do not repeat words from the title or subtitle (`kindd`, `resource`, `navigator`, `autism`, `regional`, `center`, `help`); they are indexed automatically and repeating them wastes characters.
+- `kind` and `kinddhelp` are there on purpose. iOS autocorrects "kindd" to "kind", and people type the website domain.
+- Previous: `regional center,autism,ABA,speech therapy,developmental,disability,early intervention,IPP,IEP,LA`.
+
+## Spanish (es-MX) listing
+
+The app ships in Spanish and the audience is LA County, so the store listing should be localized too. Add an es-MX localization on the next version with:
+
+Subtitle (30): `Autismo y Centro Regional`
+
+Keywords (100): `kinddhelp,kind,ndd,aba,terapia,discapacidad,desarrollo,los,angeles,padres,ipp,iep,dds,habla,ayuda`
+
+Promotional text: `Del diagnostico a los servicios: KiNDD conecta a su familia con su centro regional, sugiere el siguiente paso y responde sus preguntas.`
 
 ## URLs
 

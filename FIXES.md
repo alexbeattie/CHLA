@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-09 — App Store search metadata: subtitle, keywords, Spanish listing
+- **Branch:** chore/aso-keywords
+- **Files:** chla-ios/AppStoreMetadata.md, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** Users searching "kindd" on an iPhone get autocorrected to "kind"/"kinky" results; the live keyword field repeated subtitle words and had no misspelling or domain terms; promotional text was blank on 1.4.3; no Spanish store listing despite a bilingual app.
+- **Fix:** Promo text restored on live 1.4.3. Version 1.4.4 created in App Store Connect via API with subtitle "Autism & Regional Center Help", single-word keywords including `kind` and `kinddhelp`, and a full es-MX listing. `MARKETING_VERSION` bumped to 1.4.4 so the next release.sh build attaches to it.
+
+---
+
 ### 2026-09-30 — State that kinddhelp.org belongs to KINDD on the About page
 - **Branch:** fix/about-domains
 - **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
