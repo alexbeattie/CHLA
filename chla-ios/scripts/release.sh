@@ -25,6 +25,12 @@ set -euo pipefail
 # ~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8 is the actual secret
 KEY_ID="${1:-${ASC_KEY_ID:-9W6UWB24DM}}"
 ISSUER_ID="${2:-${ASC_ISSUER_ID:-69a6de72-3b58-47e3-e053-5b8c7c11a4d1}}"
+KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8"
+# Without -authenticationKeyPath xcodebuild ignores the key ID and falls back
+# to the Xcode Apple ID session; when that session has expired the export
+# fails with "No signing certificate iOS Distribution found" because the
+# distribution cert is cloud-managed and needs an authenticated session.
+[ -f "$KEY_PATH" ] || { echo "Missing $KEY_PATH"; exit 1; }
 
 cd "$(dirname "$0")/.."
 
@@ -55,7 +61,10 @@ PLIST
 echo "== Archiving KiNDD $VERSION ($BUILD)"
 xcodebuild -project CHLA-iOS.xcodeproj -scheme CHLA-iOS \
     -destination 'generic/platform=iOS' \
-    -archivePath "$ARCHIVE" archive -allowProvisioningUpdates
+    -archivePath "$ARCHIVE" archive -allowProvisioningUpdates \
+    -authenticationKeyPath "$KEY_PATH" \
+    -authenticationKeyID "$KEY_ID" \
+    -authenticationKeyIssuerID "$ISSUER_ID"
 
 # Export to disk, then upload with altool. Direct exportArchive upload is
 # broken on this machine two ways: the team-key actor lacks providerId
@@ -69,6 +78,7 @@ env PATH="/usr/bin:/bin:/usr/sbin:/sbin" xcodebuild -exportArchive \
     -exportOptionsPlist "$EXPORT_PLIST" \
     -exportPath "$EXPORT_DIR" \
     -allowProvisioningUpdates \
+    -authenticationKeyPath "$KEY_PATH" \
     -authenticationKeyID "$KEY_ID" \
     -authenticationKeyIssuerID "$ISSUER_ID"
 

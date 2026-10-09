@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-09 — release.sh: pass the App Store Connect key path to xcodebuild
+- **Branch:** chore/ios-144-release
+- **Files:** chla-ios/scripts/release.sh, chla-ios/CHLA-iOS/Resources/Info.plist
+- **Problem:** 1.4.4 export failed with "No signing certificate iOS Distribution found" and "Your session has expired" for the Apple ID. xcodebuild only uses the API key when -authenticationKeyPath is given; without it the cloud-managed distribution cert needs a live Xcode Apple ID session.
+- **Fix:** Archive and export both pass -authenticationKeyPath with the key under ~/.appstoreconnect/private_keys; script exits early if the key file is missing. Info.plist bumped to 1.4.4 (release.sh reads the version from there, not the pbxproj).
+
+---
+
 ### 2026-10-09 — App Store search metadata: subtitle, keywords, Spanish listing
 - **Branch:** chore/aso-keywords
 - **Files:** chla-ios/AppStoreMetadata.md, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
