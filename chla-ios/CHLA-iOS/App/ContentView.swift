@@ -959,7 +959,7 @@ struct MoreView: View {
                     HStack {
                         Label("Resources", systemImage: "building.2")
                         Spacer()
-                        Text("370+")
+                        Text("300+")
                             .foregroundStyle(.secondary)
                     }
                 } header: {

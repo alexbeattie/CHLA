@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-19 — Provider count copy: 370+/600+ to 300+
+- **Branch:** fix/provider-count-copy
+- **Files:** chla-ios/CHLA-iOS/Views/{AboutView,FAQView,SettingsView}.swift, chla-ios/CHLA-iOS/App/ContentView.swift, map-frontend/src/views/AboutView.vue, map-frontend/public/og-image.svg, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md, docs/SOCIAL_IMAGES_GUIDE.md
+- **Problem:** App and store copy claimed 370+ or 600+ verified resources; production `/api/providers/` returns count 307 on 2026-10-19.
+- **Fix:** All live counts read 300+ (es: más de 300). CHANGELOG and archived docs left as historical record.
+
+---
+
 ### 2026-10-09 — release.sh: pass the App Store Connect key path to xcodebuild
 - **Branch:** chore/ios-144-release
 - **Files:** chla-ios/scripts/release.sh, chla-ios/CHLA-iOS/Resources/Info.plist

@@ -218,7 +218,7 @@
           </p>
           <div class="stats-grid">
             <div class="stat-card">
-              <div class="stat-number">370+</div>
+              <div class="stat-number">300+</div>
               <div class="stat-label">{{ $t("about.verifiedResources") }}</div>
             </div>
             <div class="stat-card">

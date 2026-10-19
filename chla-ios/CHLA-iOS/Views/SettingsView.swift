@@ -253,7 +253,7 @@ struct SettingsView: View {
                     HStack {
                         Label("Resource Data", systemImage: "building.2")
                         Spacer()
-                        Text("370+ Resources")
+                        Text("300+ Resources")
                             .foregroundStyle(.secondary)
                     }
                 } header: {
