@@ -41,7 +41,7 @@ Today the platform includes:
 - An Android app in development for the same family-navigation use case.
 - Search and filtering by therapy type, insurance/funding path, age group, diagnosis, distance, and Regional Center.
 - Coverage for all 7 Los Angeles County Regional Centers.
-- 370+ provider/resource records, subject to ongoing validation.
+- 300+ provider/resource records, subject to ongoing validation.
 - English and Spanish family-facing support.
 - Location-based provider discovery and driving directions.
 - Ask KiNDD / AI assistance for guided questions in English or Spanish.
