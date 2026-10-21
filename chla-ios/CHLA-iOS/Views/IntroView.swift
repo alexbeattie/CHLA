@@ -21,7 +21,7 @@ struct IntroView: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    static let privacyPolicyURL = URL(string: "https://kinddhelp.com/privacy")!
+    static let privacyPolicyURL = URL(string: "https://kinddhelp.org/privacy")!
     static let supportEmail = "support@kinddhelp.org"
 
     private struct IntroSection: Identifiable {

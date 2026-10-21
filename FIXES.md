@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-21 — iOS: Contact us mailed a domain with no mail server
+- **Branch:** feat/survey-intro-ios
+- **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift
+- **Problem:** "Contact us" opened mail to support@kinddhelp.com, but kinddhelp.com has no MX record, so messages bounce. The new intro's Privacy Policy link pointed at kinddhelp.com/privacy, which only redirects.
+- **Fix:** Contact us now uses support@kinddhelp.org (Google Workspace MX), matching web and Android; the privacy link goes straight to https://kinddhelp.org/privacy.
+
+---
+
 ### 2026-10-21 — iOS: onboarding intro screen and feedback survey
 - **Branch:** feat/survey-intro-ios
 - **Files:** chla-ios/CHLA-iOS/Views/IntroView.swift, chla-ios/CHLA-iOS/Views/SurveyView.swift, chla-ios/CHLA-iOS/Models/SurveySubmission.swift, chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Services/APIService.swift, chla-ios/CHLA-iOS/Services/LanguageManager.swift, chla-ios/CHLA-iOS/Extensions/String+Localization.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
