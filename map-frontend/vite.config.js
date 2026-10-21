@@ -11,6 +11,7 @@ const PRERENDER_ROUTES = [
   '/privacy',
   '/terms',
   '/intro',
+  '/survey',
   '/regional-centers',
   '/regional-centers/san-gabriel-pomona',
   '/regional-centers/harbor',

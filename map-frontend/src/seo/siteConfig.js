@@ -165,6 +165,7 @@ export const PRERENDER_ROUTES = [
   '/privacy',
   '/terms',
   '/intro',
+  '/survey',
   '/regional-centers',
   ...Object.keys(REGIONAL_CENTER_PAGES).map((slug) => `/regional-centers/${slug}`),
 ]
