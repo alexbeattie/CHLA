@@ -44,7 +44,8 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity, minHeight: proxy.size.height)
             }
             .scrollBounceBehavior(.basedOnSize)
-            .scrollIndicatorsFlash(onAppear: true)        }
+            .scrollIndicatorsFlash(onAppear: true)
+        }
         .clipped()
     }
 
