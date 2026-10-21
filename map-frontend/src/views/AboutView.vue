@@ -7,6 +7,11 @@
         <p class="page-subtitle">
           {{ $t("about.subtitle") }}
         </p>
+        <p class="hero-links">
+          <router-link to="/intro">{{ $t("intro.readAgain") }}</router-link>
+          <span aria-hidden="true">·</span>
+          <router-link to="/survey">{{ $t("nav.feedback") }}</router-link>
+        </p>
       </div>
     </section>
 
@@ -304,6 +309,19 @@ export default {
   opacity: 0.9;
   max-width: 800px;
   margin: 0 auto;
+}
+
+.hero-links {
+  margin: 1.25rem 0 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.hero-links a {
+  color: white;
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 /* Content Section */

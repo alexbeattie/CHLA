@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-21 — Web onboarding intro screen and anonymous feedback survey
+- **Branch:** feat/survey-intro
+- **Files:** maplocation/surveys/*, maplocation/maplocation/{settings,urls}.py, maplocation/pytest.ini, map-frontend/src/components/{IntroContent,OnboardingFlow,LanguageSwitcher,AppNavBar}.vue, map-frontend/src/views/{IntroView,SurveyView,MapView,AboutView,PrivacyPolicyView}.vue, map-frontend/src/{composables/useSurvey,services/surveyService}.ts, map-frontend/src/i18n/locales/{en,es}.json, map-frontend/src/seo/siteConfig.js, map-frontend/vite.config.js, map-frontend/public/sitemap.xml, .env.example
+- **Problem:** Families went straight to the location question with no explanation of the tool, its limits, privacy, or emergencies; the research team had no way to collect family feedback.
+- **Fix:** Intro screen (en/es) is now the first onboarding screen and lives at /intro. /survey posts to new `POST /api/surveys/responses/` (anonymous, global rate limit), stored in `surveys.SurveyResponse`, viewable and downloadable as CSV in the client portal, and emailed through SES when `SURVEY_NOTIFY_EMAILS` and `SURVEY_FROM_EMAIL` are set. Privacy policy covers the survey. LanguageSwitcher closes based on its own element, so two switchers on one page no longer fight.
+
+---
+
 ### 2026-10-09 — release.sh: pass the App Store Connect key path to xcodebuild
 - **Branch:** chore/ios-144-release
 - **Files:** chla-ios/scripts/release.sh, chla-ios/CHLA-iOS/Resources/Info.plist

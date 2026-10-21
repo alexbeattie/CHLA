@@ -10,6 +10,7 @@ const PRERENDER_ROUTES = [
   '/clinicians',
   '/privacy',
   '/terms',
+  '/intro',
   '/regional-centers',
   '/regional-centers/san-gabriel-pomona',
   '/regional-centers/harbor',

@@ -3,7 +3,7 @@
     <div class="container">
       <header class="policy-header">
         <h1>Privacy Policy</h1>
-        <p class="last-updated">Last Updated: July 31, 2026</p>
+        <p class="last-updated">Last Updated: October 21, 2026</p>
       </header>
 
       <div class="policy-content">
@@ -130,6 +130,32 @@
         </section>
 
         <section>
+          <h2>Feedback Survey</h2>
+          <p>
+            The Service includes an optional feedback survey about your
+            experience finding developmental services. When you submit it:
+          </p>
+          <ul>
+            <li>
+              We do not ask for your name, contact information, location, or
+              device identifiers, and your answers are not linked to your
+              profile or your searches.
+            </li>
+            <li>
+              We store your answers along with the app language, platform, app
+              version, and submission time on our servers, and send a copy by
+              email to the KiNDD team so they can evaluate and improve the
+              Service.
+            </li>
+            <li>
+              Your answers may describe your child's diagnosis or evaluation
+              status. Please do not include names or other identifying details
+              in written answers.
+            </li>
+          </ul>
+        </section>
+
+        <section>
           <h2>How We Use Your Information</h2>
           <p>We use the information we collect to:</p>
           <ul>
@@ -211,6 +237,12 @@
               response fingerprint until the report has been reviewed and is no
               longer needed for safety or quality follow-up. We then delete or
               anonymize the report.
+            </li>
+            <li>
+              <strong>Survey responses:</strong> We retain survey answers while
+              they are needed to evaluate and improve the Service, then delete
+              them. Because responses are anonymous, we may not be able to find
+              a specific response to delete on request.
             </li>
             <li>
               <strong>Support and privacy requests:</strong> We retain

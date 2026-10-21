@@ -100,6 +100,16 @@ const ROUTE_SEO = {
     description:
       'Terms of service for KiNDD - NDD Resource Map. Read the conditions for using the site.',
   },
+  '/intro': {
+    title: `Introduction - ${SITE_TITLE}`,
+    description:
+      'How the KiNDD Resource Navigator works, who it is for, how your answers are handled, and what to do in an emergency.',
+  },
+  '/survey': {
+    title: `Feedback Survey - ${SITE_TITLE}`,
+    description:
+      'Tell the KiNDD team how the Resource Navigator worked for your family. Anonymous, and every question is optional.',
+  },
   '/regional-centers': {
     title: `Regional Centers - ${SITE_TITLE}`,
     description:
@@ -154,6 +164,7 @@ export const PRERENDER_ROUTES = [
   '/clinicians',
   '/privacy',
   '/terms',
+  '/intro',
   '/regional-centers',
   ...Object.keys(REGIONAL_CENTER_PAGES).map((slug) => `/regional-centers/${slug}`),
 ]

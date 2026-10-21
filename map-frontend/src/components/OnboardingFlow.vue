@@ -1,8 +1,14 @@
 <template>
   <div class="onboarding-overlay" v-if="showOnboarding">
     <div class="onboarding-container">
+      <IntroContent
+        v-if="showIntro"
+        :button-label="$t('intro.getStarted')"
+        @continue="showIntro = false"
+      />
+
       <!-- Progress Bar -->
-      <div class="progress-bar">
+      <div v-if="!showIntro" class="progress-bar">
         <div
           class="progress-fill"
           :style="{ width: progressPercentage + '%' }"
@@ -10,7 +16,7 @@
       </div>
 
       <!-- Step Content -->
-      <div class="step-content">
+      <div v-if="!showIntro" class="step-content">
         <!-- Step Counter -->
         <div class="step-counter">
           Step {{ currentStep }} of {{ totalSteps }}
@@ -463,7 +469,7 @@
       </div>
 
       <!-- Navigation -->
-      <div class="step-navigation">
+      <div v-if="!showIntro" class="step-navigation">
         <!-- Back Button (all steps except first) -->
         <button
           v-if="currentStep > 1"
@@ -511,9 +517,12 @@
 
 <script>
 import { useProviderStore } from "@/stores/providerStore";
+import IntroContent from "@/components/IntroContent.vue";
 
 export default {
   name: "OnboardingFlow",
+
+  components: { IntroContent },
 
   props: {
     showOnboarding: {
@@ -528,6 +537,7 @@ export default {
 
   data() {
     return {
+      showIntro: true,
       currentStep: 1,
       totalSteps: 5,
       locationDetecting: false,

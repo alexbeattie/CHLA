@@ -33,7 +33,8 @@
     "login": "Iniciar Sesión",
     "logout": "Cerrar Sesión",
     "profile": "Perfil",
-    "getApp": "Obtener la app"
+    "getApp": "Obtener la app",
+    "feedback": "Enviar comentarios"
   },
   "search": {
     "placeholder": "Ingrese ciudad o código postal",
@@ -384,5 +385,115 @@
     "more": "más",
     "ages": "Edades:",
     "locationNotAvailable": "Ubicación no disponible en el mapa"
+  },
+  "intro": {
+    "title": "Bienvenido a KiNDD Resource Navigator",
+    "lead": "Esta aplicación está diseñada para ayudar a las familias a encontrar servicios y terapias del desarrollo para sus hijos en todo el condado de Los Ángeles.",
+    "getStarted": "Comenzar",
+    "done": "Listo",
+    "readAgain": "Leer la introducción",
+    "emailLabel": "Escribir al soporte de KiNDD",
+    "privacyLink": "Política de privacidad",
+    "sections": {
+      "howItWorks": {
+        "title": "¿Cómo funciona?",
+        "body": "Le haremos algunas preguntas sobre las necesidades, la edad y la ubicación de su hijo para ayudarle a encontrar servicios y recursos relevantes en su área."
+      },
+      "services": {
+        "title": "¿Qué servicios puedo encontrar?",
+        "body": "El navegador de recursos puede ayudarle a explorar servicios como el análisis aplicado de la conducta (ABA), la terapia ocupacional (OT), la fisioterapia (PT), la terapia del habla y lenguaje (SLP) y otros servicios del desarrollo."
+      },
+      "audience": {
+        "title": "¿Quién puede usar esta aplicación?",
+        "body": "Esta herramienta está pensada para apoyar a familias, cuidadores y profesionales clínicos de niños con discapacidades del neurodesarrollo o inquietudes sobre su desarrollo que buscan servicios y apoyo."
+      },
+      "afterQuestions": {
+        "title": "¿Qué pasa después de responder las preguntas?",
+        "body": "Según sus respuestas, la aplicación le ayudará a identificar proveedores y servicios que podrían ser relevantes. Puede usar esta información para explorar sus opciones y comunicarse directamente con los proveedores para conocer sus servicios, disponibilidad y requisitos de elegibilidad."
+      },
+      "privacy": {
+        "title": "Su privacidad",
+        "body": "Sus respuestas a estas preguntas se guardan en su dispositivo para que KiNDD recuerde sus preferencias. Su código postal o ubicación se envía a KiNDD solo para encontrar servicios cerca de usted, y no guardamos un historial de sus búsquedas vinculado a usted. KiNDD no requiere una cuenta y no vendemos su información. Si usa Pregúntale a KiNDD, su pregunta y estas respuestas se envían para ayudar a responderla. Consulte nuestra {privacyLink} para más detalles."
+      },
+      "language": {
+        "title": "Idioma y accesibilidad",
+        "body": "KiNDD está disponible en inglés y español. Puede cambiar el idioma en cualquier momento desde el menú de idioma (English / Español). Si necesita ayuda para usar KiNDD, escriba a {email}."
+      },
+      "keepInMind": {
+        "title": "Tenga en cuenta",
+        "body": "KiNDD Resource Navigator es una herramienta informativa y no sustituye una consulta médica ni el consejo de un profesional. No ofrece diagnósticos ni recomendaciones médicas oficiales. Consulte a un proveedor de atención médica con licencia al tomar decisiones sobre el cuidado de su hijo."
+      },
+      "providers": {
+        "title": "Sobre los proveedores de servicios",
+        "body": "El equipo de KiNDD trabaja para mantener un directorio preciso y útil de proveedores de servicios del desarrollo. Sin embargo, los servicios, la disponibilidad, los requisitos de elegibilidad y la información de los proveedores pueden cambiar. Que un proveedor aparezca en la aplicación no constituye un respaldo ni una garantía de sus servicios o de la calidad de su atención."
+      },
+      "urgent": {
+        "title": "Inquietudes urgentes",
+        "body": "KiNDD Resource Navigator no está pensado para emergencias ni inquietudes médicas urgentes. Si su hijo tiene una emergencia médica, llame al 911 o acuda a la sala de emergencias del hospital más cercano."
+      },
+      "help": {
+        "title": "Estamos aquí para ayudar",
+        "body": "Encontrar servicios del desarrollo puede ser abrumador, y esperamos que esta herramienta le facilite explorar sus opciones y conectarse con recursos que apoyen a su hijo y a su familia. Escriba a {email} si tiene preguntas o inquietudes."
+      }
+    }
+  },
+  "survey": {
+    "title": "Encuesta de KiNDD Resource Navigator",
+    "lead": "Sus respuestas nos ayudan a mejorar KiNDD para las familias. Todas las preguntas son opcionales y no le pedimos su nombre ni sus datos de contacto.",
+    "clear": "Borrar",
+    "submit": "Enviar encuesta",
+    "submitting": "Enviando...",
+    "success": "Gracias. Sus respuestas se enviaron al equipo de KiNDD.",
+    "empty": "Responda al menos una pregunta antes de enviar.",
+    "error": "No pudimos enviar sus respuestas. Revise su conexión e inténtelo de nuevo.",
+    "rateLimited": "Se están enviando demasiadas encuestas en este momento. Inténtelo de nuevo en un minuto.",
+    "backToMap": "Volver al mapa",
+    "questions": {
+      "diagnosis": "¿Cuál es el diagnóstico o los diagnósticos de su hijo, si tiene alguno?",
+      "diagnosisStatus": "Indique si su hijo está en proceso de evaluación o si aún no ha recibido un diagnóstico. (Opcional)",
+      "easeOfUse": "¿Qué tan fácil fue navegar y usar KiNDD Resource Navigator?",
+      "helpfulness": "¿Qué tan útil fue KiNDD Resource Navigator para identificar servicios o terapias del desarrollo relevantes para su hijo y su familia?",
+      "difficultyBefore": "Antes de usar KiNDD Resource Navigator, ¿qué tan difícil era encontrar información sobre servicios o terapias del desarrollo para su hijo?",
+      "confidenceAfter": "Después de usar KiNDD Resource Navigator, ¿qué tan seguro se siente de poder encontrar y acceder a servicios del desarrollo adecuados para su hijo?",
+      "needsAddressed": "¿En qué medida le ayudó KiNDD Resource Navigator a identificar servicios que respondan a las necesidades de su hijo?",
+      "experienceBefore": "Describa su experiencia al buscar servicios del desarrollo para su hijo antes de usar KiNDD Resource Navigator. ¿Qué dificultades tuvo, si las hubo?",
+      "unmetNeeds": "¿Qué servicios o recursos todavía necesita su familia que le ha costado encontrar o conseguir?",
+      "improvements": "¿Qué le gustaría que se agregara o mejorara en KiNDD Resource Navigator?",
+      "additionalComments": "Comparta cualquier otro comentario sobre su experiencia con la aplicación."
+    },
+    "diagnosisStatus": {
+      "under_evaluation": "Actualmente en proceso de evaluación",
+      "not_yet_diagnosed": "Aún no ha recibido un diagnóstico"
+    },
+    "scales": {
+      "ease": [
+        "Muy difícil",
+        "Algo difícil",
+        "Ni fácil ni difícil",
+        "Algo fácil",
+        "Muy fácil"
+      ],
+      "helpfulness": [
+        "Nada útil",
+        "Un poco útil",
+        "Moderadamente útil",
+        "Muy útil",
+        "Extremadamente útil"
+      ],
+      "confidence": [
+        "Nada seguro",
+        "Un poco seguro",
+        "Moderadamente seguro",
+        "Muy seguro",
+        "Extremadamente seguro"
+      ],
+      "extent": [
+        "Nada",
+        "Un poco",
+        "Moderadamente",
+        "Mucho",
+        "Completamente"
+      ]
+    }
   }
 }
