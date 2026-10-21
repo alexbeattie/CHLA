@@ -51,6 +51,10 @@
             <i class="bi bi-clipboard2-pulse me-1"></i>
             Clinicians
           </router-link>
+          <router-link to="/survey" class="nav-link">
+            <i class="bi bi-chat-square-text me-1"></i>
+            {{ $t("nav.feedback") }}
+          </router-link>
         </nav>
 
         <div class="navbar-actions">
@@ -119,6 +123,14 @@
               >
                 <i class="bi bi-clipboard2-pulse me-2"></i>
                 Clinicians
+              </router-link>
+              <router-link
+                to="/survey"
+                class="mobile-nav-item"
+                @click="showMobileNav = false"
+              >
+                <i class="bi bi-chat-square-text me-2"></i>
+                {{ $t("nav.feedback") }}
               </router-link>
             </div>
           </div>

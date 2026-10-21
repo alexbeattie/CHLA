@@ -1,5 +1,5 @@
 <template>
-  <div class="language-switcher" :class="{ open: isOpen }">
+  <div ref="switcherRef" class="language-switcher" :class="{ open: isOpen }">
     <button
       class="language-btn"
       @click="toggleDropdown"
@@ -36,6 +36,7 @@ import { setLocale, availableLocales } from '@/i18n'
 
 const { locale } = useI18n()
 const isOpen = ref(false)
+const switcherRef = ref(null)
 
 const currentLocale = computed(() => {
   return availableLocales.find(l => l.code === locale.value) || availableLocales[0]
@@ -52,8 +53,7 @@ function selectLanguage(code) {
 
 // Close dropdown when clicking outside
 function handleClickOutside(event) {
-  const switcher = document.querySelector('.language-switcher')
-  if (switcher && !switcher.contains(event.target)) {
+  if (switcherRef.value && !switcherRef.value.contains(event.target)) {
     isOpen.value = false
   }
 }

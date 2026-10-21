@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/", include("locations.urls")),
     path("api/users/", include("users.urls")),
     path("api/llm/", include("llm.urls")),  # LLM/Bedrock endpoints
+    path("api/surveys/", include("surveys.urls")),
     path("api-auth/", include("rest_framework.urls")),
     # OpenAPI schema and interactive API documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

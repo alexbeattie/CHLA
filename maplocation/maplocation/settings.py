@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "llm.apps.LLMConfig",
     "locations",
     "users",  # New app for user profiles
+    "surveys",
 ]
 
 # GraphQL settings
@@ -304,6 +305,12 @@ CACHE_TIMEOUT_PROVIDER_SEARCH = 60  # 1 minute - search results
 # AWS Configuration
 # ============================================================================
 AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
+
+# Family feedback survey. Notifications are skipped unless both email settings are set.
+SURVEY_NOTIFY_EMAILS = os.environ.get("SURVEY_NOTIFY_EMAILS", "")
+SURVEY_FROM_EMAIL = os.environ.get("SURVEY_FROM_EMAIL", "")
+SURVEY_SES_REGION = os.environ.get("SURVEY_SES_REGION", AWS_REGION)
+SURVEY_GLOBAL_RATE_LIMIT = int(os.environ.get("SURVEY_GLOBAL_RATE_LIMIT", "30"))
 
 # Bedrock model IDs
 BEDROCK_EMBEDDING_MODEL = "amazon.titan-embed-text-v2:0"
