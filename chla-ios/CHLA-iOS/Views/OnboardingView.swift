@@ -17,7 +17,7 @@ struct OnboardingView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    @State private var currentStep = UserDefaults.standard.integer(forKey: "debugStartStep")
+    @State private var currentStep = 0
     @State private var zipCode = ""
     @State private var selectedAgeGroups: Set<String> = []
     @State private var hasMultipleChildren = false
@@ -44,9 +44,7 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity, minHeight: proxy.size.height)
             }
             .scrollBounceBehavior(.basedOnSize)
-            .scrollIndicatorsFlash(onAppear: true)
-            .defaultScrollAnchor(UserDefaults.standard.bool(forKey: "debugScrollBottom") ? .bottom : nil)
-        }
+            .scrollIndicatorsFlash(onAppear: true)        }
         .clipped()
     }
 
@@ -656,7 +654,7 @@ struct OnboardingView: View {
 // MARK: - How-to guide (onboarding step + Settings)
 
 struct HowToGuideContent: View {
-    @State private var showIntro = UserDefaults.standard.bool(forKey: "debugShowIntro")
+    @State private var showIntro = false
 
     var body: some View {
         VStack(spacing: 18) {

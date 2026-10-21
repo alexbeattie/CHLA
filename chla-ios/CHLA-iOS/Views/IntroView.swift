@@ -48,7 +48,6 @@ struct IntroView: View {
             .padding(.top, 24)
             .padding(.bottom, 12)
         }
-        .defaultScrollAnchor(UserDefaults.standard.bool(forKey: "debugScrollBottom") ? .bottom : nil)
         .tint(Theme.indigoDeep)
         .safeAreaInset(edge: .bottom) {
             finishButton
