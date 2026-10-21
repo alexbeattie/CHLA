@@ -7,7 +7,8 @@ import java.net.URI
 
 internal enum class ExternalIntentAction {
     DIAL,
-    VIEW
+    VIEW,
+    SENDTO
 }
 
 internal data class ExternalIntentRequest(
@@ -32,6 +33,11 @@ internal fun websiteRequest(website: String): ExternalIntentRequest? {
     return ExternalIntentRequest(ExternalIntentAction.VIEW, uri.toASCIIString())
 }
 
+internal fun emailRequest(address: String): ExternalIntentRequest? {
+    val value = address.trim().takeIf { EMAIL_PATTERN.matches(it) } ?: return null
+    return ExternalIntentRequest(ExternalIntentAction.SENDTO, "mailto:$value")
+}
+
 internal fun launchExternalIntent(
     request: ExternalIntentRequest?,
     canResolve: (ExternalIntentRequest) -> Boolean,
@@ -54,6 +60,8 @@ internal fun Context.launchDialer(phone: String): Boolean = launch(dialRequest(p
 
 internal fun Context.launchWebsite(website: String): Boolean = launch(websiteRequest(website))
 
+internal fun Context.launchEmail(address: String): Boolean = launch(emailRequest(address))
+
 private fun Context.launch(request: ExternalIntentRequest?): Boolean {
     val intent = request?.toAndroidIntent() ?: return false
     return launchExternalIntent(
@@ -67,9 +75,11 @@ private fun ExternalIntentRequest.toAndroidIntent(): Intent = Intent(
     when (action) {
         ExternalIntentAction.DIAL -> Intent.ACTION_DIAL
         ExternalIntentAction.VIEW -> Intent.ACTION_VIEW
+        ExternalIntentAction.SENDTO -> Intent.ACTION_SENDTO
     },
     Uri.parse(uri)
 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
 private val SCHEME_PATTERN = Regex("^[A-Za-z][A-Za-z0-9+.-]*:")
 private val WEB_SCHEMES = setOf("http", "https")
+private val EMAIL_PATTERN = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")

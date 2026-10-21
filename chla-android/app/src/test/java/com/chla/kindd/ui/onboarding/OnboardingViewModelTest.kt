@@ -41,11 +41,60 @@ class OnboardingViewModelTest {
         fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
 
         assertEquals(OnboardingMode.FIRST_RUN, fixture.viewModel.uiState.value.mode)
-        assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+        assertEquals(OnboardingStep.INTRO, fixture.viewModel.uiState.value.step)
         assertEquals(
             UserProfile(audienceType = AudienceType.FAMILY),
             fixture.viewModel.uiState.value.draft
         )
+    }
+
+    @Test
+    fun firstRun_introGetStartedOpensAudienceAndBackReturnsToIntro() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val fixture = fixture()
+            fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            assertTrue(fixture.viewModel.uiState.value.canContinue)
+            assertTrue(fixture.viewModel.uiState.value.isFirstStep)
+            assertEquals(0, fixture.viewModel.uiState.value.progressStep)
+
+            fixture.viewModel.continueFromCurrentStep()
+            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertFalse(fixture.viewModel.uiState.value.isFirstStep)
+            assertEquals(1, fixture.viewModel.uiState.value.progressStep)
+
+            fixture.viewModel.goBack()
+            assertEquals(OnboardingStep.INTRO, fixture.viewModel.uiState.value.step)
+            fixture.viewModel.goBack()
+            assertEquals(OnboardingStep.INTRO, fixture.viewModel.uiState.value.step)
+            assertTrue(fixture.repository.replacedProfiles.isEmpty())
+        }
+
+    @Test
+    fun edit_skipsIntroAndBackFromAudienceStaysOnAudience() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val fixture = fixture(repository = RecordingProfileRepository(completeProfile()))
+            fixture.viewModel.initialize(OnboardingMode.EDIT, completeProfile())
+
+            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertTrue(fixture.viewModel.uiState.value.isFirstStep)
+            fixture.viewModel.goBack()
+            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+        }
+
+    @Test
+    fun progressCountsOnlyQuestionSteps() {
+        assertEquals(
+            listOf(
+                OnboardingStep.AUDIENCE,
+                OnboardingStep.ZIP,
+                OnboardingStep.REGIONAL_CENTER,
+                OnboardingStep.HOW_TO,
+                OnboardingStep.JOURNEY,
+                OnboardingStep.AGE
+            ),
+            OnboardingStep.questionSteps
+        )
+        assertEquals(6, OnboardingUiState(step = OnboardingStep.AGE).progressStep)
     }
 
     @Test
@@ -86,7 +135,7 @@ class OnboardingViewModelTest {
             assertEquals(
                 OnboardingUiState(
                     mode = OnboardingMode.FIRST_RUN,
-                    step = OnboardingStep.AUDIENCE,
+                    step = OnboardingStep.INTRO,
                     draft = UserProfile(audienceType = AudienceType.FAMILY)
                 ),
                 fixture.viewModel.uiState.value
@@ -104,7 +153,7 @@ class OnboardingViewModelTest {
 
             fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
 
-            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertEquals(OnboardingStep.INTRO, fixture.viewModel.uiState.value.step)
             assertEquals(
                 UserProfile(audienceType = AudienceType.FAMILY),
                 fixture.viewModel.uiState.value.draft
@@ -122,7 +171,7 @@ class OnboardingViewModelTest {
             fixture.viewModel.cancel()
             fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
 
-            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertEquals(OnboardingStep.INTRO, fixture.viewModel.uiState.value.step)
             assertEquals(
                 UserProfile(audienceType = AudienceType.FAMILY),
                 fixture.viewModel.uiState.value.draft
@@ -202,6 +251,7 @@ class OnboardingViewModelTest {
         )
         fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
         fixture.viewModel.continueFromCurrentStep()
+        fixture.viewModel.continueFromCurrentStep()
         fixture.viewModel.onZipChanged("90001")
 
         fixture.viewModel.continueFromCurrentStep()
@@ -230,6 +280,7 @@ class OnboardingViewModelTest {
             val fixture = fixture(regionalCenters = centers)
             fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
             fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.onZipChanged("90001")
             fixture.viewModel.continueFromCurrentStep()
             runCurrent()
@@ -256,6 +307,7 @@ class OnboardingViewModelTest {
             }
             val fixture = fixture(regionalCenters = centers)
             fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.onZipChanged("90001")
             fixture.viewModel.continueFromCurrentStep()
@@ -284,6 +336,7 @@ class OnboardingViewModelTest {
             val fixture = fixture(regionalCenters = centers)
             fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
             fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.onZipChanged("90001")
             fixture.viewModel.continueFromCurrentStep()
             runCurrent()
@@ -293,7 +346,7 @@ class OnboardingViewModelTest {
             gate.complete(Unit)
             runCurrent()
 
-            assertEquals(OnboardingStep.AUDIENCE, fixture.viewModel.uiState.value.step)
+            assertEquals(OnboardingStep.INTRO, fixture.viewModel.uiState.value.step)
             assertEquals(
                 UserProfile(audienceType = AudienceType.FAMILY),
                 fixture.viewModel.uiState.value.draft
@@ -429,6 +482,7 @@ class OnboardingViewModelTest {
             val fixture = fixture(regionalCenters = regionalCenters, location = location)
             fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
             fixture.viewModel.continueFromCurrentStep()
+            fixture.viewModel.continueFromCurrentStep()
 
             fixture.viewModel.useCurrentLocation()
             runCurrent()
@@ -454,6 +508,7 @@ class OnboardingViewModelTest {
             }
             val fixture = fixture(location = location)
             fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.useCurrentLocation()
             runCurrent()
@@ -482,6 +537,7 @@ class OnboardingViewModelTest {
             }
             val fixture = fixture(regionalCenters = centers)
             fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.onZipChanged("90001")
             fixture.viewModel.continueFromCurrentStep()
@@ -514,6 +570,7 @@ class OnboardingViewModelTest {
             val location = FakeUserLocationSource(permissionGranted = false, coordinates = null)
             val fixture = fixture(location = location)
             fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+            fixture.viewModel.continueFromCurrentStep()
             fixture.viewModel.continueFromCurrentStep()
 
             fixture.viewModel.onLocationPermissionResult(granted = false)
@@ -724,6 +781,7 @@ class OnboardingViewModelTest {
 
     private suspend fun kotlinx.coroutines.test.TestScope.advanceToCenter(fixture: Fixture) {
         fixture.viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
+        fixture.viewModel.continueFromCurrentStep()
         fixture.viewModel.continueFromCurrentStep()
         fixture.viewModel.onZipChanged("90001")
         fixture.viewModel.continueFromCurrentStep()

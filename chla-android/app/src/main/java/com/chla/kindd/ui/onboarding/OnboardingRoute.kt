@@ -62,7 +62,14 @@ fun OnboardingRoute(
     onClose: () -> Unit = {},
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val sessionState by viewModel.uiState.collectAsStateWithLifecycle()
+    // Before initialize() runs (and after a session ends) the view model holds a first-run
+    // placeholder; an edit route must not flash the first-run intro in that window.
+    val state = if (sessionState.mode == mode) {
+        sessionState
+    } else {
+        OnboardingUiState(mode = mode)
+    }
     val serviceAreaState by rememberRegionalCenterServiceAreas()
     OnboardingBackGuard(
         state = state,
@@ -118,13 +125,14 @@ internal fun OnboardingBackGuard(
     onBack: () -> Unit,
     onClose: () -> Unit
 ) {
+    val atFirstStep = state.step == mode.firstStep
     val handlesBack = state.isSaving ||
-        state.step != OnboardingStep.AUDIENCE ||
+        !atFirstStep ||
         mode == OnboardingMode.EDIT
     BackHandler(enabled = handlesBack) {
         when {
             state.isSaving -> Unit
-            state.step != OnboardingStep.AUDIENCE -> onBack()
+            !atFirstStep -> onBack()
             mode == OnboardingMode.EDIT -> onClose()
         }
     }
@@ -160,12 +168,17 @@ fun OnboardingContent(
                 .background(kinddTopWash())
         )
         Column(modifier = Modifier.fillMaxSize()) {
-            OnboardingProgress(
-                state = state,
-                onCancel = onCancel
-            )
+            if (state.step == OnboardingStep.INTRO) {
+                Spacer(modifier = Modifier.fillMaxWidth().statusBarsPadding())
+            } else {
+                OnboardingProgress(
+                    state = state,
+                    onCancel = onCancel
+                )
+            }
             Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 when (state.step) {
+                    OnboardingStep.INTRO -> IntroStep()
                     OnboardingStep.AUDIENCE -> AudienceStep(
                         selectedAudience = state.draft.audienceType,
                         onAudienceSelected = onAudienceSelected
@@ -241,7 +254,7 @@ private fun OnboardingProgress(
                 text = stringResource(
                     R.string.onboarding_progress,
                     state.progressStep,
-                    OnboardingStep.entries.size
+                    OnboardingStep.questionSteps.size
                 ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -266,8 +279,8 @@ private fun OnboardingProgress(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            OnboardingStep.entries.forEachIndexed { index, _ ->
-                val active = index == state.step.ordinal
+            OnboardingStep.questionSteps.forEachIndexed { index, step ->
+                val active = step == state.step
                 Box(
                     modifier = Modifier
                         .size(width = if (active) 22.dp else 7.dp, height = 7.dp)
@@ -298,7 +311,7 @@ private fun OnboardingActions(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (state.step != OnboardingStep.AUDIENCE) {
+        if (!state.isFirstStep) {
             KiNDDSecondaryCapsule(
                 onClick = { if (!state.isSaving) onBack() },
                 modifier = Modifier
@@ -333,6 +346,7 @@ private fun OnboardingActions(
                 Text(
                     text = stringResource(
                         when {
+                            state.step == OnboardingStep.INTRO -> R.string.intro_get_started
                             state.step != OnboardingStep.AGE -> R.string.action_continue
                             state.mode == OnboardingMode.EDIT -> R.string.action_save
                             else -> R.string.action_get_started

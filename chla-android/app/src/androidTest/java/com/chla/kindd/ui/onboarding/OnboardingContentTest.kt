@@ -19,6 +19,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -51,6 +52,27 @@ class OnboardingContentTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun intro_showsTitleSectionsAndGetStartedWithoutBackOrProgress() {
+        compose(state(step = OnboardingStep.INTRO))
+
+        composeRule.onNodeWithText("Welcome to the KiNDD Resource Navigator").assertExists()
+        composeRule.onNodeWithText("Get started").assertExists()
+        composeRule.onAllNodesWithTag("onboarding_primary_action").assertCountEquals(1)
+        composeRule.onNodeWithTag("onboarding_primary_action").assertIsEnabled()
+        composeRule.onNodeWithTag("onboarding_back_action").assertDoesNotExist()
+        composeRule.onNodeWithTag("onboarding_progress_capsules").assertDoesNotExist()
+        composeRule.onNodeWithTag("intro_urgent_card").assertExists()
+        composeRule.onAllNodes(isHeading()).assertCountEquals(11)
+    }
+
+    @Test
+    fun firstRunAudience_offersBackToTheIntro() {
+        compose(state(step = OnboardingStep.AUDIENCE))
+
+        composeRule.onNodeWithTag("onboarding_back_action").assertExists()
+    }
 
     @Test
     fun audience_showsItsHeadingAndExactlyOnePrimaryAction() {
@@ -421,6 +443,7 @@ class OnboardingContentTest {
         composeRule.waitForIdle()
         composeRule.runOnIdle {
             viewModel.continueFromCurrentStep()
+            viewModel.continueFromCurrentStep()
             viewModel.onZipChanged("90001")
         }
         assertEquals(OnboardingStep.ZIP, viewModel.uiState.value.step)
@@ -443,14 +466,17 @@ class OnboardingContentTest {
         composeRule.runOnIdle {
             viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
             viewModel.continueFromCurrentStep()
+            viewModel.continueFromCurrentStep()
             viewModel.onZipChanged("90001")
             viewModel.continueFromCurrentStep()
         }
         composeRule.waitForIdle()
         composeRule.runOnIdle {
             viewModel.continueFromCurrentStep()
+            viewModel.continueFromCurrentStep()
             viewModel.selectJourney(JourneyStage.EXPLORING)
             viewModel.continueFromCurrentStep()
+            assertEquals(OnboardingStep.AGE, viewModel.uiState.value.step)
             viewModel.finish()
         }
         composeRule.waitForIdle()
@@ -469,7 +495,7 @@ class OnboardingContentTest {
         }
         composeRule.waitForIdle()
 
-        assertEquals(OnboardingStep.AUDIENCE, renderedSteps.first())
+        assertEquals(OnboardingStep.INTRO, renderedSteps.first())
         assertEquals(1, savedCalls)
     }
 
@@ -514,7 +540,10 @@ class OnboardingContentTest {
             }
         }
         composeRule.waitForIdle()
-        composeRule.runOnIdle { firstRunViewModel.continueFromCurrentStep() }
+        composeRule.runOnIdle {
+            firstRunViewModel.continueFromCurrentStep()
+            firstRunViewModel.continueFromCurrentStep()
+        }
         assertEquals(OnboardingStep.ZIP, firstRunViewModel.uiState.value.step)
 
         composeRule.runOnIdle {
