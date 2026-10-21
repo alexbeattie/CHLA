@@ -13,6 +13,30 @@ Format:
 
 ---
 
+### 2026-10-21 — Android: fold the intro into onboarding and soften the urgent card
+- **Branch:** feat/survey-intro-android
+- **Files:** chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/*, chla-android/app/src/main/java/com/chla/kindd/ui/intro/IntroContent.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/SettingsScreen.kt, chla-android/app/src/main/res/values*/strings.xml, chla-android/app/src/test/java/com/chla/kindd/ui/intro/IntroSurveyStringParityTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/onboarding/OnboardingContentTest.kt
+- **Problem:** First run opened on a standalone `INTRO` step of ten sections ending in an `errorContainer` urgent card with a warning icon, which read as a warning before the user had done anything.
+- **Fix:** `INTRO` step removed; onboarding starts at `AUDIENCE` in both modes again. First-run `AUDIENCE` shows the welcome title, lead and three how/what/who rows in place of the old heading (edit mode unchanged). `HOW_TO` gets an on-device privacy row with a Privacy Policy link (replacing the old privacy row) and a neutral indigo "Good to know" card with "Read the full introduction" and a support mailto. The full intro opens over onboarding from that card and stays reachable from Settings and About; its urgent section is now a neutral card with a phone icon. `intro_get_started` and `onboarding_howto_privacy_body` removed.
+
+---
+
+### 2026-10-21 — Quick Setup age chips were clipped in the label column
+- **Branch:** feat/survey-intro-android
+- **Files:** map-frontend/src/components/OnboardingFlow.vue
+- **Problem:** The age row put a hint and the chip grid into a 2-column `.form-row` (`150px` + the rest). The chips wrapped into the 150px track, and `text-overflow: ellipsis` cut them to "0-5 ye..." and "I have more than ...".
+- **Fix:** Hint and chips sit in one `.age-field` in the wide column, same track as the audience buttons and the diagnosis select.
+
+---
+
+### 2026-10-21 — Android: onboarding intro screen and feedback survey
+- **Branch:** feat/survey-intro-android
+- **Files:** chla-android/app/src/main/java/com/chla/kindd/ui/intro/*, chla-android/app/src/main/java/com/chla/kindd/ui/survey/*, chla-android/app/src/main/java/com/chla/kindd/data/survey/*, chla-android/app/src/main/java/com/chla/kindd/data/api/KINDDApi.kt, chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/*, chla-android/app/src/main/java/com/chla/kindd/ui/navigation/*, chla-android/app/src/main/java/com/chla/kindd/ui/screens/SettingsScreen.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/AboutScreen.kt, chla-android/app/src/main/java/com/chla/kindd/platform/ExternalIntents.kt, chla-android/app/src/main/AndroidManifest.xml, chla-android/app/src/main/res/values*/strings.xml
+- **Problem:** First-run onboarding opened straight on the audience question with no explanation of what KiNDD does, its privacy terms, or where to go in an emergency, and the app had no way to collect user feedback.
+- **Fix:** New `INTRO` onboarding step ahead of the questions (first run only; editing a profile still starts at audience) with the shared English/Spanish intro copy, a tinted urgent-concerns card, heading semantics, and mailto/Privacy Policy links; reopenable as "Welcome guide" from Settings and About with a Done button. New "Share feedback" survey screen posts the 11 optional answers plus `platform`/`locale`/`app_version` to `/api/surveys/responses/`, with empty, sending, success, 429, and error states. The survey DTO lives in `data.api` so the existing R8 keep rule covers its Gson field names. `OnboardingContentTest.completedSession_firstReusedRouteFrameIsReset_andSavedEventIsDelivered` already failed on main because it called `finish()` from `JOURNEY` (it never stepped past `HOW_TO`); it now walks to `AGE` first.
+
+---
+
 ### 2026-10-21 — Quick Setup age chips were clipped in the label column
 - **Branch:** feat/survey-intro
 - **Files:** map-frontend/src/components/OnboardingFlow.vue

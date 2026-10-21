@@ -11,6 +11,8 @@ import com.chla.kindd.data.servicearea.ServiceAreaDataSource
 import com.chla.kindd.data.source.ProviderDiscoveryDataSource
 import com.chla.kindd.data.source.RegionalCenterDataSource
 import com.chla.kindd.data.source.UserLocationSource
+import com.chla.kindd.data.survey.ApiSurveyRepository
+import com.chla.kindd.data.survey.SurveyRepository
 import com.chla.kindd.services.LocationService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -86,6 +88,13 @@ object RepositoryModule {
     fun provideRegionalCenterDataSource(
         repository: RegionalCenterRepository
     ): RegionalCenterDataSource = repository
+
+    @Provides
+    @Singleton
+    fun provideSurveyRepository(
+        api: KINDDApi,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
+    ): SurveyRepository = ApiSurveyRepository(api, ioDispatcher)
 
     @Provides
     @Singleton

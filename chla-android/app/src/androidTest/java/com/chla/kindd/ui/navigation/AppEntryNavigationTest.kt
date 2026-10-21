@@ -815,6 +815,16 @@ class AppEntryNavigationTest {
         override fun editProfile(profile: UserProfile, actions: MainNavActions) {
             TaggedDestination(EDIT_PROFILE_TAG)
         }
+
+        @Composable
+        override fun intro(actions: MainNavActions) {
+            TaggedDestination("fake_intro_destination")
+        }
+
+        @Composable
+        override fun survey(actions: MainNavActions) {
+            TaggedDestination("fake_survey_destination")
+        }
     }
 
     private companion object {
