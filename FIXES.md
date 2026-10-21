@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-21 — switch-env.sh exits when no frontend .env exists
+- **Branch:** cursor/cloud-dev-env-4feb
+- **Files:** map-frontend/switch-env.sh
+- **Problem:** `./switch-env.sh dev` returned exit code 1 and wrote no `.env` when `map-frontend/.env` was missing. `set -e` aborted on the token lookup command substitution, so local startup never reached the Mapbox warning.
+- **Fix:** Token lookup treats a missing file as empty and returns success, then the script still writes `.env` and warns when no token is available.
+
+---
+
 ### 2026-10-09 — release.sh: pass the App Store Connect key path to xcodebuild
 - **Branch:** chore/ios-144-release
 - **Files:** chla-ios/scripts/release.sh, chla-ios/CHLA-iOS/Resources/Info.plist

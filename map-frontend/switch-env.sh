@@ -10,7 +10,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Resolve the Mapbox token without ever blanking a token we already have:
 # shell environment first, then the current .env, then .env.production.
 read_token_from_file() {
-  [ -f "$1" ] && sed -n 's/^VITE_MAPBOX_TOKEN=//p' "$1" | head -n 1
+  # A missing file must return success. Under `set -e`, a failing
+  # command substitution aborts the script before it can warn.
+  if [ -f "$1" ]; then
+    sed -n 's/^VITE_MAPBOX_TOKEN=//p' "$1" | head -n 1 || true
+  fi
 }
 
 MAPBOX_TOKEN="${VITE_MAPBOX_TOKEN:-${MAPBOX_TOKEN:-}}"
