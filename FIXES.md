@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-21 — Quick Setup age chips were clipped in the label column
+- **Branch:** feat/survey-intro
+- **Files:** map-frontend/src/components/OnboardingFlow.vue
+- **Problem:** The age row put a hint and the chip grid into a 2-column `.form-row` (`150px` + the rest). The chips wrapped into the 150px track, and `text-overflow: ellipsis` cut them to "0-5 ye..." and "I have more than ...".
+- **Fix:** Hint and chips sit in one `.age-field` in the wide column, same track as the audience buttons and the diagnosis select.
+
+---
+
 ### 2026-10-21 — Web onboarding intro screen and anonymous feedback survey
 - **Branch:** feat/survey-intro
 - **Files:** maplocation/surveys/*, maplocation/maplocation/{settings,urls}.py, maplocation/pytest.ini, map-frontend/src/components/{IntroContent,OnboardingFlow,LanguageSwitcher,AppNavBar}.vue, map-frontend/src/views/{IntroView,SurveyView,MapView,AboutView,PrivacyPolicyView}.vue, map-frontend/src/{composables/useSurvey,services/surveyService}.ts, map-frontend/src/i18n/locales/{en,es}.json, map-frontend/src/seo/siteConfig.js, map-frontend/vite.config.js, map-frontend/public/sitemap.xml, .env.example

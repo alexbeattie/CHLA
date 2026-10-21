@@ -188,40 +188,42 @@
               </div>
             </div>
 
-            <div class="form-row">
+            <div class="form-row age-row">
               <label>{{
                 userProfile.hasMultipleChildren || userProfile.ages.length > 1
                   ? "How old are your children?"
                   : "How old is your child?"
               }}</label>
-              <p class="optional-hint">
-                Optional - pick every age that applies. You can switch between
-                kids later in Filters.
-              </p>
-              <div class="age-options">
-                <button
-                  type="button"
-                  class="audience-option"
-                  v-for="age in ageOptions"
-                  :key="age.value"
-                  :class="{ active: userProfile.ages.includes(age.value) }"
-                  @click="toggleAge(age.value)"
-                >
-                  <span>{{ age.label }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="audience-option"
-                  :class="{
-                    active:
-                      userProfile.hasMultipleChildren ||
-                      userProfile.ages.length > 1,
-                  }"
-                  @click="toggleMultipleChildren"
-                >
-                  <i class="bi bi-people-fill"></i>
-                  <span>I have more than 1 child</span>
-                </button>
+              <div class="age-field">
+                <p class="optional-hint">
+                  Optional - pick every age that applies. You can switch between
+                  kids later in Filters.
+                </p>
+                <div class="age-options">
+                  <button
+                    type="button"
+                    class="audience-option"
+                    v-for="age in ageOptions"
+                    :key="age.value"
+                    :class="{ active: userProfile.ages.includes(age.value) }"
+                    @click="toggleAge(age.value)"
+                  >
+                    <span>{{ age.label }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="audience-option"
+                    :class="{
+                      active:
+                        userProfile.hasMultipleChildren ||
+                        userProfile.ages.length > 1,
+                    }"
+                    @click="toggleMultipleChildren"
+                  >
+                    <i class="bi bi-people-fill"></i>
+                    <span>I have more than 1 child</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1545,6 +1547,21 @@ export default {
   color: #004877;
 }
 
+.age-row {
+  align-items: start;
+}
+
+.age-row > label {
+  padding-top: 0.15rem;
+}
+
+.age-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .age-options {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1556,7 +1573,7 @@ export default {
 }
 
 .optional-hint {
-  margin: 0 0 0.5rem;
+  margin: 0;
   font-size: 0.8rem;
   color: #6b7280;
 }
