@@ -119,6 +119,28 @@
 "onboarding.done" = "Done";
 "onboarding.locationTitle" = "Enable Location";
 "onboarding.locationSubtitle" = "Find resources near you";
+"onboarding.howItWorks.title" = "How it works";
+"onboarding.howItWorks.body" = "Answer a few quick questions about your child's needs, age, and location.";
+"onboarding.services.title" = "What you can find";
+"onboarding.services.body" = "ABA, occupational, physical, and speech therapy, plus other developmental services.";
+"onboarding.audience.title" = "Who it's for";
+"onboarding.audience.body" = "Families, caregivers, and clinicians supporting children with developmental needs.";
+"onboarding.privacy.title" = "Your answers are saved on your device";
+"onboarding.privacy.body" = "We use your ZIP code only to find services near you. No account is needed, and we don't sell your information. See our Privacy Policy.";
+"onboarding.goodToKnow.title" = "Good to know";
+"onboarding.goodToKnow.body" = "KiNDD is an informational tool, not medical advice or a diagnosis. Provider details can change, and a listing isn't an endorsement. For emergencies, call 911 or go to the nearest emergency department.";
+"onboarding.readFullIntro" = "Read the full introduction";
+"onboarding.supportLine" = "Questions? Email support@kinddhelp.org";
+"onboarding.back" = "Back";
+"onboarding.role.label" = "I'm here as a";
+"onboarding.role.family" = "Parent or family";
+"onboarding.role.clinician" = "Clinician";
+"onboarding.howTo.title" = "Optional questions, then Filters";
+"onboarding.howTo.lead" = "Next we'll ask a few optional questions about your family. Skip anything you don't want to answer.";
+"onboarding.filters.title" = "Filters stay on the map";
+"onboarding.filters.body" = "Use Filters to narrow results, reset your search, or switch which child's age is applied.";
+"onboarding.kids.title" = "More than one child";
+"onboarding.kids.body" = "Select every age that applies. Later, tap a child's age chip to toggle between kids.";
 
 // MARK: - Settings
 "settings.title" = "Settings";
@@ -242,7 +264,6 @@
 "intro.urgent.body" = "The KiNDD Resource Navigator is not intended for emergencies or urgent medical concerns. If your child is experiencing a medical emergency, please call 911 or go to your nearest hospital's Emergency Department.";
 "intro.help.heading" = "We're here to help";
 "intro.help.body" = "Finding developmental services can feel overwhelming, and we hope this tool makes it easier to explore your options and connect with resources that support your child and family. Please contact support@kinddhelp.org with any questions or concerns.";
-"intro.getStarted" = "Get started";
 "intro.done" = "Done";
 "intro.settingsLabel" = "Welcome guide";
 

@@ -13,6 +13,22 @@ Format:
 
 ---
 
+### 2026-10-21 — iOS: fold the intro into onboarding steps
+- **Branch:** feat/survey-intro-ios
+- **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift, chla-ios/CHLA-iOS/Extensions/String+Localization.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings
+- **Problem:** Onboarding opened on a separate full-screen intro of ten stacked sections ending in a red emergency card, which read like a warning before the first question.
+- **Fix:** Onboarding starts on the step pager again. Step 0 (welcome) shows the intro title, lead, and three short rows above the audience picker. Step 3 (how-to, right before the questions) gets the on-device privacy row with the Privacy Policy link and a neutral "Good to know" card that opens the full `IntroView` as a sheet and mails support@kinddhelp.org. The full intro keeps its text but its urgent section uses the standard card with a `phone` icon. Steps scroll when taller than the page, so Continue stays visible on iPhone SE. New copy in en and es; `intro.getStarted` removed. The Back/Continue/Get Started buttons, the audience picker, and the how-to step were hardcoded English and now read from `Localizable.strings`, so the Spanish carousel no longer mixes languages.
+
+---
+
+### 2026-10-21 — Quick Setup age chips were clipped in the label column
+- **Branch:** feat/survey-intro-ios
+- **Files:** map-frontend/src/components/OnboardingFlow.vue
+- **Problem:** The age row put a hint and the chip grid into a 2-column `.form-row` (`150px` + the rest). The chips wrapped into the 150px track, and `text-overflow: ellipsis` cut them to "0-5 ye..." and "I have more than ...".
+- **Fix:** Hint and chips sit in one `.age-field` in the wide column, same track as the audience buttons and the diagnosis select.
+
+---
+
 ### 2026-10-21 — iOS: Contact us mailed a domain with no mail server
 - **Branch:** feat/survey-intro-ios
 - **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift

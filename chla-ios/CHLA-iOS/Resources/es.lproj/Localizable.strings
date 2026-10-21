@@ -119,6 +119,28 @@
 "onboarding.done" = "Listo";
 "onboarding.locationTitle" = "Habilitar Ubicación";
 "onboarding.locationSubtitle" = "Encuentre recursos cerca de usted";
+"onboarding.howItWorks.title" = "Cómo funciona";
+"onboarding.howItWorks.body" = "Responda unas preguntas rápidas sobre las necesidades, la edad y la ubicación de su hijo.";
+"onboarding.services.title" = "Qué puede encontrar";
+"onboarding.services.body" = "Terapia ABA, ocupacional, física y del habla, y otros servicios del desarrollo.";
+"onboarding.audience.title" = "Para quién es";
+"onboarding.audience.body" = "Familias, cuidadores y médicos que apoyan a niños con necesidades del desarrollo.";
+"onboarding.privacy.title" = "Sus respuestas se guardan en su dispositivo";
+"onboarding.privacy.body" = "Usamos su código postal solo para encontrar servicios cerca de usted. No necesita una cuenta y no vendemos su información. Consulte nuestra Política de privacidad.";
+"onboarding.goodToKnow.title" = "Para tener en cuenta";
+"onboarding.goodToKnow.body" = "KiNDD es una herramienta informativa, no un consejo médico ni un diagnóstico. La información de los proveedores puede cambiar, y aparecer en la lista no significa una recomendación. En caso de emergencia, llame al 911 o vaya a la sala de emergencias más cercana.";
+"onboarding.readFullIntro" = "Leer la introducción completa";
+"onboarding.supportLine" = "¿Preguntas? Escriba a support@kinddhelp.org";
+"onboarding.back" = "Atrás";
+"onboarding.role.label" = "Estoy aquí como";
+"onboarding.role.family" = "Familia";
+"onboarding.role.clinician" = "Profesional clínico";
+"onboarding.howTo.title" = "Preguntas opcionales y luego Filtros";
+"onboarding.howTo.lead" = "A continuación le haremos algunas preguntas opcionales sobre su familia. Omita lo que no quiera responder.";
+"onboarding.filters.title" = "Los Filtros siguen en el mapa";
+"onboarding.filters.body" = "Use Filtros para acotar los resultados, reiniciar su búsqueda o cambiar la edad del niño que se aplica.";
+"onboarding.kids.title" = "Más de un hijo";
+"onboarding.kids.body" = "Seleccione todas las edades que correspondan. Después, toque la etiqueta de edad de cada niño para alternar entre ellos.";
 
 // MARK: - Settings
 "settings.title" = "Configuración";
@@ -242,7 +264,6 @@
 "intro.urgent.body" = "KiNDD Resource Navigator no está pensado para emergencias ni inquietudes médicas urgentes. Si su hijo tiene una emergencia médica, llame al 911 o acuda a la sala de emergencias del hospital más cercano.";
 "intro.help.heading" = "Estamos aquí para ayudar";
 "intro.help.body" = "Encontrar servicios del desarrollo puede ser abrumador, y esperamos que esta herramienta le facilite explorar sus opciones y conectarse con recursos que apoyen a su hijo y a su familia. Escriba a support@kinddhelp.org si tiene preguntas o inquietudes.";
-"intro.getStarted" = "Comenzar";
 "intro.done" = "Listo";
 "intro.settingsLabel" = "Guía de bienvenida";
 

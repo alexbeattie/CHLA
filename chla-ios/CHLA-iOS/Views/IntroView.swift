@@ -2,21 +2,13 @@
 //  IntroView.swift
 //  CHLA-iOS
 //
-//  What KiNDD is and how it handles your answers. First onboarding screen,
-//  and reopenable from Settings and About.
+//  What KiNDD is and how it handles your answers. Reopenable from the
+//  onboarding how-to step, Settings, and About.
 //
 
 import SwiftUI
 
 struct IntroView: View {
-    enum Mode {
-        /// First screen of onboarding; the button advances to the first question
-        case onboarding
-        /// Reopened later; the button dismisses
-        case reopened
-    }
-
-    let mode: Mode
     let onFinish: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
@@ -27,7 +19,6 @@ struct IntroView: View {
     private struct IntroSection: Identifiable {
         let key: String
         let icon: String
-        var isUrgent = false
         var id: String { key }
     }
 
@@ -40,7 +31,7 @@ struct IntroView: View {
         IntroSection(key: "language", icon: "globe"),
         IntroSection(key: "keepInMind", icon: "info.circle"),
         IntroSection(key: "providers", icon: "building.2"),
-        IntroSection(key: "urgent", icon: "exclamationmark.triangle.fill", isUrgent: true),
+        IntroSection(key: "urgent", icon: "phone"),
         IntroSection(key: "help", icon: "heart")
     ]
 
@@ -57,6 +48,7 @@ struct IntroView: View {
             .padding(.top, 24)
             .padding(.bottom, 12)
         }
+        .defaultScrollAnchor(UserDefaults.standard.bool(forKey: "debugScrollBottom") ? .bottom : nil)
         .tint(Theme.indigoDeep)
         .safeAreaInset(edge: .bottom) {
             finishButton
@@ -105,25 +97,22 @@ struct IntroView: View {
     }
 
     private func sectionCard(_ section: IntroSection) -> some View {
-        let tint: Color = section.isUrgent ? .red : Theme.indigo
-
-        return HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 12) {
             Image(systemName: section.icon)
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(tint)
+                .foregroundColor(Theme.indigo)
                 .frame(width: 24)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(L10n.Intro.heading(section.key))
                     .font(.system(.headline, design: .rounded))
-                    .foregroundColor(section.isUrgent ? .red : .primary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
 
-                Text(linkified(L10n.Intro.body(section.key)))
+                Text(Self.linkified(L10n.Intro.body(section.key)))
                     .font(.subheadline)
-                    .foregroundStyle(section.isUrgent ? .primary : .secondary)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -132,40 +121,31 @@ struct IntroView: View {
         .padding(16)
         .background {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(section.isUrgent ? Color.red.opacity(0.10) : Theme.cardSurface)
+                .fill(Theme.cardSurface)
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(section.isUrgent ? Color.red.opacity(0.45) : Color.primary.opacity(0.06),
-                        lineWidth: section.isUrgent ? 1.5 : 1)
+                .stroke(Color.primary.opacity(0.06), lineWidth: 1)
         }
     }
 
     private var finishButton: some View {
         Button(action: onFinish) {
-            HStack(spacing: 8) {
-                Text(mode == .onboarding ? L10n.Intro.getStarted : L10n.Intro.done)
-                    .font(.system(.body, design: .rounded).weight(.semibold))
-
-                if mode == .onboarding {
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .accessibilityHidden(true)
-                }
-            }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(Capsule().fill(Theme.accentGradient))
-            .shadow(color: Theme.indigo.opacity(0.35), radius: 12, y: 6)
+            Text(L10n.Intro.done)
+                .font(.system(.body, design: .rounded).weight(.semibold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Capsule().fill(Theme.accentGradient))
+                .shadow(color: Theme.indigo.opacity(0.35), radius: 12, y: 6)
         }
         .buttonStyle(.pressable)
     }
 
     /// Turns the support address and the "Privacy Policy" phrase into links.
-    private func linkified(_ text: String) -> AttributedString {
+    static func linkified(_ text: String) -> AttributedString {
         var attributed = AttributedString(text)
         let links: [(String, URL)] = [
-            (Self.supportEmail, URL(string: "mailto:\(Self.supportEmail)")!),
-            (L10n.Intro.privacyLinkLabel, Self.privacyPolicyURL)
+            (supportEmail, URL(string: "mailto:\(supportEmail)")!),
+            (L10n.Intro.privacyLinkLabel, privacyPolicyURL)
         ]
         for (phrase, url) in links {
             var searchStart = attributed.startIndex
@@ -179,15 +159,15 @@ struct IntroView: View {
     }
 }
 
-/// Settings and About present the intro as a sheet whose button reads "Done".
+/// Settings, About, and the onboarding how-to step present the intro as a sheet.
 extension View {
     func introSheet(isPresented: Binding<Bool>) -> some View {
         sheet(isPresented: isPresented) {
-            IntroView(mode: .reopened) { isPresented.wrappedValue = false }
+            IntroView { isPresented.wrappedValue = false }
         }
     }
 }
 
 #Preview {
-    IntroView(mode: .onboarding) {}
+    IntroView {}
 }
