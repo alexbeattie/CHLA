@@ -19,11 +19,12 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -54,29 +55,49 @@ class OnboardingContentTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun intro_showsTitleSectionsAndGetStartedWithoutBackOrProgress() {
-        compose(state(step = OnboardingStep.INTRO))
-
-        composeRule.onNodeWithText("Welcome to the KiNDD Resource Navigator").assertExists()
-        composeRule.onNodeWithText("Get started").assertExists()
-        composeRule.onAllNodesWithTag("onboarding_primary_action").assertCountEquals(1)
-        composeRule.onNodeWithTag("onboarding_primary_action").assertIsEnabled()
-        composeRule.onNodeWithTag("onboarding_back_action").assertDoesNotExist()
-        composeRule.onNodeWithTag("onboarding_progress_capsules").assertDoesNotExist()
-        composeRule.onNodeWithTag("intro_urgent_card").assertExists()
-        composeRule.onAllNodes(isHeading()).assertCountEquals(11)
+    fun audience_showsItsHeadingAndExactlyOnePrimaryAction() {
+        assertStep(
+            state(step = OnboardingStep.AUDIENCE),
+            "Welcome to the KiNDD Resource Navigator"
+        )
     }
 
     @Test
-    fun firstRunAudience_offersBackToTheIntro() {
+    fun firstRunAudience_showsWelcomeAboveTheChoiceWithoutBack() {
         compose(state(step = OnboardingStep.AUDIENCE))
 
-        composeRule.onNodeWithTag("onboarding_back_action").assertExists()
+        composeRule.onNodeWithTag("onboarding_welcome").assertExists()
+        composeRule.onNodeWithText("How it works").assertExists()
+        composeRule.onNodeWithText("What you can find").assertExists()
+        composeRule.onNodeWithText("Who it's for").assertExists()
+        composeRule.onNodeWithText("You found the right place.").assertDoesNotExist()
+        composeRule.onNodeWithTag("onboarding_audience_segmented").assertExists()
+        composeRule.onNodeWithTag("onboarding_back_action").assertDoesNotExist()
     }
 
     @Test
-    fun audience_showsItsHeadingAndExactlyOnePrimaryAction() {
-        assertStep(state(step = OnboardingStep.AUDIENCE), "You found the right place.")
+    fun editAudience_skipsTheWelcome() {
+        compose(state(mode = OnboardingMode.EDIT, step = OnboardingStep.AUDIENCE))
+
+        composeRule.onNodeWithTag("onboarding_welcome").assertDoesNotExist()
+        composeRule.onNodeWithText("You found the right place.").assertExists()
+    }
+
+    @Test
+    fun howTo_showsPrivacyAndNeutralGoodToKnowWithFullIntroAction() {
+        var openIntroCalls = 0
+        compose(
+            state(step = OnboardingStep.HOW_TO, draft = draft(zipCode = "90001")),
+            onOpenIntro = { openIntroCalls += 1 }
+        )
+
+        composeRule.onNodeWithText("Your answers are saved on your device").assertExists()
+        composeRule.onNodeWithTag("onboarding_good_to_know").assertExists()
+        composeRule.onNodeWithTag("onboarding_email_support").assertExists()
+        composeRule.onNodeWithTag("onboarding_read_full_intro")
+            .performScrollTo()
+            .performClick()
+        assertEquals(1, openIntroCalls)
     }
 
     @Test
@@ -443,7 +464,6 @@ class OnboardingContentTest {
         composeRule.waitForIdle()
         composeRule.runOnIdle {
             viewModel.continueFromCurrentStep()
-            viewModel.continueFromCurrentStep()
             viewModel.onZipChanged("90001")
         }
         assertEquals(OnboardingStep.ZIP, viewModel.uiState.value.step)
@@ -465,7 +485,6 @@ class OnboardingContentTest {
         val viewModel = onboardingViewModel()
         composeRule.runOnIdle {
             viewModel.initialize(OnboardingMode.FIRST_RUN, UserProfile())
-            viewModel.continueFromCurrentStep()
             viewModel.continueFromCurrentStep()
             viewModel.onZipChanged("90001")
             viewModel.continueFromCurrentStep()
@@ -495,7 +514,7 @@ class OnboardingContentTest {
         }
         composeRule.waitForIdle()
 
-        assertEquals(OnboardingStep.INTRO, renderedSteps.first())
+        assertEquals(OnboardingStep.AUDIENCE, renderedSteps.first())
         assertEquals(1, savedCalls)
     }
 
@@ -540,10 +559,7 @@ class OnboardingContentTest {
             }
         }
         composeRule.waitForIdle()
-        composeRule.runOnIdle {
-            firstRunViewModel.continueFromCurrentStep()
-            firstRunViewModel.continueFromCurrentStep()
-        }
+        composeRule.runOnIdle { firstRunViewModel.continueFromCurrentStep() }
         assertEquals(OnboardingStep.ZIP, firstRunViewModel.uiState.value.step)
 
         composeRule.runOnIdle {
@@ -689,12 +705,14 @@ class OnboardingContentTest {
     private fun compose(
         state: OnboardingUiState,
         serviceAreaState: RegionalCenterServiceAreaState =
-            RegionalCenterServiceAreaState.Success(emptyList())
+            RegionalCenterServiceAreaState.Success(emptyList()),
+        onOpenIntro: () -> Unit = {}
     ) {
         composeRule.setContent {
             KINDDTheme {
                 OnboardingContent(
                     state = state,
+                    onOpenIntro = onOpenIntro,
                     onAudienceSelected = {},
                     onZipChanged = {},
                     onUseLocation = {},

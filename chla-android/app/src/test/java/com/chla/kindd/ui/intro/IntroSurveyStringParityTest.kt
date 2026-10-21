@@ -27,6 +27,8 @@ class IntroSurveyStringParityTest {
 
         assertTrue(spanish.getValue("intro_privacy_body").contains(spanish.getValue("intro_privacy_link")))
         assertTrue(english.getValue("intro_privacy_body").contains(english.getValue("intro_privacy_link")))
+        assertTrue(spanish.getValue("intro_device_body").contains(spanish.getValue("intro_privacy_link")))
+        assertTrue(english.getValue("intro_device_body").contains(english.getValue("intro_privacy_link")))
     }
 
     @Test

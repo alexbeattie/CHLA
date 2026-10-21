@@ -4,29 +4,16 @@ import com.chla.kindd.data.profile.UserProfile
 
 enum class OnboardingMode {
     FIRST_RUN,
-    EDIT;
-
-    /** Editing an existing profile skips the welcome intro. */
-    val firstStep: OnboardingStep
-        get() = when (this) {
-            FIRST_RUN -> OnboardingStep.INTRO
-            EDIT -> OnboardingStep.AUDIENCE
-        }
+    EDIT
 }
 
 enum class OnboardingStep {
-    INTRO,
     AUDIENCE,
     ZIP,
     REGIONAL_CENTER,
     HOW_TO,
     JOURNEY,
-    AGE;
-
-    companion object {
-        /** Steps counted by the progress capsules; the intro sits in front of them. */
-        val questionSteps: List<OnboardingStep> = entries.filter { it != INTRO }
-    }
+    AGE
 }
 
 enum class CenterLookupState {
@@ -55,7 +42,7 @@ sealed interface OnboardingEvent {
 
 data class OnboardingUiState(
     val mode: OnboardingMode = OnboardingMode.FIRST_RUN,
-    val step: OnboardingStep = mode.firstStep,
+    val step: OnboardingStep = OnboardingStep.AUDIENCE,
     val draft: UserProfile = UserProfile(),
     val centerLookupState: CenterLookupState = CenterLookupState.IDLE,
     val locationState: LocationState = LocationState.IDLE,
@@ -67,7 +54,6 @@ data class OnboardingUiState(
 
     val canContinue: Boolean
         get() = when (step) {
-            OnboardingStep.INTRO -> true
             OnboardingStep.AUDIENCE -> draft.audienceType != null
             OnboardingStep.ZIP ->
                 draft.zipCode?.matches(ASCII_ZIP) == true &&
@@ -88,12 +74,8 @@ data class OnboardingUiState(
                     draft.zipCode?.matches(ASCII_ZIP) == true
         }
 
-    val isFirstStep: Boolean
-        get() = step == mode.firstStep
-
-    /** 1-based position among [OnboardingStep.questionSteps]; 0 on the intro. */
     val progressStep: Int
-        get() = OnboardingStep.questionSteps.indexOf(step) + 1
+        get() = step.ordinal + 1
 
     private companion object {
         val ASCII_ZIP = Regex("[0-9]{5}")

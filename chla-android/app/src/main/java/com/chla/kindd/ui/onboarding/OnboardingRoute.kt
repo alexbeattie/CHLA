@@ -28,6 +28,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +48,7 @@ import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.ui.intro.IntroScreen
 import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
 import com.chla.kindd.ui.regions.RegionalCenterServiceAreaState
 import com.chla.kindd.ui.regions.rememberRegionalCenterServiceAreas
@@ -64,12 +68,13 @@ fun OnboardingRoute(
 ) {
     val sessionState by viewModel.uiState.collectAsStateWithLifecycle()
     // Before initialize() runs (and after a session ends) the view model holds a first-run
-    // placeholder; an edit route must not flash the first-run intro in that window.
+    // placeholder; an edit route must not flash the first-run welcome in that window.
     val state = if (sessionState.mode == mode) {
         sessionState
     } else {
         OnboardingUiState(mode = mode)
     }
+    var showFullIntro by rememberSaveable { mutableStateOf(false) }
     val serviceAreaState by rememberRegionalCenterServiceAreas()
     OnboardingBackGuard(
         state = state,
@@ -95,6 +100,12 @@ fun OnboardingRoute(
         }
     }
 
+    if (showFullIntro) {
+        BackHandler { showFullIntro = false }
+        IntroScreen(onDone = { showFullIntro = false })
+        return
+    }
+
     OnboardingContent(
         state = state,
         onAudienceSelected = viewModel::selectAudience,
@@ -114,6 +125,7 @@ fun OnboardingRoute(
         onContinue = viewModel::continueFromCurrentStep,
         onFinish = viewModel::finish,
         onCancel = viewModel::cancel,
+        onOpenIntro = { showFullIntro = true },
         serviceAreaState = serviceAreaState
     )
 }
@@ -125,14 +137,13 @@ internal fun OnboardingBackGuard(
     onBack: () -> Unit,
     onClose: () -> Unit
 ) {
-    val atFirstStep = state.step == mode.firstStep
     val handlesBack = state.isSaving ||
-        !atFirstStep ||
+        state.step != OnboardingStep.AUDIENCE ||
         mode == OnboardingMode.EDIT
     BackHandler(enabled = handlesBack) {
         when {
             state.isSaving -> Unit
-            !atFirstStep -> onBack()
+            state.step != OnboardingStep.AUDIENCE -> onBack()
             mode == OnboardingMode.EDIT -> onClose()
         }
     }
@@ -153,6 +164,7 @@ fun OnboardingContent(
     onFinish: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenIntro: () -> Unit = {},
     serviceAreaState: RegionalCenterServiceAreaState = RegionalCenterServiceAreaState.Loading,
     mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
@@ -168,20 +180,16 @@ fun OnboardingContent(
                 .background(kinddTopWash())
         )
         Column(modifier = Modifier.fillMaxSize()) {
-            if (state.step == OnboardingStep.INTRO) {
-                Spacer(modifier = Modifier.fillMaxWidth().statusBarsPadding())
-            } else {
-                OnboardingProgress(
-                    state = state,
-                    onCancel = onCancel
-                )
-            }
+            OnboardingProgress(
+                state = state,
+                onCancel = onCancel
+            )
             Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 when (state.step) {
-                    OnboardingStep.INTRO -> IntroStep()
                     OnboardingStep.AUDIENCE -> AudienceStep(
                         selectedAudience = state.draft.audienceType,
-                        onAudienceSelected = onAudienceSelected
+                        onAudienceSelected = onAudienceSelected,
+                        showWelcome = state.mode == OnboardingMode.FIRST_RUN
                     )
                     OnboardingStep.ZIP -> ZipStep(
                         zipCode = state.draft.zipCode.orEmpty(),
@@ -204,7 +212,7 @@ fun OnboardingContent(
                         mapContent = mapContent,
                         onRetry = onRetryCenterLookup
                     )
-                    OnboardingStep.HOW_TO -> HowToStep()
+                    OnboardingStep.HOW_TO -> HowToStep(onOpenIntro = onOpenIntro)
                     OnboardingStep.JOURNEY -> JourneyStep(
                         selectedJourney = state.draft.journeyStage,
                         onJourneySelected = onJourneySelected
@@ -254,7 +262,7 @@ private fun OnboardingProgress(
                 text = stringResource(
                     R.string.onboarding_progress,
                     state.progressStep,
-                    OnboardingStep.questionSteps.size
+                    OnboardingStep.entries.size
                 ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -279,8 +287,8 @@ private fun OnboardingProgress(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            OnboardingStep.questionSteps.forEachIndexed { index, step ->
-                val active = step == state.step
+            OnboardingStep.entries.forEachIndexed { index, _ ->
+                val active = index == state.step.ordinal
                 Box(
                     modifier = Modifier
                         .size(width = if (active) 22.dp else 7.dp, height = 7.dp)
@@ -311,7 +319,7 @@ private fun OnboardingActions(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (!state.isFirstStep) {
+        if (state.step != OnboardingStep.AUDIENCE) {
             KiNDDSecondaryCapsule(
                 onClick = { if (!state.isSaving) onBack() },
                 modifier = Modifier
@@ -346,7 +354,6 @@ private fun OnboardingActions(
                 Text(
                     text = stringResource(
                         when {
-                            state.step == OnboardingStep.INTRO -> R.string.intro_get_started
                             state.step != OnboardingStep.AGE -> R.string.action_continue
                             state.mode == OnboardingMode.EDIT -> R.string.action_save
                             else -> R.string.action_get_started

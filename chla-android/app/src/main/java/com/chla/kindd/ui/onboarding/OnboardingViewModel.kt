@@ -95,9 +95,6 @@ class OnboardingViewModel @Inject constructor(
         val state = mutableUiState.value
         if (interactionsLocked()) return
         when (state.step) {
-            OnboardingStep.INTRO -> mutableUiState.update {
-                it.copy(step = OnboardingStep.AUDIENCE)
-            }
             OnboardingStep.AUDIENCE -> if (state.canContinue) {
                 mutableUiState.update { it.copy(step = OnboardingStep.ZIP) }
             }
@@ -125,8 +122,7 @@ class OnboardingViewModel @Inject constructor(
                 state.step == OnboardingStep.REGIONAL_CENTER
             state.copy(
                 step = when (state.step) {
-                    OnboardingStep.INTRO -> OnboardingStep.INTRO
-                    OnboardingStep.AUDIENCE -> state.mode.firstStep
+                    OnboardingStep.AUDIENCE -> OnboardingStep.AUDIENCE
                     OnboardingStep.ZIP -> OnboardingStep.AUDIENCE
                     OnboardingStep.REGIONAL_CENTER -> OnboardingStep.ZIP
                     OnboardingStep.HOW_TO -> OnboardingStep.REGIONAL_CENTER

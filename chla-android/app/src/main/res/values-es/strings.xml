@@ -184,7 +184,6 @@
     <string name="onboarding_howto_children_title">Más de un hijo</string>
     <string name="onboarding_howto_children_body">Selecciona todas las edades que correspondan. Después, toca la edad de un niño para cambiar entre ellos.</string>
     <string name="onboarding_howto_privacy_title">Tu información se queda contigo</string>
-    <string name="onboarding_howto_privacy_body">KiNDD no guarda registros médicos. Esta es una herramienta de orientación, no un consejo médico oficial ni un diagnóstico.</string>
     <string name="onboarding_howto_tip_title">Los filtros están aquí arriba</string>
     <string name="onboarding_howto_tip_body">Abre Filtros para restablecer la búsqueda o cambiar entre hijos si seleccionaste más de una edad. Las siguientes preguntas de la configuración son opcionales.</string>
     <string name="onboarding_howto_tip_dismiss">Entendido</string>
@@ -351,7 +350,18 @@
     <string name="intro_urgent_body">KiNDD Resource Navigator no está pensado para emergencias ni inquietudes médicas urgentes. Si su hijo tiene una emergencia médica, llame al 911 o acuda a la sala de emergencias del hospital más cercano.</string>
     <string name="intro_help_heading">Estamos aquí para ayudar</string>
     <string name="intro_help_body">Encontrar servicios del desarrollo puede ser abrumador, y esperamos que esta herramienta le facilite explorar sus opciones y conectarse con recursos que apoyen a su hijo y a su familia. Escriba a support@kinddhelp.org si tiene preguntas o inquietudes.</string>
-    <string name="intro_get_started">Comenzar</string>
+    <string name="intro_welcome_how_title">Cómo funciona</string>
+    <string name="intro_welcome_how_body">Responda unas preguntas rápidas sobre las necesidades, la edad y la ubicación de su hijo.</string>
+    <string name="intro_welcome_find_title">Qué puede encontrar</string>
+    <string name="intro_welcome_find_body">Terapia ABA, ocupacional, física y del habla, y otros servicios del desarrollo.</string>
+    <string name="intro_welcome_who_title">Para quién es</string>
+    <string name="intro_welcome_who_body">Familias, cuidadores y médicos que apoyan a niños con necesidades del desarrollo.</string>
+    <string name="intro_device_title">Sus respuestas se guardan en su dispositivo</string>
+    <string name="intro_device_body">Usamos su código postal solo para encontrar servicios cerca de usted. No necesita una cuenta y no vendemos su información. Consulte nuestra Política de privacidad.</string>
+    <string name="intro_good_to_know_title">Para tener en cuenta</string>
+    <string name="intro_good_to_know_body">KiNDD es una herramienta informativa, no un consejo médico ni un diagnóstico. La información de los proveedores puede cambiar, y aparecer en la lista no significa una recomendación. En caso de emergencia, llame al 911 o vaya a la sala de emergencias más cercana.</string>
+    <string name="intro_read_full">Leer la introducción completa</string>
+    <string name="intro_questions_email">¿Preguntas? Escriba a support@kinddhelp.org</string>
     <string name="intro_done">Listo</string>
     <string name="intro_settings_label">Guía de bienvenida</string>
 

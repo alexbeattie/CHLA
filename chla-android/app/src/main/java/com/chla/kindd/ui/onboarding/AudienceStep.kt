@@ -22,8 +22,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.FamilyRestroom
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -42,6 +45,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.chla.kindd.R
 import com.chla.kindd.data.profile.AudienceType
@@ -52,17 +56,22 @@ import com.chla.kindd.ui.theme.KiNDDShapeTokens
 internal fun AudienceStep(
     selectedAudience: AudienceType?,
     onAudienceSelected: (AudienceType) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showWelcome: Boolean = false
 ) {
     OnboardingStepColumn(modifier = modifier) {
-        KiNDDOnboardingLogo()
-        OnboardingHeading(stringResource(R.string.onboarding_welcome_title))
-        Text(
-            text = stringResource(R.string.onboarding_welcome_body),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
+        KiNDDOnboardingLogo(widthFraction = if (showWelcome) 0.34f else 0.48f)
+        if (showWelcome) {
+            OnboardingWelcome()
+        } else {
+            OnboardingHeading(stringResource(R.string.onboarding_welcome_title))
+            Text(
+                text = stringResource(R.string.onboarding_welcome_body),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+        }
         Text(
             text = stringResource(R.string.onboarding_audience_prompt),
             style = MaterialTheme.typography.labelLarge,
@@ -107,7 +116,42 @@ internal fun AudienceStep(
 }
 
 @Composable
-private fun KiNDDOnboardingLogo() {
+private fun OnboardingWelcome() {
+    Column(
+        modifier = Modifier.fillMaxWidth().testTag("onboarding_welcome"),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        OnboardingHeading(stringResource(R.string.intro_title))
+        Text(
+            text = stringResource(R.string.intro_lead),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
+        OnboardingCard {
+            HowToRow(
+                icon = Icons.Default.Checklist,
+                title = stringResource(R.string.intro_welcome_how_title),
+                detail = stringResource(R.string.intro_welcome_how_body)
+            )
+            HowToRow(
+                icon = Icons.Default.Search,
+                title = stringResource(R.string.intro_welcome_find_title),
+                detail = stringResource(R.string.intro_welcome_find_body)
+            )
+            HowToRow(
+                icon = Icons.Default.FamilyRestroom,
+                title = stringResource(R.string.intro_welcome_who_title),
+                detail = stringResource(R.string.intro_welcome_who_body)
+            )
+        }
+    }
+}
+
+@Composable
+private fun KiNDDOnboardingLogo(widthFraction: Float) {
     Box(
         modifier = Modifier.fillMaxWidth().testTag("onboarding_logo"),
         contentAlignment = Alignment.Center
@@ -117,7 +161,7 @@ private fun KiNDDOnboardingLogo() {
             contentDescription = stringResource(R.string.kindd_logo_content_description),
             contentScale = ContentScale.Fit,
             modifier = Modifier
-                .fillMaxWidth(0.48f)
+                .fillMaxWidth(widthFraction)
                 .aspectRatio(300f / 138f)
                 .testTag("onboarding_logo_image")
         )

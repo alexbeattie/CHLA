@@ -183,7 +183,6 @@
     <string name="onboarding_howto_children_title">More than one child</string>
     <string name="onboarding_howto_children_body">Select every age that applies. Later, tap a child\'s age chip to toggle between kids.</string>
     <string name="onboarding_howto_privacy_title">Your information stays with you</string>
-    <string name="onboarding_howto_privacy_body">KiNDD does not keep medical records. This is a navigation tool, not official medical advice or a diagnosis.</string>
     <string name="onboarding_howto_tip_title">Filters live up here</string>
     <string name="onboarding_howto_tip_body">Open Filters to reset your search or switch between kids if you selected more than one age. Next questions in setup are optional.</string>
     <string name="onboarding_howto_tip_dismiss">Got it</string>
@@ -349,7 +348,18 @@
     <string name="intro_help_heading">We\'re here to help</string>
     <string name="intro_help_body">Finding developmental services can feel overwhelming, and we hope this tool makes it easier to explore your options and connect with resources that support your child and family. Please contact support@kinddhelp.org with any questions or concerns.</string>
     <string name="intro_support_email" translatable="false">support@kinddhelp.org</string>
-    <string name="intro_get_started">Get started</string>
+    <string name="intro_welcome_how_title">How it works</string>
+    <string name="intro_welcome_how_body">Answer a few quick questions about your child\'s needs, age, and location.</string>
+    <string name="intro_welcome_find_title">What you can find</string>
+    <string name="intro_welcome_find_body">ABA, occupational, physical, and speech therapy, plus other developmental services.</string>
+    <string name="intro_welcome_who_title">Who it\'s for</string>
+    <string name="intro_welcome_who_body">Families, caregivers, and clinicians supporting children with developmental needs.</string>
+    <string name="intro_device_title">Your answers are saved on your device</string>
+    <string name="intro_device_body">We use your ZIP code only to find services near you. No account is needed, and we don\'t sell your information. See our Privacy Policy.</string>
+    <string name="intro_good_to_know_title">Good to know</string>
+    <string name="intro_good_to_know_body">KiNDD is an informational tool, not medical advice or a diagnosis. Provider details can change, and a listing isn\'t an endorsement. For emergencies, call 911 or go to the nearest emergency department.</string>
+    <string name="intro_read_full">Read the full introduction</string>
+    <string name="intro_questions_email">Questions? Email support@kinddhelp.org</string>
     <string name="intro_done">Done</string>
     <string name="intro_settings_label">Welcome guide</string>
 

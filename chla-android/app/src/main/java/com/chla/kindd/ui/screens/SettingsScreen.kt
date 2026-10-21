@@ -595,7 +595,14 @@ fun SettingsContent(
                     .padding(horizontal = 20.dp, vertical = 8.dp)
                     .testTag("settings_how_to_sheet")
             ) {
-                HowToGuideContent()
+                HowToGuideContent(
+                    onOpenIntro = onOpenIntro?.let { openIntro ->
+                        {
+                            showHowTo = false
+                            openIntro()
+                        }
+                    }
+                )
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }

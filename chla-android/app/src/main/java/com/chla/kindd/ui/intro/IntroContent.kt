@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ReportProblem
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -61,7 +62,7 @@ private val introSections = listOf(
     IntroSection(R.string.intro_help_heading, R.string.intro_help_body, "intro_help")
 )
 
-private data class IntroLink(val label: String, val onClick: () -> Unit)
+internal data class IntroLink(val label: String, val onClick: () -> Unit)
 
 /** Non-scrolling intro body; hosts own scrolling and the primary action. */
 @Composable
@@ -123,12 +124,11 @@ private fun IntroSectionBlock(section: IntroSection, links: List<IntroLink>) {
 @Composable
 private fun IntroUrgentSection(section: IntroSection, links: List<IntroLink>) {
     val shape = RoundedCornerShape(KiNDDShapeTokens.Selection)
-    val contentColor = MaterialTheme.colorScheme.onErrorContainer
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.errorContainer, shape)
-            .border(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.35f), shape)
+            .background(KiNDDIndigo.copy(alpha = 0.07f), shape)
+            .border(1.dp, KiNDDIndigo.copy(alpha = 0.18f), shape)
             .padding(16.dp)
             .testTag("intro_urgent_card"),
         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -138,14 +138,18 @@ private fun IntroUrgentSection(section: IntroSection, links: List<IntroLink>) {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.ReportProblem,
+                imageVector = Icons.Default.Phone,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
+                tint = KiNDDIndigo,
                 modifier = Modifier.size(20.dp)
             )
-            IntroHeading(stringResource(section.heading), contentColor)
+            IntroHeading(stringResource(section.heading), MaterialTheme.colorScheme.onSurface)
         }
-        IntroBody(text = stringResource(section.body), links = links, color = contentColor)
+        IntroBody(
+            text = stringResource(section.body),
+            links = links,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -161,11 +165,16 @@ private fun IntroHeading(text: String, color: Color) {
 }
 
 @Composable
-private fun IntroBody(text: String, links: List<IntroLink>, color: Color) {
+internal fun IntroBody(
+    text: String,
+    links: List<IntroLink>,
+    color: Color,
+    style: TextStyle = MaterialTheme.typography.bodyLarge
+) {
     val presentLinks = links.filter { text.contains(it.label) }
-    val style = MaterialTheme.typography.bodyLarge.copy(color = color)
+    val coloredStyle = style.copy(color = color)
     if (presentLinks.isEmpty()) {
-        Text(text = text, style = style)
+        Text(text = text, style = coloredStyle)
         return
     }
     val annotated = remember(text, presentLinks.map(IntroLink::label)) {
@@ -173,7 +182,7 @@ private fun IntroBody(text: String, links: List<IntroLink>, color: Color) {
     }
     ClickableText(
         text = annotated,
-        style = style,
+        style = coloredStyle,
         modifier = Modifier.semantics {
             customActions = presentLinks.map { link ->
                 CustomAccessibilityAction(link.label) {
