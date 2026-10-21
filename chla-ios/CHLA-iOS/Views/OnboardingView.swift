@@ -18,6 +18,7 @@ struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    @State private var showIntro = true
     @State private var currentStep = 0
     @State private var zipCode = ""
     @State private var selectedAgeGroups: Set<String> = []
@@ -45,7 +46,47 @@ struct OnboardingView: View {
         }
     }
 
+    /// Intro slides off to the leading edge; Reduce Motion gets a crossfade
+    private var introTransition: AnyTransition {
+        reduceMotion ? .opacity : .move(edge: .leading).combined(with: .opacity)
+    }
+
+    private var stepsTransition: AnyTransition {
+        reduceMotion ? .opacity : .move(edge: .trailing).combined(with: .opacity)
+    }
+
     var body: some View {
+        ZStack {
+            if showIntro {
+                IntroView(mode: .onboarding) {
+                    withAnimation(stepAnimation) {
+                        showIntro = false
+                    }
+                }
+                .transition(introTransition)
+            } else {
+                steps
+                    .transition(stepsTransition)
+            }
+        }
+        .background {
+            ZStack(alignment: .top) {
+                Theme.canvas
+
+                Theme.topWash(dark: colorScheme == .dark)
+                    .frame(height: 360)
+                    .frame(maxHeight: .infinity, alignment: .top)
+            }
+            .ignoresSafeArea()
+        }
+        .onAppear {
+            if mapModel.serviceAreas.isEmpty {
+                Task { await mapModel.fetchServiceAreas() }
+            }
+        }
+    }
+
+    private var steps: some View {
         VStack(spacing: 0) {
             progressDots
                 .padding(.top, 18)
@@ -65,21 +106,6 @@ struct OnboardingView: View {
             navigationButtons
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
-        }
-        .background {
-            ZStack(alignment: .top) {
-                Theme.canvas
-
-                Theme.topWash(dark: colorScheme == .dark)
-                    .frame(height: 360)
-                    .frame(maxHeight: .infinity, alignment: .top)
-            }
-            .ignoresSafeArea()
-        }
-        .onAppear {
-            if mapModel.serviceAreas.isEmpty {
-                Task { await mapModel.fetchServiceAreas() }
-            }
         }
     }
 

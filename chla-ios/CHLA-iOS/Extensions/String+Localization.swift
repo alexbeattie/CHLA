@@ -199,6 +199,43 @@ enum L10n {
         static var locationSubtitle: String { "onboarding.locationSubtitle".localized }
     }
     
+    // MARK: - Intro
+    enum Intro {
+        static var title: String { "intro.title".localized }
+        static var lead: String { "intro.lead".localized }
+        static var privacyLinkLabel: String { "intro.privacyLinkLabel".localized }
+        static var getStarted: String { "intro.getStarted".localized }
+        static var done: String { "intro.done".localized }
+        static var settingsLabel: String { "intro.settingsLabel".localized }
+        static func heading(_ section: String) -> String { "intro.\(section).heading".localized }
+        static func body(_ section: String) -> String { "intro.\(section).body".localized }
+    }
+
+    // MARK: - Feedback Survey
+    enum Survey {
+        static var entryLabel: String { "survey.entryLabel".localized }
+        static var title: String { "survey.title".localized }
+        static var lead: String { "survey.lead".localized }
+        static var diagnosis: String { "survey.q.diagnosis".localized }
+        static var diagnosisStatus: String { "survey.q.diagnosisStatus".localized }
+        static var underEvaluation: String { "survey.option.underEvaluation".localized }
+        static var notYetDiagnosed: String { "survey.option.notYetDiagnosed".localized }
+        static var experienceBefore: String { "survey.q.experienceBefore".localized }
+        static var unmetNeeds: String { "survey.q.unmetNeeds".localized }
+        static var improvements: String { "survey.q.improvements".localized }
+        static var additionalComments: String { "survey.q.additionalComments".localized }
+        static var clearHint: String { "survey.clearHint".localized }
+        static var submit: String { "survey.submit".localized }
+        static var submitting: String { "survey.submitting".localized }
+        static var success: String { "survey.success".localized }
+        static var empty: String { "survey.empty".localized }
+        static var error: String { "survey.error".localized }
+        static var rateLimited: String { "survey.rateLimited".localized }
+        static var done: String { "survey.done".localized }
+        static func question(_ key: String) -> String { "survey.q.\(key)".localized }
+        static func scaleOption(_ scale: String, _ value: Int) -> String { "survey.scale.\(scale).\(value)".localized }
+    }
+
     // MARK: - Settings
     enum Settings {
         static var title: String { "settings.title".localized }

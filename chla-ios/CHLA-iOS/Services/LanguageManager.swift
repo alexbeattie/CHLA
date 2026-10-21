@@ -99,6 +99,16 @@ enum LocalizationHelper {
         return bundle
     }
 
+    /// "en" or "es": the explicit app language, or the system choice resolved
+    /// against the bundle's localizations.
+    static var currentLanguageCode: String {
+        if let saved = UserDefaults.standard.string(forKey: userDefaultsKey),
+           let code = AppLanguage(rawValue: saved)?.localeIdentifier {
+            return code
+        }
+        return Bundle.main.preferredLocalizations.first == "es" ? "es" : "en"
+    }
+
     /// Get a localized string for the given key (thread-safe)
     static func localizedString(for key: String) -> String {
         return NSLocalizedString(key, bundle: currentBundle, comment: "")

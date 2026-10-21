@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-21 — iOS: onboarding intro screen and feedback survey
+- **Branch:** feat/survey-intro-ios
+- **Files:** chla-ios/CHLA-iOS/Views/IntroView.swift, chla-ios/CHLA-iOS/Views/SurveyView.swift, chla-ios/CHLA-iOS/Models/SurveySubmission.swift, chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Services/APIService.swift, chla-ios/CHLA-iOS/Services/LanguageManager.swift, chla-ios/CHLA-iOS/Extensions/String+Localization.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** Onboarding jumped straight to questions with no explanation of what KiNDD is, how answers are used, or what to do in an emergency. There was no way to send feedback from the app.
+- **Fix:** New `IntroView` (title, lead, 10 sections, urgent section tinted red, support email and Privacy Policy as links) is the first onboarding screen and reopens from Settings and About with a "Done" button. New `SurveyView` ("Share feedback" in Settings and About) posts the 11 answers plus platform `ios`, locale, and app version to `/api/surveys/responses/` via `APIService.submitSurvey`; empty submissions are blocked client-side and 429 gets its own message. All new copy in en and es.
+
+---
+
 ### 2026-10-21 — Android 1.4.5 (5) builds as the Play package
 - **Branch:** chore/android-play-1-4-5
 - **Files:** chla-android/app/build.gradle.kts
