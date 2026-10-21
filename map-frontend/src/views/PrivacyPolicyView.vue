@@ -219,8 +219,8 @@
               fulfill your request. We do not maintain a persistent
               account-based history of your location or searches. This
               information may appear temporarily in restricted operational or
-              security logs and is deleted or de-identified when it is no
-              longer needed for troubleshooting, security, or abuse prevention.
+              security logs and is deleted or de-identified when it is no longer
+              needed for troubleshooting, security, or abuse prevention.
             </li>
             <li>
               <strong>Ask KiNDD data:</strong> Chat messages, optional profile
@@ -262,8 +262,8 @@
           <p>
             You may request deletion of personal data held by KiNDD at any time
             by emailing
-            <a href="mailto:support@kinddhelp.org">support@kinddhelp.org</a>.
-            We will verify and process the request subject to applicable legal,
+            <a href="mailto:support@kinddhelp.org">support@kinddhelp.org</a>. We
+            will verify and process the request subject to applicable legal,
             security, and record-retention requirements. Data controlled
             directly by a third-party service is also subject to that service's
             retention and deletion policy.

@@ -12,12 +12,21 @@
       <div v-if="status === 'success'" class="survey-success" role="status">
         <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
         <p>{{ t("survey.success") }}</p>
-        <router-link to="/" class="btn survey-submit">{{ t("survey.backToMap") }}</router-link>
+        <router-link to="/" class="btn survey-submit">{{
+          t("survey.backToMap")
+        }}</router-link>
       </div>
 
-      <form v-else class="survey-form" novalidate @submit.prevent="submit(locale)">
+      <form
+        v-else
+        class="survey-form"
+        novalidate
+        @submit.prevent="submit(locale)"
+      >
         <div class="survey-question">
-          <label for="survey-diagnosis">{{ t("survey.questions.diagnosis") }}</label>
+          <label for="survey-diagnosis">{{
+            t("survey.questions.diagnosis")
+          }}</label>
           <input
             id="survey-diagnosis"
             v-model="answers.diagnosis"
@@ -29,7 +38,11 @@
 
         <fieldset class="survey-question">
           <legend>{{ t("survey.questions.diagnosisStatus") }}</legend>
-          <div v-for="value in DIAGNOSIS_STATUSES" :key="value" class="form-check">
+          <div
+            v-for="value in DIAGNOSIS_STATUSES"
+            :key="value"
+            class="form-check"
+          >
             <input
               :id="`survey-status-${value}`"
               v-model="answers.diagnosis_status"
@@ -52,7 +65,11 @@
           </button>
         </fieldset>
 
-        <fieldset v-for="question in RATING_QUESTIONS" :key="question.field" class="survey-question">
+        <fieldset
+          v-for="question in RATING_QUESTIONS"
+          :key="question.field"
+          class="survey-question"
+        >
           <legend>{{ t(`survey.questions.${question.key}`) }}</legend>
           <div
             v-for="(label, index) in tm(`survey.scales.${question.scale}`)"
@@ -67,7 +84,10 @@
               :name="question.field"
               :value="index + 1"
             />
-            <label class="form-check-label" :for="`survey-${question.field}-${index + 1}`">
+            <label
+              class="form-check-label"
+              :for="`survey-${question.field}-${index + 1}`"
+            >
               {{ rt(label) }}
             </label>
           </div>
@@ -81,8 +101,14 @@
           </button>
         </fieldset>
 
-        <div v-for="question in OPEN_QUESTIONS" :key="question.field" class="survey-question">
-          <label :for="`survey-${question.field}`">{{ t(`survey.questions.${question.key}`) }}</label>
+        <div
+          v-for="question in OPEN_QUESTIONS"
+          :key="question.field"
+          class="survey-question"
+        >
+          <label :for="`survey-${question.field}`">{{
+            t(`survey.questions.${question.key}`)
+          }}</label>
           <textarea
             :id="`survey-${question.field}`"
             v-model="answers[question.field]"
@@ -92,9 +118,15 @@
           ></textarea>
         </div>
 
-        <p v-if="statusMessage" class="survey-alert" role="alert">{{ statusMessage }}</p>
+        <p v-if="statusMessage" class="survey-alert" role="alert">
+          {{ statusMessage }}
+        </p>
 
-        <button type="submit" class="btn survey-submit" :disabled="isSubmitting">
+        <button
+          type="submit"
+          class="btn survey-submit"
+          :disabled="isSubmitting"
+        >
           {{ isSubmitting ? t("survey.submitting") : t("survey.submit") }}
         </button>
       </form>
@@ -107,7 +139,11 @@ import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 import { useSeo } from "@/composables/useSeo";
-import { OPEN_QUESTIONS, RATING_QUESTIONS, useSurvey } from "@/composables/useSurvey";
+import {
+  OPEN_QUESTIONS,
+  RATING_QUESTIONS,
+  useSurvey,
+} from "@/composables/useSurvey";
 
 useSeo({ path: "/survey" });
 
