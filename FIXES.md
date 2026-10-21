@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-21 — iOS: remove screenshot-only debug hooks from onboarding
+- **Branch:** fix/ios-onboarding-debug-hooks
+- **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift
+- **Problem:** #42 merged with temporary UserDefaults reads (`debugStartStep`, `debugScrollBottom`, `debugShowIntro`) that were added only to capture simulator screenshots of later onboarding steps. Inert in practice since nothing sets those keys, but launch arguments can set them.
+- **Fix:** Onboarding starts at step 0, the intro sheet starts closed, and no `defaultScrollAnchor` override remains.
+
+---
+
 ### 2026-10-21 — iOS: fold the intro into onboarding steps
 - **Branch:** feat/survey-intro-ios
 - **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift, chla-ios/CHLA-iOS/Extensions/String+Localization.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings
