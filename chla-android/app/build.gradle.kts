@@ -22,11 +22,11 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.chla.kindd"
+        applicationId = "com.navigator.kindd"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.4.3"
+        versionCode = 5
+        versionName = "1.4.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

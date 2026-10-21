@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-21 — Android 1.4.5 (5) builds as the Play package
+- **Branch:** chore/android-play-1-4-5
+- **Files:** chla-android/app/build.gradle.kts
+- **Problem:** The Play listing is `com.navigator.kindd` (last upload 1.4.1, versionCode 2), but main still built `applicationId = "com.chla.kindd"`, so no main build could be uploaded. The full package rename lives on the unmerged `release/android-navigator-identity` branch (173 files).
+- **Fix:** `applicationId` is `com.navigator.kindd`; the Kotlin namespace stays `com.chla.kindd` (Play only checks the application ID, and runtime code reads `context.packageName`). versionCode 5, versionName 1.4.5 to line up with iOS.
+
+---
+
 ### 2026-10-21 — Android: fold the intro into onboarding and soften the urgent card
 - **Branch:** feat/survey-intro-android
 - **Files:** chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/*, chla-android/app/src/main/java/com/chla/kindd/ui/intro/IntroContent.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/SettingsScreen.kt, chla-android/app/src/main/res/values*/strings.xml, chla-android/app/src/test/java/com/chla/kindd/ui/intro/IntroSurveyStringParityTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/onboarding/OnboardingContentTest.kt
