@@ -13,6 +13,30 @@ Format:
 
 ---
 
+### 2026-10-21 — iOS: fold the intro into onboarding steps
+- **Branch:** feat/survey-intro-ios
+- **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift, chla-ios/CHLA-iOS/Extensions/String+Localization.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings
+- **Problem:** Onboarding opened on a separate full-screen intro of ten stacked sections ending in a red emergency card, which read like a warning before the first question.
+- **Fix:** Onboarding starts on the step pager again. Step 0 (welcome) shows the intro title, lead, and three short rows above the audience picker. Step 3 (how-to, right before the questions) gets the on-device privacy row with the Privacy Policy link and a neutral "Good to know" card that opens the full `IntroView` as a sheet and mails support@kinddhelp.org. The full intro keeps its text but its urgent section uses the standard card with a `phone` icon. Steps scroll when taller than the page, so Continue stays visible on iPhone SE. New copy in en and es; `intro.getStarted` removed. The Back/Continue/Get Started buttons, the audience picker, and the how-to step were hardcoded English and now read from `Localizable.strings`, so the Spanish carousel no longer mixes languages.
+
+---
+
+### 2026-10-21 — iOS: Contact us mailed a domain with no mail server
+- **Branch:** feat/survey-intro-ios
+- **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift
+- **Problem:** "Contact us" opened mail to support@kinddhelp.com, but kinddhelp.com has no MX record, so messages bounce. The new intro's Privacy Policy link pointed at kinddhelp.com/privacy, which only redirects.
+- **Fix:** Contact us now uses support@kinddhelp.org (Google Workspace MX), matching web and Android; the privacy link goes straight to https://kinddhelp.org/privacy.
+
+---
+
+### 2026-10-21 — iOS: onboarding intro screen and feedback survey
+- **Branch:** feat/survey-intro-ios
+- **Files:** chla-ios/CHLA-iOS/Views/IntroView.swift, chla-ios/CHLA-iOS/Views/SurveyView.swift, chla-ios/CHLA-iOS/Models/SurveySubmission.swift, chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Services/APIService.swift, chla-ios/CHLA-iOS/Services/LanguageManager.swift, chla-ios/CHLA-iOS/Extensions/String+Localization.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** Onboarding jumped straight to questions with no explanation of what KiNDD is, how answers are used, or what to do in an emergency. There was no way to send feedback from the app.
+- **Fix:** New `IntroView` (title, lead, 10 sections, urgent section tinted red, support email and Privacy Policy as links) is the first onboarding screen and reopens from Settings and About with a "Done" button. New `SurveyView` ("Share feedback" in Settings and About) posts the 11 answers plus platform `ios`, locale, and app version to `/api/surveys/responses/` via `APIService.submitSurvey`; empty submissions are blocked client-side and 429 gets its own message. All new copy in en and es.
+
+---
+
 ### 2026-10-21 — Android 1.4.5 (5) builds as the Play package
 - **Branch:** chore/android-play-1-4-5
 - **Files:** chla-android/app/build.gradle.kts
