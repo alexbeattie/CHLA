@@ -21,14 +21,6 @@ Format:
 
 ---
 
-### 2026-10-21 — Quick Setup age chips were clipped in the label column
-- **Branch:** feat/survey-intro-ios
-- **Files:** map-frontend/src/components/OnboardingFlow.vue
-- **Problem:** The age row put a hint and the chip grid into a 2-column `.form-row` (`150px` + the rest). The chips wrapped into the 150px track, and `text-overflow: ellipsis` cut them to "0-5 ye..." and "I have more than ...".
-- **Fix:** Hint and chips sit in one `.age-field` in the wide column, same track as the audience buttons and the diagnosis select.
-
----
-
 ### 2026-10-21 — iOS: Contact us mailed a domain with no mail server
 - **Branch:** feat/survey-intro-ios
 - **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift
