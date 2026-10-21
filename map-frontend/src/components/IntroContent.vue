@@ -16,24 +16,36 @@
         :class="{ 'intro-section--urgent': id === 'urgent' }"
       >
         <component :is="standalone ? 'h2' : 'h3'" class="intro-section-title">
-          <i v-if="id === 'urgent'" class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+          <i
+            v-if="id === 'urgent'"
+            class="bi bi-telephone"
+            aria-hidden="true"
+          ></i>
           {{ t(`intro.sections.${id}.title`) }}
         </component>
         <i18n-t :keypath="`intro.sections.${id}.body`" tag="p" scope="global">
           <template #email>
-            <a :href="`mailto:${SUPPORT_EMAIL}`" :aria-label="t('intro.emailLabel')">{{
-              SUPPORT_EMAIL
-            }}</a>
+            <a
+              :href="`mailto:${SUPPORT_EMAIL}`"
+              :aria-label="t('intro.emailLabel')"
+              >{{ SUPPORT_EMAIL }}</a
+            >
           </template>
           <template #privacyLink>
-            <a href="/privacy" target="_blank" rel="noopener">{{ t("intro.privacyLink") }}</a>
+            <a href="/privacy" target="_blank" rel="noopener">{{
+              t("intro.privacyLink")
+            }}</a>
           </template>
         </i18n-t>
       </section>
     </div>
 
     <div class="intro-footer">
-      <button type="button" class="btn intro-continue" @click="emit('continue')">
+      <button
+        type="button"
+        class="btn intro-continue"
+        @click="emit('continue')"
+      >
         {{ buttonLabel }}
       </button>
     </div>
@@ -121,14 +133,9 @@ const SECTION_IDS = [
 }
 
 .intro-section--urgent {
-  background: #fdecea;
-  border-left: 4px solid #c62828;
+  background: #f3f8fb;
   border-radius: 8px;
   padding: 12px 14px;
-}
-
-.intro-section--urgent .intro-section-title {
-  color: #b71c1c;
 }
 
 .intro-section--urgent .bi {

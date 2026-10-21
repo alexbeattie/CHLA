@@ -1,14 +1,8 @@
 <template>
   <div class="onboarding-overlay" v-if="showOnboarding">
     <div class="onboarding-container">
-      <IntroContent
-        v-if="showIntro"
-        :button-label="$t('intro.getStarted')"
-        @continue="showIntro = false"
-      />
-
       <!-- Progress Bar -->
-      <div v-if="!showIntro" class="progress-bar">
+      <div class="progress-bar">
         <div
           class="progress-fill"
           :style="{ width: progressPercentage + '%' }"
@@ -16,38 +10,38 @@
       </div>
 
       <!-- Step Content -->
-      <div v-if="!showIntro" class="step-content">
-        <!-- Step Counter -->
-        <div class="step-counter">
-          Step {{ currentStep }} of {{ totalSteps }}
+      <div class="step-content">
+        <div class="step-header">
+          <div class="step-counter">
+            {{
+              $t("intro.carousel.stepOf", {
+                current: currentStep,
+                total: totalSteps,
+              })
+            }}
+          </div>
+          <LanguageSwitcher v-if="currentStep === 1" class="dark" />
         </div>
 
         <!-- Welcome Step -->
         <div v-if="currentStep === 1" class="step welcome-step">
-          <h2>KiNDD - NDD Resource Navigator</h2>
-          <p class="welcome-text">
-            Find specialized healthcare providers and regional centers serving
-            your area. We'll help you discover the best care options based on
-            your specific needs.
-          </p>
-          <div class="welcome-features">
-            <div class="feature">
-              <i class="bi bi-geo-alt-fill"></i>
-              <span>Location Search</span>
-            </div>
-            <div class="feature">
-              <i class="bi bi-person-check"></i>
-              <span>Personalized</span>
-            </div>
-            <div class="feature">
-              <i class="bi bi-heart"></i>
-              <span>Care Network</span>
+          <h2>{{ $t("intro.title") }}</h2>
+          <p class="welcome-text">{{ $t("intro.lead") }}</p>
+          <div class="howto-cards welcome-cards">
+            <div v-for="card in welcomeCards" :key="card.id" class="howto-card">
+              <i :class="['bi', card.icon]" aria-hidden="true"></i>
+              <div>
+                <strong>{{
+                  $t(`intro.carousel.cards.${card.id}.title`)
+                }}</strong>
+                <span>{{ $t(`intro.carousel.cards.${card.id}.body`) }}</span>
+              </div>
             </div>
           </div>
 
           <!-- Location Input -->
           <div class="location-section">
-            <h4>Enter your location to get started</h4>
+            <h4>{{ $t("intro.carousel.locationPrompt") }}</h4>
             <div class="location-options">
               <button
                 class="btn btn-chla-primary location-btn"
@@ -55,19 +49,23 @@
                 :disabled="locationDetecting"
               >
                 <i class="bi bi-geo-alt-fill"></i>
-                <span v-if="locationDetecting">Detecting...</span>
-                <span v-else>Use Current Location</span>
+                <span v-if="locationDetecting">{{
+                  $t("intro.carousel.detecting")
+                }}</span>
+                <span v-else>{{
+                  $t("intro.carousel.useCurrentLocation")
+                }}</span>
               </button>
 
               <div class="location-divider">
-                <span>or</span>
+                <span>{{ $t("intro.carousel.or") }}</span>
               </div>
 
               <div class="manual-location">
                 <input
                   type="text"
                   class="form-control location-input"
-                  placeholder="ZIP code (5 digits) or city"
+                  :placeholder="$t('intro.carousel.locationPlaceholder')"
                   v-model="userLocation"
                   @keyup.enter="nextStep"
                   @input="validateZipFormat"
@@ -119,42 +117,66 @@
 
         <!-- How-to Step (after Regional Center) -->
         <div v-if="currentStep === 2" class="step howto-step">
-          <h3>Optional questions, then Filters</h3>
-          <p>
-            Next we'll ask a few optional questions about your family. Skip
-            anything you don't want to answer.
-          </p>
+          <h3>{{ $t("intro.carousel.howTo.title") }}</h3>
+          <p>{{ $t("intro.carousel.howTo.lead") }}</p>
           <div class="howto-cards">
             <div class="howto-card">
               <i class="bi bi-funnel"></i>
               <div>
-                <strong>Filters stay on the map</strong>
-                <span
-                  >Use Filters to narrow results, reset your search, or switch
-                  which child's age is applied.</span
-                >
+                <strong>{{ $t("intro.carousel.howTo.filtersTitle") }}</strong>
+                <span>{{ $t("intro.carousel.howTo.filtersBody") }}</span>
               </div>
             </div>
             <div class="howto-card">
               <i class="bi bi-people"></i>
               <div>
-                <strong>More than one child</strong>
-                <span
-                  >Select every age that applies. Later, tap a child's age chip
-                  to toggle between kids.</span
-                >
+                <strong>{{ $t("intro.carousel.howTo.childrenTitle") }}</strong>
+                <span>{{ $t("intro.carousel.howTo.childrenBody") }}</span>
               </div>
             </div>
             <div class="howto-card">
               <i class="bi bi-shield-lock"></i>
               <div>
-                <strong>Your information stays with you</strong>
-                <span
-                  >KiNDD does not keep medical records. This is a navigation
-                  tool, not official medical advice or a diagnosis.</span
+                <strong>{{ $t("intro.carousel.howTo.privacyTitle") }}</strong>
+                <i18n-t
+                  keypath="intro.carousel.howTo.privacyBody"
+                  tag="span"
+                  scope="global"
                 >
+                  <template #privacyLink>
+                    <a href="/privacy" target="_blank" rel="noopener">{{
+                      $t("intro.privacyLink")
+                    }}</a>
+                  </template>
+                </i18n-t>
               </div>
             </div>
+          </div>
+
+          <div class="good-to-know">
+            <strong>
+              <i class="bi bi-info-circle" aria-hidden="true"></i>
+              {{ $t("intro.carousel.goodToKnow.title") }}
+            </strong>
+            <p>{{ $t("intro.carousel.goodToKnow.body") }}</p>
+            <p class="good-to-know-links">
+              <a href="/intro" target="_blank" rel="noopener">{{
+                $t("intro.carousel.goodToKnow.readFull")
+              }}</a>
+              <i18n-t
+                keypath="intro.carousel.goodToKnow.questions"
+                tag="span"
+                scope="global"
+              >
+                <template #email>
+                  <a
+                    :href="`mailto:${supportEmail}`"
+                    :aria-label="$t('intro.emailLabel')"
+                    >{{ supportEmail }}</a
+                  >
+                </template>
+              </i18n-t>
+            </p>
           </div>
         </div>
 
@@ -471,7 +493,7 @@
       </div>
 
       <!-- Navigation -->
-      <div v-if="!showIntro" class="step-navigation">
+      <div class="step-navigation">
         <!-- Back Button (all steps except first) -->
         <button
           v-if="currentStep > 1"
@@ -479,7 +501,7 @@
           @click="previousStep"
         >
           <i class="bi bi-arrow-left"></i>
-          Back
+          {{ $t("intro.carousel.back") }}
         </button>
 
         <!-- Skip Link (only on first step) -->
@@ -488,7 +510,7 @@
           class="btn btn-link skip-link"
           @click="skipOnboarding"
         >
-          Skip for now
+          {{ $t("intro.carousel.skip") }}
         </button>
 
         <div class="nav-spacer"></div>
@@ -500,7 +522,7 @@
           @click="nextStep"
           :disabled="!canProceed"
         >
-          Next
+          {{ $t("intro.carousel.next") }}
           <i class="bi bi-arrow-right"></i>
         </button>
 
@@ -509,7 +531,7 @@
           class="btn btn-chla-primary"
           @click="completeOnboarding"
         >
-          Complete
+          {{ $t("intro.carousel.complete") }}
           <i class="bi bi-check"></i>
         </button>
       </div>
@@ -519,12 +541,12 @@
 
 <script>
 import { useProviderStore } from "@/stores/providerStore";
-import IntroContent from "@/components/IntroContent.vue";
+import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 
 export default {
   name: "OnboardingFlow",
 
-  components: { IntroContent },
+  components: { LanguageSwitcher },
 
   props: {
     showOnboarding: {
@@ -539,7 +561,12 @@ export default {
 
   data() {
     return {
-      showIntro: true,
+      welcomeCards: [
+        { id: "howItWorks", icon: "bi-chat-square-text" },
+        { id: "services", icon: "bi-heart-pulse" },
+        { id: "audience", icon: "bi-people" },
+      ],
+      supportEmail: "support@kinddhelp.org",
       currentStep: 1,
       totalSteps: 5,
       locationDetecting: false,
@@ -1271,7 +1298,7 @@ export default {
   border-radius: 12px;
   max-width: 600px;
   width: 90%;
-  max-height: 90vh;
+  height: min(780px, 92vh);
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   display: flex;
@@ -1291,10 +1318,30 @@ export default {
   transition: width 0.3s ease;
 }
 
+/* Auto margins center short steps; justify-content: center would clip the top of tall ones */
+.step-content > :first-child {
+  margin-top: auto;
+}
+
+.step-content > :last-child {
+  margin-bottom: auto;
+}
+
+.step-header {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.step-header .language-switcher {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
 .step-counter {
   font-size: 12px;
   color: #6c757d;
-  margin-bottom: 20px;
   text-align: center;
   font-weight: 500;
 }
@@ -1303,10 +1350,8 @@ export default {
   padding: 24px 24px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   min-height: 0;
   flex: 1;
-  max-height: 70vh;
   overflow-y: auto;
   scroll-behavior: smooth;
 }
@@ -1367,27 +1412,24 @@ export default {
   margin-right: auto;
 }
 
-.welcome-features {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
+.welcome-cards {
+  gap: 0.6rem;
+  margin-top: 0;
 }
 
-.feature {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  color: #495057;
-  font-size: 0.75rem;
-  font-weight: 400;
+.welcome-cards .howto-card {
+  padding: 0;
+  border: none;
+  background: none;
 }
 
-.feature i {
-  font-size: 0.875rem;
-  color: #004877;
+.welcome-cards .howto-card strong {
+  font-size: 0.85rem;
+}
+
+.welcome-cards .howto-card span {
+  font-size: 0.78rem;
+  margin-top: 0;
 }
 
 /* Location Step - Small & Subtle Design */
@@ -1613,6 +1655,35 @@ export default {
   font-size: 0.8rem;
   color: #6b7280;
   margin-top: 0.15rem;
+}
+
+.good-to-know {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #f3f8fb;
+  text-align: left;
+}
+
+.good-to-know strong {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #004877;
+}
+
+.good-to-know p {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #4b5563;
+  line-height: 1.45;
+}
+
+.good-to-know-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
 }
 
 .disclaimer-note {
@@ -2210,6 +2281,7 @@ export default {
 @media (max-width: 768px) {
   .onboarding-container {
     width: 95%;
+    height: auto;
     max-height: 95vh;
   }
 
@@ -2229,15 +2301,6 @@ export default {
   .welcome-text {
     font-size: 15px;
     margin-bottom: 24px;
-  }
-
-  .welcome-features {
-    gap: 24px;
-    margin-bottom: 20px;
-  }
-
-  .feature {
-    font-size: 13px;
   }
 
   .profile-step {

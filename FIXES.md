@@ -21,6 +21,22 @@ Format:
 
 ---
 
+### 2026-10-21 — Onboarding: intro folded into the carousel steps
+- **Branch:** feat/survey-intro
+- **Files:** map-frontend/src/components/{OnboardingFlow,IntroContent}.vue, map-frontend/src/i18n/locales/{en,es}.json
+- **Problem:** The intro was a separate wall of ten sections ahead of step 1, ending on a red emergency box right above Get started, so it read as a warning. Step 1 then repeated the welcome.
+- **Fix:** Step 1 carries the intro title, lead, and three short cards (how it works, services, audience) plus a language switcher. Step 2 adds what happens next, a privacy line with the policy link, and a neutral Good to know note (not medical advice, no endorsement, 911) linking the full text at /intro. Steps 1-2 and the nav buttons are translated (en/es). /intro's emergency section is no longer red. Step content no longer clips the top of tall steps (`justify-content: center` replaced with auto margins). Above 768px the dialog is a fixed `min(780px, 92vh)` tall so step 1 fits a laptop screen without scrolling and the box doesn't resize between steps; phones keep the content-sized layout.
+
+---
+
+### 2026-10-21 — Survey page: Clear is a row action, form reads as a grouped list
+- **Branch:** feat/survey-intro
+- **Files:** map-frontend/src/views/SurveyView.vue
+- **Problem:** Clear used `btn btn-link`, and the global map stylesheet paints `.btn-link` as a 12px filled blue pill (`#0d6efd`). It sat under the radios, left edge on the circles, so the word didn't line up with the answers.
+- **Fix:** Dropped the shared button classes. Choices are a grouped list (44px rows, hairline separators, filled radio). Clear is the last row of that group, tint text, same inset as the answer labels. Fields, title, and submit follow the same grouped-form treatment. Submit is the only filled button.
+
+---
+
 ### 2026-10-21 — Web onboarding intro screen and anonymous feedback survey
 - **Branch:** feat/survey-intro
 - **Files:** maplocation/surveys/*, maplocation/maplocation/{settings,urls}.py, maplocation/pytest.ini, map-frontend/src/components/{IntroContent,OnboardingFlow,LanguageSwitcher,AppNavBar}.vue, map-frontend/src/views/{IntroView,SurveyView,MapView,AboutView,PrivacyPolicyView}.vue, map-frontend/src/{composables/useSurvey,services/surveyService}.ts, map-frontend/src/i18n/locales/{en,es}.json, map-frontend/src/seo/siteConfig.js, map-frontend/vite.config.js, map-frontend/public/sitemap.xml, .env.example

@@ -389,7 +389,6 @@
   "intro": {
     "title": "Welcome to the KiNDD Resource Navigator",
     "lead": "This application is designed to help families find developmental services and therapies for their children throughout Los Angeles County.",
-    "getStarted": "Get started",
     "done": "Done",
     "readAgain": "Read the introduction",
     "emailLabel": "Email KiNDD support",
@@ -434,6 +433,48 @@
       "help": {
         "title": "We're here to help",
         "body": "Finding developmental services can feel overwhelming, and we hope this tool makes it easier to explore your options and connect with resources that support your child and family. Please contact {email} with any questions or concerns."
+      }
+    },
+    "carousel": {
+      "stepOf": "Step {current} of {total}",
+      "back": "Back",
+      "next": "Next",
+      "skip": "Skip for now",
+      "complete": "Complete",
+      "cards": {
+        "howItWorks": {
+          "title": "How it works",
+          "body": "Answer a few quick questions about your child's needs, age, and location."
+        },
+        "services": {
+          "title": "What you can find",
+          "body": "ABA, occupational, physical, and speech therapy, plus other developmental services."
+        },
+        "audience": {
+          "title": "Who it's for",
+          "body": "Families, caregivers, and clinicians supporting children with developmental needs."
+        }
+      },
+      "locationPrompt": "Enter your location to get started",
+      "useCurrentLocation": "Use Current Location",
+      "detecting": "Detecting...",
+      "or": "or",
+      "locationPlaceholder": "ZIP code (5 digits) or city",
+      "howTo": {
+        "title": "Optional questions, then Filters",
+        "lead": "Next we'll ask a few optional questions about your family. Skip anything you don't want to answer. Then we'll show providers and services that may fit, and you can contact them directly about availability and eligibility.",
+        "filtersTitle": "Filters stay on the map",
+        "filtersBody": "Use Filters to narrow results, reset your search, or switch which child's age is applied.",
+        "childrenTitle": "More than one child",
+        "childrenBody": "Select every age that applies. Later, tap a child's age chip to toggle between kids.",
+        "privacyTitle": "Your answers are saved on your device",
+        "privacyBody": "We use your ZIP code only to find services near you. No account is needed, and we don't sell your information. See our {privacyLink}."
+      },
+      "goodToKnow": {
+        "title": "Good to know",
+        "body": "KiNDD is an informational tool, not medical advice or a diagnosis. Provider details can change, and a listing isn't an endorsement. For emergencies, call 911 or go to the nearest emergency department.",
+        "readFull": "Read the full introduction",
+        "questions": "Questions? Email {email}"
       }
     }
   },

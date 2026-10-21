@@ -12,7 +12,7 @@
       <div v-if="status === 'success'" class="survey-success" role="status">
         <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
         <p>{{ t("survey.success") }}</p>
-        <router-link to="/" class="btn survey-submit">{{
+        <router-link to="/" class="survey-submit">{{
           t("survey.backToMap")
         }}</router-link>
       </div>
@@ -31,38 +31,41 @@
             id="survey-diagnosis"
             v-model="answers.diagnosis"
             type="text"
-            class="form-control"
+            class="survey-field"
             maxlength="1000"
           />
         </div>
 
         <fieldset class="survey-question">
           <legend>{{ t("survey.questions.diagnosisStatus") }}</legend>
-          <div
-            v-for="value in DIAGNOSIS_STATUSES"
-            :key="value"
-            class="form-check"
-          >
-            <input
-              :id="`survey-status-${value}`"
-              v-model="answers.diagnosis_status"
-              class="form-check-input"
-              type="radio"
-              name="diagnosis_status"
-              :value="value"
-            />
-            <label class="form-check-label" :for="`survey-status-${value}`">
-              {{ t(`survey.diagnosisStatus.${value}`) }}
+          <div class="choice-group">
+            <label
+              v-for="value in DIAGNOSIS_STATUSES"
+              :key="value"
+              class="choice"
+            >
+              <input
+                :id="`survey-status-${value}`"
+                v-model="answers.diagnosis_status"
+                class="choice-input"
+                type="radio"
+                name="diagnosis_status"
+                :value="value"
+              />
+              <span class="choice-mark" aria-hidden="true"></span>
+              <span class="choice-label">{{
+                t(`survey.diagnosisStatus.${value}`)
+              }}</span>
             </label>
+            <button
+              v-if="answers.diagnosis_status"
+              type="button"
+              class="survey-clear"
+              @click="answers.diagnosis_status = ''"
+            >
+              {{ t("survey.clear") }}
+            </button>
           </div>
-          <button
-            v-if="answers.diagnosis_status"
-            type="button"
-            class="btn btn-link survey-clear"
-            @click="answers.diagnosis_status = ''"
-          >
-            {{ t("survey.clear") }}
-          </button>
         </fieldset>
 
         <fieldset
@@ -71,34 +74,32 @@
           class="survey-question"
         >
           <legend>{{ t(`survey.questions.${question.key}`) }}</legend>
-          <div
-            v-for="(label, index) in tm(`survey.scales.${question.scale}`)"
-            :key="index"
-            class="form-check"
-          >
-            <input
-              :id="`survey-${question.field}-${index + 1}`"
-              v-model="answers[question.field]"
-              class="form-check-input"
-              type="radio"
-              :name="question.field"
-              :value="index + 1"
-            />
+          <div class="choice-group">
             <label
-              class="form-check-label"
-              :for="`survey-${question.field}-${index + 1}`"
+              v-for="(label, index) in tm(`survey.scales.${question.scale}`)"
+              :key="index"
+              class="choice"
             >
-              {{ rt(label) }}
+              <input
+                :id="`survey-${question.field}-${index + 1}`"
+                v-model="answers[question.field]"
+                class="choice-input"
+                type="radio"
+                :name="question.field"
+                :value="index + 1"
+              />
+              <span class="choice-mark" aria-hidden="true"></span>
+              <span class="choice-label">{{ rt(label) }}</span>
             </label>
+            <button
+              v-if="answers[question.field] !== null"
+              type="button"
+              class="survey-clear"
+              @click="answers[question.field] = null"
+            >
+              {{ t("survey.clear") }}
+            </button>
           </div>
-          <button
-            v-if="answers[question.field] !== null"
-            type="button"
-            class="btn btn-link survey-clear"
-            @click="answers[question.field] = null"
-          >
-            {{ t("survey.clear") }}
-          </button>
         </fieldset>
 
         <div
@@ -112,7 +113,7 @@
           <textarea
             :id="`survey-${question.field}`"
             v-model="answers[question.field]"
-            class="form-control"
+            class="survey-field"
             rows="4"
             maxlength="4000"
           ></textarea>
@@ -122,11 +123,7 @@
           {{ statusMessage }}
         </p>
 
-        <button
-          type="submit"
-          class="btn survey-submit"
-          :disabled="isSubmitting"
-        >
+        <button type="submit" class="survey-submit" :disabled="isSubmitting">
           {{ isSubmitting ? t("survey.submitting") : t("survey.submit") }}
         </button>
       </form>
@@ -170,18 +167,22 @@ const statusMessage = computed(() => {
 <style scoped>
 .survey-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding: 2rem 1rem;
+  background: #f2f2f7;
+  padding: 2.5rem 1.25rem 4rem;
   font-family: var(--kindd-font-family);
+  color: #1d1d1f;
+  -webkit-font-smoothing: antialiased;
 }
 
 .survey-card {
-  max-width: 800px;
+  max-width: 680px;
   margin: 0 auto;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  padding: 2rem;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.04),
+    0 12px 32px rgba(0, 0, 0, 0.06);
+  padding: 1.75rem 1.5rem 1.5rem;
 }
 
 .survey-header {
@@ -189,26 +190,31 @@ const statusMessage = computed(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
 }
 
 .survey-header h1 {
   color: #004877;
   font-size: 1.75rem;
   font-weight: 700;
-  margin: 0 0 0.5rem;
+  letter-spacing: -0.022em;
+  line-height: 1.15;
+  margin: 0 0 0.45rem;
 }
 
 .survey-lead {
-  color: #475569;
+  color: #6e6e73;
   margin: 0;
+  max-width: 38rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
 }
 
 .survey-question {
   border: 0;
-  border-top: 1px solid #e2e8f0;
-  padding: 1.25rem 0 0;
-  margin: 0 0 1.25rem;
+  margin: 0 0 1.75rem;
+  padding: 0;
+  min-inline-size: 0;
 }
 
 .survey-question legend,
@@ -216,70 +222,296 @@ const statusMessage = computed(() => {
   display: block;
   float: none;
   width: auto;
-  font-size: 1rem;
+  padding: 0;
+  font-size: 1.0625rem;
   font-weight: 600;
-  color: #0f172a;
-  margin-bottom: 0.75rem;
-  line-height: 1.45;
+  letter-spacing: -0.014em;
+  color: #1d1d1f;
+  margin-bottom: 0.55rem;
+  line-height: 1.35;
 }
 
-.form-check {
-  padding-top: 0.2rem;
-  padding-bottom: 0.2rem;
+.survey-field {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0.7rem 0.9rem;
+  border: 0;
+  border-radius: 12px;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+textarea.survey-field {
+  min-height: 7.5rem;
+  resize: vertical;
+}
+
+.survey-field:focus {
+  outline: none;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px #004877,
+    0 0 0 4px rgba(0, 72, 119, 0.16);
+}
+
+.choice-group {
+  background: #f5f5f7;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+}
+
+.choice + .choice::before,
+.survey-clear::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(0.9rem + 22px + 0.75rem);
+  right: 0;
+  height: 0.5px;
+  background: rgba(60, 60, 67, 0.29);
+}
+
+.choice:active {
+  background: rgba(0, 0, 0, 0.045);
+}
+
+.choice:has(.choice-input:checked) {
+  background: #e8f3f8;
+}
+
+.choice:has(.choice-input:focus-visible) {
+  outline: 2px solid #004877;
+  outline-offset: -2px;
+}
+
+.choice-input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.choice-input:focus {
+  outline: none;
+}
+
+.choice-mark {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid #c7c7cc;
+  background: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.choice-mark::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  transform: scale(0.4);
+  transition: transform 120ms ease-out;
+}
+
+.choice:has(.choice-input:checked) .choice-mark {
+  border-color: #004877;
+  background: #004877;
+}
+
+.choice:has(.choice-input:checked) .choice-mark::after {
+  transform: scale(1);
+}
+
+.choice-label {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.011em;
+  color: #1d1d1f;
 }
 
 .survey-clear {
-  padding: 0.25rem 0;
-  font-size: 0.9rem;
+  position: relative;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0.55rem 0.9rem 0.55rem calc(0.9rem + 22px + 0.75rem);
+  border: 0;
+  background: transparent;
+  color: #004877;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: -0.011em;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.survey-clear:hover {
+  color: #003a61;
+}
+
+.survey-clear:active {
+  background: rgba(0, 0, 0, 0.045);
+}
+
+.survey-clear:focus-visible {
+  outline: 2px solid #004877;
+  outline-offset: -2px;
 }
 
 .survey-alert {
   background: #fff4e5;
-  border-left: 4px solid #ed6c02;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
   color: #663c00;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin: 0 0 1rem;
 }
 
 .survey-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 50px;
+  margin-top: 0.25rem;
+  border: 0;
+  border-radius: 14px;
   background: #004877;
-  color: white;
+  color: #fff;
+  font: inherit;
+  font-size: 1.0625rem;
   font-weight: 600;
-  padding: 0.65rem 1.5rem;
+  letter-spacing: -0.015em;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 100ms ease-out,
+    background-color 100ms ease-out;
 }
 
-.survey-submit:hover,
+.survey-submit:hover {
+  background: #003a61;
+  color: #fff;
+}
+
+.survey-submit:active {
+  transform: scale(0.985);
+}
+
 .survey-submit:focus-visible {
-  background: #0d9ddb;
-  color: white;
+  outline: 2px solid #004877;
+  outline-offset: 3px;
+}
+
+.survey-submit:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
 }
 
 .survey-success {
   text-align: center;
-  padding: 2rem 0;
+  padding: 2.5rem 0.5rem 1rem;
 }
 
 .survey-success .bi {
-  font-size: 2.5rem;
-  color: #2e7d32;
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #e8f6ee;
+  font-size: 2rem;
+  color: #1f7a3a;
 }
 
 .survey-success p {
-  font-size: 1.1rem;
-  margin: 1rem 0 1.5rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.016em;
+  line-height: 1.35;
+  margin: 1.15rem auto 1.5rem;
+  max-width: 28rem;
+}
+
+.survey-success .survey-submit {
+  width: auto;
+  min-width: 12.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1.5rem;
 }
 
 @media (max-width: 640px) {
+  .survey-page {
+    padding: 0 0 2.5rem;
+    background: #fff;
+  }
+
   .survey-card {
-    padding: 1.25rem;
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 1.25rem 1.15rem 1.5rem;
   }
 
   .survey-header {
     flex-direction: column-reverse;
   }
+}
 
+@media (prefers-reduced-motion: reduce) {
+  .choice-mark::after,
   .survey-submit {
-    width: 100%;
+    transition: none;
+  }
+
+  .survey-submit:active {
+    transform: none;
+    opacity: 0.82;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .choice-group,
+  .survey-field {
+    background: #fff;
+    box-shadow: inset 0 0 0 1px #1d1d1f;
+  }
+
+  .choice-mark {
+    border-color: #1d1d1f;
   }
 }
 </style>

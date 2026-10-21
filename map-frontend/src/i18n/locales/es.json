@@ -389,7 +389,6 @@
   "intro": {
     "title": "Bienvenido a KiNDD Resource Navigator",
     "lead": "Esta aplicación está diseñada para ayudar a las familias a encontrar servicios y terapias del desarrollo para sus hijos en todo el condado de Los Ángeles.",
-    "getStarted": "Comenzar",
     "done": "Listo",
     "readAgain": "Leer la introducción",
     "emailLabel": "Escribir al soporte de KiNDD",
@@ -434,6 +433,48 @@
       "help": {
         "title": "Estamos aquí para ayudar",
         "body": "Encontrar servicios del desarrollo puede ser abrumador, y esperamos que esta herramienta le facilite explorar sus opciones y conectarse con recursos que apoyen a su hijo y a su familia. Escriba a {email} si tiene preguntas o inquietudes."
+      }
+    },
+    "carousel": {
+      "stepOf": "Paso {current} de {total}",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "skip": "Omitir por ahora",
+      "complete": "Terminar",
+      "cards": {
+        "howItWorks": {
+          "title": "Cómo funciona",
+          "body": "Responda unas preguntas rápidas sobre las necesidades, la edad y la ubicación de su hijo."
+        },
+        "services": {
+          "title": "Qué puede encontrar",
+          "body": "Terapia ABA, ocupacional, física y del habla, y otros servicios del desarrollo."
+        },
+        "audience": {
+          "title": "Para quién es",
+          "body": "Familias, cuidadores y médicos que apoyan a niños con necesidades del desarrollo."
+        }
+      },
+      "locationPrompt": "Ingrese su ubicación para comenzar",
+      "useCurrentLocation": "Usar mi ubicación actual",
+      "detecting": "Detectando...",
+      "or": "o",
+      "locationPlaceholder": "Código postal (5 dígitos) o ciudad",
+      "howTo": {
+        "title": "Preguntas opcionales y luego Filtros",
+        "lead": "A continuación le haremos algunas preguntas opcionales sobre su familia. Puede omitir cualquier pregunta que no quiera responder. Luego le mostraremos proveedores y servicios que podrían ser adecuados, y podrá comunicarse con ellos directamente para conocer su disponibilidad y requisitos.",
+        "filtersTitle": "Los filtros permanecen en el mapa",
+        "filtersBody": "Use Filtros para acotar los resultados, reiniciar su búsqueda o cambiar la edad del niño que se aplica.",
+        "childrenTitle": "Más de un hijo",
+        "childrenBody": "Seleccione todas las edades que correspondan. Después, toque la edad de un hijo para cambiar entre ellos.",
+        "privacyTitle": "Sus respuestas se guardan en su dispositivo",
+        "privacyBody": "Usamos su código postal solo para encontrar servicios cerca de usted. No necesita una cuenta y no vendemos su información. Consulte nuestra {privacyLink}."
+      },
+      "goodToKnow": {
+        "title": "Para tener en cuenta",
+        "body": "KiNDD es una herramienta informativa, no un consejo médico ni un diagnóstico. La información de los proveedores puede cambiar, y aparecer en la lista no significa una recomendación. En caso de emergencia, llame al 911 o vaya a la sala de emergencias más cercana.",
+        "readFull": "Leer la introducción completa",
+        "questions": "¿Preguntas? Escriba a {email}"
       }
     }
   },
