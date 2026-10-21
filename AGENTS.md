@@ -132,12 +132,25 @@ npm run dev
 When working from a freshly-provisioned Cursor Cloud VM (or any other fresh
 Linux dev environment), the following are not yet set up automatically:
 
-- **Docker daemon**: `dockerd` is not started by default. Run
-  `sudo dockerd &>/tmp/dockerd.log &` and `sudo chmod 666 /var/run/docker.sock`.
-- **pgvector**: the PostGIS image used in `docker-compose.local.yml` does
-  not include pgvector. After the container starts:
+- **Docker daemon**: `dockerd` is not started by default. The default
+  overlay snapshotter cannot extract images here (`failed to convert whiteout
+  file ... operation not permitted`). Configure `/etc/docker/daemon.json`
+  with `"storage-driver": "fuse-overlayfs"` and
+  `"features": {"containerd-snapshotter": false}`, then
+  `sudo dockerd >/tmp/dockerd.log 2>&1 &` and
+  `sudo chmod 666 /var/run/docker.sock`. After the daemon is up, set
+  `sudo iptables-legacy -P FORWARD ACCEPT`. The legacy FORWARD policy is
+  DROP and blocks container egress even when nftables rules look correct.
+  `fuse-overlayfs` must already be installed; `apt-get` prompts on
+  `/etc/fuse.conf`, so install it with
+  `-o Dpkg::Options::=--force-confold`.
+- **pgvector**: `postgis/postgis:16-3.4` is Debian Bullseye and does not
+  include pgvector. `bullseye-pgdg` was removed from `apt.postgresql.org`
+  in October 2026. Point `/etc/apt/sources.list.d/pgdg.list` at
+  `https://apt-archive.postgresql.org/pub/repos/apt` before installing,
+  and only after container egress works:
   ```bash
-  docker exec chla-postgres-local bash -c "apt-get update && apt-get install -y postgresql-16-pgvector"
+  docker exec chla-postgres-local bash -c 'sed -i "s|http://apt.postgresql.org/pub/repos/apt/|https://apt-archive.postgresql.org/pub/repos/apt |" /etc/apt/sources.list.d/pgdg.list && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql-16-pgvector'
   docker exec chla-postgres-local psql -U chla_dev -d chla_local -c "CREATE EXTENSION IF NOT EXISTS vector;"
   ```
 - **Migration 0026 on a fresh DB**: `0026_delete_provider` fails because
@@ -151,8 +164,11 @@ Linux dev environment), the following are not yet set up automatically:
   regressions.
 - **Worktree Mapbox token**: `map-frontend/.env` is gitignored, so a new
   worktree starts with no `VITE_MAPBOX_TOKEN`. Copy it from the main
-  checkout before `./switch-env.sh dev`. Vite only reads `.env` at
-  startup. Never print or commit the token.
+  checkout before `./switch-env.sh dev`, or export `VITE_MAPBOX_TOKEN`
+  (a public `pk.*` token) before that script runs. Vite only reads `.env`
+  at startup. Without a token the API and provider search still work, and
+  the map canvas stays blank (`An API access token is required to use
+  Mapbox GL`). Never print or commit the token.
 - **Basic Auth on the admin/client portal**: credentials live in AWS
   Secrets Manager under `kindd/prod/basic-auth-password`,
   `kindd/prod/admin-password`, and `kindd/prod/client-password`. Fetch
