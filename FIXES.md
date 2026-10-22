@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-22 — use over 300 providers in app copy
+- **Branch:** fix/provider-count-everywhere
+- **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json, map-frontend/public/og-image.svg, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/FAQView.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/SOCIAL_IMAGES_GUIDE.md, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md
+- **Problem:** App and current marketing copy described the directory as 300+ resources or providers, while the approved wording is over 300 providers.
+- **Fix:** Use the approved provider wording in English and Spanish across the web and iOS app, store metadata, presentation, and social image copy.
+
+---
+
 ### 2026-10-21 — iOS: remove screenshot-only debug hooks from onboarding
 - **Branch:** fix/ios-onboarding-debug-hooks
 - **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift
