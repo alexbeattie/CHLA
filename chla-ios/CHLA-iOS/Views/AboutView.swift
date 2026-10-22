@@ -11,6 +11,7 @@ struct AboutView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
     @State private var lastDragValue: CGFloat = 0
+    @State private var showIntro = false
 
     var body: some View {
         ScrollView {
@@ -27,6 +28,7 @@ struct AboutView: View {
                     ctaSection
 
                     disclaimerSection
+                    guideAndFeedbackSection
                 }
                 .padding(20)
             }
@@ -47,6 +49,7 @@ struct AboutView: View {
                     lastDragValue = 0
                 }
         )
+        .introSheet(isPresented: $showIntro)
     }
 
     // MARK: - Hero Section
@@ -254,6 +257,50 @@ struct AboutView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemBackground))
         .cornerRadius(12)
+    }
+
+    private var guideAndFeedbackSection: some View {
+        VStack(spacing: 0) {
+            Button {
+                showIntro = true
+            } label: {
+                aboutLinkRow(icon: "hand.wave.fill", title: L10n.Intro.settingsLabel)
+            }
+
+            Divider().padding(.leading, 48)
+
+            NavigationLink {
+                SurveyView()
+            } label: {
+                aboutLinkRow(icon: "text.bubble.fill", title: L10n.Survey.entryLabel)
+            }
+        }
+        .buttonStyle(.plain)
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+    }
+
+    private func aboutLinkRow(icon: String, title: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.body)
+                .foregroundColor(.accentBlue)
+                .frame(width: 20, height: 20)
+                .accessibilityHidden(true)
+
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundColor(.primary)
+
+            Spacer(minLength: 0)
+
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+        }
+        .padding(16)
+        .contentShape(Rectangle())
     }
 }
 

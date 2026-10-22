@@ -13,6 +13,102 @@ Format:
 
 ---
 
+### 2026-10-21 — iOS: remove screenshot-only debug hooks from onboarding
+- **Branch:** fix/ios-onboarding-debug-hooks
+- **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift
+- **Problem:** #42 merged with temporary UserDefaults reads (`debugStartStep`, `debugScrollBottom`, `debugShowIntro`) that were added only to capture simulator screenshots of later onboarding steps. Inert in practice since nothing sets those keys, but launch arguments can set them.
+- **Fix:** Onboarding starts at step 0, the intro sheet starts closed, and no `defaultScrollAnchor` override remains.
+
+---
+
+### 2026-10-21 — iOS: fold the intro into onboarding steps
+- **Branch:** feat/survey-intro-ios
+- **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift, chla-ios/CHLA-iOS/Extensions/String+Localization.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings
+- **Problem:** Onboarding opened on a separate full-screen intro of ten stacked sections ending in a red emergency card, which read like a warning before the first question.
+- **Fix:** Onboarding starts on the step pager again. Step 0 (welcome) shows the intro title, lead, and three short rows above the audience picker. Step 3 (how-to, right before the questions) gets the on-device privacy row with the Privacy Policy link and a neutral "Good to know" card that opens the full `IntroView` as a sheet and mails support@kinddhelp.org. The full intro keeps its text but its urgent section uses the standard card with a `phone` icon. Steps scroll when taller than the page, so Continue stays visible on iPhone SE. New copy in en and es; `intro.getStarted` removed. The Back/Continue/Get Started buttons, the audience picker, and the how-to step were hardcoded English and now read from `Localizable.strings`, so the Spanish carousel no longer mixes languages.
+
+---
+
+### 2026-10-21 — iOS: Contact us mailed a domain with no mail server
+- **Branch:** feat/survey-intro-ios
+- **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift
+- **Problem:** "Contact us" opened mail to support@kinddhelp.com, but kinddhelp.com has no MX record, so messages bounce. The new intro's Privacy Policy link pointed at kinddhelp.com/privacy, which only redirects.
+- **Fix:** Contact us now uses support@kinddhelp.org (Google Workspace MX), matching web and Android; the privacy link goes straight to https://kinddhelp.org/privacy.
+
+---
+
+### 2026-10-21 — iOS: onboarding intro screen and feedback survey
+- **Branch:** feat/survey-intro-ios
+- **Files:** chla-ios/CHLA-iOS/Views/IntroView.swift, chla-ios/CHLA-iOS/Views/SurveyView.swift, chla-ios/CHLA-iOS/Models/SurveySubmission.swift, chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Services/APIService.swift, chla-ios/CHLA-iOS/Services/LanguageManager.swift, chla-ios/CHLA-iOS/Extensions/String+Localization.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** Onboarding jumped straight to questions with no explanation of what KiNDD is, how answers are used, or what to do in an emergency. There was no way to send feedback from the app.
+- **Fix:** New `IntroView` (title, lead, 10 sections, urgent section tinted red, support email and Privacy Policy as links) is the first onboarding screen and reopens from Settings and About with a "Done" button. New `SurveyView` ("Share feedback" in Settings and About) posts the 11 answers plus platform `ios`, locale, and app version to `/api/surveys/responses/` via `APIService.submitSurvey`; empty submissions are blocked client-side and 429 gets its own message. All new copy in en and es.
+
+---
+
+### 2026-10-21 — Android 1.4.5 (5) builds as the Play package
+- **Branch:** chore/android-play-1-4-5
+- **Files:** chla-android/app/build.gradle.kts
+- **Problem:** The Play listing is `com.navigator.kindd` (last upload 1.4.1, versionCode 2), but main still built `applicationId = "com.chla.kindd"`, so no main build could be uploaded. The full package rename lives on the unmerged `release/android-navigator-identity` branch (173 files).
+- **Fix:** `applicationId` is `com.navigator.kindd`; the Kotlin namespace stays `com.chla.kindd` (Play only checks the application ID, and runtime code reads `context.packageName`). versionCode 5, versionName 1.4.5 to line up with iOS.
+
+---
+
+### 2026-10-21 — Android: fold the intro into onboarding and soften the urgent card
+- **Branch:** feat/survey-intro-android
+- **Files:** chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/*, chla-android/app/src/main/java/com/chla/kindd/ui/intro/IntroContent.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/SettingsScreen.kt, chla-android/app/src/main/res/values*/strings.xml, chla-android/app/src/test/java/com/chla/kindd/ui/intro/IntroSurveyStringParityTest.kt, chla-android/app/src/androidTest/java/com/chla/kindd/ui/onboarding/OnboardingContentTest.kt
+- **Problem:** First run opened on a standalone `INTRO` step of ten sections ending in an `errorContainer` urgent card with a warning icon, which read as a warning before the user had done anything.
+- **Fix:** `INTRO` step removed; onboarding starts at `AUDIENCE` in both modes again. First-run `AUDIENCE` shows the welcome title, lead and three how/what/who rows in place of the old heading (edit mode unchanged). `HOW_TO` gets an on-device privacy row with a Privacy Policy link (replacing the old privacy row) and a neutral indigo "Good to know" card with "Read the full introduction" and a support mailto. The full intro opens over onboarding from that card and stays reachable from Settings and About; its urgent section is now a neutral card with a phone icon. `intro_get_started` and `onboarding_howto_privacy_body` removed.
+
+---
+
+### 2026-10-21 — Quick Setup age chips were clipped in the label column
+- **Branch:** feat/survey-intro-android
+- **Files:** map-frontend/src/components/OnboardingFlow.vue
+- **Problem:** The age row put a hint and the chip grid into a 2-column `.form-row` (`150px` + the rest). The chips wrapped into the 150px track, and `text-overflow: ellipsis` cut them to "0-5 ye..." and "I have more than ...".
+- **Fix:** Hint and chips sit in one `.age-field` in the wide column, same track as the audience buttons and the diagnosis select.
+
+---
+
+### 2026-10-21 — Android: onboarding intro screen and feedback survey
+- **Branch:** feat/survey-intro-android
+- **Files:** chla-android/app/src/main/java/com/chla/kindd/ui/intro/*, chla-android/app/src/main/java/com/chla/kindd/ui/survey/*, chla-android/app/src/main/java/com/chla/kindd/data/survey/*, chla-android/app/src/main/java/com/chla/kindd/data/api/KINDDApi.kt, chla-android/app/src/main/java/com/chla/kindd/ui/onboarding/*, chla-android/app/src/main/java/com/chla/kindd/ui/navigation/*, chla-android/app/src/main/java/com/chla/kindd/ui/screens/SettingsScreen.kt, chla-android/app/src/main/java/com/chla/kindd/ui/screens/AboutScreen.kt, chla-android/app/src/main/java/com/chla/kindd/platform/ExternalIntents.kt, chla-android/app/src/main/AndroidManifest.xml, chla-android/app/src/main/res/values*/strings.xml
+- **Problem:** First-run onboarding opened straight on the audience question with no explanation of what KiNDD does, its privacy terms, or where to go in an emergency, and the app had no way to collect user feedback.
+- **Fix:** New `INTRO` onboarding step ahead of the questions (first run only; editing a profile still starts at audience) with the shared English/Spanish intro copy, a tinted urgent-concerns card, heading semantics, and mailto/Privacy Policy links; reopenable as "Welcome guide" from Settings and About with a Done button. New "Share feedback" survey screen posts the 11 optional answers plus `platform`/`locale`/`app_version` to `/api/surveys/responses/`, with empty, sending, success, 429, and error states. The survey DTO lives in `data.api` so the existing R8 keep rule covers its Gson field names. `OnboardingContentTest.completedSession_firstReusedRouteFrameIsReset_andSavedEventIsDelivered` already failed on main because it called `finish()` from `JOURNEY` (it never stepped past `HOW_TO`); it now walks to `AGE` first.
+
+---
+
+### 2026-10-21 — Quick Setup age chips were clipped in the label column
+- **Branch:** feat/survey-intro
+- **Files:** map-frontend/src/components/OnboardingFlow.vue
+- **Problem:** The age row put a hint and the chip grid into a 2-column `.form-row` (`150px` + the rest). The chips wrapped into the 150px track, and `text-overflow: ellipsis` cut them to "0-5 ye..." and "I have more than ...".
+- **Fix:** Hint and chips sit in one `.age-field` in the wide column, same track as the audience buttons and the diagnosis select.
+
+---
+
+### 2026-10-21 — Onboarding: intro folded into the carousel steps
+- **Branch:** feat/survey-intro
+- **Files:** map-frontend/src/components/{OnboardingFlow,IntroContent}.vue, map-frontend/src/i18n/locales/{en,es}.json
+- **Problem:** The intro was a separate wall of ten sections ahead of step 1, ending on a red emergency box right above Get started, so it read as a warning. Step 1 then repeated the welcome.
+- **Fix:** Step 1 carries the intro title, lead, and three short cards (how it works, services, audience) plus a language switcher. Step 2 adds what happens next, a privacy line with the policy link, and a neutral Good to know note (not medical advice, no endorsement, 911) linking the full text at /intro. Steps 1-2 and the nav buttons are translated (en/es). /intro's emergency section is no longer red. Step content no longer clips the top of tall steps (`justify-content: center` replaced with auto margins). Above 768px the dialog is a fixed `min(780px, 92vh)` tall so step 1 fits a laptop screen without scrolling and the box doesn't resize between steps; phones keep the content-sized layout. `/survey` is prerendered so https://kinddhelp.org/survey returns 200 from CloudFront instead of the 404 fallback.
+
+---
+
+### 2026-10-21 — Survey page: Clear is a row action, form reads as a grouped list
+- **Branch:** feat/survey-intro
+- **Files:** map-frontend/src/views/SurveyView.vue
+- **Problem:** Clear used `btn btn-link`, and the global map stylesheet paints `.btn-link` as a 12px filled blue pill (`#0d6efd`). It sat under the radios, left edge on the circles, so the word didn't line up with the answers.
+- **Fix:** Dropped the shared button classes. Choices are a grouped list (44px rows, hairline separators, filled radio). Clear is the last row of that group, tint text, same inset as the answer labels. Fields, title, and submit follow the same grouped-form treatment. Submit is the only filled button.
+
+---
+
+### 2026-10-21 — Web onboarding intro screen and anonymous feedback survey
+- **Branch:** feat/survey-intro
+- **Files:** maplocation/surveys/*, maplocation/maplocation/{settings,urls}.py, maplocation/pytest.ini, map-frontend/src/components/{IntroContent,OnboardingFlow,LanguageSwitcher,AppNavBar}.vue, map-frontend/src/views/{IntroView,SurveyView,MapView,AboutView,PrivacyPolicyView}.vue, map-frontend/src/{composables/useSurvey,services/surveyService}.ts, map-frontend/src/i18n/locales/{en,es}.json, map-frontend/src/seo/siteConfig.js, map-frontend/vite.config.js, map-frontend/public/sitemap.xml, .env.example
+- **Problem:** Families went straight to the location question with no explanation of the tool, its limits, privacy, or emergencies; the research team had no way to collect family feedback.
+- **Fix:** Intro screen (en/es) is now the first onboarding screen and lives at /intro. /survey posts to new `POST /api/surveys/responses/` (anonymous, global rate limit), stored in `surveys.SurveyResponse`, viewable and downloadable as CSV in the client portal, and emailed through SES when `SURVEY_NOTIFY_EMAILS` and `SURVEY_FROM_EMAIL` are set. Privacy policy covers the survey. LanguageSwitcher closes based on its own element, so two switchers on one page no longer fight.
+
+---
+
 ### 2026-10-19 — Provider count copy: 370+/600+ to 300+
 - **Branch:** fix/provider-count-copy
 - **Files:** chla-ios/CHLA-iOS/Views/{AboutView,FAQView,SettingsView}.swift, chla-ios/CHLA-iOS/App/ContentView.swift, map-frontend/src/views/AboutView.vue, map-frontend/public/og-image.svg, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md, docs/SOCIAL_IMAGES_GUIDE.md

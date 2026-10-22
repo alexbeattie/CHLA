@@ -306,7 +306,7 @@ struct MainTabView: View {
         case .showFAQ:
             showFAQ = true
         case .contactUs:
-            if let url = URL(string: "mailto:support@kinddhelp.com") {
+            if let url = URL(string: "mailto:support@kinddhelp.org") {
                 openURL(url)
             }
         case .rateApp:

@@ -42,8 +42,10 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.WavingHand
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -112,6 +114,8 @@ fun SettingsScreen(
     onNavigateToAbout: () -> Unit,
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateBack: (() -> Unit)? = null,
+    onNavigateToIntro: (() -> Unit)? = null,
+    onNavigateToSurvey: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     var clearFailed by rememberSaveable { mutableStateOf(false) }
@@ -183,6 +187,8 @@ fun SettingsScreen(
         onOpenWebsite = {
             context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(KINDD_WEBSITE_URL)))
         },
+        onOpenIntro = onNavigateToIntro,
+        onOpenSurvey = onNavigateToSurvey,
         appMode = profile.audienceType,
         criteria = discoveryState.criteria,
         onAppModeChange = { audienceType ->
@@ -213,6 +219,8 @@ fun SettingsContent(
     onOpenLanguageSettings: (() -> Unit)? = null,
     onOpenLocationSettings: (() -> Unit)? = null,
     onOpenWebsite: (() -> Unit)? = null,
+    onOpenIntro: (() -> Unit)? = null,
+    onOpenSurvey: (() -> Unit)? = null,
     appMode: AudienceType? = null,
     criteria: DiscoveryCriteria? = null,
     onAppModeChange: ((AudienceType) -> Unit)? = null,
@@ -430,6 +438,26 @@ fun SettingsContent(
                         onClick = onNavigateToAbout,
                         modifier = Modifier.testTag("settings_about")
                     )
+                    if (onOpenIntro != null) {
+                        HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
+                        SettingsRow(
+                            icon = Icons.Default.WavingHand,
+                            iconTint = KiNDDViolet,
+                            title = stringResource(R.string.intro_settings_label),
+                            onClick = onOpenIntro,
+                            modifier = Modifier.testTag("settings_intro")
+                        )
+                    }
+                    if (onOpenSurvey != null) {
+                        HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
+                        SettingsRow(
+                            icon = Icons.Default.RateReview,
+                            iconTint = KiNDDPurple,
+                            title = stringResource(R.string.survey_entry_label),
+                            onClick = onOpenSurvey,
+                            modifier = Modifier.testTag("settings_survey")
+                        )
+                    }
                     HorizontalDivider(modifier = Modifier.padding(start = 58.dp))
                     SettingsRow(
                         icon = Icons.Default.Tune,
@@ -567,7 +595,14 @@ fun SettingsContent(
                     .padding(horizontal = 20.dp, vertical = 8.dp)
                     .testTag("settings_how_to_sheet")
             ) {
-                HowToGuideContent()
+                HowToGuideContent(
+                    onOpenIntro = onOpenIntro?.let { openIntro ->
+                        {
+                            showHowTo = false
+                            openIntro()
+                        }
+                    }
+                )
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }

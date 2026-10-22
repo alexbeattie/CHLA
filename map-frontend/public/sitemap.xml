@@ -36,6 +36,14 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- Introduction -->
+  <url>
+    <loc>https://kinddhelp.org/intro</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
   <!-- Privacy -->
   <url>
     <loc>https://kinddhelp.org/privacy</loc>

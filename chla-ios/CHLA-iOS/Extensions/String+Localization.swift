@@ -197,8 +197,66 @@ enum L10n {
         static var done: String { "onboarding.done".localized }
         static var locationTitle: String { "onboarding.locationTitle".localized }
         static var locationSubtitle: String { "onboarding.locationSubtitle".localized }
+        static var howItWorksTitle: String { "onboarding.howItWorks.title".localized }
+        static var howItWorksBody: String { "onboarding.howItWorks.body".localized }
+        static var servicesTitle: String { "onboarding.services.title".localized }
+        static var servicesBody: String { "onboarding.services.body".localized }
+        static var audienceTitle: String { "onboarding.audience.title".localized }
+        static var audienceBody: String { "onboarding.audience.body".localized }
+        static var privacyTitle: String { "onboarding.privacy.title".localized }
+        static var privacyBody: String { "onboarding.privacy.body".localized }
+        static var goodToKnowTitle: String { "onboarding.goodToKnow.title".localized }
+        static var goodToKnowBody: String { "onboarding.goodToKnow.body".localized }
+        static var readFullIntro: String { "onboarding.readFullIntro".localized }
+        static var supportLine: String { "onboarding.supportLine".localized }
+        static var back: String { "onboarding.back".localized }
+        static var roleLabel: String { "onboarding.role.label".localized }
+        static var roleFamily: String { "onboarding.role.family".localized }
+        static var roleClinician: String { "onboarding.role.clinician".localized }
+        static var howToTitle: String { "onboarding.howTo.title".localized }
+        static var howToLead: String { "onboarding.howTo.lead".localized }
+        static var filtersTitle: String { "onboarding.filters.title".localized }
+        static var filtersBody: String { "onboarding.filters.body".localized }
+        static var kidsTitle: String { "onboarding.kids.title".localized }
+        static var kidsBody: String { "onboarding.kids.body".localized }
     }
     
+    // MARK: - Intro
+    enum Intro {
+        static var title: String { "intro.title".localized }
+        static var lead: String { "intro.lead".localized }
+        static var privacyLinkLabel: String { "intro.privacyLinkLabel".localized }
+        static var done: String { "intro.done".localized }
+        static var settingsLabel: String { "intro.settingsLabel".localized }
+        static func heading(_ section: String) -> String { "intro.\(section).heading".localized }
+        static func body(_ section: String) -> String { "intro.\(section).body".localized }
+    }
+
+    // MARK: - Feedback Survey
+    enum Survey {
+        static var entryLabel: String { "survey.entryLabel".localized }
+        static var title: String { "survey.title".localized }
+        static var lead: String { "survey.lead".localized }
+        static var diagnosis: String { "survey.q.diagnosis".localized }
+        static var diagnosisStatus: String { "survey.q.diagnosisStatus".localized }
+        static var underEvaluation: String { "survey.option.underEvaluation".localized }
+        static var notYetDiagnosed: String { "survey.option.notYetDiagnosed".localized }
+        static var experienceBefore: String { "survey.q.experienceBefore".localized }
+        static var unmetNeeds: String { "survey.q.unmetNeeds".localized }
+        static var improvements: String { "survey.q.improvements".localized }
+        static var additionalComments: String { "survey.q.additionalComments".localized }
+        static var clearHint: String { "survey.clearHint".localized }
+        static var submit: String { "survey.submit".localized }
+        static var submitting: String { "survey.submitting".localized }
+        static var success: String { "survey.success".localized }
+        static var empty: String { "survey.empty".localized }
+        static var error: String { "survey.error".localized }
+        static var rateLimited: String { "survey.rateLimited".localized }
+        static var done: String { "survey.done".localized }
+        static func question(_ key: String) -> String { "survey.q.\(key)".localized }
+        static func scaleOption(_ scale: String, _ value: Int) -> String { "survey.scale.\(scale).\(value)".localized }
+    }
+
     // MARK: - Settings
     enum Settings {
         static var title: String { "settings.title".localized }

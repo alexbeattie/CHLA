@@ -16,7 +16,6 @@ struct OnboardingView: View {
     @StateObject private var mapModel = RegionalCenterMapViewModel()
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var currentStep = 0
     @State private var zipCode = ""
@@ -34,18 +33,42 @@ struct OnboardingView: View {
         reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8)
     }
 
-    /// Steps keep their fixed, centered layout at standard type sizes; at
-    /// accessibility sizes the content scrolls so text never truncates.
-    @ViewBuilder
+    /// Steps fill the page so their spacers keep the centered layout, and
+    /// scroll once the content is taller than the page (small phones, large
+    /// type) so text never truncates.
     private func stepContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            ScrollView(showsIndicators: false) { content() }
-        } else {
-            content()
+        let stepContent = content()
+        return GeometryReader { proxy in
+            ScrollView {
+                stepContent
+                    .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            .scrollIndicatorsFlash(onAppear: true)
         }
+        .clipped()
     }
 
     var body: some View {
+        steps
+        .background {
+            ZStack(alignment: .top) {
+                Theme.canvas
+
+                Theme.topWash(dark: colorScheme == .dark)
+                    .frame(height: 360)
+                    .frame(maxHeight: .infinity, alignment: .top)
+            }
+            .ignoresSafeArea()
+        }
+        .onAppear {
+            if mapModel.serviceAreas.isEmpty {
+                Task { await mapModel.fetchServiceAreas() }
+            }
+        }
+    }
+
+    private var steps: some View {
         VStack(spacing: 0) {
             progressDots
                 .padding(.top, 18)
@@ -65,21 +88,6 @@ struct OnboardingView: View {
             navigationButtons
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
-        }
-        .background {
-            ZStack(alignment: .top) {
-                Theme.canvas
-
-                Theme.topWash(dark: colorScheme == .dark)
-                    .frame(height: 360)
-                    .frame(maxHeight: .infinity, alignment: .top)
-            }
-            .ignoresSafeArea()
-        }
-        .onAppear {
-            if mapModel.serviceAreas.isEmpty {
-                Task { await mapModel.fetchServiceAreas() }
-            }
         }
     }
 
@@ -106,7 +114,7 @@ struct OnboardingView: View {
                         currentStep -= 1
                     }
                 } label: {
-                    Text("Back")
+                    Text(L10n.Onboarding.back)
                         .font(.system(.body, design: .rounded).weight(.medium))
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 20)
@@ -128,7 +136,7 @@ struct OnboardingView: View {
                 }
             } label: {
                 HStack(spacing: 8) {
-                    Text(currentStep == totalSteps - 1 ? "Get Started" : "Continue")
+                    Text(currentStep == totalSteps - 1 ? L10n.Onboarding.getStarted : L10n.Common.continueText)
                         .font(.system(.body, design: .rounded).weight(.semibold))
 
                     Image(systemName: "arrow.right")
@@ -152,13 +160,13 @@ struct OnboardingView: View {
 
     private var welcomeStep: some View {
         stepContainer {
-        VStack(spacing: 22) {
+        VStack(spacing: 18) {
             Spacer()
 
             Image("KiNDDLogo")
                 .resizable()
                 .scaledToFit()
-                .frame(height: 64)
+                .frame(height: 52)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
                 .background {
@@ -167,32 +175,48 @@ struct OnboardingView: View {
                     }
                 }
 
-            Text("You found the right place.")
-                .font(.system(.largeTitle, design: .rounded).weight(.bold))
+            Text(L10n.Intro.title)
+                .font(.system(.title, design: .rounded).weight(.bold))
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
                 .padding(.horizontal, 24)
 
-            Text("KiNDD helps LA County families navigate developmental services - regional centers, therapy providers, and what to do next.")
+            Text(L10n.Intro.lead)
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 36)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 28)
 
-            Text("KiNDD does not keep your medical information. This is a navigation tool, not official medical advice.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 36)
-                .padding(.top, 4)
+            VStack(alignment: .leading, spacing: 12) {
+                OnboardingInfoRow(
+                    icon: "questionmark.circle",
+                    title: L10n.Onboarding.howItWorksTitle,
+                    detail: L10n.Onboarding.howItWorksBody
+                )
+                OnboardingInfoRow(
+                    icon: "list.bullet.rectangle",
+                    title: L10n.Onboarding.servicesTitle,
+                    detail: L10n.Onboarding.servicesBody
+                )
+                OnboardingInfoRow(
+                    icon: "person.2",
+                    title: L10n.Onboarding.audienceTitle,
+                    detail: L10n.Onboarding.audienceBody
+                )
+            }
+            .onboardingCard()
+            .padding(.horizontal, 8)
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("I'm here as a")
+                Text(L10n.Onboarding.roleLabel)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
 
                 Picker("Audience", selection: $selectedAudienceType) {
-                    Label("Parent or family", systemImage: "person.2.fill").tag("family")
-                    Label("Clinician", systemImage: "stethoscope").tag("clinician")
+                    Label(L10n.Onboarding.roleFamily, systemImage: "person.2.fill").tag("family")
+                    Label(L10n.Onboarding.roleClinician, systemImage: "stethoscope").tag("clinician")
                 }
                 .pickerStyle(.segmented)
             }
@@ -631,8 +655,10 @@ struct OnboardingView: View {
 // MARK: - How-to guide (onboarding step + Settings)
 
 struct HowToGuideContent: View {
+    @State private var showIntro = false
+
     var body: some View {
-        VStack(spacing: 22) {
+        VStack(spacing: 18) {
             Spacer(minLength: 8)
 
             ZStack {
@@ -645,64 +671,135 @@ struct HowToGuideContent: View {
                     .foregroundColor(Theme.indigo)
             }
 
-            Text("Optional questions, then Filters")
+            Text(L10n.Onboarding.howToTitle)
                 .font(.system(.title, design: .rounded).weight(.bold))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
 
-            Text("Next we'll ask a few optional questions about your family. Skip anything you don't want to answer.")
+            Text(L10n.Onboarding.howToLead)
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 36)
 
             VStack(alignment: .leading, spacing: 12) {
-                howToRow(
+                OnboardingInfoRow(
                     icon: "slider.horizontal.3",
-                    title: "Filters stay on the map",
-                    detail: "Use Filters to narrow results, reset your search, or switch which child's age is applied."
+                    title: L10n.Onboarding.filtersTitle,
+                    detail: L10n.Onboarding.filtersBody
                 )
-                howToRow(
+                OnboardingInfoRow(
                     icon: "person.2.fill",
-                    title: "More than one child",
-                    detail: "Select every age that applies. Later, tap a child's age chip to toggle between kids."
+                    title: L10n.Onboarding.kidsTitle,
+                    detail: L10n.Onboarding.kidsBody
                 )
-                howToRow(
+                OnboardingInfoRow(
                     icon: "lock.shield",
-                    title: "Your information stays with you",
-                    detail: "KiNDD does not keep medical records. This is a navigation tool, not official medical advice or a diagnosis."
+                    title: L10n.Onboarding.privacyTitle,
+                    detail: L10n.Onboarding.privacyBody
                 )
             }
-            .padding(16)
+            .onboardingCard()
+            .padding(.horizontal, 8)
+
+            goodToKnowCard
+                .padding(.horizontal, 8)
+
+            Spacer()
+        }
+        .padding()
+        .tint(Theme.indigoDeep)
+        .introSheet(isPresented: $showIntro)
+    }
+
+    private var goodToKnowCard: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "info.circle")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Theme.indigo)
+                .frame(width: 22)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(L10n.Onboarding.goodToKnowTitle)
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .accessibilityAddTraits(.isHeader)
+
+                Text(L10n.Onboarding.goodToKnowBody)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button {
+                    showIntro = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(L10n.Onboarding.readFullIntro)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .accessibilityHidden(true)
+                    }
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .foregroundColor(Theme.indigoDeep)
+                }
+                .buttonStyle(.pressable)
+
+                Text(IntroView.linkified(L10n.Onboarding.supportLine))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Theme.indigo.opacity(0.07))
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Theme.indigo.opacity(0.18), lineWidth: 1)
+        }
+    }
+}
+
+/// Icon, bold title, and one short line. The detail links the support
+/// address and "Privacy Policy" phrase when present.
+struct OnboardingInfoRow: View {
+    let icon: String
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Theme.indigo)
+                .frame(width: 22)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                Text(IntroView.linkified(detail))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+    }
+}
+
+private extension View {
+    func onboardingCard() -> some View {
+        padding(16)
             .background {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(Theme.cardSurface)
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(Color.primary.opacity(0.06), lineWidth: 1)
             }
-            .padding(.horizontal, 24)
-
-            Spacer()
-        }
-        .padding()
-    }
-
-    private func howToRow(icon: String, title: String, detail: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(Theme.indigo)
-                .frame(width: 22)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                Text(detail)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
     }
 }
 

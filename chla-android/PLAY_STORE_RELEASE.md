@@ -11,9 +11,9 @@ KiNDD - NDD Resource Navigator.
 | Account type | Organization |
 | Developer name | `KiNDD` |
 | App title | `KiNDD - NDD Resource Navigator` |
-| Package | `com.chla.kindd` |
-| Version | `1.4.3` |
-| Version code | `4`; confirm unused in Play Console |
+| Package (`applicationId`) | `com.navigator.kindd`; the Kotlin namespace stays `com.chla.kindd` |
+| Version | `1.4.5` |
+| Version code | `5`; each upload must exceed the last one Play has seen |
 | Price | Free |
 | Primary language | English (United States) |
 | Category | Medical |
@@ -49,8 +49,29 @@ cd chla-android
 
 The private keystore is stored outside the repository at
 `~/.android/keys/kindd-upload.jks`. Its password is stored in macOS Keychain.
-The public certificate is exported beside it. Back up the keystore in an
-approved encrypted location; never commit it or its password.
+The public certificate is exported beside it. Never commit the keystore or
+its password.
+
+The July 2026 key was lost when `~/.android/keys/` disappeared from the release
+Mac, which forced a Play upload key reset on 2026-10-21 (Play Console ->
+Protected with Play -> Manage Play app signing -> Upload key -> Request reset).
+The replacement key (SHA-1 `A8:7E:36:15:75:2A:1F:5C:8F:3A:53:DC:AD:BA:9D:C5:B6:43:FF:1E`)
+is backed up in AWS Secrets Manager as `kindd/android/play-upload-key`
+(us-west-2, `AWS_PROFILE=personal`) with the keystore, password, alias, and
+certificate. Restore it on a new Mac before building:
+
+```bash
+aws secretsmanager get-secret-value --region us-west-2 \
+  --secret-id kindd/android/play-upload-key --query SecretString --output text \
+  | python3 -c 'import base64,json,os,subprocess,sys
+s=json.load(sys.stdin); d=os.path.expanduser("~/.android/keys"); os.makedirs(d,mode=0o700,exist_ok=True)
+open(d+"/kindd-upload.jks","wb").write(base64.b64decode(s["keystore_base64"]))
+open(d+"/kindd-upload-certificate.pem","w").write(s["certificate_pem"])
+subprocess.run(["security","add-generic-password","-U","-a","kindd-upload","-s","org.kindd.android.upload","-w",s["keystore_password"]],check=True)'
+chmod 600 ~/.android/keys/kindd-upload.jks
+```
+
+If you ever create a new upload key, update that secret in the same sitting.
 
 Google Play App Signing should generate and protect the app-signing key. This
 local key is only the upload key.

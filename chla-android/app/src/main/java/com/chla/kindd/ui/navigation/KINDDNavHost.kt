@@ -80,6 +80,8 @@ sealed class Screen(
     data object FAQ : Screen("faq", R.string.faq, Icons.Filled.Settings, Icons.Outlined.Settings)
     data object About : Screen("about", R.string.about, Icons.Filled.Settings, Icons.Outlined.Settings)
     data object EditProfile : Screen("edit-profile", R.string.welcome, Icons.Filled.Settings, Icons.Outlined.Settings)
+    data object Intro : Screen("intro", R.string.intro_settings_label, Icons.Filled.Settings, Icons.Outlined.Settings)
+    data object Survey : Screen("survey", R.string.survey_entry_label, Icons.Filled.Settings, Icons.Outlined.Settings)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,7 +96,9 @@ fun KINDDMainNavHost(
     val showFloatingNavigation = currentDestination?.route !in setOf(
         Screen.ProviderDetail.route,
         Screen.EditProfile.route,
-        Screen.Chat.destinationRoute
+        Screen.Chat.destinationRoute,
+        Screen.Intro.route,
+        Screen.Survey.route
     )
     val reserveFloatingNavigationClearance = showFloatingNavigation &&
         currentDestination?.route?.let { route ->
@@ -129,6 +133,12 @@ fun KINDDMainNavHost(
         navigateToFaq = { navController.navigate(Screen.FAQ.route) },
         navigateToAbout = { navController.navigate(Screen.About.route) },
         navigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
+        navigateToIntro = {
+            navController.navigate(Screen.Intro.route) { launchSingleTop = true }
+        },
+        navigateToSurvey = {
+            navController.navigate(Screen.Survey.route) { launchSingleTop = true }
+        },
         navigateToSettings = {
             navigateToPrimaryDestination(Screen.More)
             navController.navigate(Screen.Settings.route) { launchSingleTop = true }
@@ -213,6 +223,12 @@ fun KINDDMainNavHost(
             }
             composable(Screen.EditProfile.route) {
                 destinationContent.editProfile(profile, actions)
+            }
+            composable(Screen.Intro.route) {
+                destinationContent.intro(actions)
+            }
+            composable(Screen.Survey.route) {
+                destinationContent.survey(actions)
             }
         }
 

@@ -76,6 +76,12 @@ interface KINDDApi {
     suspend fun reportAssistantResponse(
         @Body request: AssistantResponseReportRequest
     ): AssistantResponseReportResponse
+
+    // Feedback survey
+    @POST("surveys/responses/")
+    suspend fun submitSurveyResponse(
+        @Body request: SurveyResponseRequest
+    ): SurveyResponseReceipt
 }
 
 data class RegionalCenterProvidersResponse(
@@ -130,6 +136,38 @@ data class AssistantResponseReportRequest(
 )
 
 data class AssistantResponseReportResponse(
+    val id: Long,
+    val status: String
+)
+
+/** The backend rejects unknown keys, so this must stay limited to the published contract. */
+data class SurveyResponseRequest(
+    val diagnosis: String? = null,
+    @com.google.gson.annotations.SerializedName("diagnosis_status")
+    val diagnosisStatus: String? = null,
+    @com.google.gson.annotations.SerializedName("ease_of_use")
+    val easeOfUse: Int? = null,
+    val helpfulness: Int? = null,
+    @com.google.gson.annotations.SerializedName("difficulty_before")
+    val difficultyBefore: Int? = null,
+    @com.google.gson.annotations.SerializedName("confidence_after")
+    val confidenceAfter: Int? = null,
+    @com.google.gson.annotations.SerializedName("needs_addressed")
+    val needsAddressed: Int? = null,
+    @com.google.gson.annotations.SerializedName("experience_before")
+    val experienceBefore: String? = null,
+    @com.google.gson.annotations.SerializedName("unmet_needs")
+    val unmetNeeds: String? = null,
+    val improvements: String? = null,
+    @com.google.gson.annotations.SerializedName("additional_comments")
+    val additionalComments: String? = null,
+    val locale: String,
+    val platform: String = "android",
+    @com.google.gson.annotations.SerializedName("app_version")
+    val appVersion: String
+)
+
+data class SurveyResponseReceipt(
     val id: Long,
     val status: String
 )

@@ -247,6 +247,35 @@ actor APIService {
         return try await fetch(url: url)
     }
 
+    // MARK: - Feedback Survey
+
+    /// Submit an anonymous feedback survey. Throws `httpError(statusCode: 429)`
+    /// when the server's global rate limit is hit.
+    func submitSurvey(_ submission: SurveySubmission) async throws {
+        let url = URL(string: "\(baseURL)/surveys/responses/")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpShouldHandleCookies = false
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.httpBody = try JSONEncoder().encode(submission)
+
+        let (_, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIServiceError.invalidResponse
+        }
+
+        #if DEBUG
+        print("API Request: POST \(url.absoluteString)")
+        print("Status: \(httpResponse.statusCode)")
+        #endif
+
+        guard 200...299 ~= httpResponse.statusCode else {
+            throw APIServiceError.httpError(statusCode: httpResponse.statusCode)
+        }
+    }
+
     // MARK: - Private Helpers
 
     /// Generic fetch method for GET requests

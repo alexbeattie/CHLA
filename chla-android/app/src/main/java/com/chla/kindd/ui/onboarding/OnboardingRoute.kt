@@ -28,6 +28,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +48,7 @@ import com.chla.kindd.data.profile.AgeGroup
 import com.chla.kindd.data.profile.AudienceType
 import com.chla.kindd.data.profile.JourneyStage
 import com.chla.kindd.data.profile.UserProfile
+import com.chla.kindd.ui.intro.IntroScreen
 import com.chla.kindd.ui.map.RegionalCenterMapRenderModel
 import com.chla.kindd.ui.regions.RegionalCenterServiceAreaState
 import com.chla.kindd.ui.regions.rememberRegionalCenterServiceAreas
@@ -62,7 +66,15 @@ fun OnboardingRoute(
     onClose: () -> Unit = {},
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val sessionState by viewModel.uiState.collectAsStateWithLifecycle()
+    // Before initialize() runs (and after a session ends) the view model holds a first-run
+    // placeholder; an edit route must not flash the first-run welcome in that window.
+    val state = if (sessionState.mode == mode) {
+        sessionState
+    } else {
+        OnboardingUiState(mode = mode)
+    }
+    var showFullIntro by rememberSaveable { mutableStateOf(false) }
     val serviceAreaState by rememberRegionalCenterServiceAreas()
     OnboardingBackGuard(
         state = state,
@@ -88,6 +100,12 @@ fun OnboardingRoute(
         }
     }
 
+    if (showFullIntro) {
+        BackHandler { showFullIntro = false }
+        IntroScreen(onDone = { showFullIntro = false })
+        return
+    }
+
     OnboardingContent(
         state = state,
         onAudienceSelected = viewModel::selectAudience,
@@ -107,6 +125,7 @@ fun OnboardingRoute(
         onContinue = viewModel::continueFromCurrentStep,
         onFinish = viewModel::finish,
         onCancel = viewModel::cancel,
+        onOpenIntro = { showFullIntro = true },
         serviceAreaState = serviceAreaState
     )
 }
@@ -145,6 +164,7 @@ fun OnboardingContent(
     onFinish: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenIntro: () -> Unit = {},
     serviceAreaState: RegionalCenterServiceAreaState = RegionalCenterServiceAreaState.Loading,
     mapContent: (@Composable (RegionalCenterMapRenderModel, (String) -> Unit) -> Unit)? = null
 ) {
@@ -168,7 +188,8 @@ fun OnboardingContent(
                 when (state.step) {
                     OnboardingStep.AUDIENCE -> AudienceStep(
                         selectedAudience = state.draft.audienceType,
-                        onAudienceSelected = onAudienceSelected
+                        onAudienceSelected = onAudienceSelected,
+                        showWelcome = state.mode == OnboardingMode.FIRST_RUN
                     )
                     OnboardingStep.ZIP -> ZipStep(
                         zipCode = state.draft.zipCode.orEmpty(),
@@ -191,7 +212,7 @@ fun OnboardingContent(
                         mapContent = mapContent,
                         onRetry = onRetryCenterLookup
                     )
-                    OnboardingStep.HOW_TO -> HowToStep()
+                    OnboardingStep.HOW_TO -> HowToStep(onOpenIntro = onOpenIntro)
                     OnboardingStep.JOURNEY -> JourneyStep(
                         selectedJourney = state.draft.journeyStage,
                         onJourneySelected = onJourneySelected

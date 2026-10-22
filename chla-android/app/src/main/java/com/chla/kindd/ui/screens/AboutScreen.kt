@@ -2,6 +2,7 @@ package com.chla.kindd.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -26,7 +28,9 @@ import com.chla.kindd.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onOpenIntro: (() -> Unit)? = null,
+    onOpenSurvey: (() -> Unit)? = null
 ) {
     Scaffold(
         topBar = {
@@ -191,8 +195,63 @@ fun AboutScreen(
                 )
             }
 
+            if (onOpenIntro != null || onOpenSurvey != null) {
+                Divider()
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    onOpenIntro?.let {
+                        AboutLinkRow(
+                            icon = Icons.Default.WavingHand,
+                            title = stringResource(R.string.intro_settings_label),
+                            onClick = it
+                        )
+                    }
+                    onOpenSurvey?.let {
+                        AboutLinkRow(
+                            icon = Icons.Default.RateReview,
+                            title = stringResource(R.string.survey_entry_label),
+                            onClick = it
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun AboutLinkRow(
+    icon: ImageVector,
+    title: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = KiNDDIndigo,
+            modifier = Modifier.size(22.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
