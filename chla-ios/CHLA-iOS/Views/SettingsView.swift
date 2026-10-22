@@ -264,9 +264,9 @@ struct SettingsView: View {
                     }
 
                     HStack {
-                        Label("Resource Data", systemImage: "building.2")
+                        Label("provider.data".localized, systemImage: "building.2")
                         Spacer()
-                        Text("370+ Resources")
+                        Text("provider.countWithLabel".localized)
                             .foregroundStyle(.secondary)
                     }
                 } header: {

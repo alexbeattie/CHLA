@@ -43,6 +43,11 @@
 "home.findYourCenter" = "Find your center by location";
 "home.atAGlance" = "At a Glance";
 "home.resources" = "Resources";
+"provider.count" = "Over 300";
+"provider.plural" = "Providers";
+"provider.countWithLabel" = "Over 300 providers";
+"provider.data" = "Provider Data";
+"faq.providerCoverage" = "We have over 300 providers across LA County, covering all 7 Regional Center areas. We continuously add providers.\n\nNote: Listing does not constitute endorsement. Always verify credentials directly.";
 "home.centers" = "Centers";
 "home.free" = "Free";
 "home.always" = "Always";

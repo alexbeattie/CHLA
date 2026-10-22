@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-22 — use over 300 providers in app copy
+- **Branch:** fix/provider-count-everywhere
+- **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json, map-frontend/public/og-image.svg, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/FAQView.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/SOCIAL_IMAGES_GUIDE.md, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md
+- **Problem:** App and current marketing copy described the directory as 300+ resources or providers, while the approved wording is over 300 providers.
+- **Fix:** Use the approved provider wording in English and Spanish across the web and iOS app, store metadata, presentation, and social image copy.
+
+---
+
 ### 2026-10-21 — iOS: remove screenshot-only debug hooks from onboarding
 - **Branch:** fix/ios-onboarding-debug-hooks
 - **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift
@@ -106,6 +114,14 @@ Format:
 - **Files:** maplocation/surveys/*, maplocation/maplocation/{settings,urls}.py, maplocation/pytest.ini, map-frontend/src/components/{IntroContent,OnboardingFlow,LanguageSwitcher,AppNavBar}.vue, map-frontend/src/views/{IntroView,SurveyView,MapView,AboutView,PrivacyPolicyView}.vue, map-frontend/src/{composables/useSurvey,services/surveyService}.ts, map-frontend/src/i18n/locales/{en,es}.json, map-frontend/src/seo/siteConfig.js, map-frontend/vite.config.js, map-frontend/public/sitemap.xml, .env.example
 - **Problem:** Families went straight to the location question with no explanation of the tool, its limits, privacy, or emergencies; the research team had no way to collect family feedback.
 - **Fix:** Intro screen (en/es) is now the first onboarding screen and lives at /intro. /survey posts to new `POST /api/surveys/responses/` (anonymous, global rate limit), stored in `surveys.SurveyResponse`, viewable and downloadable as CSV in the client portal, and emailed through SES when `SURVEY_NOTIFY_EMAILS` and `SURVEY_FROM_EMAIL` are set. Privacy policy covers the survey. LanguageSwitcher closes based on its own element, so two switchers on one page no longer fight.
+
+---
+
+### 2026-10-19 — Provider count copy: 370+/600+ to 300+
+- **Branch:** fix/provider-count-copy
+- **Files:** chla-ios/CHLA-iOS/Views/{AboutView,FAQView,SettingsView}.swift, chla-ios/CHLA-iOS/App/ContentView.swift, map-frontend/src/views/AboutView.vue, map-frontend/public/og-image.svg, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md, docs/SOCIAL_IMAGES_GUIDE.md
+- **Problem:** App and store copy claimed 370+ or 600+ verified resources; production `/api/providers/` returns count 307 on 2026-10-19.
+- **Fix:** All live counts read 300+ (es: más de 300). CHANGELOG and archived docs left as historical record.
 
 ---
 

@@ -43,6 +43,11 @@
 "home.findYourCenter" = "Encuentre su centro por ubicación";
 "home.atAGlance" = "De un Vistazo";
 "home.resources" = "Recursos";
+"provider.count" = "Más de 300";
+"provider.plural" = "Proveedores";
+"provider.countWithLabel" = "Más de 300 proveedores";
+"provider.data" = "Datos de proveedores";
+"faq.providerCoverage" = "Tenemos más de 300 proveedores en todo el Condado de Los Ángeles, que cubren las áreas de los 7 Centros Regionales. Seguimos agregando proveedores.\n\nNota: Aparecer en la lista no constituye una recomendación. Verifique siempre las credenciales directamente.";
 "home.centers" = "Centros";
 "home.free" = "Gratis";
 "home.always" = "Siempre";

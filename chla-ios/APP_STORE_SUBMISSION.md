@@ -64,7 +64,7 @@ KEY FEATURES:
 INTERACTIVE MAP
 • View all 7 LA County Regional Centers with color-coded boundaries
 • Find your assigned Regional Center based on your ZIP code
-• Explore 370+ verified ABA therapy providers and resources
+• Explore over 300 providers and other resources
 
 AI ASSISTANT
 • Ask questions in English or Spanish
@@ -122,7 +122,7 @@ CARACTERÍSTICAS PRINCIPALES:
 MAPA INTERACTIVO
 • Vea los 7 Centros Regionales del Condado de LA con límites codificados por colores
 • Encuentre su Centro Regional asignado según su código postal
-• Explore más de 370 proveedores de terapia ABA y recursos verificados
+• Explore más de 300 proveedores y otros recursos
 
 ASISTENTE DE IA
 • Haga preguntas en inglés o español
