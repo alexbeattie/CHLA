@@ -478,6 +478,20 @@
       }
     }
   },
+  "regionalCenterScope": {
+    "label": "Cobertura de centros regionales",
+    "los-angeles": "Los Ángeles",
+    "california": "Toda California",
+    "coverageNote": "La cobertura corresponde a los centros regionales. La búsqueda de proveedores sigue enfocada en el condado de Los Ángeles.",
+    "searchLabel": "Buscar un centro regional",
+    "searchPlaceholder": "Nombre, abreviatura o condado",
+    "loading": "Cargando centros regionales…",
+    "loadError": "No se pudo cargar el mapa de centros regionales.",
+    "retry": "Intentar de nuevo",
+    "noMatch": "Ningún centro regional coincide con tu búsqueda.",
+    "results": "{visible} de {total} centros regionales",
+    "indexLink": "Explorar centros regionales en el mapa"
+  },
   "survey": {
     "title": "Encuesta de KiNDD Resource Navigator",
     "lead": "Sus respuestas nos ayudan a mejorar KiNDD para las familias. Todas las preguntas son opcionales y no le pedimos su nombre ni sus datos de contacto.",

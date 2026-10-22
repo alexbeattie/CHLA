@@ -478,6 +478,20 @@
       }
     }
   },
+  "regionalCenterScope": {
+    "label": "Regional center coverage",
+    "los-angeles": "Los Angeles",
+    "california": "All California",
+    "coverageNote": "Coverage applies to regional centers. Provider search remains focused on Los Angeles County.",
+    "searchLabel": "Find a regional center",
+    "searchPlaceholder": "Name, abbreviation, or county",
+    "loading": "Loading regional centers…",
+    "loadError": "Regional center map could not load.",
+    "retry": "Try again",
+    "noMatch": "No regional centers match your search.",
+    "results": "{visible} of {total} regional centers",
+    "indexLink": "Explore regional centers on the map"
+  },
   "survey": {
     "title": "KiNDD Resource Navigator Survey",
     "lead": "Your answers help us improve KiNDD for families. Every question is optional, and we don't ask for your name or contact information.",
