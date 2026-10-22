@@ -478,6 +478,24 @@
       }
     }
   },
+  "caRegionalCenters": {
+    "title": "Centros regionales de California",
+    "lead": "California tiene 21 centros regionales. Cada uno atiende un grupo de condados, y el condado de Los Ángeles está dividido entre siete. Toque un área o elija un centro para ver a quién atiende y cómo comunicarse.",
+    "mapLabel": "Mapa de las áreas de servicio de los centros regionales de California",
+    "mapError": "No se pudo cargar el mapa. La lista de centros sigue disponible.",
+    "allCenters": "Todos los centros regionales",
+    "serves": "Atiende",
+    "mainOffice": "Oficina principal",
+    "office": "Oficina",
+    "website": "Sitio web",
+    "laDetails": "Detalles del condado de LA",
+    "searchLabel": "Buscar por condado o nombre",
+    "searchPlaceholder": "Por ejemplo, Fresno",
+    "noMatch": "Ningún centro regional coincide con esa búsqueda.",
+    "partOfLa": "Parte del condado de Los Ángeles",
+    "note": "Las áreas de servicio siguen las asignaciones de condados del Departamento de Servicios del Desarrollo de California. Llame al centro regional para confirmar cuál atiende su dirección.",
+    "indexLink": "Vea los 21 centros regionales de California en un mapa"
+  },
   "survey": {
     "title": "Encuesta de KiNDD Resource Navigator",
     "lead": "Sus respuestas nos ayudan a mejorar KiNDD para las familias. Todas las preguntas son opcionales y no le pedimos su nombre ni sus datos de contacto.",

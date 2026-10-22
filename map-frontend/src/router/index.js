@@ -9,6 +9,7 @@ import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
 import TermsOfServiceView from '../views/TermsOfServiceView.vue'
 import RegionalCentersIndexView from '../views/RegionalCentersIndexView.vue'
 import RegionalCenterView from '../views/RegionalCenterView.vue'
+import CaliforniaRegionalCentersView from '../views/CaliforniaRegionalCentersView.vue'
 import IntroView from '../views/IntroView.vue'
 import SurveyView from '../views/SurveyView.vue'
 import ProviderManagement from '../components/ProviderManagement.vue'
@@ -62,6 +63,11 @@ const routes = [
     path: '/regional-centers',
     name: 'regional-centers-index',
     component: RegionalCentersIndexView
+  },
+  {
+    path: '/california-regional-centers',
+    name: 'california-regional-centers',
+    component: CaliforniaRegionalCentersView
   },
   {
     path: '/regional-centers/:slug',

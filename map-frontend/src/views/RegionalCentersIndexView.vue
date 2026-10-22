@@ -115,6 +115,12 @@
           <p>
             {{ $t("regionalCenter.la7CentersText") }}
           </p>
+          <p>
+            <router-link to="/california-regional-centers">
+              <i class="bi bi-map me-1" aria-hidden="true"></i>
+              {{ $t("caRegionalCenters.indexLink") }}
+            </router-link>
+          </p>
 
           <div class="rc-grid">
             <router-link

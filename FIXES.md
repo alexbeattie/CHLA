@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-21 — Web: statewide California regional centers map
+- **Branch:** feat/ca-regional-centers-map
+- **Files:** map-frontend/scripts/build_ca_regional_centers.py, map-frontend/public/assets/geo/ca_regional_centers.geojson, map-frontend/src/composables/useCaliforniaRegionalCentersMap.ts, map-frontend/src/views/CaliforniaRegionalCentersView.vue, map-frontend/src/router/index.js, map-frontend/src/seo/siteConfig.js, map-frontend/vite.config.js, map-frontend/src/views/RegionalCentersIndexView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
+- **Problem:** The site only mapped the 7 LA County regional centers; families elsewhere in California had no way to see which of the other 14 serves them.
+- **Fix:** New `/california-regional-centers` page (prerendered, en/es) maps all 21 centers with county search, office phone and website. Shapes are built by `build_ca_regional_centers.py`: DDS county assignments merged from `maplocation/ca_counties.geojson`, plus `la_rc_7.geojson` for LA County. Linked from `/regional-centers`.
+
+---
+
 ### 2026-10-21 — iOS: remove screenshot-only debug hooks from onboarding
 - **Branch:** fix/ios-onboarding-debug-hooks
 - **Files:** chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/IntroView.swift

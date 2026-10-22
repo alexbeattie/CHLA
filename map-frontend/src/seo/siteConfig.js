@@ -110,6 +110,11 @@ const ROUTE_SEO = {
     description:
       'Tell the KiNDD team how the Resource Navigator worked for your family. Anonymous, and every question is optional.',
   },
+  '/california-regional-centers': {
+    title: `California Regional Centers Map - ${SITE_TITLE}`,
+    description:
+      'Map of all 21 California regional centers and the counties each one serves, with office phone numbers and websites.',
+  },
   '/regional-centers': {
     title: `Regional Centers - ${SITE_TITLE}`,
     description:
@@ -167,6 +172,7 @@ export const PRERENDER_ROUTES = [
   '/intro',
   '/survey',
   '/regional-centers',
+  '/california-regional-centers',
   ...Object.keys(REGIONAL_CENTER_PAGES).map((slug) => `/regional-centers/${slug}`),
 ]
 
