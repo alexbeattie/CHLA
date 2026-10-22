@@ -13,7 +13,6 @@ const PRERENDER_ROUTES = [
   '/intro',
   '/survey',
   '/regional-centers',
-  '/california-regional-centers',
   '/regional-centers/san-gabriel-pomona',
   '/regional-centers/harbor',
   '/regional-centers/north-la-county',

@@ -478,23 +478,19 @@
       }
     }
   },
-  "caRegionalCenters": {
-    "title": "California Regional Centers",
-    "lead": "California has 21 regional centers. Each one serves a set of counties, and Los Angeles County is split among seven. Tap an area or pick a center to see who it serves and how to reach it.",
-    "mapLabel": "Map of California regional center service areas",
-    "mapError": "The map couldn't load. The list of centers still works.",
-    "allCenters": "All regional centers",
-    "serves": "Serves",
-    "mainOffice": "Main office",
-    "office": "Office",
-    "website": "Website",
-    "laDetails": "LA County details",
-    "searchLabel": "Find by county or name",
-    "searchPlaceholder": "For example, Fresno",
-    "noMatch": "No regional center matches that search.",
-    "partOfLa": "Part of Los Angeles County",
-    "note": "Service areas follow California Department of Developmental Services county assignments. Call the regional center to confirm which one serves your address.",
-    "indexLink": "See all 21 California regional centers on a map"
+  "regionalCenterScope": {
+    "label": "Regional center coverage",
+    "los-angeles": "Los Angeles",
+    "california": "All California",
+    "coverageNote": "Coverage applies to regional centers. Provider search remains focused on Los Angeles County.",
+    "searchLabel": "Find a regional center",
+    "searchPlaceholder": "Name, abbreviation, or county",
+    "loading": "Loading regional centers…",
+    "loadError": "Regional center map could not load.",
+    "retry": "Try again",
+    "noMatch": "No regional centers match your search.",
+    "results": "{visible} of {total} regional centers",
+    "indexLink": "Explore regional centers on the map"
   },
   "survey": {
     "title": "KiNDD Resource Navigator Survey",

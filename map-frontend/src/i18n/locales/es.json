@@ -478,23 +478,19 @@
       }
     }
   },
-  "caRegionalCenters": {
-    "title": "Centros regionales de California",
-    "lead": "California tiene 21 centros regionales. Cada uno atiende un grupo de condados, y el condado de Los Ángeles está dividido entre siete. Toque un área o elija un centro para ver a quién atiende y cómo comunicarse.",
-    "mapLabel": "Mapa de las áreas de servicio de los centros regionales de California",
-    "mapError": "No se pudo cargar el mapa. La lista de centros sigue disponible.",
-    "allCenters": "Todos los centros regionales",
-    "serves": "Atiende",
-    "mainOffice": "Oficina principal",
-    "office": "Oficina",
-    "website": "Sitio web",
-    "laDetails": "Detalles del condado de LA",
-    "searchLabel": "Buscar por condado o nombre",
-    "searchPlaceholder": "Por ejemplo, Fresno",
-    "noMatch": "Ningún centro regional coincide con esa búsqueda.",
-    "partOfLa": "Parte del condado de Los Ángeles",
-    "note": "Las áreas de servicio siguen las asignaciones de condados del Departamento de Servicios del Desarrollo de California. Llame al centro regional para confirmar cuál atiende su dirección.",
-    "indexLink": "Vea los 21 centros regionales de California en un mapa"
+  "regionalCenterScope": {
+    "label": "Cobertura de centros regionales",
+    "los-angeles": "Los Ángeles",
+    "california": "Toda California",
+    "coverageNote": "La cobertura corresponde a los centros regionales. La búsqueda de proveedores sigue enfocada en el condado de Los Ángeles.",
+    "searchLabel": "Buscar un centro regional",
+    "searchPlaceholder": "Nombre, abreviatura o condado",
+    "loading": "Cargando centros regionales…",
+    "loadError": "No se pudo cargar el mapa de centros regionales.",
+    "retry": "Intentar de nuevo",
+    "noMatch": "Ningún centro regional coincide con tu búsqueda.",
+    "results": "{visible} de {total} centros regionales",
+    "indexLink": "Explorar centros regionales en el mapa"
   },
   "survey": {
     "title": "Encuesta de KiNDD Resource Navigator",

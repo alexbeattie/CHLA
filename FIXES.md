@@ -13,11 +13,11 @@ Format:
 
 ---
 
-### 2026-10-21 — Web: statewide California regional centers map
+### 2026-10-22 — Regional center coverage in the existing map
 - **Branch:** feat/ca-regional-centers-map
-- **Files:** map-frontend/scripts/build_ca_regional_centers.py, map-frontend/public/assets/geo/ca_regional_centers.geojson, map-frontend/src/composables/useCaliforniaRegionalCentersMap.ts, map-frontend/src/views/CaliforniaRegionalCentersView.vue, map-frontend/src/router/index.js, map-frontend/src/seo/siteConfig.js, map-frontend/vite.config.js, map-frontend/src/views/RegionalCentersIndexView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
-- **Problem:** The site only mapped the 7 LA County regional centers; families elsewhere in California had no way to see which of the other 14 serves them.
-- **Fix:** New `/california-regional-centers` page (prerendered, en/es) maps all 21 centers with county search, office phone and website. Shapes are built by `build_ca_regional_centers.py`: DDS county assignments merged from `maplocation/ca_counties.geojson`, plus `la_rc_7.geojson` for LA County. Linked from `/regional-centers`.
+- **Files:** map-frontend/scripts/build_ca_regional_centers.py, map-frontend/public/assets/geo/ca_regional_centers.geojson, map-frontend/src/views/MapView.vue, map-frontend/src/composables/useRegionalCenterScope.ts, map-frontend/src/components/map/RegionalCenterScopeControl.vue, map-frontend/src/router/index.js, map-frontend/src/seo/siteConfig.js, map-frontend/vite.config.js, map-frontend/src/views/RegionalCentersIndexView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
+- **Problem:** The standalone California map duplicated the existing map experience and separated statewide coverage from its regional center cards.
+- **Fix:** The Regional Centers display now switches between Los Angeles (default, 7 centers) and All California (21). One dataset drives search, cards, markers, polygon colors and bounds. Scope changes clear center selection; style reloads restore the current overlay. Provider search remains LA-focused. Removed the standalone view, composable, route and prerender/SEO entries; the index links to the main map.
 
 ---
 
