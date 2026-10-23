@@ -37,7 +37,23 @@
             {{ $t("about.legalEntityDeductible") }}
           </p>
           <p class="legal-entity-note">{{ $t("about.legalEntityDomains") }}</p>
-          <p class="legal-entity-note">{{ $t("about.legalEntitySecurity") }}</p>
+
+          <h3 class="board-title">{{ $t("about.boardTitle") }}</h3>
+          <ul class="board-list">
+            <li>
+              <strong>Dr. Shafali Jeste</strong>
+              <span>{{ $t("about.boardJesteRole") }}</span>
+            </li>
+            <li>
+              <strong>Dr. Maya Ayoub</strong>
+              <span>{{ $t("about.boardAyoubRole") }}</span>
+            </li>
+            <li>
+              <strong>Alex Beattie</strong>
+              <span>{{ $t("about.boardBeattieRole") }}</span>
+            </li>
+          </ul>
+          <p class="legal-entity-note">{{ $t("about.securityContact") }}</p>
         </div>
 
         <AppDownloadLinks id="download-app" class="content-block" />
@@ -470,6 +486,35 @@ export default {
 .legal-entity-ein {
   font-weight: 600;
   color: #004877;
+}
+
+.board-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #004877;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.board-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.board-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.board-list li:last-child {
+  border-bottom: 0;
+}
+
+.board-list span {
+  color: #555;
 }
 
 .legal-entity-note {

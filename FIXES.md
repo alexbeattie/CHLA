@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-23 — About page lists the board of directors
+- **Branch:** feat/about-board
+- **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
+- **Problem:** The security-lead line named one director on its own, which read as added for a single application.
+- **Fix:** "About the Organization" now lists the board and officers from the 2026-07-09 organizational consent (Dr. Shafali Jeste, President and Board Chair; Dr. Maya Ayoub, Secretary; Alex Beattie, Treasurer, leading platform technology and security), followed by the security contact line. en and es.
+
+---
+
 ### 2026-10-23 — About page names the platform's security lead
 - **Branch:** feat/about-security-lead
 - **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
