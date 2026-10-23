@@ -208,33 +208,34 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Tab Content - Full Screen
-            Group {
-                switch appState.selectedTab {
-                case 0:
-                    HomeView()
-                case 1:
-                    MapContainerView()
-                case 2:
-                    RegionalCentersTabView()
-                case 3: ProviderListView()
-                case 4: MoreView()
-                default: HomeView()
-                }
+        // Tab Content
+        Group {
+            switch appState.selectedTab {
+            case 0:
+                HomeView()
+            case 1:
+                MapContainerView()
+            case 2:
+                RegionalCentersTabView()
+            case 3: ProviderListView()
+            case 4: MoreView()
+            default: HomeView()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea()
-            .onChange(of: appState.selectedTab) { _, newTab in
-                // Refresh List when tab is selected
-                if newTab == 2 {
-                    NotificationCenter.default.post(name: .refreshList, object: nil)
-                }
-                // Show UI when switching tabs
-                visibilityManager.showUI()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onChange(of: appState.selectedTab) { _, newTab in
+            // Refresh List when tab is selected
+            if newTab == 2 {
+                NotificationCenter.default.post(name: .refreshList, object: nil)
             }
-
-            // Floating Glass Tab Bar
+            // Show UI when switching tabs
+            visibilityManager.showUI()
+        }
+        // Floating Glass Tab Bar. As a bottom inset its height is part of every
+        // page's safe area, so scroll views and lists end above it while still
+        // scrolling beneath the glass. Full-bleed layers such as maps must
+        // ignore the bottom safe area themselves to run under it.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             LiquidGlassTabBar(
                 selectedTab: $appState.selectedTab,
                 onMenuAction: handleMenuAction,
@@ -246,6 +247,7 @@ struct MainTabView: View {
             .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
             .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
         }
+        .ignoresSafeArea(edges: .top)
         .ignoresSafeArea(.keyboard)
         .statusBarHidden(!visibilityManager.isHeaderVisible)
         .sheet(isPresented: $appState.showChat, onDismiss: { appState.pendingChatPrompt = nil }) {

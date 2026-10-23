@@ -80,7 +80,7 @@ struct MapContainerView: View {
                             visibilityManager.showUI()
                         }
                         .padding(.trailing, 20)
-                        .padding(.bottom, 100)
+                        .padding(.bottom, 8)
                     }
                 }
                 .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.8)))
@@ -323,7 +323,7 @@ struct MapContainerView: View {
             MapCompass()
             MapScaleView()
         }
-        .ignoresSafeArea(edges: .top)
+        .ignoresSafeArea()
         .onTapGesture {
             // Tap on map to toggle UI visibility
             visibilityManager.toggleUI()

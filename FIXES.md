@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-23 — iOS: floating tab bar no longer hides the bottom of pages
+- **Branch:** cursor/ios-tab-bar-bottom-inset-7469
+- **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift
+- **Problem:** The tab bar floated over tab content that ignored every safe area, so pages could not scroll their last content above it: About's Share feedback row, the survey Submit button, list footers in More and Settings, and the map's result badges sat under the bar.
+- **Fix:** The bar is now a bottom `safeAreaInset` on the tab content (content still ignores the top edge), so every tab and pushed page ends above it while still scrolling beneath the glass. The map ignores the bottom edge to keep running under the bar; Home's chat capsule and the map's show-controls button keep their old positions; the provider list's 66pt spacer is removed.
+
+---
+
 ### 2026-10-23 — Provider count wording: "Over 300 providers" in en/es
 - **Branch:** fix/provider-count-wording
 - **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json, map-frontend/public/og-image.svg, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/FAQView.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/SOCIAL_IMAGES_GUIDE.md, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md

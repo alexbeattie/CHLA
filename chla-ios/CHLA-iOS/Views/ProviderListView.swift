@@ -329,10 +329,6 @@ struct ProviderListView: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .safeAreaInset(edge: .bottom) {
-                // Keeps the last card clear of the floating pill tab bar
-                Color.clear.frame(height: 66)
-            }
         }
     }
 
