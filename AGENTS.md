@@ -127,6 +127,21 @@ npm run dev
 ./scripts/test-deployment-locally.sh
 ```
 
+## Store Release Facts
+
+- Android Play package is `com.navigator.kindd` (`applicationId`); the Kotlin
+  namespace stays `com.chla.kindd`. Build with
+  `chla-android/scripts/build-play-bundle.sh`; upload is manual in Play Console
+  (`alex@kinddhelp.org`).
+- The Play upload key lives at `~/.android/keys/kindd-upload.jks` with its
+  password in macOS Keychain (`org.kindd.android.upload`). It is backed up in
+  AWS Secrets Manager as `kindd/android/play-upload-key`; restore steps are in
+  `chla-android/PLAY_STORE_RELEASE.md`. If the local file is missing, restore
+  from that secret before generating a new key.
+- iOS uploads with `chla-ios/scripts/release.sh` (App Store Connect API key in
+  `~/.appstoreconnect/private_keys/`); review state via
+  `chla-ios/scripts/appstore-status.py`.
+
 ## Cursor Cloud / Fresh-VM Gotchas
 
 When working from a freshly-provisioned Cursor Cloud VM (or any other fresh

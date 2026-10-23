@@ -712,6 +712,12 @@ class MapListParityTest {
 
         @Composable
         override fun editProfile(profile: UserProfile, actions: MainNavActions) = Unit
+
+        @Composable
+        override fun intro(actions: MainNavActions) = Unit
+
+        @Composable
+        override fun survey(actions: MainNavActions) = Unit
     }
 
     private class FakeDiscoveryController(

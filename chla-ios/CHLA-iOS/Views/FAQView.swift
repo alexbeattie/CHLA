@@ -151,7 +151,7 @@ struct FAQView: View {
             FAQItem(
                 id: "app2",
                 question: "Are all LA County resources listed?",
-                answer: "We have 370+ verified resources across LA County, covering all 7 Regional Center areas. We continuously add resources.\n\nNote: Listing does not constitute endorsement. Always verify credentials directly.",
+                answer: "faq.providerCoverage".localized,
                 expandedID: $expandedID
             )
             FAQItem(

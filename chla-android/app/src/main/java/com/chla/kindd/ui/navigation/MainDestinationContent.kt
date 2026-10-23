@@ -3,6 +3,7 @@ package com.chla.kindd.ui.navigation
 import androidx.compose.runtime.Composable
 import com.chla.kindd.data.profile.UserProfile
 import com.chla.kindd.ui.chat.ChatLaunchPrompt
+import com.chla.kindd.ui.intro.IntroScreen
 import com.chla.kindd.ui.onboarding.OnboardingMode
 import com.chla.kindd.ui.onboarding.OnboardingRoute
 import com.chla.kindd.ui.screens.AboutScreen
@@ -15,6 +16,7 @@ import com.chla.kindd.ui.screens.ProviderDetailScreen
 import com.chla.kindd.ui.screens.ProviderListScreen
 import com.chla.kindd.ui.screens.RegionalCentersScreen
 import com.chla.kindd.ui.screens.SettingsScreen
+import com.chla.kindd.ui.survey.SurveyScreen
 
 data class MainNavActions(
     val navigateToMap: () -> Unit,
@@ -26,21 +28,27 @@ data class MainNavActions(
     val navigateToAbout: () -> Unit,
     val navigateToEditProfile: () -> Unit,
     val navigateBack: () -> Unit,
-    val navigateToSettings: () -> Unit = {}
+    val navigateToSettings: () -> Unit = {},
+    val navigateToIntro: () -> Unit = {},
+    val navigateToSurvey: () -> Unit = {}
 )
 
 internal data class SettingsDestinationActions(
     val navigateToFaq: () -> Unit,
     val navigateToAbout: () -> Unit,
     val navigateToEditProfile: () -> Unit,
-    val navigateBackToMore: () -> Unit
+    val navigateBackToMore: () -> Unit,
+    val navigateToIntro: () -> Unit,
+    val navigateToSurvey: () -> Unit
 )
 
 internal fun MainNavActions.toSettingsDestinationActions() = SettingsDestinationActions(
     navigateToFaq = navigateToFaq,
     navigateToAbout = navigateToAbout,
     navigateToEditProfile = navigateToEditProfile,
-    navigateBackToMore = navigateBack
+    navigateBackToMore = navigateBack,
+    navigateToIntro = navigateToIntro,
+    navigateToSurvey = navigateToSurvey
 )
 
 interface MainDestinationContent {
@@ -76,6 +84,12 @@ interface MainDestinationContent {
 
     @Composable
     fun editProfile(profile: UserProfile, actions: MainNavActions)
+
+    @Composable
+    fun intro(actions: MainNavActions)
+
+    @Composable
+    fun survey(actions: MainNavActions)
 }
 
 object ProductionMainDestinationContent : MainDestinationContent {
@@ -119,7 +133,9 @@ object ProductionMainDestinationContent : MainDestinationContent {
             onNavigateToFAQ = settingsActions.navigateToFaq,
             onNavigateToAbout = settingsActions.navigateToAbout,
             onNavigateToEditProfile = settingsActions.navigateToEditProfile,
-            onNavigateBack = settingsActions.navigateBackToMore
+            onNavigateBack = settingsActions.navigateBackToMore,
+            onNavigateToIntro = settingsActions.navigateToIntro,
+            onNavigateToSurvey = settingsActions.navigateToSurvey
         )
     }
 
@@ -154,7 +170,11 @@ object ProductionMainDestinationContent : MainDestinationContent {
 
     @Composable
     override fun about(actions: MainNavActions) {
-        AboutScreen(onBack = actions.navigateBack)
+        AboutScreen(
+            onBack = actions.navigateBack,
+            onOpenIntro = actions.navigateToIntro,
+            onOpenSurvey = actions.navigateToSurvey
+        )
     }
 
     @Composable
@@ -165,5 +185,15 @@ object ProductionMainDestinationContent : MainDestinationContent {
             onSaved = actions.navigateBack,
             onClose = actions.navigateBack
         )
+    }
+
+    @Composable
+    override fun intro(actions: MainNavActions) {
+        IntroScreen(onDone = actions.navigateBack)
+    }
+
+    @Composable
+    override fun survey(actions: MainNavActions) {
+        SurveyScreen(onBack = actions.navigateBack)
     }
 }

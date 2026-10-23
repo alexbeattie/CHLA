@@ -308,7 +308,7 @@ struct MainTabView: View {
         case .showFAQ:
             showFAQ = true
         case .contactUs:
-            if let url = URL(string: "mailto:support@kinddhelp.com") {
+            if let url = URL(string: "mailto:support@kinddhelp.org") {
                 openURL(url)
             }
         case .rateApp:
@@ -952,9 +952,9 @@ struct MoreView: View {
                     }
 
                     HStack {
-                        Label("Resources", systemImage: "building.2")
+                        Label("provider.plural".localized, systemImage: "building.2")
                         Spacer()
-                        Text("370+")
+                        Text("provider.count".localized)
                             .foregroundStyle(.secondary)
                     }
                 } header: {

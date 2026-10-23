@@ -115,6 +115,12 @@
           <p>
             {{ $t("regionalCenter.la7CentersText") }}
           </p>
+          <p>
+            <router-link to="/?view=regional-centers">
+              <i class="bi bi-map me-1" aria-hidden="true"></i>
+              {{ $t("regionalCenterScope.indexLink") }}
+            </router-link>
+          </p>
 
           <div class="rc-grid">
             <router-link

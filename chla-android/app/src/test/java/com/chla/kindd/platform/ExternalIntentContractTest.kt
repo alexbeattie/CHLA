@@ -20,6 +20,19 @@ class ExternalIntentContractTest {
     }
 
     @Test
+    fun `email request builds a mailto sendto intent for valid addresses only`() {
+        assertEquals(
+            ExternalIntentRequest(
+                action = ExternalIntentAction.SENDTO,
+                uri = "mailto:support@kinddhelp.org"
+            ),
+            emailRequest(" support@kinddhelp.org ")
+        )
+        assertNull(emailRequest("support@kinddhelp.org?bcc=x@example.com"))
+        assertNull(emailRequest("not an address"))
+    }
+
+    @Test
     fun `dial request rejects values without phone digits`() {
         assertNull(dialRequest("not available"))
     }

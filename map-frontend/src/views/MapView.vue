@@ -51,6 +51,10 @@
             <i class="bi bi-clipboard2-pulse me-1"></i>
             Clinicians
           </router-link>
+          <router-link to="/survey" class="nav-link">
+            <i class="bi bi-chat-square-text me-1"></i>
+            {{ $t("nav.feedback") }}
+          </router-link>
         </nav>
 
         <div class="navbar-actions">
@@ -119,6 +123,14 @@
               >
                 <i class="bi bi-clipboard2-pulse me-2"></i>
                 Clinicians
+              </router-link>
+              <router-link
+                to="/survey"
+                class="mobile-nav-item"
+                @click="showMobileNav = false"
+              >
+                <i class="bi bi-chat-square-text me-2"></i>
+                {{ $t("nav.feedback") }}
               </router-link>
             </div>
           </div>
@@ -221,6 +233,15 @@
             </button>
           </div>
         </div>
+
+        <regional-center-scope-control
+          v-if="displayType === 'regionalCenters'"
+          v-model="regionalCenterScope"
+          v-model:query="regionalCenterQuery"
+          :loading="scopeLoading"
+          :error="scopeError"
+          @retry="addLARegionalCentersToMap"
+        />
 
         <!-- Profile Summary Component (Collapsible) -->
         <div
@@ -457,7 +478,7 @@
                     displayType === "locations"
                       ? filteredLocations.length
                       : displayType === "regionalCenters"
-                      ? regionalCenterData?.regionalCenters?.length || 0
+                      ? visibleRegionalCenters.length
                       : filteredProviders.length
                   }}
                 </span>
@@ -491,7 +512,7 @@
               <div class="regional-centers-sticky-header">
                 <div class="info-card-header">
                   <i class="bi bi-geo-alt-fill text-white me-2"></i>
-                  <strong>Nearest Regional Centers</strong>
+                  <strong>{{ $t("regionalCenterScope.results", { visible: visibleRegionalCenters.length, total: activeRegionalCenters.length }) }}</strong>
                 </div>
               </div>
 
@@ -502,6 +523,10 @@
                     v-for="(center, index) in nearestRegionalCenters"
                     :key="`nearest-${center.name}-${index}`"
                     class="nearest-center-item clickable"
+                    role="button"
+                    tabindex="0"
+                    @keydown.enter.prevent="openRegionalCenterDetails(center)"
+                    @keydown.space.prevent="openRegionalCenterDetails(center)"
                     @click="openRegionalCenterDetails(center)"
                   >
                     <div
@@ -515,7 +540,7 @@
                         <span>{{ center.name }}</span>
                       </div>
                       <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-secondary"
+                        <span v-if="center.distance !== null" class="badge bg-secondary"
                           >{{ center.distance }} mi</span
                         >
                         <i class="bi bi-chevron-right text-muted"></i>
@@ -525,6 +550,10 @@
                 </div>
               </div>
             </div>
+
+            <p v-if="displayType === 'regionalCenters' && !scopeLoading && !scopeError && !visibleRegionalCenters.length" role="status">
+              {{ $t('regionalCenterScope.noMatch') }}
+            </p>
 
             <!-- Provider List -->
             <provider-list
@@ -718,6 +747,8 @@ import SearchBar from "@/components/map/SearchBar.vue";
 import ProviderList from "@/components/map/ProviderList.vue";
 import ProviderCard from "@/components/map/ProviderCard.vue";
 import ProviderDetails from "@/components/map/ProviderDetails.vue";
+import RegionalCenterScopeControl from "@/components/map/RegionalCenterScopeControl.vue";
+import { useRegionalCenterScope, reconcileRegionalCenter } from "@/composables/useRegionalCenterScope";
 import RegionalCenterDetails from "@/components/map/RegionalCenterDetails.vue";
 import DirectionsPanel from "@/components/map/DirectionsPanel.vue";
 import FilterPanel from "@/components/map/FilterPanel.vue";
@@ -781,6 +812,7 @@ export default {
     ProviderCard,
     ProviderDetails,
     RegionalCenterDetails,
+    RegionalCenterScopeControl,
     DirectionsPanel,
     FilterPanel,
     SidebarPanel,
@@ -790,6 +822,7 @@ export default {
 
   setup() {
     useSeo({ path: "/" });
+    return useRegionalCenterScope();
   },
 
   data() {
@@ -1086,41 +1119,24 @@ export default {
       return this.locationStore?.locations || this.locations;
     },
 
-    // LA Regional Centers list with colors and abbreviations
-    laRegionalCentersList() {
-      return getRegionalCentersList();
+    activeRegionalCenters() {
+      return this.scopeCenters.map(center => reconcileRegionalCenter(
+        center, this.regionalCenterData?.regionalCenters || []
+      ));
     },
-
-    // Calculate nearest regional centers based on user location
+    visibleRegionalCenters() {
+      const names = new Set(this.visibleScopeCenters.map(center => center.name));
+      return this.activeRegionalCenters.filter(center => names.has(center.name));
+    },
     nearestRegionalCenters() {
-      if (!this.userLocation.latitude || !this.userLocation.longitude) {
-        return [];
-      }
-
-      // Calculate distances and sort
-      const centersWithDistance = this.laRegionalCentersList
-        .map((center) => {
-          const coords = getRegionalCenterCoordinates(center.name);
-          if (!coords) return null;
-
-          // Calculate distance using Haversine formula
-          const distance = haversineDistance(
-            this.userLocation.latitude,
-            this.userLocation.longitude,
-            coords.lat,
-            coords.lng
-          );
-
-          return {
-            ...center,
-            distance: distance.toFixed(1),
-          };
-        })
-        .filter((center) => center !== null)
-        .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
-        .slice(0, 3); // Show top 3 nearest
-
-      return centersWithDistance;
+      return this.visibleRegionalCenters.map(center => {
+        const distance = this.userLocation.latitude && this.userLocation.longitude
+          ? haversineDistance(this.userLocation.latitude, this.userLocation.longitude,
+              center.latitude, center.longitude)
+          : null;
+        return { ...center, distance: distance === null ? null : distance.toFixed(1) };
+      }).sort((a, b) => a.distance === null || b.distance === null
+        ? a.name.localeCompare(b.name) : Number(a.distance) - Number(b.distance));
     },
 
     // Paginated providers for display
@@ -1140,6 +1156,24 @@ export default {
       }
       const providers = this.providerStore.providers;
       return providers.length > this.paginatedProviders.length;
+    },
+  },
+
+  watch: {
+    userRegionalCenterName: {
+      immediate: true,
+      handler(name) { this.highlightedRegionalCenter = name; },
+    },
+    visibleRegionalCenters() {
+      this.addRegionalCenterMarkers();
+      if (this.selectedRegionalCenter && !this.visibleRegionalCenters.some(center => center.name === this.selectedRegionalCenter.name)) {
+        this.closeRegionalCenterDetails();
+      }
+    },
+    regionalCenterScope() {
+      this.closeRegionalCenterDetails();
+      this.selectedRegionalCenterName = null;
+      this.selectedRegionalCenters = {};
     },
   },
 
@@ -1361,6 +1395,7 @@ export default {
   },
 
   beforeUnmount() {
+    this.regionalCenterMarkers.forEach(marker => marker.remove());
     // Cleanup LA ZIP codes overlay on unmount
     try {
       this.removeLAZipCodesFromMap();
@@ -1776,6 +1811,7 @@ export default {
       console.log("[MapView] Map ready from new MapCanvas");
       this.mapInstance = mapInstance;
       this.map = mapInstance; // Also set this.map for compatibility with old methods
+      if (this.$route.query.view === "regional-centers") this.displayType = "regionalCenters";
 
       // DON'T auto-fit to providers - keep the LA County view
       // Users should ALWAYS see LA County properly centered and zoomed
@@ -2060,36 +2096,9 @@ export default {
         centerBasicInfo.name
       );
 
-      // Fetch full regional center data using the composable
-      const fullRegionalCenter = this.regionalCenterData.findByName(
-        centerBasicInfo.name
-      );
-
-      if (!fullRegionalCenter) {
-        console.error(
-          "[MapView] Could not find full data for regional center:",
-          centerBasicInfo.name
-        );
-        return;
-      }
-
-      console.log("[MapView] Full regional center data:", fullRegionalCenter);
-
-      // Convert to format expected by handleRegionalCenterClick
-      const regionalCenter = {
-        id: fullRegionalCenter.id,
-        name: fullRegionalCenter.name,
-        regional_center:
-          fullRegionalCenter.regional_center || fullRegionalCenter.name,
-        office_type: fullRegionalCenter.office_type,
-        address: fullRegionalCenter.address,
-        telephone: fullRegionalCenter.phone,
-        website: fullRegionalCenter.website,
-        county_served: fullRegionalCenter.county_served,
-        latitude: fullRegionalCenter.coordinates?.lat || fullRegionalCenter.lat,
-        longitude:
-          fullRegionalCenter.coordinates?.lng || fullRegionalCenter.lng,
-      };
+      const center = this.activeRegionalCenters.find(item => item.name === centerBasicInfo.name);
+      if (!center) return;
+      const regionalCenter = { ...center, telephone: center.phone };
 
       // Call the handler with full data
       this.handleRegionalCenterClick(regionalCenter);
@@ -2113,7 +2122,7 @@ export default {
       this.regionalCenterMarkers = [];
 
       // Get regional centers from composable
-      const regionalCenters = this.regionalCenterData?.regionalCenters || [];
+      const regionalCenters = this.visibleRegionalCenters;
 
       console.log(
         `[MapView] Adding ${regionalCenters.length} regional center markers`
@@ -2138,13 +2147,21 @@ export default {
         el.style.alignItems = "center";
         el.style.justifyContent = "center";
         el.style.borderRadius = "50%";
-        el.style.backgroundColor = "#7c3aed"; // Purple for regional centers
+        el.style.backgroundColor = center.color;
         el.style.color = "#ffffff";
         el.style.border = "2px solid white";
         el.style.boxShadow = "0 2px 7px rgba(15,23,42,0.3)";
         el.style.cursor = "pointer";
         el.style.zIndex = "100";
-        el.setAttribute("aria-label", `Regional center: ${center.name}`);
+        el.setAttribute("aria-label", center.name);
+        el.setAttribute("role", "button");
+        el.tabIndex = 0;
+        el.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            this.openRegionalCenterDetails(center);
+          }
+        });
 
         // Create marker
         const marker = new mapboxgl.Marker(el)
@@ -3054,7 +3071,7 @@ export default {
 
       if (hasProviderFilters && this.displayType !== "providers") {
         console.log("Provider filters applied, switching to providers view");
-        this.displayType = "providers";
+        this.setDisplayType("providers");
       }
 
       // If we're showing providers, refetch from API with filters
@@ -3472,13 +3489,7 @@ export default {
     resetMapOverlayPaintState() {
       if (!this.map) return;
 
-      const centerNames = getRegionalCentersList();
-      const regionalCenterColorMatch = [
-        "match",
-        ["get", "REGIONALCENTER"],
-        ...centerNames.flatMap((rc) => [rc.name, rc.color]),
-        "#9e9e9e",
-      ];
+      const regionalCenterColorMatch = ["get", "color"];
 
       const userRCName = this.userRegionalCenterName;
       const regionalCenterOpacity = userRCName
@@ -3561,6 +3572,10 @@ export default {
 
     // Set display type
     setDisplayType(type) {
+      if (type !== "regionalCenters") {
+        this.resetRegionalCenterScopeWithoutFit();
+        this.closeRegionalCenterDetails();
+      }
       this.displayType = type;
       this.resetMapOverlayPaintState();
 
@@ -3583,18 +3598,7 @@ export default {
 
       // When switching to regional centers, center on LA Regional Centers
       if (type === "regionalCenters" && this.map && !this.isMapMoving) {
-        // Center on Los Angeles County with appropriate zoom
-        const laCenter = [-118.2437, 34.0522]; // LA County center
-        this.isMapMoving = true;
-        this.map.flyTo({
-          center: laCenter,
-          zoom: 9.5, // Good zoom level to see all LA Regional Centers
-          duration: 1000,
-          essential: true,
-        });
-        setTimeout(() => {
-          this.isMapMoving = false;
-        }, 1100);
+        this.fitRegionalCenterScope();
 
         // Regional Center polygons stay visible always - no toggling needed
         // Ensure we have regional center data for the list
@@ -3628,6 +3632,8 @@ export default {
               duration: 600,
             });
           }
+        } else if (this.map) {
+          this.map.fitBounds(getLACountyBounds(), { padding: 40, duration: 600 });
         }
         this.resetMapOverlayPaintState();
       } else if (type === "locations") {
@@ -4877,139 +4883,10 @@ export default {
       }
     },
 
-    // Toggle LA Regional Centers overlay
     async toggleLARegionalCenters() {
       this.showLARegionalCenters = !this.showLARegionalCenters;
-      console.log(
-        "toggleLARegionalCenters called, showLARegionalCenters:",
-        this.showLARegionalCenters
-      );
-
-      if (!this.map) {
-        console.error("Map not initialized yet");
-        return;
-      }
-
-      if (this.showLARegionalCenters) {
-        console.log("Showing LA Regional Centers overlay...");
-
-        // Don't automatically switch to regional centers tab
-        // Users can manually switch if they want to see regional centers
-        // Make sure we have regional center data so the list and markers appear immediately
-        try {
-          if (
-            !Array.isArray(this.regionalCenters) ||
-            this.regionalCenters.length === 0
-          ) {
-            await this.regionalCenterData.fetchRegionalCenters();
-          }
-        } catch (e) {
-          console.warn("Failed to pre-load regional centers:", e);
-        }
-
-        // Initialize all regional centers as visible
-        this.laRegionalCentersList.forEach((center) => {
-          if (!(center.name in this.selectedRegionalCenters)) {
-            this.$set
-              ? this.$set(this.selectedRegionalCenters, center.name, true)
-              : (this.selectedRegionalCenters[center.name] = true);
-          }
-        });
-
-        // Fetch data first if we don't have it
-        if (!this.laRegionalCentersData) {
-          try {
-            console.log("Fetching service area data from API...");
-            const response = await fetch(
-              `${getApiRoot()}/api/regional-centers/service_area_boundaries/`
-            );
-            if (response.ok) {
-              this.laRegionalCentersData = await response.json();
-              console.log(
-                "Service area data fetched successfully:",
-                this.laRegionalCentersData
-              );
-            } else {
-              console.error(
-                "Failed to fetch service area data:",
-                response.status
-              );
-            }
-          } catch (error) {
-            console.error("Error fetching service area data:", error);
-          }
-        } else {
-          console.log(
-            "Using cached service area data:",
-            this.laRegionalCentersData
-          );
-        }
-        await this.addLARegionalCentersToMap();
-        // Ensure markers/list reflect current state without needing a second click
-        try {
-          // MapCanvas handles marker updates automatically
-        } catch (_) {}
-        // While showing ZIP-section overlay, fade county choropleth to avoid confusion
-        try {
-          if (this.map.getLayer("california-counties-fill")) {
-            // Hide LA County fill completely; keep neighbors softly visible
-            this.map.setPaintProperty(
-              "california-counties-fill",
-              "fill-opacity",
-              ["case", ["==", ["get", "name"], "Los Angeles"], 0, 0.15]
-            );
-          }
-          if (this.map.getLayer("california-counties-outline")) {
-            this.map.setPaintProperty(
-              "california-counties-outline",
-              "line-opacity",
-              0.3
-            );
-          }
-        } catch (e) {}
-      } else {
-        console.log("Hiding LA Regional Centers overlay...");
-        this.removeLARegionalCentersFromMap();
-        // Restore county layers to default style
-        try {
-          if (this.map.getLayer("california-counties-fill")) {
-            this.map.setPaintProperty(
-              "california-counties-fill",
-              "fill-opacity",
-              ["case", ["boolean", ["feature-state", "hover"], false], 0.8, 0.6]
-            );
-          }
-          if (this.map.getLayer("california-counties-outline")) {
-            this.map.setPaintProperty(
-              "california-counties-outline",
-              "line-opacity",
-              0.8
-            );
-          }
-        } catch (e) {}
-        // Restore ZIP layers visibility when overlay is hidden
-        try {
-          if (this.map.getLayer("la-zip-codes-fill")) {
-            this.map.setLayoutProperty(
-              "la-zip-codes-fill",
-              "visibility",
-              "visible"
-            );
-            this.map.setPaintProperty(
-              "la-zip-codes-fill",
-              "fill-opacity",
-              0.15
-            );
-          }
-          if (this.map.getLayer("la-zip-codes-outline")) {
-            this.map.setLayoutProperty(
-              "la-zip-codes-outline",
-              "visibility",
-              "visible"
-            );
-          }
-        } catch (e) {}
-      }
+      if (this.showLARegionalCenters) await this.addLARegionalCentersToMap();
+      else this.removeLARegionalCentersFromMap();
     },
 
     // Add service areas to map
@@ -5376,238 +5253,11 @@ export default {
       }
     },
 
-    // Add LA Regional Centers overlay to map (static GeoJSON)
     async addLARegionalCentersToMap() {
-      console.log("addLARegionalCentersToMap called (static)");
-      if (!this.map) {
-        console.error("Map not available");
-        return;
-      }
-
-      try {
-        // Clean up any existing RC layers/sources from previous runs
-        const staleLayers = [
-          "rc-static-fill",
-          "rc-static-outline",
-          "la-regional-centers-fill",
-          "la-regional-centers-outline",
-          "la-county-boundary",
-          "la-county-outline",
-        ];
-        for (const lid of staleLayers) {
-          if (this.map.getLayer(lid)) {
-            try {
-              this.map.removeLayer(lid);
-            } catch (e) {}
-          }
-        }
-        if (this.map.getSource("rc")) {
-          try {
-            this.map.removeSource("rc");
-          } catch (e) {}
-        }
-        if (this.map.getSource("la-regional-centers")) {
-          try {
-            this.map.removeSource("la-regional-centers");
-          } catch (e) {}
-        }
-
-        // Fetch static dissolved 7-region GeoJSON and use object directly
-        const respStatic = await fetch("/assets/geo/la_rc_7.geojson");
-        if (!respStatic.ok) {
-          console.error("Failed to load static RC geojson:", respStatic.status);
-          return;
-        }
-        const rcGeoJson = await respStatic.json();
-        this.map.addSource("rc", {
-          type: "geojson",
-          data: rcGeoJson,
-        });
-
-        // Build a match expression for fill-color using imported constants
-        const centerNames = getRegionalCentersList();
-        const colorMatch = [
-          "match",
-          ["get", "REGIONALCENTER"],
-          ...centerNames.flatMap((rc) => [rc.name, rc.color]),
-          "#9e9e9e", // Default color for unknown centers
-        ];
-
-        // Build opacity expression based on user's RC
-        // Keep opacity low to maintain transparent look with colored outlines
-        const userRCName = this.userRegionalCenterName;
-        const opacityExpression = userRCName
-          ? [
-              "case",
-              ["==", ["get", "REGIONALCENTER"], userRCName],
-              0.25, // Slightly more visible for user's RC
-              0.15, // Very transparent for other RCs
-            ]
-          : 0.15; // Default low opacity - emphasize outlines not fills
-
-        // Fill layer (keep very transparent - outlines are the main visual)
-        this.map.addLayer({
-          id: "rc-static-fill",
-          type: "fill",
-          source: "rc",
-          paint: {
-            "fill-color": colorMatch,
-            "fill-opacity": opacityExpression,
-            "fill-outline-color": "#ffffff",
-          },
-        });
-
-        // Outline layer (this is the main visual - make it prominent)
-        this.map.addLayer({
-          id: "rc-static-outline",
-          type: "line",
-          source: "rc",
-          paint: {
-            "line-color": colorMatch, // Use the Regional Center's color
-            "line-width": 3, // Prominent width
-            "line-opacity": 0.9, // Strong visibility
-          },
-        });
-
-        // If base ZIP layer exists and is obscuring, fade it
-        try {
-          if (this.map.getLayer("la-zip-codes-fill")) {
-            this.map.setPaintProperty("la-zip-codes-fill", "fill-opacity", 0.1);
-          }
-        } catch (e) {}
-
-        // Bring RC layers to the top
-        try {
-          this.map.moveLayer("rc-static-fill");
-          this.map.moveLayer("rc-static-outline");
-        } catch (e) {}
-
-        // Interactivity
-        this.map.on("mouseenter", "rc-static-fill", () => {
-          this.map.getCanvas().style.cursor = "pointer";
-        });
-        this.map.on("mouseleave", "rc-static-fill", () => {
-          this.map.getCanvas().style.cursor = "";
-        });
-
-        // Regional center polygon popup disabled per user request
-        // this.map.on("click", "rc-static-fill", (e) => {
-        // // Check if the click was on a marker (not on the polygon)
-        // const target = e.originalEvent.target;
-        // if (target.closest('.mapboxgl-marker')) {
-        // // Click was on a marker, don't show regional center popup
-        // return;
-        // }
-
-        // // Always show polygon popups when clicked on colored regions
-        // const feature = e.features && e.features[0];
-        // const centerName = feature?.properties?.REGIONALCENTER || "Regional Center";
-
-        // console.log("Clicked on regional center polygon:", centerName);
-
-        // // Use the rich regional center popup
-        // const html = this.createRegionalCenterPopup(centerName);
-
-        // new mapboxgl.Popup({
-        // closeOnClick: true,
-        // offset: 25,
-        // maxWidth: "360px",
-        // className: "provider-popup-container",
-        // })
-        // .setLngLat(e.lngLat)
-        // .setHTML(html)
-        // .addTo(this.map);
-        // });
-
-        // Hide ZIP layers entirely to avoid visual conflict
-        try {
-          if (this.map.getLayer("la-zip-codes-fill")) {
-            this.map.setLayoutProperty(
-              "la-zip-codes-fill",
-              "visibility",
-              "none"
-            );
-          }
-          if (this.map.getLayer("la-zip-codes-outline")) {
-            this.map.setLayoutProperty(
-              "la-zip-codes-outline",
-              "visibility",
-              "none"
-            );
-          }
-          const layers = this.map.getStyle().layers || [];
-          for (const layer of layers) {
-            if (
-              layer.id &&
-              layer.id.startsWith("la-zip-center-") &&
-              this.map.getLayer(layer.id)
-            ) {
-              this.map.setLayoutProperty(layer.id, "visibility", "none");
-            }
-          }
-        } catch (e) {}
-
-        // Fit to bounds of the static overlay so it's visible
-        try {
-          const bounds = new mapboxgl.LngLatBounds();
-          const addCoords = (coords) => {
-            for (const c of coords) {
-              if (Array.isArray(c[0])) addCoords(c);
-              else bounds.extend(c);
-            }
-          };
-          for (const f of rcGeoJson.features || []) {
-            const geom = f.geometry;
-            if (!geom) continue;
-            if (geom.type === "Polygon") addCoords(geom.coordinates);
-            else if (geom.type === "MultiPolygon") addCoords(geom.coordinates);
-          }
-          if (!bounds.isEmpty()) {
-            this.map.fitBounds(bounds, {
-              padding: 40,
-              maxZoom: 10,
-              duration: 400,
-            });
-          }
-        } catch (e) {}
-
-        // Populate legend data from static file
-        try {
-          const featuresForLegend = (rcGeoJson.features || [])
-            .map((f) => {
-              const name = f?.properties?.REGIONALCENTER;
-              const fillColor = name
-                ? centerColors[name] || "#607d8b"
-                : "#607d8b";
-              return {
-                type: "Feature",
-                properties: { name, fillColor },
-                geometry: f.geometry,
-              };
-            })
-            .filter((f) => f.properties.name);
-          this.laRegionalCentersData = {
-            type: "FeatureCollection",
-            features: featuresForLegend,
-          };
-          // initialize checkbox state if needed
-          for (const f of featuresForLegend) {
-            const n = f.properties.name;
-            if (!(n in this.selectedRegionalCenters)) {
-              this.$set
-                ? this.$set(this.selectedRegionalCenters, n, true)
-                : (this.selectedRegionalCenters[n] = true);
-            }
-          }
-        } catch (_) {}
-
-        console.log("Static Regional Centers overlay added");
-      } catch (error) {
-        console.error(
-          "Error adding static LA Regional Centers overlay:",
-          error
-        );
-      }
+      if (!this.map) return;
+      await this.loadRegionalCenterScope(this.map);
+      this.laRegionalCentersData = this.scopeGeometry;
+      this.updateRegionalCenterHighlighting();
     },
 
     /**
@@ -6268,8 +5918,10 @@ export default {
       // Note: We don't automatically fly to user location to avoid jarring map movement
       // Users can manually navigate to their location if needed
 
-      // Ensure we're showing providers (not regional centers) by default
-      this.displayType = "providers";
+      this.displayType = this.$route.query.view === "regional-centers"
+        ? "regionalCenters"
+        : "providers";
+      if (this.displayType === "providers") this.resetRegionalCenterScopeWithoutFit();
 
       // Clear any restrictive filters to show all providers initially
       console.log("Clearing filters to show all providers initially...");

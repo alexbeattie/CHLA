@@ -9,6 +9,8 @@ import PrivacyPolicyView from '../views/PrivacyPolicyView.vue'
 import TermsOfServiceView from '../views/TermsOfServiceView.vue'
 import RegionalCentersIndexView from '../views/RegionalCentersIndexView.vue'
 import RegionalCenterView from '../views/RegionalCenterView.vue'
+import IntroView from '../views/IntroView.vue'
+import SurveyView from '../views/SurveyView.vue'
 import ProviderManagement from '../components/ProviderManagement.vue'
 import Login from '../components/Login.vue'
 import OnboardingFlowTest from '../components/OnboardingFlowTest.vue'
@@ -45,6 +47,16 @@ const routes = [
     path: '/terms',
     name: 'terms',
     component: TermsOfServiceView
+  },
+  {
+    path: '/intro',
+    name: 'intro',
+    component: IntroView
+  },
+  {
+    path: '/survey',
+    name: 'survey',
+    component: SurveyView
   },
   {
     path: '/regional-centers',

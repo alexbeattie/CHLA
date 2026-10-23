@@ -14,6 +14,7 @@ struct SettingsView: View {
 
     @State private var apiHealthy = false
     @State private var isCheckingAPI = false
+    @State private var showIntro = false
 
     /// App version from bundle
     private var appVersion: String {
@@ -212,6 +213,18 @@ struct SettingsView: View {
                         Label("FAQ", systemImage: "questionmark.circle.fill")
                     }
 
+                    Button {
+                        showIntro = true
+                    } label: {
+                        Label(L10n.Intro.settingsLabel, systemImage: "hand.wave.fill")
+                    }
+
+                    NavigationLink {
+                        SurveyView()
+                    } label: {
+                        Label(L10n.Survey.entryLabel, systemImage: "text.bubble.fill")
+                    }
+
                     Link(destination: URL(string: "https://kinddhelp.com")!) {
                         Label("Website", systemImage: "globe")
                     }
@@ -251,9 +264,9 @@ struct SettingsView: View {
                     }
 
                     HStack {
-                        Label("Resource Data", systemImage: "building.2")
+                        Label("provider.data".localized, systemImage: "building.2")
                         Spacer()
-                        Text("370+ Resources")
+                        Text("provider.countWithLabel".localized)
                             .foregroundStyle(.secondary)
                     }
                 } header: {
@@ -277,6 +290,7 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .introSheet(isPresented: $showIntro)
             .onAppear {
                 Task { await checkAPIHealth() }
             }
