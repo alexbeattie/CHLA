@@ -37,6 +37,7 @@
             {{ $t("about.legalEntityDeductible") }}
           </p>
           <p class="legal-entity-note">{{ $t("about.legalEntityDomains") }}</p>
+          <p class="legal-entity-note">{{ $t("about.legalEntitySecurity") }}</p>
         </div>
 
         <AppDownloadLinks id="download-app" class="content-block" />

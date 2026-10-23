@@ -313,6 +313,7 @@
     "legalEntityEin": "KINDD, EIN 42-3052958",
     "legalEntityDeductible": "Las contribuciones a KINDD son deducibles de impuestos en la medida permitida por la ley.",
     "legalEntityDomains": "KINDD posee y opera tanto kinddhelp.com como kinddhelp.org. Las direcciones de correo del personal usan el dominio kinddhelp.org.",
+    "legalEntitySecurity": "Alex Beattie, director y tesorero de KINDD, desarrolla y mantiene la plataforma KiNDD y es responsable de su seguridad. Informe cualquier problema de seguridad a support{'@'}kinddhelp.org.",
     "downloadTitle": "Obtenga la app KiNDD - NDD Resource Navigator",
     "downloadText": "Busque recursos para trastornos del neurodesarrollo e información de los Centros Regionales desde su teléfono.",
     "downloadIphone": "Descargar para iPhone",

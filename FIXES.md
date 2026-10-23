@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-23 — About page names the platform's security lead
+- **Branch:** feat/about-security-lead
+- **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
+- **Problem:** No public page named who is responsible for KiNDD's platform security, which verification applications ask to corroborate.
+- **Fix:** The "About the Organization" block names Alex Beattie, Director and Treasurer of KINDD, as responsible for platform security, with support@kinddhelp.org as the reporting contact (en and es).
+
+---
+
 ### 2026-10-22 — Regional center coverage in the existing map
 - **Branch:** feat/ca-regional-centers-map
 - **Files:** map-frontend/scripts/build_ca_regional_centers.py, map-frontend/public/assets/geo/ca_regional_centers.geojson, map-frontend/src/views/MapView.vue, map-frontend/src/composables/useRegionalCenterScope.ts, map-frontend/src/components/map/RegionalCenterScopeControl.vue, map-frontend/src/router/index.js, map-frontend/src/seo/siteConfig.js, map-frontend/vite.config.js, map-frontend/src/views/RegionalCentersIndexView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json
