@@ -27,6 +27,7 @@ struct FAQView: View {
                 .padding(20)
             }
         }
+        .clearsFloatingTabBar()
         .background(Color(.systemGroupedBackground))
         .navigationTitle("FAQ")
         .navigationBarTitleDisplayMode(.inline)

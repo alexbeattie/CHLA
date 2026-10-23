@@ -491,6 +491,7 @@ struct MapContainerView: View {
             }
             .padding()
         }
+        .clearsFloatingTabBar()
     }
 
     @ViewBuilder

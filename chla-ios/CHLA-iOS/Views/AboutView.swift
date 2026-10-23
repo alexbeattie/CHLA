@@ -33,6 +33,7 @@ struct AboutView: View {
                 .padding(20)
             }
         }
+        .clearsFloatingTabBar()
         .background(Color(.systemGroupedBackground))
         .simultaneousGesture(
             DragGesture()

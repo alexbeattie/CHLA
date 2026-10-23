@@ -329,6 +329,7 @@ struct ProviderListView: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .clearsFloatingTabBar()
         }
     }
 

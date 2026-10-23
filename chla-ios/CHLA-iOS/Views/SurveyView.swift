@@ -91,6 +91,7 @@ struct SurveyView: View {
             }
         }
         .scrollDismissesKeyboard(.interactively)
+        .clearsFloatingTabBar()
         .background {
             ZStack(alignment: .top) {
                 Theme.canvas

@@ -808,6 +808,7 @@ struct HowToGuideView: View {
         ScrollView {
             HowToGuideContent()
         }
+        .clearsFloatingTabBar()
         .background(Theme.canvas.ignoresSafeArea())
         .navigationTitle("How to use KiNDD")
         .navigationBarTitleDisplayMode(.inline)

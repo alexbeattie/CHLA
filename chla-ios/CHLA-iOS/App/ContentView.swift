@@ -196,6 +196,9 @@ struct MainTabView: View {
     @State private var showSettings = false
     @State private var showShareSheet = false
 
+    /// Pill height plus its bottom padding, measured so pages can end above it
+    @State private var tabBarHeight: CGFloat = 0
+
     private var tabInfo: (title: String, subtitle: String, icon: String) {
         switch appState.selectedTab {
         case 0: return ("Home", "Welcome to NDD Resources", "house.fill")
@@ -208,34 +211,36 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        // Tab Content
-        Group {
-            switch appState.selectedTab {
-            case 0:
-                HomeView()
-            case 1:
-                MapContainerView()
-            case 2:
-                RegionalCentersTabView()
-            case 3: ProviderListView()
-            case 4: MoreView()
-            default: HomeView()
+        ZStack(alignment: .bottom) {
+            // Tab Content - full screen at the top. The bottom safe area is kept so
+            // SwiftUI pages and pages inside a NavigationStack share the same bottom
+            // edge, and each page adds the tab bar clearance on top of it.
+            Group {
+                switch appState.selectedTab {
+                case 0:
+                    HomeView()
+                case 1:
+                    MapContainerView()
+                case 2:
+                    RegionalCentersTabView()
+                case 3: ProviderListView()
+                case 4: MoreView()
+                default: HomeView()
+                }
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onChange(of: appState.selectedTab) { _, newTab in
-            // Refresh List when tab is selected
-            if newTab == 2 {
-                NotificationCenter.default.post(name: .refreshList, object: nil)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea(edges: .top)
+            .environment(\.floatingTabBarClearance, tabBarHeight)
+            .onChange(of: appState.selectedTab) { _, newTab in
+                // Refresh List when tab is selected
+                if newTab == 2 {
+                    NotificationCenter.default.post(name: .refreshList, object: nil)
+                }
+                // Show UI when switching tabs
+                visibilityManager.showUI()
             }
-            // Show UI when switching tabs
-            visibilityManager.showUI()
-        }
-        // Floating Glass Tab Bar. As a bottom inset its height is part of every
-        // page's safe area, so scroll views and lists end above it while still
-        // scrolling beneath the glass. Full-bleed layers such as maps must
-        // ignore the bottom safe area themselves to run under it.
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+
+            // Floating Glass Tab Bar
             LiquidGlassTabBar(
                 selectedTab: $appState.selectedTab,
                 onMenuAction: handleMenuAction,
@@ -243,11 +248,15 @@ struct MainTabView: View {
             )
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.height
+            } action: { height in
+                tabBarHeight = height
+            }
             .offset(y: visibilityManager.isTabBarVisible ? 0 : 120)
             .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
             .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
         }
-        .ignoresSafeArea(edges: .top)
         .ignoresSafeArea(.keyboard)
         .statusBarHidden(!visibilityManager.isHeaderVisible)
         .sheet(isPresented: $appState.showChat, onDismiss: { appState.pendingChatPrompt = nil }) {
@@ -336,12 +345,48 @@ struct MainTabView: View {
 
 extension View {
     /// Shared treatment for every bottom sheet: visible grabber, soft corner
-    /// radius matching the card language, and a consistent canvas color
+    /// radius matching the card language, and a consistent canvas color.
+    /// Sheets cover the tab bar, so pages inside them reserve no room for it.
     func kinddSheet() -> some View {
         self
+            .environment(\.floatingTabBarClearance, 0)
             .presentationDragIndicator(.visible)
             .presentationCornerRadius(28)
             .presentationBackground(Color(.systemGroupedBackground))
+    }
+}
+
+// MARK: - Floating Tab Bar Clearance
+
+private struct FloatingTabBarClearanceKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
+extension EnvironmentValues {
+    /// How far the floating tab bar reaches above the bottom safe area; zero
+    /// outside the tab container
+    var floatingTabBarClearance: CGFloat {
+        get { self[FloatingTabBarClearanceKey.self] }
+        set { self[FloatingTabBarClearanceKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Ends a page's scrolling content above the floating tab bar while it still
+    /// scrolls beneath the glass. Each page applies this itself because pages
+    /// inside a NavigationStack do not inherit safe-area insets from outside it.
+    func clearsFloatingTabBar() -> some View {
+        modifier(FloatingTabBarClearance())
+    }
+}
+
+private struct FloatingTabBarClearance: ViewModifier {
+    @Environment(\.floatingTabBarClearance) private var clearance
+
+    func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear.frame(height: clearance)
+        }
     }
 }
 
@@ -975,6 +1020,7 @@ struct MoreView: View {
             }
             .navigationTitle("More")
             .scrollContentBackground(.hidden)
+            .clearsFloatingTabBar()
             .background {
                 ZStack(alignment: .top) {
                     Theme.canvas
@@ -1013,6 +1059,7 @@ struct ClinicianResourcesView: View {
             referralFlowSection
         }
         .navigationTitle("Clinicians")
+        .clearsFloatingTabBar()
         .onAppear {
             zipCode = appState.userZipCode ?? ""
             updateMatchedCenter()

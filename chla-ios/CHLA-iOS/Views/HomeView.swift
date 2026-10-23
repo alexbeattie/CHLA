@@ -57,10 +57,10 @@ struct HomeView: View {
         }
         .safeAreaInset(edge: .bottom) {
             chatCapsule
-                // The tab bar is already in the bottom safe area, so this is the
-                // gap between the capsule and the top of the pill
+                // Gap between the capsule and the top of the tab bar pill
                 .padding(.bottom, 10)
         }
+        .clearsFloatingTabBar()
         .onAppear {
             resolveRegionalCenter()
             if regionalCentersMapModel.serviceAreas.isEmpty {

@@ -117,6 +117,7 @@ struct RegionalCentersView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .clearsFloatingTabBar()
         .searchable(text: $searchText, prompt: "Search centers")
         .sheet(item: $selectedCenter) { center in
             RegionalCenterDetailSheet(center: center)

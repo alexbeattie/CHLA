@@ -15,9 +15,9 @@ Format:
 
 ### 2026-10-23 — iOS: floating tab bar no longer hides the bottom of pages
 - **Branch:** cursor/ios-tab-bar-bottom-inset-7469
-- **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift
-- **Problem:** The tab bar floated over tab content that ignored every safe area, so pages could not scroll their last content above it: About's Share feedback row, the survey Submit button, list footers in More and Settings, and the map's result badges sat under the bar.
-- **Fix:** The bar is now a bottom `safeAreaInset` on the tab content (content still ignores the top edge), so every tab and pushed page ends above it while still scrolling beneath the glass. The map ignores the bottom edge to keep running under the bar, and its show-controls button now stacks above the result badges instead of covering them; Home's chat capsule keeps its old position; the provider list's 66pt spacer is removed.
+- **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Views/FAQView.swift, chla-ios/CHLA-iOS/Views/SurveyView.swift, chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/RegionalCentersView.swift
+- **Problem:** The tab bar floated over tab content that ignored every safe area, so pages could not scroll their last content above it: About's Share feedback row, the survey Submit button, the FAQ contact button, list footers in More and Settings, the Regional Centers list, and the map's result badges sat under the bar.
+- **Fix:** The tab container measures the bar and publishes its height as the `floatingTabBarClearance` environment value; each page applies `.clearsFloatingTabBar()`, a clear bottom inset of that height, so its content ends above the bar while still scrolling beneath the glass. Pages opt in individually because a NavigationStack does not pass safe-area insets from outside it to its pages. Tab content now keeps the bottom safe area so every page measures from the same edge; sheets reset the clearance to zero. The map's show-controls button stacks above the result badges instead of covering them; Home's chat capsule keeps its old position; the provider list's fixed 66pt spacer is replaced by the measured clearance.
 
 ---
 
