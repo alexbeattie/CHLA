@@ -57,7 +57,7 @@ ASK KiNDD
 • Recommends real providers near you - tap a card to call or get directions
 
 FIND SERVICES
-• Interactive map of 300+ verified resources across LA County
+• Interactive map of over 300 providers across LA County
 • Filter by regional center area, therapy type, ages served, and insurance
 • Detailed provider profiles with services, contact info, and directions
 • Search by ZIP code, city, or provider name

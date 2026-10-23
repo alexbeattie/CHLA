@@ -957,9 +957,9 @@ struct MoreView: View {
                     }
 
                     HStack {
-                        Label("Resources", systemImage: "building.2")
+                        Label("provider.plural".localized, systemImage: "building.2")
                         Spacer()
-                        Text("300+")
+                        Text("provider.count".localized)
                             .foregroundStyle(.secondary)
                     }
                 } header: {
