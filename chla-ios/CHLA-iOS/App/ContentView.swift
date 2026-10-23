@@ -196,6 +196,9 @@ struct MainTabView: View {
     @State private var showSettings = false
     @State private var showShareSheet = false
 
+    /// Floating tab bar height, bottom padding included
+    @State private var tabBarHeight: CGFloat = 58
+
     private var tabInfo: (title: String, subtitle: String, icon: String) {
         switch appState.selectedTab {
         case 0: return ("Home", "Welcome to NDD Resources", "house.fill")
@@ -214,17 +217,27 @@ struct MainTabView: View {
                 switch appState.selectedTab {
                 case 0:
                     HomeView()
+                        .tabBarClearance()
                 case 1:
                     MapContainerView()
+                        .tabBarClearance()
                 case 2:
                     RegionalCentersTabView()
+                        .tabBarClearance()
+                // NavigationStack tabs reserve the space inside the stack
                 case 3: ProviderListView()
                 case 4: MoreView()
-                default: HomeView()
+                default:
+                    HomeView()
+                        .tabBarClearance()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea()
+            // The bottom edge is respected so the tab bar clearance below adds to
+            // the home indicator inset; maps and backgrounds still bleed under it
+            .ignoresSafeArea(edges: [.top, .horizontal])
+            // The bar plus a 12pt margin, so the last row never sits flush against it
+            .environment(\.tabBarClearance, tabBarHeight + 12)
             .onChange(of: appState.selectedTab) { _, newTab in
                 // Refresh List when tab is selected
                 if newTab == 2 {
@@ -242,6 +255,11 @@ struct MainTabView: View {
             )
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.height
+            } action: { height in
+                tabBarHeight = height
+            }
             .offset(y: visibilityManager.isTabBarVisible ? 0 : 120)
             .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
             .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
@@ -972,6 +990,7 @@ struct MoreView: View {
                 }
             }
             .navigationTitle("More")
+            .navigationTabBarClearance()
             .scrollContentBackground(.hidden)
             .background {
                 ZStack(alignment: .top) {
