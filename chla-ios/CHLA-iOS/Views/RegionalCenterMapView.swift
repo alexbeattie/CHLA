@@ -54,12 +54,12 @@ struct RegionalCenterMapView: View {
                 Spacer()
                 legendView
                     .padding(.horizontal)
-                    .padding(.bottom, 100)
                     .offset(y: visibilityManager.isHeaderVisible ? 0 : 100)
                     .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
             }
         }
-        .ignoresSafeArea(edges: .all)
+        // Bottom edge respected so the legend clears the floating tab bar
+        .ignoresSafeArea(edges: [.top, .horizontal])
         .statusBarHidden(true)
             .sheet(item: $selectedCenter) { center in
                 RegionalCenterInfoSheet(feature: center)
@@ -113,6 +113,7 @@ struct RegionalCenterMapView: View {
             UserAnnotation()
         }
         .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .excludingAll))
+        .ignoresSafeArea()
     }
 
     // MARK: - Loading Overlay

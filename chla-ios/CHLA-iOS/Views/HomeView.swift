@@ -57,9 +57,6 @@ struct HomeView: View {
         }
         .safeAreaInset(edge: .bottom) {
             chatCapsule
-                // The parent tab container ignores safe areas, so this measures from
-                // the screen edge: pill spans 42-92pt, capsule sits 10pt above it
-                .padding(.bottom, 102)
         }
         .onAppear {
             resolveRegionalCenter()

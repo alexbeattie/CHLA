@@ -69,23 +69,6 @@ struct MapContainerView: View {
             if showHowToTip {
                 howToTipOverlay
             }
-
-            // Show UI button (appears when UI is hidden)
-            if !visibilityManager.isHeaderVisible {
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        ShowControlsButton {
-                            visibilityManager.showUI()
-                        }
-                        .padding(.trailing, 20)
-                        .padding(.bottom, 100)
-                    }
-                }
-                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.8)))
-                .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.3), value: visibilityManager.isHeaderVisible)
-            }
         }
         .sheet(isPresented: $showFilters) {
             filterSheet
@@ -323,7 +306,7 @@ struct MapContainerView: View {
             MapCompass()
             MapScaleView()
         }
-        .ignoresSafeArea(edges: .top)
+        .ignoresSafeArea()
         .onTapGesture {
             // Tap on map to toggle UI visibility
             visibilityManager.toggleUI()
@@ -472,8 +455,17 @@ struct MapContainerView: View {
 
     @ViewBuilder
     private var bottomOverlay: some View {
-        VStack {
+        VStack(alignment: .trailing, spacing: 12) {
             Spacer()
+
+            // Show UI button (appears when UI is hidden)
+            if !visibilityManager.isHeaderVisible {
+                ShowControlsButton {
+                    visibilityManager.showUI()
+                }
+                .padding(.trailing, 4)
+                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.8)))
+            }
 
             HStack {
                 // Regional Center badge (if detected)
@@ -493,8 +485,8 @@ struct MapContainerView: View {
                     .buttonStyle(.pressable)
                 }
             }
-            .padding()
         }
+        .padding([.horizontal, .top])
     }
 
     @ViewBuilder
