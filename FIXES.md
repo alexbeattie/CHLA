@@ -17,7 +17,7 @@ Format:
 - **Branch:** cursor/ios-tab-bar-bottom-inset-7469
 - **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift
 - **Problem:** The tab bar floated over tab content that ignored every safe area, so pages could not scroll their last content above it: About's Share feedback row, the survey Submit button, list footers in More and Settings, and the map's result badges sat under the bar.
-- **Fix:** The bar is now a bottom `safeAreaInset` on the tab content (content still ignores the top edge), so every tab and pushed page ends above it while still scrolling beneath the glass. The map ignores the bottom edge to keep running under the bar; Home's chat capsule and the map's show-controls button keep their old positions; the provider list's 66pt spacer is removed.
+- **Fix:** The bar is now a bottom `safeAreaInset` on the tab content (content still ignores the top edge), so every tab and pushed page ends above it while still scrolling beneath the glass. The map ignores the bottom edge to keep running under the bar, and its show-controls button now stacks above the result badges instead of covering them; Home's chat capsule keeps its old position; the provider list's 66pt spacer is removed.
 
 ---
 
