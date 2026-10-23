@@ -41,6 +41,7 @@ struct OnboardingView: View {
         return GeometryReader { proxy in
             ScrollView {
                 stepContent
+                    .readableContentWidth()
                     .frame(maxWidth: .infinity, minHeight: proxy.size.height)
             }
             .scrollBounceBehavior(.basedOnSize)
@@ -88,6 +89,7 @@ struct OnboardingView: View {
             navigationButtons
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
+                .readableContentWidth()
         }
     }
 

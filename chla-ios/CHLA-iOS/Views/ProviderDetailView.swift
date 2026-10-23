@@ -104,7 +104,7 @@ struct ProviderDetailView: View {
                 }
             }
             .background(Color(.systemBackground))
-            .ignoresSafeArea(edges: [.horizontal, .top])
+            .ignoresSafeArea(edges: .top)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {

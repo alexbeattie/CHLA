@@ -196,6 +196,9 @@ struct MainTabView: View {
     @State private var showSettings = false
     @State private var showShareSheet = false
 
+    /// Floating tab bar height, bottom padding included
+    @State private var tabBarHeight: CGFloat = 58
+
     private var tabInfo: (title: String, subtitle: String, icon: String) {
         switch appState.selectedTab {
         case 0: return ("Home", "Welcome to NDD Resources", "house.fill")
@@ -208,33 +211,44 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Tab Content - Full Screen
-            Group {
-                switch appState.selectedTab {
-                case 0:
-                    HomeView()
-                case 1:
-                    MapContainerView()
-                case 2:
-                    RegionalCentersTabView()
-                case 3: ProviderListView()
-                case 4: MoreView()
-                default: HomeView()
-                }
+        // Tabs respect the safe area and only maps and backgrounds bleed, since
+        // the status bar can sit on any edge (the right edge of the iPhone Duo
+        // inner display). ZStack rather than Group so the modifiers below,
+        // including the tab bar overlay, are not rebuilt on every tab switch.
+        ZStack {
+            switch appState.selectedTab {
+            case 0:
+                HomeView()
+                    .tabBarClearance()
+            case 1:
+                MapContainerView()
+                    .tabBarClearance()
+            case 2:
+                RegionalCentersTabView()
+                    .tabBarClearance()
+            // NavigationStack tabs reserve the space inside the stack
+            case 3: ProviderListView()
+            case 4: MoreView()
+            default:
+                HomeView()
+                    .tabBarClearance()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea()
-            .onChange(of: appState.selectedTab) { _, newTab in
-                // Refresh List when tab is selected
-                if newTab == 2 {
-                    NotificationCenter.default.post(name: .refreshList, object: nil)
-                }
-                // Show UI when switching tabs
-                visibilityManager.showUI()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // The bar plus a 12pt margin, so the last row never sits flush against it
+        .environment(\.tabBarClearance, tabBarHeight + 12)
+        .onChange(of: appState.selectedTab) { _, newTab in
+            // Refresh List when tab is selected
+            if newTab == 2 {
+                NotificationCenter.default.post(name: .refreshList, object: nil)
             }
-
-            // Floating Glass Tab Bar
+            // Show UI when switching tabs
+            visibilityManager.showUI()
+        }
+        .overlay(alignment: .bottom) {
+            // An overlay, not a safe-area inset: SwiftUI insets do not reach
+            // pages inside a NavigationStack, so each tab reserves the space
+            // itself. The space stays reserved while the bar is scrolled away.
             LiquidGlassTabBar(
                 selectedTab: $appState.selectedTab,
                 onMenuAction: handleMenuAction,
@@ -242,6 +256,11 @@ struct MainTabView: View {
             )
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.height
+            } action: { height in
+                tabBarHeight = height
+            }
             .offset(y: visibilityManager.isTabBarVisible ? 0 : 120)
             .opacity(visibilityManager.isTabBarVisible ? 1 : 0)
             .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.8), value: visibilityManager.isTabBarVisible)
@@ -689,40 +708,33 @@ struct RegionalCentersTabView: View {
     @ObservedObject var visibilityManager = UIVisibilityManager.shared
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack {
             // Content
             if selectedView == 0 {
                 // List content - using RegionalCentersView from separate file
                 RegionalCentersView()
-                    .safeAreaInset(edge: .top, spacing: 0) {
-                        // Invisible spacer to push content below picker
-                        Color.clear.frame(height: 44)
-                    }
             } else {
                 // Full screen map
                 RegionalCenterMapView()
             }
-
-            // Floating picker overlay - always visible
-            VStack(spacing: 0) {
-                Picker("View", selection: $selectedView) {
-                    Text("List").tag(0)
-                    Text("Map").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 160)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
-                )
-                .padding(.top, 54)
-
-                Spacer()
-            }
         }
-        .ignoresSafeArea(edges: .top)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            // Floating picker, always visible. As an inset, the list starts
+            // below it and the map's overlays clear it.
+            Picker("View", selection: $selectedView) {
+                Text("List").tag(0)
+                Text("Map").tag(1)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 160)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
+            )
+            .padding(.top, 8)
+        }
     }
 }
 
@@ -972,6 +984,7 @@ struct MoreView: View {
                 }
             }
             .navigationTitle("More")
+            .navigationTabBarClearance()
             .scrollContentBackground(.hidden)
             .background {
                 ZStack(alignment: .top) {

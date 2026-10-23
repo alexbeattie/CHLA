@@ -13,6 +13,22 @@ Format:
 
 ---
 
+### 2026-10-23 — iOS: every page reserves room for the floating tab bar
+- **Branch:** cursor/tab-bar-clearance-5fa1
+- **Files:** chla-ios/CHLA-iOS/Views/Components/TabBarClearance.swift, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/RegionalCenterMapView.swift, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** On 1.4.6 (2) the floating tab bar covered the bottom of the More list, every page pushed from More or Browse (such as More > Settings > About), the Regions list and the map badges. The tab container ignored safe areas, so each tab hardcoded its own clearance or had none, and SwiftUI insets do not reach pages inside a NavigationStack.
+- **Fix:** Every tab reserves the bar's measured height plus a 12pt margin above the home indicator: safe-area padding on Home, Map and Regions, and additionalSafeAreaInsets on the Browse and More navigation controllers so pushed pages inherit it. The tab container respects the bottom safe area, hardcoded bottom offsets are gone, and the map's Show Controls button stacks above the badges. Static checks only; needs an Xcode build and a device pass.
+
+---
+
+### 2026-10-23 — iOS: every page keeps its last row clear of the floating tab bar
+- **Branch:** cursor/iphone-duo-readiness-5fa1
+- **Files:** chla-ios/CHLA-iOS/Views/Components/TabBarClearance.swift, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/RegionalCenterMapView.swift, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** On 1.4.6 (2) the floating tab bar covered the last rows of pages such as More > Settings > About. This branch's container-level inset only reached Home, Map and Regions, because SwiftUI insets do not cross into a NavigationStack: Browse, More and every page pushed from them still ran under the bar, and the map's Show Controls button landed on the resource count badge.
+- **Fix:** The bar's measured height plus a 12pt margin is reserved on every tab: safe-area padding on Home, Map and Regions, and additionalSafeAreaInsets on the Browse and More navigation controllers so pushed pages inherit it. Home's chat capsule, the map badges and the Regions legend sit on that margin; Show Controls stacks above the badges. Static checks only; needs an Xcode build and a device pass.
+
+---
+
 ### 2026-10-23 — Provider count wording: "Over 300 providers" in en/es
 - **Branch:** fix/provider-count-wording
 - **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json, map-frontend/public/og-image.svg, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/FAQView.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/SOCIAL_IMAGES_GUIDE.md, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md
@@ -162,6 +178,14 @@ Format:
 - **Files:** chla-ios/AppStoreMetadata.md, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
 - **Problem:** Users searching "kindd" on an iPhone get autocorrected to "kind"/"kinky" results; the live keyword field repeated subtitle words and had no misspelling or domain terms; promotional text was blank on 1.4.3; no Spanish store listing despite a bilingual app.
 - **Fix:** Promo text restored on live 1.4.3. Version 1.4.4 created in App Store Connect via API with subtitle "Autism & Regional Center Help", single-word keywords including `kind` and `kinddhelp`, and a full es-MX listing. `MARKETING_VERSION` bumped to 1.4.4 so the next release.sh build attaches to it.
+
+---
+
+### 2026-10-06 — iOS layout ready for iPhone Duo and resizable windows
+- **Branch:** cursor/iphone-duo-readiness-5fa1
+- **Files:** chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/RegionalCenterMapView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/ProviderDetailView.swift, chla-ios/CHLA-iOS/Views/RegionalCentersView.swift, chla-ios/CHLA-iOS/Views/ChatView.swift, chla-ios/CHLA-iOS/Views/OnboardingView.swift, chla-ios/CHLA-iOS/Views/Components/ReadableContentWidth.swift, chla-ios/CHLA-iOS/Resources/Info.plist, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj, chla-ios/project.yml
+- **Problem:** iOS 27 SDK apps resize on iPhone Duo, whose inner display puts the status bar on the right edge. The tab container ignored safe areas and each tab hardcoded status and tab bar heights; chat bubbles sized from `UIScreen.main`; onboarding could not scroll in short windows; the generic orientation key listed portrait only.
+- **Fix:** Tabs lay out inside the safe area, with the floating tab bar and Regions picker as safe-area insets and only maps and backgrounds bleeding. Chat bubbles size from the measured column, onboarding steps scroll when they do not fit, wide windows get a readable-width column, and all orientations are declared. Static checks only; still needs an Xcode build and an iPhone Duo simulator pass.
 
 ---
 
