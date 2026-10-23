@@ -79,7 +79,7 @@ regional center,disability,healthcare,resources,autism,developmental,services,LA
 Find healthcare resources and service providers for individuals with neurodevelopmental disabilities across Los Angeles County Regional Centers.
 
 FEATURES:
-• Interactive map of 300+ verified resources
+• Interactive map of over 300 providers
 • Filter by Regional Center service area
 • Turn-by-turn directions to providers
 • Detailed provider information including services and contact details

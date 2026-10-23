@@ -206,7 +206,7 @@ struct AboutView: View {
                 .foregroundStyle(.secondary)
 
             HStack {
-                StatBox(value: "300+", label: L10n.Home.resources)
+                StatBox(value: "provider.count".localized, label: "provider.plural".localized)
                 StatBox(value: "7", label: L10n.Home.centers)
                 StatBox(value: L10n.Home.free, label: L10n.Home.always)
             }
@@ -405,6 +405,8 @@ struct StatBox: View {
                 .font(.title3)
                 .fontWeight(.bold)
                 .foregroundColor(.accentBlue)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Text(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)

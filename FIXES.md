@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-23 — Provider count wording: "Over 300 providers" in en/es
+- **Branch:** fix/provider-count-wording
+- **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json, map-frontend/public/og-image.svg, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/FAQView.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/SOCIAL_IMAGES_GUIDE.md, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md
+- **Problem:** App and current marketing copy described the directory as 300+ resources or providers, while the approved wording is over 300 providers.
+- **Fix:** Web About stat and iOS home, About, Settings and FAQ read "Over 300 Providers" / "Más de 300 Proveedores" through en/es strings (iOS FAQ answer was hardcoded English). About stat value is one line with scale-down so "Más de 300" fits the three-column row. Store metadata, presentation and social image copy match. Ships in iOS 1.4.6 build 2.
+
+---
+
 ### 2026-10-23 — Provider count copy: 370+/600+ to 300+
 - **Branch:** fix/provider-count-300
 - **Files:** chla-ios/CHLA-iOS/Views/{AboutView,FAQView,SettingsView}.swift, chla-ios/CHLA-iOS/App/ContentView.swift, map-frontend/src/views/AboutView.vue, map-frontend/public/og-image.svg, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md, docs/SOCIAL_IMAGES_GUIDE.md

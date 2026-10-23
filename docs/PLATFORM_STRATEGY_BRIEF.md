@@ -41,7 +41,7 @@ The iOS app provides the clearest user-facing expression of the product. The hom
 The App Store submission materials in `chla-ios/APP_STORE_SUBMISSION.md` describe the current public-facing positioning:
 
 - all 7 LA County Regional Centers,
-- 300+ verified providers/resources,
+- over 300 providers,
 - bilingual AI assistance,
 - smart search by therapy, insurance, age, and diagnosis,
 - and location-based discovery with directions.
