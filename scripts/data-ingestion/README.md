@@ -21,7 +21,13 @@ cp .env.example .env   # fill in your contact email
 ## Example run
 
 ```bash
-python fetch_npi_providers.py \
+# County-wide search (recommended for deliverables)
+python3 fetch_npi_providers.py \
+  --taxonomy "Behavior Analyst" \
+  --out deliverables/npi_behavior_analysts.csv
+
+# Or narrow API queries by city (still post-filters to county ZIPs)
+python3 fetch_npi_providers.py \
   --taxonomy "Behavior Analyst" \
   --city "Los Angeles" --city "Long Beach" --city "Pasadena" \
   --out output/npi_behavior_analysts.csv
