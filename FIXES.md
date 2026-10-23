@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-23 — iOS: every page reserves room for the floating tab bar
+- **Branch:** cursor/tab-bar-clearance-5fa1
+- **Files:** chla-ios/CHLA-iOS/Views/Components/TabBarClearance.swift, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/RegionalCenterMapView.swift, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** On 1.4.6 (2) the floating tab bar covered the bottom of the More list, every page pushed from More or Browse (such as More > Settings > About), the Regions list and the map badges. The tab container ignored safe areas, so each tab hardcoded its own clearance or had none, and SwiftUI insets do not reach pages inside a NavigationStack.
+- **Fix:** Every tab reserves the bar's measured height plus a 12pt margin above the home indicator: safe-area padding on Home, Map and Regions, and additionalSafeAreaInsets on the Browse and More navigation controllers so pushed pages inherit it. The tab container respects the bottom safe area, hardcoded bottom offsets are gone, and the map's Show Controls button stacks above the badges. Static checks only; needs an Xcode build and a device pass.
+
+---
+
 ### 2026-10-23 — iOS: every page keeps its last row clear of the floating tab bar
 - **Branch:** cursor/iphone-duo-readiness-5fa1
 - **Files:** chla-ios/CHLA-iOS/Views/Components/TabBarClearance.swift, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/RegionalCenterMapView.swift, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
