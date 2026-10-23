@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-23 — Provider count copy: 370+/600+ to 300+
+- **Branch:** fix/provider-count-300
+- **Files:** chla-ios/CHLA-iOS/Views/{AboutView,FAQView,SettingsView}.swift, chla-ios/CHLA-iOS/App/ContentView.swift, map-frontend/src/views/AboutView.vue, map-frontend/public/og-image.svg, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md, docs/SOCIAL_IMAGES_GUIDE.md
+- **Problem:** App and store copy claimed 370+ or 600+ verified resources; production `/api/providers/` returns count 307 on 2026-10-19.
+- **Fix:** All live counts read 300+ (es: más de 300). CHANGELOG and archived docs left as historical record. iOS goes to 1.4.6 so the in-app counts and the App Store description (en 370+, es-MX 600+) can be corrected; 1.4.5 is already approved and its description is locked.
+
+---
+
 ### 2026-10-23 — About page lists the board of directors
 - **Branch:** feat/about-board
 - **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json

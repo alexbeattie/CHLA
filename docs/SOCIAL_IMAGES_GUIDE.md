@@ -274,7 +274,7 @@ Before deploying, ensure these files exist in `/map-frontend/public/`:
 │               in Los Angeles County                │
 │                                                     │
 │                                                     │
-│         Free Interactive Map • 370+ Providers      │
+│         Free Interactive Map • 300+ Providers      │
 │              KiNDD - NDD Resource Navigator         │
 │                                                     │
 │                   [Map Visual]                     │
