@@ -13,6 +13,14 @@ Format:
 
 ---
 
+### 2026-10-23 — iOS: every page keeps its last row clear of the floating tab bar
+- **Branch:** cursor/iphone-duo-readiness-5fa1
+- **Files:** chla-ios/CHLA-iOS/Views/Components/TabBarClearance.swift, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/ProviderListView.swift, chla-ios/CHLA-iOS/Views/HomeView.swift, chla-ios/CHLA-iOS/Views/MapContainerView.swift, chla-ios/CHLA-iOS/Views/RegionalCenterMapView.swift, chla-ios/CHLA-iOS.xcodeproj/project.pbxproj
+- **Problem:** On 1.4.6 (2) the floating tab bar covered the last rows of pages such as More > Settings > About. This branch's container-level inset only reached Home, Map and Regions, because SwiftUI insets do not cross into a NavigationStack: Browse, More and every page pushed from them still ran under the bar, and the map's Show Controls button landed on the resource count badge.
+- **Fix:** The bar's measured height plus a 12pt margin is reserved on every tab: safe-area padding on Home, Map and Regions, and additionalSafeAreaInsets on the Browse and More navigation controllers so pushed pages inherit it. Home's chat capsule, the map badges and the Regions legend sit on that margin; Show Controls stacks above the badges. Static checks only; needs an Xcode build and a device pass.
+
+---
+
 ### 2026-10-23 — Provider count wording: "Over 300 providers" in en/es
 - **Branch:** fix/provider-count-wording
 - **Files:** map-frontend/src/views/AboutView.vue, map-frontend/src/i18n/locales/en.json, map-frontend/src/i18n/locales/es.json, map-frontend/public/og-image.svg, chla-ios/CHLA-iOS/App/ContentView.swift, chla-ios/CHLA-iOS/Views/AboutView.swift, chla-ios/CHLA-iOS/Views/SettingsView.swift, chla-ios/CHLA-iOS/Views/FAQView.swift, chla-ios/CHLA-iOS/Resources/en.lproj/Localizable.strings, chla-ios/CHLA-iOS/Resources/es.lproj/Localizable.strings, chla-ios/AppStoreMetadata.md, chla-ios/APP_STORE_SUBMISSION.md, chla-ios/APP_STORE_SUBMISSION_GUIDE.md, chla-ios/presentation/slide.html, docs/SOCIAL_IMAGES_GUIDE.md, docs/PLATFORM_STRATEGY_BRIEF.md, docs/NONPROFIT_REGISTRATION_TASK_BRIEF.md

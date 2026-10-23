@@ -110,6 +110,7 @@ struct ProviderListView: View {
                 }
                 .ignoresSafeArea()
             }
+            .navigationTabBarClearance()
             .navigationTitle(L10n.Resources.title)
             .searchable(
                 text: $searchText,

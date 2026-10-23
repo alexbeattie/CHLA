@@ -54,7 +54,6 @@ struct RegionalCenterMapView: View {
                 Spacer()
                 legendView
                     .padding(.horizontal)
-                    .padding(.bottom, 8)
                     .offset(y: visibilityManager.isHeaderVisible ? 0 : 100)
                     .opacity(visibilityManager.isHeaderVisible ? 1 : 0)
             }

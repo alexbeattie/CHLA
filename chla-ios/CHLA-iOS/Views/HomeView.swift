@@ -59,7 +59,6 @@ struct HomeView: View {
         .safeAreaInset(edge: .bottom) {
             chatCapsule
                 .readableContentWidth()
-                .padding(.bottom, 10)
         }
         .onAppear {
             resolveRegionalCenter()
