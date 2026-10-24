@@ -142,6 +142,21 @@ Location permission is optional; every feature works by entering a ZIP code inst
 | Build   | 2 (build 1, uploaded 2026-07-07, included iPad in the device family, and review submission was blocked on missing iPad Pro screenshots; build 2 is iPhone-only and is the submitted build) |
 
 
+## What's New - 1.4.7 (paste into App Store Connect)
+
+```
+The tab bar no longer covers the bottom of the screen. The last rows, buttons, and links on every page, including Share feedback, the survey's Submit button, Settings, FAQ, and the Regional Centers list, now scroll fully into view.
+```
+
+## What to Test - 1.4.7 (paste into TestFlight)
+
+```
+1. Scroll to the bottom of Home, Resources, Regions (List), and More: the last item sits fully above the tab bar.
+2. More -> Settings, then About, Share feedback, FAQ, How to use KiNDD, Search Filters, and Regional Centers: scroll to the end of each and confirm the last row or button can be read and tapped.
+3. Map: the regional center and resource count badges sit above the tab bar. Tap the map to hide controls; Show Controls appears above the badges, not on top of them.
+4. Home -> About KINDD and FAQ open as sheets with no extra blank space at the bottom.
+```
+
 ## What's New - 1.4.3 (paste into App Store Connect)
 
 ```

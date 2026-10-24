@@ -63,28 +63,11 @@ struct MapContainerView: View {
             // Loading overlay
             loadingOverlay
 
-            // Bottom info and results preview
+            // Bottom info, results preview, and the show-controls button
             bottomOverlay
 
             if showHowToTip {
                 howToTipOverlay
-            }
-
-            // Show UI button (appears when UI is hidden)
-            if !visibilityManager.isHeaderVisible {
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        ShowControlsButton {
-                            visibilityManager.showUI()
-                        }
-                        .padding(.trailing, 20)
-                        .padding(.bottom, 100)
-                    }
-                }
-                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.8)))
-                .animation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.3), value: visibilityManager.isHeaderVisible)
             }
         }
         .sheet(isPresented: $showFilters) {
@@ -323,7 +306,7 @@ struct MapContainerView: View {
             MapCompass()
             MapScaleView()
         }
-        .ignoresSafeArea(edges: .top)
+        .ignoresSafeArea()
         .onTapGesture {
             // Tap on map to toggle UI visibility
             visibilityManager.toggleUI()
@@ -472,8 +455,21 @@ struct MapContainerView: View {
 
     @ViewBuilder
     private var bottomOverlay: some View {
-        VStack {
+        VStack(spacing: 0) {
             Spacer()
+
+            // Show UI button (appears when UI is hidden), stacked above the
+            // badges so the two never overlap
+            if !visibilityManager.isHeaderVisible {
+                HStack {
+                    Spacer()
+                    ShowControlsButton {
+                        visibilityManager.showUI()
+                    }
+                }
+                .padding(.horizontal)
+                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.8)))
+            }
 
             HStack {
                 // Regional Center badge (if detected)
@@ -495,6 +491,7 @@ struct MapContainerView: View {
             }
             .padding()
         }
+        .clearsFloatingTabBar()
     }
 
     @ViewBuilder

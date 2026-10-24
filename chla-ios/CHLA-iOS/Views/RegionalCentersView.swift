@@ -117,7 +117,9 @@ struct RegionalCentersView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .searchable(text: $searchText, prompt: "Search centers")
+        .clearsFloatingTabBar()
+        // iOS 26 otherwise puts the search field at the bottom, behind the tab bar
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search centers")
         .sheet(item: $selectedCenter) { center in
             RegionalCenterDetailSheet(center: center)
                 .presentationDetents([.large])

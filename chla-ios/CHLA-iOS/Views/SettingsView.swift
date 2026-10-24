@@ -289,6 +289,7 @@ struct SettingsView: View {
                     Text("Use Edit Profile & Onboarding above to revisit the welcome setup.")
                 }
             }
+            .clearsFloatingTabBar()
             .navigationTitle("Settings")
             .introSheet(isPresented: $showIntro)
             .onAppear {
@@ -379,6 +380,7 @@ struct FiltersEditView: View {
                 }
             }
         }
+        .clearsFloatingTabBar()
         .navigationTitle("Edit Filters")
         .navigationBarTitleDisplayMode(.inline)
     }
